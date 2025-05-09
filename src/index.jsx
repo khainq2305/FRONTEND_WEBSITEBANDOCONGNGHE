@@ -1,5 +1,6 @@
+import './index.css'; // phải nằm ở trên cùng
 import { createRoot } from 'react-dom/client';
-
+import './index.css'; // ⚠️ IMPORT TAILWIND Ở ĐÂY – RẤT QUAN TRỌNG
 // style.scss
 import './assets/Admin/style.css';
 

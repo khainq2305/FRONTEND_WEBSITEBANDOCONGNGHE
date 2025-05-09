@@ -1,3 +1,4 @@
+// src/layout/Client/ClientLayout.jsx
 import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Header from './Header';
@@ -7,16 +8,30 @@ import Topbar from './Topbar';
 
 const ClientLayout = () => {
   const location = useLocation();
-  const isAuthPage = location.pathname === '/dang-nhap' || location.pathname === '/dang-ky';
+  
+  // ✅ Kiểm tra nếu là các trang Auth và OTP
+  const isAuthPage = [
+    '/dang-nhap',
+    '/dang-ky',
+    '/quen-mat-khau',
+    '/dat-lai-mat-khau',
+    '/otp-verification', // ✅ Thêm OTP vào đây
+    '/forgot-password-notice',
+    '/register-email-sent'
+  ].includes(location.pathname);
 
   return (
     <>
-      {isAuthPage ? <AuthHeader /> : <>
-        <Topbar />
-        <Header />
-      </>}
+      {isAuthPage ? (
+        <AuthHeader />
+      ) : (
+        <>
+          <Topbar />
+          <Header />
+        </>
+      )}
 
-      <main style={{ padding: '1rem' }}>
+      <main style={{ padding: isAuthPage ? '0' : '1rem', minHeight: '80vh' }}>
         <Outlet />
       </main>
 
