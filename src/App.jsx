@@ -5,16 +5,16 @@ import Toastify from 'components/common/Toastify';
 import ScrollTop from './components/Admin/ScrollTop';
 
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import './assets/Client/css/global.css'; // ✅ Đảm bảo đường dẫn đúng tới global.css
-// Nếu dùng biến môi trường, import như sau:
-const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID; // hoặc thay bằng client ID thật nếu chưa dùng .env
+import './assets/Client/css/global.css'; 
+import './index.css';
+
+const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID; 
 
 export default function App() {
   return (
     <GoogleOAuthProvider clientId={clientId}>
       <ThemeCustomization>
         <ScrollTop>
-          
           <Toastify />
           <RouterProvider router={router} />
         </ScrollTop>

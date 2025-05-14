@@ -10,7 +10,6 @@ const API = axios.create({
   withCredentials: true,
 });
 
-// ✅ Đảm bảo token luôn được thêm vào Header Authorization
 API.interceptors.request.use((config) => {
   const token = localStorage.getItem("token") || sessionStorage.getItem("token");
   if (token) {

@@ -11,10 +11,14 @@ export const API_ENDPOINT = {
       google: '/google',
       facebook: '/facebook',
       verifyEmail: '/verify-email', 
+      verifyResetToken: '/verify-reset-token', // ✅ Thêm đúng endpoint này
       forgotPassword: '/forgot-password', // 👈 thêm endpoint này
-      
+      checkVerificationStatus: '/check-verification-status', // ✅ Thêm endpoint này
       resendForgotPassword: '/resend-forgot-password',
-      resetPassword: '/reset-password' ,  // 👈 thêm endpoint này
+      checkResetStatus: '/check-reset-status', // ✅ Thêm endpoint này
+      resetPassword: '/reset-password' , 
+       // 👈 thêm endpoint này
+       verificationCooldown: '/verification-cooldown', // ✅ Thêm endpoint này
       userInfo: '/user-info' // ✅ Endpoint lấy thông tin người dùng
     }
   },

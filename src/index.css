@@ -1,3 +1,20 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+@import "slick-carousel/slick/slick.css";
+@import "slick-carousel/slick/slick-theme.css";
+
+@import "tailwindcss";
+/* Đặt font mặc định là Roboto */
+body {
+  font-family: 'Roboto', sans-serif !important;
+}
+li {
+  position: relative;
+  z-index: 10 !important;
+}
+img {
+  object-fit: contain;
+}
+
+.w-full.rounded-lg.shadow {
+  max-height: 400px;
+}

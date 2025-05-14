@@ -1,40 +1,28 @@
 :root {
-  --primary-color: #B30000; /* Đỏ đậm - Nổi bật */
-  --secondary-color: #1A1A1A; /* Đen đậm - Nền tối */
-  --neutral-color: #333333; /* Xám đậm - Độ tương phản */
-  --light-color: #FFFFFF; /* Trắng */
-  --text-color: #FFFFFF; /* Chữ trắng */
-  --error-color: #B30000; /* Đỏ đậm - Thông báo lỗi */
-  --link-color: #007BFF; /* Xanh đậm cho nút gửi lại */
-  --link-disabled-color: #007BFF80; /* Xanh nhạt khi bị disable */
-  --main-max-width: 1220px; /* Giá trị mặc định */
+  --primary-color: #B30000; 
+  --secondary-color: #1A1A1A; 
+  --neutral-color: #333333; 
+  --light-color: #FFFFFF; 
+  --text-color: #FFFFFF; 
+  --error-color: #B30000; 
+  --link-color: #007BFF; 
+  --link-disabled-color: #007BFF80; 
+
 
 }
 
- 
-
-/* Áp dụng biến cho main */
-main {
-  max-width: var(--main-max-width); /* đúng */
-  width: 100%;
-  margin: 0 auto;
-  padding: 0 15px;
-}
-
-
-/* ✅ Nền đỏ đậm cho nút "KẾ TIẾP" */
 .bg-primary-color {
   background-color: var(--primary-color) !important;
   transition: background-color 0.3s;
 }
 
-/* ✅ Nền đỏ mờ khi bị disable */
+
 .bg-primary-color-disabled {
   background-color: rgba(179, 0, 0, 0.5) !important;
   cursor: not-allowed;
 }
 
-/* ✅ Màu xanh cho nút "Gửi lại" */
+
 .text-link-color {
   color: var(--link-color) !important;
   font-weight: 600;
@@ -43,20 +31,20 @@ main {
   transition: color 0.2s;
 }
 
-/* ✅ Màu mờ khi bị disabled */
+
 .text-link-disabled {
   color: var(--link-disabled-color) !important;
   cursor: not-allowed;
   text-decoration: none;
 }
 
-/* ✅ Text và thông báo lỗi */
+
 .text-light-color {
   color: var(--light-color) !important;
 }
 
 .text-error-color {
   color: var(--error-color) !important;
-  font-size: 0.875rem; /* Cỡ chữ nhỏ hơn */
+  font-size: 0.875rem;
   margin-top: 0.5rem;
 }

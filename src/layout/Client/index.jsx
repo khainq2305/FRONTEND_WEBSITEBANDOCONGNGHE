@@ -5,7 +5,7 @@ import Header from './Header';
 import Footer from './Footer';
 import AuthHeader from './AuthHeader';
 import Topbar from './Topbar';
-
+import BottomNavigationBar from "./BottomNavigationBar"; // IMPORT COMPONENT MỚI
 const ClientLayout = () => {
   const location = useLocation();
   
@@ -24,18 +24,23 @@ const ClientLayout = () => {
     <>
       {isAuthPage ? (
         <AuthHeader />
-      ) : (
+      ) : ( 
         <>
           <Topbar />
           <Header />
         </>
       )}
 
-      <main style={{ padding: isAuthPage ? '0' : '1rem', minHeight: '80vh' }}>
+      <main>
         <Outlet />
       </main>
 
       <Footer />
+        <BottomNavigationBar />
+
+      {/* Thêm một khoảng trống ở cuối trang để nội dung không bị thanh nav che mất */}
+      {/* Chiều cao của khoảng trống này nên bằng hoặc lớn hơn chiều cao của BottomNavigationBar (56px) */}
+      <div className="pb-[56px] lg:pb-0"></div>
     </>
   );
 };

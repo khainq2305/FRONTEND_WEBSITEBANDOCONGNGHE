@@ -8,15 +8,15 @@ const ForgotPasswordPage = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(""); // ✅ Lỗi dưới input
+  const [error, setError] = useState(""); 
 
-  // ✅ Kiểm tra email hợp lệ
+  
   const validateEmail = (email) => {
     const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
     return emailRegex.test(email);
   };
 
-  // ✅ Gửi yêu cầu đặt lại mật khẩu
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (loading) return;
@@ -24,12 +24,12 @@ const ForgotPasswordPage = () => {
     setError("");
 
     if (!email.trim()) {
-      setError("❌ Vui lòng nhập email của bạn!");
+      setError("Vui lòng nhập email của bạn!");
       return;
     }
 
     if (!validateEmail(email)) {
-      setError("❌ Định dạng email không hợp lệ!");
+      setError("Định dạng email không hợp lệ!");
       return;
     }
 
@@ -37,10 +37,10 @@ const ForgotPasswordPage = () => {
 
     try {
       await authService.forgotPassword({ email });
-      toast.success("✅ Đã gửi liên kết đặt lại mật khẩu đến email của bạn.");
+      toast.success("Đã gửi liên kết đặt lại mật khẩu đến email của bạn.");
       navigate("/forgot-password-notice", { state: { email } });
     } catch (err) {
-      const errorMessage = err?.response?.data?.message || "❌ Lỗi xảy ra!";
+      const errorMessage = err?.response?.data?.message || "Lỗi xảy ra!";
       setError(errorMessage);
     } finally {
       setLoading(false);

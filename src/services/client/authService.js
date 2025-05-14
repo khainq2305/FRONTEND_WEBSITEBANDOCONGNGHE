@@ -24,15 +24,24 @@ export const authService = {
   verifyEmail: (token) =>
     get(`${base}${API_ENDPOINT.client.auth.verifyEmail}?token=${token}`), // 👈 thêm hàm này
   resendVerificationLink: (data) => post(`${base}${API_ENDPOINT.client.auth.resendVerificationLink}`, data),
+  checkVerificationStatus: (email) =>
+    get(`${base}${API_ENDPOINT.client.auth.checkVerificationStatus}?email=${email}`), // ✅ Thêm API kiểm tra xác thực
   forgotPassword: (data) =>
     post(`${base}${API_ENDPOINT.client.auth.forgotPassword}`, data),
   resendForgotPassword: (data) => post(`${base}${API_ENDPOINT.client.auth.resendForgotPassword}`, data), // ✅ API gửi lại email
   // ✅ Đặt lại mật khẩu với token (SỬA LẠI ĐÚNG POST)
   resetPassword: (data) =>
     post(`${base}${API_ENDPOINT.client.auth.resetPassword}`, data), // 👈 Đúng hàm post
+  // ✅ Xác thực token đặt lại mật khẩu (Mới thêm)
+  verifyResetToken: (token) =>
+    get(`${base}${API_ENDPOINT.client.auth.verifyResetToken}?token=${token}`),
+  checkResetStatus: (email) =>
+    get(`${API_ENDPOINT.client.auth.base}${API_ENDPOINT.client.auth.checkResetStatus}?email=${email}`),
   getUserInfo: () => {
-    console.log("🔎 Đang gọi API lấy thông tin người dùng");
+   
     return get(`${base}${API_ENDPOINT.client.auth.userInfo}`);
   },
+  getVerificationCooldown: (email) =>
+    get(`${base}${API_ENDPOINT.client.auth.verificationCooldown}?email=${email}`),
   logout: () => post(`${base}/logout`, {}, { withCredentials: true }),
 };
