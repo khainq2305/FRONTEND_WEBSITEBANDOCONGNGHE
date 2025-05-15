@@ -27,7 +27,7 @@ const Card = () => {
             {/* Ảnh + nội dung chính */}
             <div className="flex items-center gap-3 mb-2">
               {/* Ảnh */}
-              <div className="w-[100px] h-[20px]" >
+              <div className="w-[100px] h-[60px]" >
                 <img
                   src={dienthoai}
                   alt=""
@@ -40,7 +40,7 @@ const Card = () => {
                 <h1 className="font-bold text-sm pb-1">
                   Đánh giá Oppo Reno12 5G: Điện thoại tầm trung sở hữu AI đỉnh cao
                 </h1>
-                <p className="text-sm text-gray-500"><FontAwesomeIcon icon={faClock} style={{ color: "#000" }} /> 10/20/2001</p>
+                <p className="text-xs text-gray-500"><FontAwesomeIcon icon={faClock} style={{ color: "#000" }} /> 10/20/2001</p>
               </div>
             </div>
 

@@ -51,8 +51,8 @@ const Carousel2 = ({ title }) => {
     <div className="bg-gray-200 rounded-md shadow-md p-2 md:p-4 overflow-hidden relative group">
       {/* Nút tiến lùi */}
       <div className="absolute top-1/2 left-0 right-0 -translate-y-1/2 flex justify-between px-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <Button icon="‹" w="40px" h="40px" className="border-r rounded-l-md" onClick={prevSlide} />
-        <Button icon="›" w="40px" h="40px" className="rounded-r-md" onClick={nextSlide} />
+        <Button icon="‹" w="40px" h="40px" className="border-r rounded-l-md bg-gray-200 opacity-70" onClick={prevSlide} />
+        <Button icon="›" w="40px" h="40px" className="rounded-r-md bg-gray-200 opacity-70" onClick={nextSlide} />
       </div>
 
       {/* Tiêu đề */}
