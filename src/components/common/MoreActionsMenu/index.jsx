@@ -16,7 +16,7 @@ const MoreActionsMenu = ({ onView, onEdit, onDelete }) => {
         <MoreVertIcon />
       </IconButton>
       <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
-        {onView && <MenuItem onClick={() => { onView(); handleClose(); }}>Xem</MenuItem>}
+        {onView && <MenuItem onClick={() => { onView(); handleClose(); }}>Chi tiết</MenuItem>}
         {onEdit && <MenuItem onClick={() => { onEdit(); handleClose(); }}>Sửa</MenuItem>}
         {onDelete && <MenuItem onClick={() => { onDelete(); handleClose(); }}>Xoá</MenuItem>}
       </Menu>

@@ -65,9 +65,8 @@ const CartPage = () => {
               className="flex items-center gap-2 cursor-pointer"
             >
               <div
-                className={`w-5 h-5 border rounded-sm flex items-center justify-center ${
-                  isAllChecked ? "bg-red-600 border-red-600" : "border-gray-400"
-                }`}
+                className={`w-5 h-5 border rounded-sm flex items-center justify-center ${isAllChecked ? "bg-red-600 border-red-600" : "border-gray-400"
+                  }`}
               >
                 {isAllChecked && <span className="text-white text-xs font-bold">✓</span>}
               </div>

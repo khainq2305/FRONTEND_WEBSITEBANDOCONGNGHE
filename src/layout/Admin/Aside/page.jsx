@@ -1,11 +1,17 @@
 // assets
-import { LoginOutlined, ProfileOutlined, TableOutlined } from '@ant-design/icons';
+import {
+  LoginOutlined,
+  ProfileOutlined,
+  TableOutlined,
+  FileTextOutlined 
+} from '@ant-design/icons';
 
 // icons
 const icons = {
   LoginOutlined,
   ProfileOutlined,
-  TableOutlined
+  TableOutlined,
+  FileTextOutlined 
 };
 
 // ==============================|| MENU ITEMS - FLAT AUTH PAGES ||============================== //
@@ -33,6 +39,14 @@ const pages = [
     type: 'item',
     url: '/admin/basic-table',
     icon: icons.TableOutlined,
+    breadcrumbs: false
+  },
+  {
+    id: 'orderlist',
+    title: 'Đơn hàng',
+    type: 'item',
+    url: '/admin/orders',
+    icon: icons.FileTextOutlined,
     breadcrumbs: false
   }
 ];
