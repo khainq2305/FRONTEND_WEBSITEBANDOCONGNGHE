@@ -55,24 +55,23 @@ const Carousel = () => {
         </div>
       </div>
 
-      <div className="flex justify-center gap-3 py-2 md:py-4 transition-all duration-500">
-        {currentItems.map((post, idx) => (
-          <div key={idx} >
-            <div className='w-[150px] h-[80px] md:w-[240px] md:h-[120px] overflow-hidden rounded flex-shrink-0 '>
-              <img
-              src={post.image}
-              alt="Galaxy S25"
-              className="w-full h-full object-cover rounded"
-              // style={{ width: '240px', height: '120px' }}
-            />
-            </div>
-            <div className="px-1">
-              <h3 className="text-sm font-medium mt-2 text-justify px-1">{post.title}</h3>
-              <span className="text-xs text-gray-500"><FontAwesomeIcon icon={faClock} style={{ color: "#000" }} /> {post.date}</span>
-            </div>
-          </div>
-        ))}
+     <div className="flex justify-center gap-1 py-2 md:py-4 transition-all duration-500">
+  {currentItems.map((post, idx) => (
+    <div key={idx}>
+      <div className='w-[150px] h-[80px] md:w-[240px] md:h-[120px] overflow-hidden rounded flex-shrink-0 bg-gray-200'> {/* Thêm màu nền để thấy khoảng trống nếu có */}
+        <img
+          src={post.image}
+          alt="Galaxy S25"
+          className="w-full h-full rounded object-center" 
+        />
       </div>
+      <div className="px-2">
+        <h3 className="text-xs md:text-sm tracking-tight font-medium mt-2 text-justify">{post.title}</h3>
+        <span className="text-xs text-gray-500"><FontAwesomeIcon icon={faClock} style={{ color: "#000" }} /> {post.date}</span>
+      </div>
+    </div>
+  ))}
+</div>
 
       <div className="flex justify-start gap-2">
         <Button icon="‹" w="30px" h="30px" className="border-r rounded-l-md" onClick={prevSlide} />

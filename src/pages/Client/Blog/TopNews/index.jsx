@@ -16,16 +16,16 @@ const TopNews = () => {
 
                 {/* Nội dung + nút chuyển */}
                 <div className="flex flex-1 min-w-0">
-                    <div className="flex-1 flex items-center border rounded rounded-r-none px-3 py-2 min-w-0">
-                        <span className="truncate text-sm">
+                    <div className="flex-1 flex items-center justify-around opacity-90 border border-gray-400 rounded rounded-r-none px-3 py-2 min-w-0">
+                        <span className="truncate text-xs">
                             Cách chỉnh camera iPhone 16 Pro Max chụp hình đẹp như máy cơ
                         </span>
                         <span className="text-gray-500 text-xs flex-shrink-0 ml-4 hidden md:inline">12/03/2025</span>
                     </div>
 
                     {/* Nút chuyển */}
-                    <div className="flex border-t border-b border-r flex-shrink-0 rounded-r-md">
-                        <button className="px-3 border-r border-gray-300 rounded-l-md">‹</button>
+                    <div className="flex border-t border-b border-r border-gray-400 flex-shrink-0 rounded-r-md">
+                        <button className="px-3 border-r border-gray-400 rounded-l-md">‹</button>
                         <button className="px-3 my-auto rounded-r-md">›</button>
                     </div>
                 </div>

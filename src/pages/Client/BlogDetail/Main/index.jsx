@@ -5,27 +5,24 @@ import anh1 from '../../../../assets/Client/images/News/ra-mat-galaxy-s25-edge-1
 const Main = () => {
     return (
         <div className="">
-            {/* <div className="text-justify text-sm text-gray-500 mb-2">
-                Home / Samsung S25 Series
-            </div> */}
 
-            <h1 className="text-justify text-5xl tracking-tight font-bold mb-4">
+            <h1 className="text-justify text-2xl md:text-5xl tracking-tight font-bold mb-4">
                 Samsung ra mắt Galaxy S25 Edge, đối thủ “cân sức” với iPhone 17 Air
             </h1>
 
-            <div className="flex items-center gap-3 my-2 text-sm text-gray-600 flex-wrap pb-4">
+            <div className="flex items-center gap-3 my-2 text-sm text-gray-600 flex-wrap pb-2 md:pb-4">
                 <img src={tacgia} alt="Tác giả" className="w-[35px] h-[35px] rounded-full" />
                 <span className="text-sm text-gray-400">Bởi Nguyễn Lan Hương - 11/11/2011</span>
             </div>
             <div className='pt-4'>
-                <div className="flex justify-center pb-4">
-                <div className="w-[850px] h-[450px]">
+                <div className="flex justify-center pb-4 ">
+                <div className="md:w-[850px] md:h-[450px]">
                     <img src={anh1} className="w-full h-full object-cover rounded" alt="..." />
                 </div>
             </div>
 
 
-            <p className="mb-4 text-justify">
+            <p className="mb-4 text-justify px-2 md:px-0 ">
                 Sau nhiều tin đồn rò rỉ, Samsung chính thức ra mắt Galaxy S25 Edge,
                 mẫu điện thoại thông minh mới trong dòng Galaxy S25, gây chú ý mạnh với
                 thiết kế siêu mỏng cùng nhiều cải tiến đáng giá. Đây được xem là
@@ -36,7 +33,7 @@ const Main = () => {
                 Galaxy S25 Edge ra mắt: Thiết kế siêu mỏng, khung titan cao cấp
             </h2>
 
-            <p className="mb-4 text-justify">
+            <p className="mb-4 text-justify px-2 md:px-0">
                 Ngay từ khi ra mắt Galaxy S25 Edge,
                 Samsung đã nhấn mạnh vào thiết kế mỏng nhẹ của sản phẩm.
                 Thiết bị chỉ dày 5,8mm và nặng 163g,
@@ -45,7 +42,7 @@ const Main = () => {
                 nhưng chênh lệch là không đáng kể.
             </p>
 
-            <p className="mb-4 text-justify">
+            <p className="mb-4 text-justify px-2 md:px-0">
                 Màn hình AMOLED 6,7 inch cho độ sáng cao, hiển thị sắc nét,
                 kết hợp mặt kính Corning Gorilla Glass Ceramic 2 phía trước và sau,
                 tạo nên vẻ ngoài hiện đại nhưng vẫn chắc chắn. Khung máy được làm từ titan,
@@ -54,12 +51,12 @@ const Main = () => {
             </p>
 
             <div className="flex justify-center pb-4">
-                <div className="w-[850px] h-[450px]">
+                <div className="md:w-[850px] md:h-[450px]">
                     <img src={anh1} className="w-full h-full object-cover rounded" alt="..." />
                 </div>
             </div>
 
-            <p className="mb-4 text-justify">
+            <p className="mb-4 text-justify px-2 md:px-0">
                 Điểm đáng chú ý khi ra mắt Galaxy S25 Edge
                 là cụm camera kép cao cấp. Máy sở hữu cảm biến chính 200MP
                 và camera góc siêu rộng 12MP – nâng tầm khả năng chụp ảnh cả
@@ -68,19 +65,19 @@ const Main = () => {
                 lớn cho Samsung về mặt nhiếp ảnh.
             </p>
 
-            <p className="mb-4 text-justify">
+            <p className="mb-4 text-justify px-2 md:px-0">
                 Galaxy S25 Edge được trang bị vi xử lý Snapdragon 8 Elite từ Qualcomm,
                 đi kèm hệ thống tản nhiệt buồng hơi cải tiến,
                 giúp máy duy trì hiệu suất ổn định kể cả khi chơi game hoặc xử lý tác vụ nặng.
             </p>
 
             <div className="flex justify-center pb-4">
-                <div className="w-[850px] h-[450px]">
+                <div className="md:w-[850px] md:h-[450px]">
                     <img src={anh1} className="w-full h-full object-cover rounded" alt="..." />
                 </div>
             </div>
 
-            <div className="mb-4 text-justify">
+            <div className="mb-4 text-justify px-2 md:px-0">
                 <p className="mb-2">
                     Samsung cũng không quên tích hợp hệ thống Galaxy AI với các công cụ như:
                 </p>
@@ -93,12 +90,12 @@ const Main = () => {
             </div>
 
             <div className="flex justify-center pb-4">
-                <div className="w-[850px] h-[450px]">
+                <div className="md:w-[850px] md:h-[450px]">
                     <img src={anh1} className="w-full h-full object-cover rounded" alt="..." />
                 </div>
             </div>
 
-            <p className="mb-4 text-justify">
+            <p className="mb-4 text-justify px-2 md:px-0">
                 Tất cả đều được hỗ trợ bởi Google Gemini,
                 kết quả của sự hợp tác chiến lược giữa Samsung
                 và Google trong lĩnh vực AI. Ngay khi ra mắt điện thoại,
@@ -106,7 +103,7 @@ const Main = () => {
                 điểm từ 1.099,99 USD cho phiên bản 256GB.
             </p>
 
-            <p className="mb-4 text-justify">
+            <p className="mb-4 text-justify px-2 md:px-0">
                 Việc ra mắt Galaxy S25 Edge cho thấy Samsung
                 đang nghiêm túc trong cuộc đua smartphone siêu mỏng,
                 đồng thời sẵn sàng cạnh tranh trực tiếp với Apple. Với
@@ -115,9 +112,9 @@ const Main = () => {
                 tiến trong một thân máy nhỏ gọn, thanh lịch.
             </p>
 
-            <p className="italic text-gray-500 mb-4 text-justify">Nguồn tin: macrumors</p>
+            <p className="italic text-gray-500 mb-4 text-justify px-2 md:px-0">Nguồn tin: macrumors</p>
 
-            <div className="mb-4 text-justify">
+            <div className="mb-4 text-justify px-2 md:px-0">
                 <p className="font-semibold">Đọc thêm:</p>
                 <ul className="list-disc pl-5 text-sm space-y-1">
                     <li>Galaxy S25 Edge ra mắt khi nào? Giá bán bao nhiêu? Có gì mới?</li>
@@ -126,7 +123,7 @@ const Main = () => {
                 </ul>
             </div>
 
-            <div className="mb-4 text-justify">
+            <div className="mb-4 text-justify px-2 md:px-0">
                 <p className="font-semibold">Địa chỉ showroom của Điện thoại Giá Kho tại TP. HCM:</p>
                 <ul className="list-disc pl-5 text-sm space-y-1">
                     <li>121 Chu Văn An, P26, Quận Bình Thạnh, HCM</li>

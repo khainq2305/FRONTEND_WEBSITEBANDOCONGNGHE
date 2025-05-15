@@ -22,6 +22,9 @@ const productPosts = Array.from({ length: 10 }, (_, i) => ({
 const News = () => {
     return (
         <div className="max-w-screen-xl mx-auto w-full px-4">
+            <div className="text-left px-4 py-4">
+                <h1>Trang chủ / Tin tức nổi bật </h1>
+                </div>
             <div className='flex flex-col lg:flex-row justify-between px-0 md:px-4'>
                 <div className="w-full py-4 md:py-0">
                     <TopNews />

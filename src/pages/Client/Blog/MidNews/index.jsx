@@ -37,9 +37,9 @@ const MidNews = () => {
 
   {/* Nội dung */}
   <div className="flex-1 text-left">
-    <h1 className="font-bold text-base sm:text-xl">{item.title}</h1>
+    <h1 className="font-bold text-xs sm:text-xl">{item.title}</h1>
     <div className="hidden sm:flex gap-3 my-2 text-sm text-gray-600 flex-wrap">
-      <p className="flex items-center gap-1">
+      <p className="flex items-center text-xs gap-1">
         <FontAwesomeIcon icon={faClock} style={{ color: "#000" }} />
         {item.date}
       </p>
@@ -48,7 +48,7 @@ const MidNews = () => {
         {item.views}
       </span>
     </div>
-    <p className="py-1 text-sm text-gray-700 line-clamp-2 hidden sm:inline">{item.desc}</p>
+    <p className="py-1 text-xs text-gray-700 line-clamp-2 hidden md:inline">{item.desc}</p>
   </div>
 </div>
 

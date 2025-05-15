@@ -11,9 +11,6 @@ li {
   position: relative;
   z-index: 10 !important;
 }
-img {
-  object-fit: contain;
-}
 
 .w-full.rounded-lg.shadow {
   max-height: 400px;
