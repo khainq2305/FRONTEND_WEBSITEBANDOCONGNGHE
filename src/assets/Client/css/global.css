@@ -1,50 +1,155 @@
 :root {
-  --primary-color: #B30000; 
-  --secondary-color: #1A1A1A; 
-  --neutral-color: #333333; 
-  --light-color: #FFFFFF; 
-  --text-color: #FFFFFF; 
-  --error-color: #B30000; 
-  --link-color: #007BFF; 
-  --link-disabled-color: #007BFF80; 
+  --primary-gradient: linear-gradient(90deg, #1CA7EC, #0047AB);
+  --secondary-gradient: linear-gradient(90deg, #18A5A7, #B6C0C5);
+  --primary-color: #1CA7EC;
+  --secondary-color: #0047AB;
+  --text-primary: #FFFFFF;
+  --text-secondary: #1CA7EC;
+    /* Màu cho nút ở trạng thái thường */
+  --arrow-button-bg-normal: #FFFFFF; /* Nền trắng cho nút thường */
+  --arrow-button-border-normal: #e0e0e0; /* Viền xám nhạt cho nút thường */
+  --arrow-icon-normal: #333333; /* Màu mũi tên thường (đen/xám đậm) */
 
-
+  /* Màu cho nút khi hover */
+  --arrow-button-bg-hover: var(--primary-color); /* Nền xanh khi hover */
+  --arrow-icon-hover: var(--text-primary); /* Mũi tên trắng khi hover */
 }
 
-.bg-primary-color {
+
+.bg-primary-gradient {
+  background: var(--primary-gradient);
+}
+
+.text-gradient {
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.border-gradient {
+  border-image: var(--primary-gradient) 1;
+}
+.bg-primary {
+  background-color: var(--primary-color);
+}
+
+.bg-secondary {
+  background-color: var(--secondary-color);
+}
+
+
+.text-primary {
+  color: var(--primary-color);
+}
+
+.text-secondary {
+  color: var(--secondary-color);
+}
+
+
+.border-primary {
+  border-color: var(--primary-color);
+}
+
+.border-secondary {
+  border-color: var(--secondary-color);
+}
+.hover-primary:hover {
+  background-color: var(--primary-color);
+  color: #fff;
+}
+
+.hover-secondary:hover {
+  background-color: var(--secondary-color);
+  color: #fff;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px; 
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: var(--primary-color);
+  border-radius: 8px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+/* === CUSTOM SWIPER NAVIGATION ARROWS === */
+.swiper-button-next,
+.swiper-button-prev {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  background-color: var(--arrow-button-bg-normal) !important;
+  border: 1px solid var(--arrow-button-border-normal) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease !important;
+
+  
+  display: none !important;
+}
+
+@media (min-width: 1024px) { 
+  .swiper-button-next,
+  .swiper-button-prev {
+    display: flex !important; 
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+  background-color: var(--arrow-button-bg-hover) !important;
+  border-color: var(--arrow-button-bg-hover) !important;
+}
+
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: var(--arrow-icon-normal) !important;
+  transition: color 0.2s ease !important;
+}
+
+.swiper-button-next:hover::after,
+.swiper-button-prev:hover::after {
+  color: var(--arrow-icon-hover) !important;
+}
+
+
+.swiper-button-prev {
+  left: 10px !important;
+}
+
+.swiper-button-next {
+  right: 10px !important; 
+}
+
+.swiper-button-disabled {
+  opacity: 0.4 !important;
+  cursor: auto !important;
+  pointer-events: none !important;
+  background-color: #f0f0f0 !important;
+  border-color: #e0e0e0 !important;
+}
+.swiper-button-disabled::after {
+    color: #999999 !important;
+}
+
+/* === CUSTOM SWIPER PAGINATION DOTS === */
+.swiper-pagination-bullet {
+  width: 8px !important;
+  height: 8px !important;
+  background-color: #ccc !important;
+  opacity: 0.6 !important;
+}
+
+.swiper-pagination-bullet-active {
   background-color: var(--primary-color) !important;
-  transition: background-color 0.3s;
-}
-
-
-.bg-primary-color-disabled {
-  background-color: rgba(179, 0, 0, 0.5) !important;
-  cursor: not-allowed;
-}
-
-
-.text-link-color {
-  color: var(--link-color) !important;
-  font-weight: 600;
-  text-decoration: underline;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-
-.text-link-disabled {
-  color: var(--link-disabled-color) !important;
-  cursor: not-allowed;
-  text-decoration: none;
-}
-
-
-.text-light-color {
-  color: var(--light-color) !important;
-}
-
-.text-error-color {
-  color: var(--error-color) !important;
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
+  opacity: 1 !important;
+  width: 10px !important;
+  height: 10px !important;
 }

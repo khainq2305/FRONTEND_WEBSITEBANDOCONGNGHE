@@ -1,157 +1,179 @@
 // src/components/CategoryMenu.jsx
 import React, { useState, useEffect } from 'react';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, FileSearch } from 'lucide-react';
 
-const CategoryMenu = ({
-  topLevelCategories = [],
-  allCategories = [],
-  isOpen = false,
-  onMouseEnter = () => {},
-  onMouseLeave = () => {}
-}) => {
+const CategoryMenu = ({ topLevelCategories = [], allCategories = [], isOpen = false }) => {
   const [activeL1Category, setActiveL1Category] = useState(null);
   const [level2Display, setLevel2Display] = useState([]);
 
   useEffect(() => {
     if (isOpen) {
-      // Khi menu MỞ:
-      // Nếu chưa có activeL1Category nào (ví dụ: lần đầu mở, hoặc vừa reset)
-      // VÀ có danh sách topLevelCategories, thì tự động chọn mục đầu tiên.
-      if (!activeL1Category && topLevelCategories.length > 0) {
-        const firstCategory = topLevelCategories[0];
-        setActiveL1Category(firstCategory); // Đặt category cấp 1 đầu tiên là active
-        // Tìm con cấp 2 của category cấp 1 đầu tiên này
-        const l2Children = allCategories.filter(cat => cat.parent_id === firstCategory.id);
-        setLevel2Display(l2Children);
+      if (topLevelCategories.length > 0) {
+        if (!activeL1Category || !topLevelCategories.find((cat) => cat.id === activeL1Category.id)) {
+          const firstCategory = topLevelCategories[0];
+          setActiveL1Category(firstCategory);
+        }
+
+        if (activeL1Category) {
+          const l2Children = allCategories.filter((cat) => cat.parent_id === activeL1Category.id);
+          setLevel2Display(l2Children);
+        } else if (topLevelCategories.length > 0) {
+          const firstCategory = topLevelCategories[0];
+          const l2Children = allCategories.filter((cat) => cat.parent_id === firstCategory.id);
+          setLevel2Display(l2Children);
+        }
+      } else {
+        setActiveL1Category(null);
+        setLevel2Display([]);
       }
-      // Nếu đã có activeL1Category rồi (ví dụ người dùng đang di chuột qua lại), không làm gì cả ở đây.
-    } else {
-      // Khi menu ĐÓNG: reset tất cả
-      setActiveL1Category(null);
+    }
+  }, [isOpen, topLevelCategories, activeL1Category, allCategories]);
+
+  useEffect(() => {
+    if (activeL1Category && isOpen) {
+      const l2Children = allCategories.filter((cat) => cat.parent_id === activeL1Category.id);
+      setLevel2Display(l2Children);
+    } else if (!isOpen) {
       setLevel2Display([]);
     }
-  }, [isOpen, topLevelCategories, allCategories, activeL1Category]); // Thêm activeL1Category vào dependency để kiểm tra
+  }, [activeL1Category, isOpen, allCategories]);
 
   const handleCategoryHover = (l1Category) => {
-    setActiveL1Category(l1Category);
-    if (l1Category) {
-      const l2Children = allCategories.filter(cat => cat.parent_id === l1Category.id);
-      setLevel2Display(l2Children);
-    } else {
-      setLevel2Display([]);
+    if (l1Category?.id !== activeL1Category?.id) {
+      setActiveL1Category(l1Category);
     }
   };
 
-  // Không render gì nếu panel không mở (mặc dù isOpen được kiểm tra trong useEffect rồi)
-  if (!isOpen && !activeL1Category) { // Chỉ return null nếu thực sự không có gì để hiển thị
+  if (!isOpen) {
     return null;
   }
 
+  const menuContentOverallHeight = '460px';
 
   return (
     <div
       className={`
-        absolute top-full left-0 right-0 max-w-screen-xl mx-auto mt-0
-        bg-white rounded-b-md shadow-lg z-20 text-black flex
+        absolute top-full left-0 right-0 mt-0 z-20
+        bg-white rounded-b-md shadow-lg text-black flex
         border border-gray-200 border-t-transparent
-        ${isOpen || activeL1Category ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'}
         transition-all duration-200 ease-in-out
+        opacity-100 translate-y-0  /* Luôn hiển thị khi isOpen, không dựa vào activeL1Category nữa */
+        max-w-[780px] /* Chiều rộng menu đã fix, có thể là 980px hoặc 1024px tùy theo ĐMX */
+        mx-auto
       `}
-      style={{ minHeight: '380px' }}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
+      style={{ height: menuContentOverallHeight }}
     >
-      {/* Cột Trái (Danh mục cấp 1) */}
-      <div className="w-[240px] flex-shrink-0 border-r border-gray-200 py-2 max-h-[500px] overflow-y-auto scrollbar-thin">
+      {/* ===== CỘT TRÁI (DANH MỤC CẤP 1) ===== */}
+      <div
+        className="w-[250px] flex-shrink-0 bg-[#F0F0F0] border-r border-gray-200 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100" // Tăng chiều rộng cột trái, đổi màu nền
+        style={{ maxHeight: menuContentOverallHeight }}
+      >
         {topLevelCategories.length > 0 ? (
-            <ul>
+          <ul>
             {topLevelCategories.map((l1Cat) => (
-                <li key={l1Cat.id}>
+              <li key={l1Cat.id} className="block relative">
                 <button
-                    type="button"
-                    className={`w-full text-left px-4 py-2.5 flex justify-between items-center text-sm transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-inset ${
-                    activeL1Category?.id === l1Cat.id ? 'bg-red-50 font-semibold text-red-600' : 'hover:bg-gray-100'
-                    }`}
-                    onMouseEnter={() => handleCategoryHover(l1Cat)}
+                  type="button"
+                  className={`w-full text-left px-4 py-2.5 flex justify-between items-center transition-colors duration-100 ease-in-out
+                                text-sm 
+                                ${
+                                  activeL1Category?.id === l1Cat.id
+                                    ? 'bg-white text-[#0058AB] font-medium'
+                                    : 'text-gray-700 hover:bg-gray-50 hover:text-[#0058AB]'
+                                }`}
+                  onMouseEnter={() => handleCategoryHover(l1Cat)}
                 >
-                    <span>{l1Cat.name}</span>
-                    {allCategories.some(cat => cat.parent_id === l1Cat.id) && (
-                    <ChevronRight className={`w-4 h-4 ${activeL1Category?.id === l1Cat.id ? 'text-red-600' : 'text-gray-400'}`} />
-                    )}
+                  {activeL1Category?.id === l1Cat.id && (
+                    <span className="absolute left-0 top-0 bottom-0 w-1 bg-[#0058AB] rounded-r-sm"></span>
+                  )}
+                  <span className="truncate pr-1">{l1Cat.name}</span>
+                  {allCategories.some((cat) => cat.parent_id === l1Cat.id) && (
+                    <ChevronRight
+                      className={`w-4 h-4 ml-1 flex-shrink-0 transition-colors duration-100 ${
+                        activeL1Category?.id === l1Cat.id ? 'text-[#0058AB]' : 'text-gray-400'
+                      }`}
+                    />
+                  )}
                 </button>
-                </li>
+              </li>
             ))}
-            </ul>
+          </ul>
         ) : (
-            <p className="p-4 text-xs text-gray-400">Không có danh mục.</p>
+          <p className="p-4 text-sm text-gray-500">Không có danh mục.</p>
         )}
       </div>
 
-      {/* Cột Phải (Cấp 2 làm tiêu đề cột, Cấp 3 làm link) */}
-      <div className="flex-1 p-5 max-h-[500px] overflow-y-auto scrollbar-thin">
-        {/* Luôn hiển thị nội dung nếu activeL1Category có giá trị (tức là đã hover hoặc được set mặc định) */}
-        {activeL1Category && level2Display.length > 0 ? (
-          <>
-            <h3 className="text-base font-bold text-red-600 mb-4 flex items-center">
-                <span className="w-1 h-4 bg-red-600 mr-2 rounded-sm"></span>
-                {activeL1Category.name}
-            </h3>
-            <div className="grid grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-5">
-              {level2Display.map((l2Cat) => {
-                const l3Children = allCategories.filter(cat => cat.parent_id === l2Cat.id);
-                return (
-                  <div key={l2Cat.id}>
-                    <h4 className="font-semibold text-sm mb-2 text-gray-800 uppercase truncate">
-                      <a href={l2Cat.slug ? `#${l2Cat.slug}` : '#'} className="hover:text-red-600">
-                        {l2Cat.name}
-                      </a>
-                    </h4>
-                    {l3Children.length > 0 && (
-                      <ul className="space-y-1.5">
-                        {l3Children.map((l3Cat) => (
-                          <li key={l3Cat.id}>
-                            <a
-                              href={l3Cat.slug ? `#${l3Cat.slug}` : '#'}
-                              className="text-xs text-gray-600 hover:text-red-600 hover:underline"
-                            >
-                              {l3Cat.name}
-                            </a>
-                          </li>
-                        ))}
-                        {l2Cat.slug && ( // Chỉ hiện "Xem tất cả" nếu l2Cat có slug
-                            <li className="mt-1.5">
-                                <a href={`#${l2Cat.slug}`} className="text-xs text-blue-600 font-medium hover:text-red-600 hover:underline">
-                                    Xem tất cả
-                                </a>
-                            </li>
-                        )}
-                      </ul>
-                    )}
-                    {/* Trường hợp L2 không có L3 con, nhưng vẫn là một link */}
-                    {l3Children.length === 0 && l2Cat.slug && (
-                        <a href={`#${l2Cat.slug}`} className="text-xs text-blue-600 font-medium hover:text-red-600 hover:underline block mt-1">
-                            Xem chi tiết {l2Cat.name}
-                        </a>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </>
-        ) : (
-          // Hiển thị khi activeL1Category có (tức là đã hover/set mặc định) nhưng level2Display rỗng
-          activeL1Category ? (
-            <div className="flex items-center justify-center h-full text-gray-500 text-sm">
-                Không có chi tiết cho danh mục "{activeL1Category.name}".
-            </div>
-          ) : (
-          // Trường hợp này gần như không xảy ra nếu logic useEffect đúng, nhưng để dự phòng
-            <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-                Đang tải...
-            </div>
-          )
-
+      {/* ===== CỘT PHẢI (NỘI DUNG L2) ===== */}
+      <div
+        className="flex-1 pl-6 pr-5 py-3 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-gray-100"
+        style={{ maxHeight: menuContentOverallHeight }}
+      >
+        {activeL1Category && (
+          <div className="mb-3 pb-2 border-b border-gray-200 flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-[#0058AB] uppercase">{activeL1Category.name}</h3>
+            {allCategories.some((cat) => cat.parent_id === activeL1Category.id) && activeL1Category.slug && (
+              <a
+                href={`#${activeL1Category.slug}`}
+                className="text-xs text-blue-600 hover:text-orange-500 hover:underline font-medium flex items-center whitespace-nowrap flex-shrink-0 ml-3"
+              >
+                Xem tất cả <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+              </a>
+            )}
+          </div>
         )}
+
+        {activeL1Category && level2Display.length > 0 ? (
+          <div className="grid grid-cols-4 sm:grid-cols-5 gap-x-4 gap-y-4">
+            {level2Display.map((l2Cat) => (
+              <div key={l2Cat.id} className="text-center group flex flex-col items-center">
+                <a
+                  href={l2Cat.slug ? `#${l2Cat.slug}` : '#'}
+                  className="block mb-1.5 w-[80px] h-[80px] p-1.5 flex items-center justify-center
+                                   rounded-md hover:shadow-lg transition-all duration-200 bg-white border border-gray-100 group-hover:border-blue-200"
+                >
+                  {l2Cat.imageUrl ? (
+                    <img
+                      src={l2Cat.imageUrl}
+                      alt={l2Cat.name}
+                      className="max-w-full max-h-full object-contain"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        const fallback = e.currentTarget.parentElement.querySelector('.fallback-icon-container');
+                        if (fallback) {
+                          fallback.style.display = 'flex';
+                        }
+                      }}
+                    />
+                  ) : null}
+                  {!l2Cat.imageUrl && (
+                    <div
+                      className={`w-full h-full bg-gray-100 rounded flex items-center justify-center text-gray-300 fallback-icon-container ${l2Cat.imageUrl ? 'hidden' : ''}`}
+                    >
+                      {' '}
+                      {}
+                      <FileSearch className="w-7 h-7 text-gray-400" />
+                    </div>
+                  )}
+                </a>
+                <h4 className="font-normal text-xs leading-snug text-gray-700 group-hover:text-blue-600 transition-colors duration-150 w-full truncate text-center mt-0.5">
+                  <a href={l2Cat.slug ? `#${l2Cat.slug}` : '#'} className="hover:text-blue-600">
+                    {l2Cat.name}
+                  </a>
+                </h4>
+              </div>
+            ))}
+          </div>
+        ) : activeL1Category ? (
+          <div className="flex flex-col items-center justify-center h-[300px] text-gray-500 text-sm py-10 text-center">
+            <FileSearch className="w-12 h-12 text-gray-300 mb-3" />
+            <span className="block">Không có sản phẩm hay danh mục con</span>
+            <span className="block">
+              cho danh mục <span className="font-semibold text-gray-600">"{activeL1Category.name}"</span>.
+            </span>
+          </div>
+        ) : isOpen && topLevelCategories.length === 0 ? (
+          <div className="flex items-center justify-center h-full text-gray-400 text-sm">Không có danh mục nào để hiển thị.</div>
+        ) : null}
       </div>
     </div>
   );

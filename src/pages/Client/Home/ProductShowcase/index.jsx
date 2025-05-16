@@ -1,213 +1,249 @@
-// src/components/ProductSection.jsx
-import React from "react";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+// src/components/ProductShowcase.jsx
+import React from 'react';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Autoplay } from 'swiper/modules';
 
-const products = [
-    { id: 1, image: "https://via.placeholder.com/300x400/FFCA28/000000?Text=iPhone+1", discount: "-15%", price: "29.790.000đ", oldPrice: "34.990.000đ", save: "Giảm 5.200.000đ", title: "iPhone 16 Pro Max 256GB Chính Hãng VN/A", status: "Còn hàng", rating: 4.9, },
-    { id: 2, image: "https://via.placeholder.com/300x400/66BB6A/FFFFFF?Text=iPhone+2", discount: "-17%", price: "24.190.000đ", oldPrice: "28.990.000đ", save: "Giảm 4.800.000đ", title: "iPhone 16 Pro 128GB Chính Hãng VN/A", status: "Còn hàng", rating: 5, },
-    { id: 3, image: "https://via.placeholder.com/300x400/EF5350/FFFFFF?Text=iPhone+3", discount: "-19%", price: "18.590.000đ", oldPrice: "22.990.000đ", save: "Giảm 4.400.000đ", title: "iPhone 16 128GB Chính Hãng VN/A", status: "Còn hàng", rating: 5, },
-    { id: 4, image: "https://via.placeholder.com/300x400/42A5F5/FFFFFF?Text=iPhone+4", discount: "-39%", price: "11.490.000đ", oldPrice: "18.990.000đ", save: "Giảm 7.500.000đ", title: "iPhone 13 128GB Chính Hãng VN/A", status: "Còn hàng", rating: 4.9, },
-    { id: 5, image: "https://via.placeholder.com/300x400/AB47BC/FFFFFF?Text=iPhone+5", discount: "-14%", price: "27.490.000đ", oldPrice: "31.990.000đ", save: "Giảm 4.500.000đ", title: "iPhone 16 Pro 256GB Chính Hãng VN/A", status: "Còn hàng", rating: 5, },
-    { id: 6, image: "https://via.placeholder.com/300x400/FFEE58/000000?Text=iPhone+6", discount: "-10%", price: "19.990.000đ", oldPrice: "25.990.000đ", save: "Giảm 6.000.000đ", title: "iPhone 15 Pro 128GB Chính Hãng VN/A", status: "Còn hàng", rating: 4.8, },
-    { id: 7, image: "https://via.placeholder.com/300x400/26A69A/FFFFFF?Text=iPhone+7", discount: "-10%", price: "19.990.000đ", oldPrice: "25.990.000đ", save: "Giảm 6.000.000đ", title: "iPhone 15 Pro 128GB Chính Hãng VN/A", status: "Yêu thích", rating: 4.8, },
-];
+import 'swiper/css';
+import 'swiper/css/navigation';
 
-const bannerImages = [
-    { id: 'banner1', src: "https://didongviet.vn/_next/image?url=https%3A%2F%2Fcdn-v2.didongviet.vn%2Ffiles%2Fbanners%2F2025%2F4%2F9%2F1%2F1746790325724_main_spham_01.jpg&w=1920&q=75", alt: "Banner 1" },
-    { id: 'banner2', src: "https://didongviet.vn/_next/image?url=https%3A%2F%2Fcdn-v2.didongviet.vn%2Ffiles%2Fbanners%2F2025%2F4%2F9%2F1%2F1746790325724_main_spham_01.jpg&w=1920&q=75", alt: "Banner 2" },
-];
+import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
+import { HeartIcon, ArrowPathIcon as CompareIcon } from '@heroicons/react/24/outline';
+import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 
-const CustomArrow = (props) => {
-  const { className, onClick, type, iconSize = 24, iconStrokeWidth = 2 } = props;
+const InlinedProductCard = ({ id, name, price, oldPrice, discount, image, rating, inStock, onAddToFavorites, onCompare, isFavorite }) => {
+  const renderStars = (rate) => {
+    const stars = [];
+    const numRating = parseFloat(rate);
+    if (isNaN(numRating) || numRating <= 0) return <div className="h-[14px] sm:h-[16px] w-full"></div>;
+    for (let i = 1; i <= 5; i++) {
+      if (numRating >= i) stars.push(<FaStar key={`star-${i}-${id}`} className="text-yellow-400 text-[10.5px] sm:text-[11.5px]" />);
+      else if (numRating >= i - 0.5) stars.push(<FaStarHalfAlt key={`half-${i}-${id}`} className="text-yellow-400 text-[10.5px] sm:text-[11.5px]" />);
+      else stars.push(<FaRegStar key={`empty-${i}-${id}`} className="text-yellow-400 text-[10.5px] sm:text-[11.5px]" />);
+    }
+    return stars;
+  };
   return (
-    <button
-      type="button"
-      className={`${className} custom-slick-arrow custom-slick-arrow-${type}`}
-      onClick={onClick}
-      aria-label={type === 'prev' ? "Previous products" : "Next products"}
-    >
-      {type === 'prev' ? <ChevronLeft size={iconSize} strokeWidth={iconStrokeWidth} /> : <ChevronRight size={iconSize} strokeWidth={iconStrokeWidth}/>}
-    </button>
+    <div className="w-full h-full flex flex-col border border-gray-200/70 rounded-lg overflow-hidden shadow-sm bg-white relative transition-shadow duration-200 ease-in-out group/productCard hover:shadow-md">
+      {discount && (<div className="absolute top-2 left-2 bg-red-500 text-white text-[9px] sm:text-xs font-bold px-1.5 py-0.5 rounded z-10">-{discount}%</div>)}
+      <div className="relative w-full h-[125px] xs:h-[140px] sm:h-[160px] mt-3 mb-1.5 sm:mt-4 sm:mb-2 flex items-center justify-center px-3"><img src={image} alt={name} className="max-h-full max-w-full object-contain group-hover/productCard:scale-105 transition-transform duration-300" loading="lazy"/></div>
+ <div className="px-2.5 sm:px-3 pt-1 pb-2 sm:pb-2.5 flex flex-col flex-grow overflow-hidden">
+        <h3
+          className="font-semibold text-xs sm:text-[13px] text-gray-800 leading-tight mb-1 group-hover/productCard:text-blue-600 transition-colors duration-200"
+          style={{
+            width: '200px',         // <--- GIẢI PHÁP CHIỀU RỘNG CỐ ĐỊNH ĐÃ HOẠT ĐỘNG
+            whiteSpace: 'normal',  // Quan trọng: Cho phép văn bản xuống dòng
+            display: "-webkit-box",
+            WebkitLineClamp: 2,      // Giới hạn 2 dòng
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",      // Ẩn phần thừa
+            textOverflow: "ellipsis",  // Hiển thị dấu "..."
+            maxHeight: "2.6rem",     // Chiều cao tối đa cho 2 dòng
+            lineHeight: "1.3rem"     // Chiều cao mỗi dòng
+          }}
+        >
+          {name}
+        </h3>
+        <div className="mt-auto">
+          <div className="text-[13px] sm:text-sm mb-0.5"><span className="text-red-600 font-bold">{price}₫</span>{oldPrice && (<span className="text-gray-400 text-[10px] sm:text-[11px] line-through ml-1.5 sm:ml-2">{oldPrice}₫</span>)}</div>
+          {oldPrice && parseFloat(String(oldPrice).replaceAll(".", "")) > parseFloat(String(price).replaceAll(".", "")) && (<div className="text-gray-500 text-[10px] sm:text-[10.5px] font-medium mb-1 sm:mb-1.5">Giảm {(parseFloat(String(oldPrice).replaceAll(".", "")) - parseFloat(String(price).replaceAll(".", ""))).toLocaleString("vi-VN")}₫</div>)}
+          <div className="pt-1.5">
+            <div className="flex items-center justify-between mb-1.5 sm:mb-2 min-h-[18px]">
+              <div className="flex items-center gap-x-1 sm:gap-x-1.5 text-[10px] sm:text-[10.5px] text-gray-600"><div className="flex items-center gap-px sm:gap-0.5 text-yellow-400">{renderStars(rating)}</div>{rating !== null && rating !== undefined && parseFloat(rating) > 0 && (<span className="text-gray-500">({parseFloat(rating).toFixed(1)})</span>)}</div>
+              {inStock && (<span className="text-green-600 text-[9.5px] sm:text-[10.5px] font-semibold">Còn hàng</span>)}
+            </div>
+            <div className="flex items-center justify-between min-h-[26px]">
+              <button onClick={(e) => { e.stopPropagation(); onCompare(id); }} aria-label="So sánh sản phẩm" className="flex items-center gap-1 text-[10px] sm:text-xs text-gray-500 hover:text-blue-700 transition-colors focus:outline-none p-1 rounded hover:bg-gray-100"><CompareIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" /><span className="leading-none whitespace-nowrap">So sánh</span></button>
+              <button onClick={(e) => { e.stopPropagation(); onAddToFavorites(id); }} aria-label={isFavorite ? "Bỏ yêu thích" : "Thêm vào yêu thích"} className={`flex items-center gap-1 text-[10px] sm:text-xs p-1 transition-colors focus:outline-none rounded hover:bg-gray-100 ${isFavorite ? 'text-red-500 hover:text-red-600' : 'text-gray-500 hover:text-red-500'}`}>{isFavorite ? <HeartSolidIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-500" /> : <HeartIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}<span className="leading-none whitespace-nowrap">{isFavorite ? "Đã thích" : "Yêu thích"}</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
-// Renamed the component here
-const ProductShowcase = () => {
-    const productSliderSettings = {
-        dots: false,
-        infinite: products.length > 5, // Default infinite based on largest slidesToShow
-        speed: 500,
-        slidesToShow: 5, // Default for screens > 1535px
-        slidesToScroll: 1,
-        arrows: true,
-        nextArrow: <CustomArrow type="next" />,
-        prevArrow: <CustomArrow type="prev" />,
-        autoplay: true,
-        autoplaySpeed: 4000,
-        pauseOnHover: true,
-        swipeToSlide: true,
-        responsive: [
-            { // Desktop lớn جداً (>=1536px) - 5 items
-                breakpoint: 5000,
-                settings: { slidesToShow: 5, arrows: products.length > 5, infinite: products.length > 5 }
-            },
-            { // Desktop (xl: >=1280px đến 1535px) - 4 items
-                breakpoint: 1535,
-                settings: { slidesToShow: 4, arrows: products.length > 4, infinite: products.length > 4 }
-            },
-            { // Desktop nhỏ / Tablet lớn ngang (lg: >=1024px đến 1279px) - 3 items
-                breakpoint: 1279,
-                settings: { slidesToShow: 3, arrows: products.length > 3, infinite: products.length > 3 }
-            },
-            { // Tablet (md: >=768px đến 1023px) - 4 ITEMS
-                breakpoint: 1023,
-                settings: { slidesToShow: 4, arrows: true, infinite: products.length > 4 }
-            },
-            { // Mobile lớn (sm: >=640px đến 767px) - 2 ITEMS
-                breakpoint: 767,
-                settings: { slidesToShow: 2, arrows: false, infinite: products.length > 2 }
-            },
-            { // Mobile nhỏ (xs: < 640px) - 1 ITEM (QUAN TRỌNG)
-                breakpoint: 639,
-                settings: {
-                    slidesToShow: 1, // CHỈ 1 ITEM
-                    arrows: false,
-                    infinite: products.length > 1
-                }
-            }
-        ],
-    };
+const initialAppleProducts = [
+  { id: "ap1", name: "iPhone 15 Pro Max 256GB Chính Hãng VN/A Siêu Dài Dòng Test Giao Diện", price: "29.790.000", oldPrice: "34.990.000", image: "https://cdn2.cellphones.com.vn/insecure/rs:fill:358:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/p/iphone-15-pro-max_3.png", discount: 15, rating: 4.9, inStock: true, isFavorite: false, },
+  { id: "ap2", name: "iPhone 15 Pro 128GB Chính Hãng VN/A", price: "24.190.000", oldPrice: "28.990.000", image: "https://cdn2.cellphones.com.vn/insecure/rs:fill:358:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/p/iphone-15-pro-max_3.png", discount: 17, rating: 5, inStock: true, isFavorite: true, },
+  { id: "ap3", name: "iPhone 14 128GB (Hồng)", price: "18.490.000", oldPrice: "22.990.000", image: "https://cdn2.cellphones.com.vn/insecure/rs:fill:358:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/p/iphone-15-pro-max_3.png", discount: 20, rating: 0, inStock: false, isFavorite: false, },
+  { id: "ap4", name: "iPhone 14 Plus 128GB (Xanh)", price: "11.490.000", oldPrice: "18.836.000", image: "https://cdn2.cellphones.com.vn/insecure/rs:fill:358:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/p/iphone-15-pro-max_3.png", discount: 39, rating: 4.9, inStock: true, isFavorite: false, },
+  { id: "ap5", name: "iPhone 15 256GB (Tím)", price: "27.490.000", oldPrice: "31.965.000", image: "https://cdn2.cellphones.com.vn/insecure/rs:fill:358:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/p/iphone-15-pro-max_3.png", discount: 14, rating: 5, inStock: true, isFavorite: true, },
+  { id: "ap6", name: "iPhone 13 Pro Max 128GB Cũ", price: "15.790.000", oldPrice: "19.990.000", image: "https://cdn2.cellphones.com.vn/insecure/rs:fill:358:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/p/iphone-15-pro-max_3.png", discount: 21, rating: 4.8, inStock: true, isFavorite: false, },
+  { id: "ap7", name: "iPhone 13 64GB Chính hãng", price: "9.990.000", oldPrice: "11.990.000", image: "https://cdn2.cellphones.com.vn/insecure/rs:fill:358:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/p/iphone-15-pro-max_3.png", discount: 17, rating: 4.7, inStock: false, isFavorite: false, },
+  { id: "ap8", name: "iPhone SE (2022) 128GB", price: "11.290.000", oldPrice: "13.990.000", image: "https://cdn2.cellphones.com.vn/insecure/rs:fill:358:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/p/iphone-15-pro-max_3.png", discount: 19, rating: 4.5, inStock: true, isFavorite: true, }
+];
 
-    const renderRating = (rating) => {
-        const stars = [];
-        for (let i = 1; i <= 5; i++) {
-            if (i <= rating) { stars.push(<span key={`full-${i}`} className="text-yellow-400">★</span>); }
-            else if (i - 0.5 <= rating) { stars.push(<span key={`half-${i}`} className="text-yellow-400">★</span>); } // Giả sử làm tròn lên
-            else { stars.push(<span key={`empty-${i}`} className="text-gray-300">☆</span>); }
-        }
-        return <div className="flex items-center">{stars}</div>;
-    };
+export default function ProductShowcase({
+  productsData = initialAppleProducts,
+  sectionTitle = "APPLE CHÍNH HÃNG GIÁ TỐT",
+}) {
 
-    return (
-        <div className="bg-white product-section-container group">
-            <div className="max-w-screen-xl mx-auto p-3 md:p-4">
-                <h2 className="text-xl sm:text-2xl font-bold text-red-600 mb-3 md:mb-4">APPLE CHÍNH HÃNG GIÁ TỐT</h2>
+  const [products, setProducts] = React.useState(
+    productsData.map(p => ({
+      ...p,
+      isFavorite: p.isFavorite || false,
+      inStock: p.inStock === undefined ? true : p.inStock
+    }))
+  );
 
-                {/* --- Banner Section --- */}
-                <div className="flex overflow-x-auto sm:overflow-visible sm:flex-row gap-3 md:gap-4 mb-3 md:mb-4 hide-scrollbar">
-                    {bannerImages.map((banner) => (
-                        // sm:w-1/2 -> cho 2 banner trên sm trở lên
-                        // w-full -> cho 1 banner chiếm hết chiều rộng trên mobile (dưới sm), cho phép cuộn
-                        <div key={banner.id} className="flex-shrink-0 w-full sm:w-1/2">
-                            <img
-                                src={banner.src}
-                                alt={banner.alt}
-                                className="w-full rounded-lg object-cover h-auto max-h-[150px] sm:max-h-[200px] md:max-h-[250px]"
-                            />
-                        </div>
-                    ))}
-                </div>
+  const productSliderPrevRef = React.useRef(null);
+  const productSliderNextRef = React.useRef(null);
 
-                <style jsx global>{`
-                    /* CSS cho Product Slider và Mũi tên */
-                    .product-section-container .slick-slider {
-                        margin-left: -6px; /* Bù trừ cho p-1.5 của ProductCardWrapper */
-                        margin-right: -6px;
-                    }
-                    .custom-slick-arrow {
-                        position: absolute; top: 40%; transform: translateY(-50%); z-index: 10;
-                        cursor: pointer; border-radius: 50%; width: 40px; height: 40px;
-                        display: flex !important; align-items: center; justify-content: center;
-                        background-color: rgba(255, 255, 255, 0.9); border: 1px solid #e5e7eb;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.2s ease-in-out;
-                        color: #4B5563; opacity: 0; pointer-events: none;
-                    }
-                    /* Mũi tên của Product Slider hiện từ md (768px) trở lên KHI HOVER */
-                    @media (min-width: 768px) {
-                        .product-section-container.group .product-slider-wrapper:hover .custom-slick-arrow {
-                            opacity: 1; pointer-events: auto;
-                        }
-                        .product-section-container.group .product-slider-wrapper:hover .custom-slick-arrow.slick-disabled {
-                            opacity: 0.3 !important; pointer-events: none !important; cursor: default;
-                        }
-                    }
-                    /* Ẩn mũi tên của Product Slider dưới md (do arrows: false trong responsive settings) */
-                     @media (max-width: 767.98px) {
-                         .product-slider-wrapper .custom-slick-arrow {
-                            display: none !important;
-                         }
-                     }
-                    .custom-slick-arrow:hover:not(.slick-disabled) {
-                        background-color: #ffffff; border-color: #d1d5db; color: #ef4444; box-shadow: 0 3px 6px rgba(0,0,0,0.15);
-                    }
-                    .custom-slick-arrow.custom-slick-arrow-prev { left: -10px; }
-                    .custom-slick-arrow.custom-slick-arrow-next { right: -10px; }
-                    .custom-slick-arrow::before { display: none !important; }
-
-                    .slick-slide > div { height: 100%; display: flex; flex-direction: column; align-items: stretch; }
-
-                    /* Tiện ích ẩn thanh cuộn cho banner */
-                    .hide-scrollbar::-webkit-scrollbar { display: none; }
-                    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-                `}</style>
-
-                {/* Product Slider Wrapper */}
-                <div className="relative product-slider-wrapper">
-                    <Slider {...productSliderSettings}>
-                        {products.map((product) => (
-                            // Thẻ div bọc ngoài mỗi card trong slider (có p-1.5)
-                            <div key={product.id} className="p-1.5 h-full">
-                                {/* THÊM 1 DIV BỌC Ở ĐÂY ĐỂ KIỂM SOÁT KÍCH THƯỚC */}
-                                <div className="product-card-inner-wrapper h-full flex"> {/* Thêm class mới và flex */}
-                                    {/* Card sản phẩm */}
-                                    <div
-                                        className={`
-                                          bg-white rounded-lg shadow-md p-3 relative border h-full flex flex-col
-                                          w-full /* Cho phép chiếm hết div bọc mới này */
-                                          /* Bỏ max-w ở đây, để CSS global xử lý */
-                                          ${products.length === 1 ? 'mx-auto max-w-[300px]' : 'mx-0'}
-                                        `}
-                                    >
-                                        {/* ... (nội dung card giữ nguyên) ... */}
-                                        <div className="absolute top-2 left-0 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-r-md z-10">
-                                            {product.discount}
-                                        </div>
-                                        {product.id % 2 === 0 && (
-                                            <div className="absolute top-2 right-0 bg-blue-500 text-white text-xs font-bold px-2 py-0.5 rounded-l-md z-10">
-                                                Trả góp 0%
-                                            </div>
-                                        )}
-                                        <img
-                                            src={product.image}
-                                            alt={product.title}
-                                            className="w-full h-40 sm:h-48 object-contain rounded mb-2"
-                                        />
-                                        <div className="flex flex-col flex-grow">
-                                            <a href={`/product/${product.id}`} className="hover:text-red-500">
-                                                <p className="text-sm font-semibold mt-1 line-clamp-2 leading-relaxed min-h-[2.75em]">
-                                                    {product.title}
-                                                </p>
-                                            </a>
-                                            <div className="mt-1 mb-0.5">{renderRating(product.rating)}</div>
-                                            <p className="text-red-600 font-bold text-lg mt-auto">{product.price}</p>
-                                            <div className="flex items-center">
-                                                <p className="text-gray-500 line-through text-xs mr-2">{product.oldPrice}</p>
-                                            </div>
-                                            <p className={`text-xs mt-1 font-semibold ${product.status === "Yêu thích" ? "text-pink-500" : "text-green-600"}`}>{product.status}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </Slider>
-                </div>
-            </div>
-        </div>
+  const handleAddToFavorites = (productId) => {
+    setProducts(prevProducts =>
+      prevProducts.map(p =>
+        p.id === productId ? { ...p, isFavorite: !p.isFavorite } : p
+      )
     );
-};
+  };
+  const handleCompare = (productId) => {
+    alert(`So sánh sản phẩm: ${productId} (chức năng chưa hoàn thiện)`);
+  };
+  
+  const getSlidesPerViewForLoopCondition = (slidesPerViewSettings) => {
+    let maxSlides = 0;
+    if (typeof slidesPerViewSettings === 'number') {
+      maxSlides = slidesPerViewSettings;
+    } else if (typeof slidesPerViewSettings === 'object') {
+      Object.values(slidesPerViewSettings).forEach(val => {
+        if (typeof val === 'object' && val.slidesPerView > maxSlides) {
+          maxSlides = val.slidesPerView;
+        } else if (typeof val === 'number' && val > maxSlides) {
+           // This case might not be typical for breakpoints but good to have
+           maxSlides = val;
+        }
+      });
+      // Check base slidesPerView if not in breakpoints
+      if (swiperSettings && swiperSettings.slidesPerView > maxSlides) {
+          maxSlides = swiperSettings.slidesPerView;
+      }
+    }
+    return maxSlides;
+  };
 
-// Updated the export statement
-export default ProductShowcase;
+  const swiperSettings = {
+    modules: [Navigation, Autoplay],
+    navigation: { 
+      prevEl: productSliderPrevRef.current,
+      nextEl: productSliderNextRef.current 
+    },
+    onBeforeInit: (swiper) => { 
+      swiper.params.navigation.prevEl = productSliderPrevRef.current;
+      swiper.params.navigation.nextEl = productSliderNextRef.current;
+      // swiper.navigation.update(); // Consider re-adding if nav buttons are an issue
+    },
+    slidesPerView: 1.2, 
+    spaceBetween: 8,   
+    loop: false, 
+    autoplay: { delay: 4000, disableOnInteraction: false, pauseOnMouseEnter: true },
+    breakpoints: {
+      375: { slidesPerView: 1.5, spaceBetween: 8, loop: false, arrows: false },
+      640: { slidesPerView: 2.5, spaceBetween: 10, loop: false, arrows: false }, 
+      768: { slidesPerView: 4, spaceBetween: 10, arrows: true },
+      1024: { slidesPerView: 5, spaceBetween: 10, arrows: true },
+    }
+  };
+  
+  const maxConfiguredSlides = getSlidesPerViewForLoopCondition(swiperSettings.breakpoints);
+  const loopCondition = products.length > (maxConfiguredSlides > 0 ? maxConfiguredSlides : (swiperSettings.slidesPerView || 0)) ;
+
+
+  return (
+    <div className="product-showcase-wrapper max-w-screen-xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+  <style>{`
+    .product-showcase-wrapper {
+      position: relative;
+      padding: 0 15px;
+      max-width: 100%;
+      overflow: hidden;
+    }
+    .product-showcase-wrapper .swiper-slide {
+      width: auto !important;
+      flex-shrink: 0;
+    }
+    .product-showcase-wrapper .swiper-button-prev,
+    .product-showcase-wrapper .swiper-button-next {
+      color: #007aff;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 32px;
+      height: 32px;
+      background-color: rgba(255, 255, 255, 0.8);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+    }
+    .product-showcase-wrapper .swiper-button-prev {
+      left: -10px;
+    }
+    .product-showcase-wrapper .swiper-button-next {
+      right: -10px;
+    }
+    .product-showcase-wrapper .swiper-button-prev:hover,
+    .product-showcase-wrapper .swiper-button-next:hover {
+      background-color: #007aff;
+      color: #fff;
+    }
+  `}</style>
+
+  <div className="content-area py-4 sm:py-5 px-3 sm:px-4">
+    <div className="section-title-container mb-3 sm:mb-4">
+
+<h3
+  className="font-semibold text-xs sm:text-[13px] text-gray-800 overflow-hidden text-ellipsis ..." // các class khác
+  style={{
+    display: "-webkit-box",
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: "vertical",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    maxHeight: "2.6rem", // Phù hợp với 2 dòng
+    lineHeight: "1.3rem"  // Khoảng cách giữa các dòng
+  }}
+>
+  {sectionTitle} {/* Chỗ này là sectionTitle nhé */}
+</h3>
+
+
+    </div>
+
+    <div className="products-swiper-row overflow-hidden relative">
+      <Swiper
+        modules={[Navigation, Autoplay]}
+        navigation={{
+          prevEl: productSliderPrevRef.current,
+          nextEl: productSliderNextRef.current,
+        }}
+        autoplay={{
+          delay: 4000,
+          disableOnInteraction: false,
+          pauseOnMouseEnter: true,
+        }}
+        loop={products.length > 4}
+        spaceBetween={16}
+        breakpoints={{
+          320: { slidesPerView: 1.5, spaceBetween: 10 },
+          480: { slidesPerView: 2, spaceBetween: 12 },
+          640: { slidesPerView: 2.5, spaceBetween: 12 },
+          768: { slidesPerView: 3, spaceBetween: 16 },
+          1024: { slidesPerView: 4, spaceBetween: 16 },
+          1280: { slidesPerView: 5, spaceBetween: 16 },
+        }}
+      >
+        {products.map((product) => (
+          <SwiperSlide key={product.id} className="flex flex-col">
+            <InlinedProductCard {...product} onAddToFavorites={handleAddToFavorites} onCompare={handleCompare} />
+          </SwiperSlide>
+        ))}
+      </Swiper>
+      
+      <div ref={productSliderPrevRef} className="swiper-button-prev"></div>
+      <div ref={productSliderNextRef} className="swiper-button-next"></div>
+    </div>
+  </div>
+</div>
+
+  );
+}

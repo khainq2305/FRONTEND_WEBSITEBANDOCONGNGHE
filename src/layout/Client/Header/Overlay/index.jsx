@@ -8,9 +8,9 @@ const Overlay = ({ isOpen, onClick }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 z-40 cursor-pointer" // Độ mờ và z-index thấp hơn panel
+      className="fixed inset-0 bg-black/60 z-40 cursor-pointer"
       onClick={onClick}
-      aria-hidden="true" // Quan trọng cho accessibility
+      aria-hidden="true" 
     />
   );
 };

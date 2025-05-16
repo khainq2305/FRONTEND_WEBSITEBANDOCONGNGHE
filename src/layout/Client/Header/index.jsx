@@ -1,38 +1,212 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Menu, ShoppingCart, Search, Bell, LayoutGrid, CircleUserRound, FileSearch, X } from 'lucide-react';
-import CategoryMenu from './CategoryMenu'; // Menu Desktop (sẽ dùng phiên bản đơn giản hơn)
+import CategoryMenu from './CategoryMenu';
 import MobileCategoryPanel from './MobileCategoryPanel';
 import Overlay from './Overlay';
 import { useNavigate } from 'react-router-dom';
-import PopupModal from './PopupModal'; // Sử dụng PopupModal
-// Dữ liệu phẳng gốc từ API/nguồn khác
+import { Link } from 'react-router-dom';
+import NotificationDropdown from './NotificationDropdown';
+
+import PopupModal from './PopupModal';
+
 const flatCategoriesFromAPI = [
-  { id: 'sach-trong-nuoc', name: 'Sách Trong Nước', parent_id: null, icon: '📕', slug: 'sach-trong-nuoc' },
-  { id: 'foreign-books', name: 'Foreign Books', parent_id: null, icon: '🌍', slug: 'foreign-books' },
-  { id: 'vpp', name: 'VPP - Dụng Cụ Học Sinh', parent_id: null, icon: '✏️', slug: 'vpp' },
-  { id: 'van-hoc', name: 'Văn học', parent_id: 'sach-trong-nuoc', slug: 'van-hoc' },
-  { id: 'kinh-te', name: 'Kinh tế', parent_id: 'sach-trong-nuoc', slug: 'kinh-te' },
-  { id: 'thieu-nhi', name: 'Thiếu Nhi', parent_id: 'sach-trong-nuoc', slug: 'thieu-nhi' },
-  { id: 'tieu-thuyet', name: 'Tiểu Thuyết', parent_id: 'van-hoc', slug: 'tieu-thuyet' },
-  { id: 'truyen-ngan', name: 'Truyện Ngắn', parent_id: 'van-hoc', slug: 'truyen-ngan' },
-  { id: 'fiction', name: 'Fiction', parent_id: 'foreign-books', slug: 'fiction' },
-  { id: 'dung-cu-ve', name: 'Dụng Cụ Vẽ', parent_id: 'vpp', slug: 'dung-cu-ve' },
-  { id: 'sp-giay', name: 'Sản phẩm về Giấy', parent_id: 'vpp', slug: 'sp-giay' },
-  { id: 'but-ve', name: 'Bút Vẽ', parent_id: 'dung-cu-ve', slug: 'but-ve' },
-  { id: 'mau-ve', name: 'Màu Vẽ', parent_id: 'dung-cu-ve', slug: 'mau-ve' }
+  // ===== DANH MỤC CẤP 1 (L1) =====
+  {
+    id: 'dien-gia-dung',
+    name: 'Điện gia dụng',
+    parent_id: null,
+    slug: 'dien-gia-dung'
+  },
+  {
+    id: 'phu-kien',
+    name: 'Phụ kiện',
+    parent_id: null,
+    slug: 'phu-kien'
+  },
+  {
+    id: 'do-gia-dung',
+    name: 'Đồ gia dụng',
+    parent_id: null,
+    slug: 'do-gia-dung'
+  },
+  {
+    id: 'may-cu', // ID này là cho danh mục L1 "Máy cũ, trưng bày"
+    name: 'Máy cũ, trưng bày',
+    parent_id: null,
+    slug: 'may-cu'
+  },
+
+  // ===== DANH MỤC CẤP 2 (L2) cho "Điện gia dụng" =====
+  {
+    id: 'quat-dieu-hoa', // ID duy nhất
+    name: 'Quạt điều hòa',
+    parent_id: 'dien-gia-dung',
+    slug: 'quat-dieu-hoa',
+    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
+  },
+  {
+    id: 'may-xay-sinh-to', // ID duy nhất
+    name: 'Máy xay sinh tố',
+    parent_id: 'dien-gia-dung',
+    slug: 'may-xay-sinh-to',
+    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
+  },
+  {
+    id: 'may-ep-trai-cay', // ID duy nhất
+    name: 'Máy ép trái cây',
+    parent_id: 'dien-gia-dung',
+    slug: 'may-ep-trai-cay',
+    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
+  },
+  {
+    id: 'may-loc-nuoc', // ID duy nhất
+    name: 'Máy lọc nước',
+    parent_id: 'dien-gia-dung',
+    slug: 'may-loc-nuoc',
+    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
+  },
+  {
+    id: 'noi-com-dien', // ID duy nhất
+    name: 'Nồi cơm điện',
+    parent_id: 'dien-gia-dung',
+    slug: 'noi-com-dien',
+    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
+  },
+  {
+    id: 'bep-dien', // ID duy nhất (thay vì bep-tu)
+    name: 'Bếp điện các loại',
+    parent_id: 'dien-gia-dung',
+    slug: 'bep-dien', // slug cũng nên duy nhất nếu dùng làm key hoặc link
+    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
+  },
+  // Giả sử bạn muốn nhiều "Máy hút bụi" thì ID phải khác nhau
+  {
+    id: 'may-hut-bui-01', // ID duy nhất
+    name: 'Máy hút bụi A',
+    parent_id: 'dien-gia-dung',
+    slug: 'may-hut-bui-a', // slug cũng nên duy nhất
+    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
+  },
+  {
+    id: 'may-hut-bui-02', // ID duy nhất
+    name: 'Máy hút bụi B',
+    parent_id: 'dien-gia-dung',
+    slug: 'may-hut-bui-b',
+    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
+  },
+  {
+    id: 'may-hut-bui-03', // ID duy nhất
+    name: 'Máy hút bụi C',
+    parent_id: 'dien-gia-dung',
+    slug: 'may-hut-bui-c',
+    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
+  },
+  // ... và cứ thế tiếp tục cho các "Máy hút bụi" khác nếu bạn có nhiều loại ...
+  // Ví dụ cho danh mục "Máy cũ, trưng bày" có ít item:
+  {
+    id: 'may-cu-item-1',
+    name: 'Máy cũ loại X',
+    parent_id: 'may-cu', // parent_id trỏ về L1 "Máy cũ, trưng bày"
+    slug: 'may-cu-loai-x',
+    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
+  },
+  {
+    id: 'may-cu-item-2',
+    name: 'Máy cũ loại Y',
+    parent_id: 'may-cu',
+    slug: 'may-cu-loai-y',
+    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
+  },
+
+  // ===== DANH MỤC CẤP 2 (L2) cho "Phụ kiện" (ID PHẢI DUY NHẤT) =====
+  {
+    id: 'sac-du-phong-pk', // Thêm hậu tố để đảm bảo duy nhất nếu 'sac-du-phong' đã dùng ở đâu đó
+    name: 'Sạc dự phòng',
+    parent_id: 'phu-kien',
+    slug: 'sac-du-phong',
+    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
+  },
+  {
+    id: 'tai-nghe-pk',
+    name: 'Tai nghe',
+    parent_id: 'phu-kien',
+    slug: 'tai-nghe',
+    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
+  }
+  // ... Sửa tương tự cho các mục còn lại của "Phụ kiện" và "Đồ gia dụng" ...
+  // ĐẢM BẢO MỖI OBJECT TRONG MẢNG NÀY CÓ id HOÀN TOÀN KHÁC NHAU.
 ];
 
+const sampleNotifications = [
+  {
+    id: 'notif1',
+    type: 'order_shipped',
+    title: 'Đơn hàng WN0301700710 vừa được giao thành công.',
+    message: 'Cảm ơn bạn đã đặt hàng tại CellphoneS.',
+    timestamp: '1 năm trước',
+    link: '#order-detail-1',
+    isRead: false
+  },
+  {
+    id: 'notif2',
+    type: 'order_confirmed',
+    title: 'Đơn hàng WN0301700710 đã được cửa hàng xác nhận và sẽ giao tới bạn trong thời gian sớm nhất.',
+    timestamp: '1 năm trước',
+    link: '#order-detail-1',
+    isRead: true
+  },
+  {
+    id: 'notif3',
+    type: 'promotion',
+    title: 'Flash Sale cuối tháng! Giảm đến 50%++ cho hàng loạt iPhone, iPad.',
+    timestamp: '2 ngày trước',
+    link: '#promotion-link',
+    isRead: false
+  },
+  {
+    id: 'notif3',
+    type: 'promotion',
+    title: 'Flash Sale cuối tháng! Giảm đến 50%++ cho hàng loạt iPhone, iPad.',
+    timestamp: '2 ngày trước',
+    link: '#promotion-link',
+    isRead: false
+  },
+  {
+    id: 'notif3',
+    type: 'promotion',
+    title: 'Flash Sale cuối tháng! Giảm đến 50%++ cho hàng loạt iPhone, iPad.',
+    timestamp: '2 ngày trước',
+    link: '#promotion-link',
+    isRead: false
+  },
+  {
+    id: 'notif3',
+    type: 'promotion',
+    title: 'Flash Sale cuối tháng! Giảm đến 50%++ cho hàng loạt iPhone, iPad.',
+    timestamp: '2 ngày trước',
+    link: '#promotion-link',
+    isRead: false
+  },
+  {
+    id: 'notif3',
+    type: 'promotion',
+    title: 'Flash Sale cuối tháng! Giảm đến 50%++ cho hàng loạt iPhone, iPad.',
+    timestamp: '2 ngày trước',
+    link: '#promotion-link',
+    isRead: false
+  }
+];
 const Header = () => {
   const navigate = useNavigate();
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const categoryMenuTimerRef = useRef(null);
   const [isMobilePanelOpen, setIsMobilePanelOpen] = useState(false);
   const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
-  // State cho danh mục cấp 1 (cho cột trái của Desktop Menu)
+
   const [topLevelDesktopCategories, setTopLevelDesktopCategories] = useState([]);
-  // State cho cây danh mục của Mobile Panel
+
   const [mobileCategoryTree, setMobileCategoryTree] = useState([]);
-  // Hàm xây dựng cây danh mục
+
   const buildCategoryTree = (categories, parentId = null) => {
     return categories
       .filter((category) => category.parent_id === parentId)
@@ -41,15 +215,44 @@ const Header = () => {
         children: buildCategoryTree(categories, category.id)
       }));
   };
-  const toggleLoginPopup = () => {
+   const toggleLoginPopup = () => {
     setIsLoginPopupOpen(!isLoginPopupOpen);
   };
+
   useEffect(() => {
-    // Lọc danh mục cấp 1 cho Desktop Menu
+    if (isLoginPopupOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isLoginPopupOpen]);
+
+  const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] = useState(false);
+  const notificationDropdownTimerRef = useRef(null);
+  const notificationButtonRef = useRef(null);
+
+  const handleNotificationToggle = () => {
+    setIsNotificationDropdownOpen((prev) => !prev);
+  };
+
+  const handleNotificationEnter = () => {
+    clearTimeout(notificationDropdownTimerRef.current);
+    setIsNotificationDropdownOpen(true);
+  };
+
+  const handleNotificationLeave = () => {
+    notificationDropdownTimerRef.current = setTimeout(() => {
+      setIsNotificationDropdownOpen(false);
+    }, 300);
+  };
+  useEffect(() => {
     setTopLevelDesktopCategories(flatCategoriesFromAPI.filter((cat) => cat.parent_id === null));
-    // Xây dựng cây cho Mobile Panel
+
     setMobileCategoryTree(buildCategoryTree(flatCategoriesFromAPI));
-  }, []); // Chạy một lần khi component mount
+  }, []);
 
   const handleMenuEnter = () => {
     clearTimeout(categoryMenuTimerRef.current);
@@ -63,23 +266,18 @@ const Header = () => {
   const toggleMobilePanel = () => {
     setIsMobilePanelOpen(!isMobilePanelOpen);
   };
-  // 👉 Hàm xử lý khi nhấn "Đăng ký" và "Đăng nhập"
-  const handleRegister = () => {
-    setIsLoginPopupOpen(false);
-    navigate('/dang-ky');
-  };
 
-  const handleLogin = () => {
-    setIsLoginPopupOpen(false);
-    navigate('/dang-nhap');
-  };
+
+
   return (
     <>
-      <header className="bg-red-600 text-white w-full shadow-md z-30 relative">
+      <header className="bg-primary-gradient text-white w-full shadow-md z-30 relative">
         {/* Mobile & Tablet View */}
         <div className="lg:hidden">
           <div className="flex justify-center items-center pt-2.5 pb-1.5 px-4">
-            <img src="/logo.png" alt="Logo" className="h-7" />
+            <Link to="">
+              <img src="src/assets/Client/images/Logo/logo.svg" alt="Logo" className="h-15 w-auto max-w-[400px]" />
+            </Link>
           </div>
           <div className="flex items-center gap-x-2 px-3 pb-2.5 pt-0">
             <button className="p-1 text-white flex-shrink-0 -ml-1" onClick={toggleMobilePanel} aria-label="Mở danh mục">
@@ -92,8 +290,8 @@ const Header = () => {
                   placeholder="Tìm kiếm..."
                   className="flex-1 text-[13px] outline-none bg-transparent placeholder-gray-400"
                 />
-                <button className="flex items-center justify-center w-[28px] h-[28px] bg-red-100 rounded-full hover:bg-red-200 transition ml-1 flex-shrink-0">
-                  <Search color="red" strokeWidth={2.5} className="w-4 h-4" />
+                <button className="flex items-center justify-center w-[28px] h-[28px] hover-secondary bg-primary rounded-full  transition ml-1 flex-shrink-0">
+                  <Search style={{ color: 'var(--text-primary)' }} strokeWidth={2.5} className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -107,11 +305,13 @@ const Header = () => {
 
         {/* Desktop View */}
         <div className="hidden lg:block relative">
-          <div className="flex justify-between items-center max-w-screen-xl mx-auto py-2 px-4">
+          <div className="flex justify-between items-center max-w-screen-xl h-[60px mx-auto py-2 px-4">
             <div className="flex items-center gap-4 flex-shrink-0">
-              <img src="/logo.png" alt="Logo" className="h-10" />
+              <Link to="/">
+                <img src="src/assets/Client/images/Logo/logo.svg" alt="Logo" className="h-18 w-auto max-w-[700px]" />
+              </Link>
               <button
-                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-700 hover:bg-red-800 transition"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/40 hover-secondary transition"
                 onMouseEnter={handleMenuEnter}
                 onMouseLeave={handleMenuLeave}
               >
@@ -126,27 +326,44 @@ const Header = () => {
                   placeholder="Siêu phẩm Samsung Galaxy S25"
                   className="flex-1 text-sm outline-none bg-transparent pr-10"
                 />
-                <button className="absolute right-[4px] top-1/2 -translate-y-1/2 flex items-center justify-center w-[36px] h-[36px] bg-red-100 rounded-full hover:bg-red-200 transition">
-                  <Search color="red" strokeWidth={2} className="w-5 h-5" />
+                <button className="absolute right-[4px] top-1/2 -translate-y-1/2 flex items-center justify-center w-[36px] h-[36px] rounded-full bg-primary transition hover-secondary">
+                  <Search style={{ color: 'var(--text-primary)' }} strokeWidth={2} className="w-5 h-5 transition-all" />
                 </button>
               </div>
             </div>
-            <div className="flex items-center gap-3 flex-shrink-0">
-              <button className="flex flex-col items-center gap-1 px-2 py-2 rounded-lg bg-red-600 hover:bg-[#8b1a1a] transition-all">
+            <div className="flex items-center gap-3 flex-shrink-0 ">
+              <button className="flex flex-col items-center gap-1 px-2 py-2 rounded-lg hover-primary transition-all">
                 <FileSearch className="w-6 h-6" strokeWidth={1.5} color="#fff" />
                 <span className="text-white text-[11px] font-semibold leading-tight text-center">Tra cứu đơn hàng</span>
               </button>
-              {/* ... các nút actions khác ... */}
-              <button className="flex flex-col items-center gap-1 px-2 py-2 rounded-lg bg-red-600 hover:bg-[#8b1a1a] transition-all">
-                <Bell className="w-6 h-6" strokeWidth={1.5} color="#fff" />
-                <span className="text-white text-[11px] font-semibold leading-tight text-center">Thông báo</span>
-              </button>
-              <button className="flex flex-col items-center gap-1 px-2 py-2 rounded-lg bg-red-600 hover:bg-[#8b1a1a] transition-all">
+
+              <div
+                className="relative"
+                onMouseEnter={handleNotificationEnter}
+                onMouseLeave={handleNotificationLeave}
+                ref={notificationButtonRef}
+              >
+                <button
+                  className="flex flex-col items-center justify-center p-2 rounded-lg hover-primary transition-all text-center w-[70px] h-[56px]" // Giữ style cũ hoặc chỉnh lại
+                  onClick={handleNotificationToggle}
+                  aria-haspopup="true"
+                  aria-expanded={isNotificationDropdownOpen}
+                >
+                  <Bell className="w-6 h-6" strokeWidth={1.5} color="#fff" />
+                  <span className="text-white text-[10px] font-medium leading-tight mt-1">Thông báo</span>
+                </button>
+                <NotificationDropdown
+                  isOpen={isNotificationDropdownOpen}
+                  notifications={sampleNotifications}
+                  onClose={() => setIsNotificationDropdownOpen(false)}
+                />
+              </div>
+              <button className="flex flex-col items-center gap-1 px-2 py-2 rounded-lg hover-primary transition-all">
                 <ShoppingCart className="w-6 h-6" strokeWidth={1.8} color="#fff" />
                 <span className="text-white text-[11px] font-semibold leading-tight text-center">Giỏ hàng</span>
               </button>
               <button
-                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-700 hover:bg-red-800 transition"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg hover-primary bg-white/40  transition"
                 onClick={toggleLoginPopup}
               >
                 <CircleUserRound className="w-6 h-6" strokeWidth={1.5} color="#fff" />
@@ -155,15 +372,18 @@ const Header = () => {
             </div>
           </div>
 
-          <CategoryMenu
-            // --- Truyền dữ liệu đã được xử lý riêng cho desktop ---
-            topLevelCategories={topLevelDesktopCategories} // Chỉ danh mục cấp 1
-            allCategories={flatCategoriesFromAPI} // Toàn bộ danh sách phẳng
-            // ---
-            isOpen={isCategoryMenuOpen}
-            onMouseEnter={handleMenuEnter}
-            onMouseLeave={handleMenuLeave}
-          />
+          <div
+            onMouseEnter={handleMenuEnter} 
+            onMouseLeave={handleMenuLeave} 
+          >
+            <CategoryMenu
+              topLevelCategories={topLevelDesktopCategories}
+              allCategories={flatCategoriesFromAPI} 
+              isOpen={isCategoryMenuOpen}
+              
+              
+            />
+          </div>
         </div>
       </header>
 
@@ -171,20 +391,13 @@ const Header = () => {
       <MobileCategoryPanel
         isOpen={isMobilePanelOpen}
         onClose={toggleMobilePanel}
-        categories={mobileCategoryTree} // Mobile Panel dùng cây đã xử lý
+        categories={mobileCategoryTree} 
       />
-      {/* Popup Đăng Nhập sử dụng PopupModal */}
-      <PopupModal isOpen={isLoginPopupOpen} onClose={toggleLoginPopup} title="Đăng nhập tài khoản" showFooter={false}>
-        <p>Vui lòng đăng nhập để sử dụng các tính năng tốt nhất.</p>
-        <div className="flex justify-between gap-3 mt-4">
-          <button className="px-4 py-2 bg-gray-200 rounded text-gray-800 hover:bg-gray-300" onClick={handleRegister}>
-            Đăng ký
-          </button>
-          <button className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700" onClick={handleLogin}>
-            Đăng nhập
-          </button>
-        </div>
-      </PopupModal>
+
+       <PopupModal
+        isOpen={isLoginPopupOpen}
+        onClose={toggleLoginPopup}
+      />
     </>
   );
 };

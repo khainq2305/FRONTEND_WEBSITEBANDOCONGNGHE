@@ -1,18 +1,26 @@
 // src/pages/UserProfilePage.jsx (hoặc components/UserProfilePage.jsx)
 import React, { useState } from 'react';
 // Import icons từ lucide-react
-import { User, Edit3, Bell, Settings, Ticket, CircleDollarSign, Gift, ShoppingBag } from 'lucide-react';
-import RenderDonMuaContent from './PurchaseHistoryPage';
+import { User, Edit3, Bell, Settings, Ticket, CircleDollarSign, ShoppingBag, FileText, Tag, Gift } from 'lucide-react';
+
+
+import RenderDonMuaContentTuyChinh from './PurchaseHistoryPage'; // Đổi tên để tránh trùng lặp nếu cần
+import AddressPageContent from './RenderDiaChiContent'; // Đường dẫn đến file bạn vừa tạo
 const UserProfilePage = () => {
   const [activeTab, setActiveTab] = useState('ho-so');
+  const [userAvatar, setUserAvatar] = useState(null);
+  const [userInitial] = useState('Q');
+  const [userName] = useState('vanhaihia2002');
+  const [userEmail] = useState('kh**********@gmail.com');
+  const [userPhone] = useState('*******94');
 
   const handleTabClick = (tabId) => {
     setActiveTab(tabId);
   };
 
   const sidebarNavItems = [
-    { id: 'ngay-sale', label: 'Ngày 15 Sale Giữa Tháng', icon: Gift, href: '#ngay-sale', tag: 'New', tagColor: 'bg-orange-500 text-white' },
-    { id: 'thong-bao', label: 'Thông Báo', icon: Bell, href: '#thong-bao' },
+    { id: 'ngay-sale', label: 'Ngày 15 Sale Giữa Tháng', icon: Tag, href: '#ngay-sale', tag: 'New', tagColor: 'bg-red-500 text-white', iconColor: 'text-orange-500' },
+    { id: 'thong-bao', label: 'Thông Báo', icon: Bell, href: '#thong-bao', notification: true },
     {
       id: 'tai-khoan', label: 'Tài Khoản Của Tôi', icon: User, subItems: [
         { id: 'ho-so', label: 'Hồ Sơ', href: '#ho-so' },
@@ -23,32 +31,32 @@ const UserProfilePage = () => {
     },
     { id: 'cai-dat-thong-bao', label: 'Cài Đặt Thông Báo', icon: Settings, href: '#cai-dat-thong-bao' },
     { id: 'thiet-lap-rieng-tu', label: 'Những Thiết Lập Riêng Tư', icon: Settings, href: '#thiet-lap-rieng-tu' },
-    { id: 'don-mua', label: 'Đơn Mua', icon: ShoppingBag, href: '#don-mua' },
-    { id: 'kho-voucher', label: 'Kho Voucher', icon: Ticket, href: '#kho-voucher' },
-    { id: 'shopee-xu', label: 'Shopee Xu', icon: CircleDollarSign, href: '#shopee-xu' },
+    { id: 'don-mua', label: 'Đơn Mua', icon: FileText, href: '#don-mua' },
+    { id: 'kho-voucher', label: 'Kho Voucher', icon: Ticket, href: '#kho-voucher', iconColor: 'text-red-500'},
+    { id: 'shopee-xu', label: 'Shopee Xu', icon: CircleDollarSign, href: '#shopee-xu', iconColor: 'text-yellow-500' },
   ];
 
   const renderSidebarContent = () => {
     const isParentActive = (item) => item.subItems && item.subItems.some(sub => sub.id === activeTab);
 
     return (
-      // Sidebar: Chiều rộng được điều chỉnh cho các kích thước màn hình.
-      // h-screen và overflow-y-auto để sidebar có thể cuộn độc lập và chiếm toàn bộ chiều cao.
-      <div className="w-[140px] sm:w-[170px] md:w-[200px] lg:w-[240px] flex-shrink-0 bg-white border-r border-gray-200 h-screen overflow-y-auto sticky top-0">
-        {/* sticky top-0 để giữ sidebar ở trên cùng khi cuộn toàn trang (nếu không dùng h-screen cho main-content-wrapper) */}
-        <div className="p-2 pt-4 sm:p-3 sm:pt-4">
-          <div className="flex items-center mb-4">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gray-300 flex items-center justify-center mr-2 overflow-hidden flex-shrink-0">
-              <img src="https://placehold.co/40x40/E2E8F0/A0AEC0?text=AV" alt="User Avatar" className="w-full h-full object-cover" />
+      // Root div of the sidebar, this is the white background container for sidebar
+      <div className="w-[250px] flex-shrink-0 bg-white border-r border-gray-200 h-screen overflow-y-auto sticky top-0">
+        {/* Inner container for sidebar content, with adjusted top padding */}
+        <div className="px-4 pb-4 pt-6"> {/* CHỈNH SỬA: pt-11 thành pt-6 */}
+          {/* User info block, with adjusted bottom margin */}
+          <div className="flex items-center mb-3 pl-1"> {/* CHỈNH SỬA: mb-4 thành mb-3 */}
+            <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center mr-2.5 flex-shrink-0">
+              <span className="text-white text-xl font-semibold">{userInitial}</span>
             </div>
             <div className="overflow-hidden">
-              <p className="font-semibold text-[11px] sm:text-xs text-gray-800 truncate">khinguynquoc013</p>
+              <p className="font-medium text-sm text-gray-900 truncate">{userName}</p>
               <a
                 href="#sua-ho-so"
                 onClick={(e) => { e.preventDefault(); handleTabClick('ho-so'); }}
-                className="text-[9px] sm:text-[10px] text-gray-500 hover:text-orange-500 flex items-center"
+                className="text-xs text-gray-500 hover:text-orange-500 flex items-center"
               >
-                <Edit3 size={10} className="mr-0.5 sm:mr-1 flex-shrink-0" />
+                <Edit3 size={14} className="mr-1 flex-shrink-0" />
                 <span className="truncate">Sửa Hồ Sơ</span>
               </a>
             </div>
@@ -58,22 +66,26 @@ const UserProfilePage = () => {
             <ul>
               {sidebarNavItems.map(item => {
                 const parentIsActive = isParentActive(item);
+                const itemIsActive = activeTab === item.id;
+                const currentIconColor = itemIsActive ? 'text-orange-500' : (item.iconColor || 'text-gray-600');
+
                 return (
-                  <li key={item.id} className="mb-[2px]">
+                  <li key={item.id} className="mb-0">
                     {item.subItems ? (
                       <>
-                        <div className={`flex items-center p-[5px] sm:p-2 rounded-sm text-[11px] sm:text-xs ${parentIsActive ? 'text-orange-500 font-semibold' : 'text-gray-700 hover:text-orange-500 hover:bg-orange-50'}`}>
-                          {item.icon && <item.icon size={14} className={`mr-1.5 sm:mr-2 flex-shrink-0 ${parentIsActive ? 'text-orange-500' : 'text-gray-500'}`} strokeWidth={parentIsActive ? 2.5 : 2} />}
-                          <span className="truncate">{item.label}</span>
+                        <div className={`flex items-center py-2.5 px-3 rounded-md text-sm relative ${parentIsActive ? 'text-orange-500' : 'text-gray-800 hover:text-orange-500'}`}>
+                          {item.icon && <item.icon size={18} className={`mr-3 flex-shrink-0 ${parentIsActive ? 'text-orange-500' : item.iconColor || 'text-gray-600'}`} strokeWidth={parentIsActive ? 2.5 : 2} />}
+                          <span className={`truncate ${parentIsActive ? 'font-medium' : ''}`}>{item.label}</span>
                         </div>
-                        <ul className="pl-2.5 sm:pl-4 mt-[2px] space-y-0">
+                        <ul className="pl-[2.3rem] mt-0.5 mb-1 space-y-0.5">
                           {item.subItems.map(subItem => (
-                            <li key={subItem.id}>
+                            <li key={subItem.id} className="relative">
                               <a
                                 href={subItem.href}
                                 onClick={(e) => { e.preventDefault(); handleTabClick(subItem.id); }}
-                                className={`block py-1 sm:py-1.5 px-1.5 sm:px-2 rounded-sm text-[11px] sm:text-xs hover:text-orange-500 hover:bg-orange-50 truncate ${activeTab === subItem.id ? 'text-orange-500 font-semibold bg-orange-50' : 'text-gray-600'}`}
+                                className={`block py-[7px] px-0 rounded-md text-sm hover:text-orange-500 truncate ${activeTab === subItem.id ? 'text-orange-500 font-medium' : 'text-gray-700'}`}
                               >
+                                {activeTab === subItem.id && <span className="absolute left-[-1.1rem] top-0 bottom-0 w-[3px] bg-orange-500 rounded-r-sm"></span>}
                                 {subItem.label}
                               </a>
                             </li>
@@ -84,12 +96,20 @@ const UserProfilePage = () => {
                       <a
                         href={item.href}
                         onClick={(e) => { e.preventDefault(); handleTabClick(item.id); }}
-                        className={`flex items-center p-[5px] sm:p-2 rounded-sm text-[11px] sm:text-xs transition-colors duration-150 ${activeTab === item.id ? 'text-orange-500 font-semibold bg-orange-50' : 'text-gray-700 hover:text-orange-500 hover:bg-orange-50'}`}
+                        className={`flex items-center py-2.5 px-3 rounded-md text-sm transition-colors duration-150 relative ${itemIsActive ? 'text-orange-500 font-medium' : 'text-gray-800 hover:text-orange-500'}`}
                       >
-                        {item.icon && <item.icon size={14} className={`mr-1.5 sm:mr-2 flex-shrink-0 ${activeTab === item.id ? 'text-orange-500' : 'text-gray-500'}`} strokeWidth={activeTab === item.id ? 2.5 : 2} />}
+                        {itemIsActive && <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-orange-500 rounded-r-sm"></span>}
+                        {item.icon && (
+                          <div className="relative mr-3">
+                             <item.icon size={18} className={`flex-shrink-0 ${currentIconColor}`} strokeWidth={itemIsActive ? 2.5 : 2} />
+                             {item.id === 'thong-bao' && item.notification && (
+                                <span className="absolute top-[1px] right-[1px] block h-1.5 w-1.5 transform translate-x-1/2 -translate-y-1/2 rounded-full bg-red-500 ring-1 ring-white"></span>
+                             )}
+                          </div>
+                        )}
                         <span className="truncate">{item.label}</span>
                         {item.tag && (
-                          <span className={`ml-auto text-[8px] sm:text-[10px] font-medium px-1 py-0.5 rounded-sm flex-shrink-0 ${item.tagColor || 'bg-gray-500 text-white'}`}>
+                          <span className={`ml-auto text-[10px] font-semibold px-1 py-0 rounded ${item.tagColor || 'bg-gray-500 text-white'}`}>
                             {item.tag}
                           </span>
                         )}
@@ -105,172 +125,190 @@ const UserProfilePage = () => {
     );
   };
 
-  const renderProfileContent = () => (
-    <div className="bg-white p-3 sm:p-4 md:p-6 shadow-sm rounded-md border border-gray-200">
-      <h1 className="text-sm sm:text-base md:text-lg font-semibold text-gray-800 mb-1">Hồ Sơ Của Tôi</h1>
-      <p className="text-[10px] sm:text-xs md:text-sm text-gray-600 mb-3 sm:mb-4 md:mb-6">Quản lý thông tin hồ sơ để bảo mật tài khoản</p>
+  const handleAvatarChange = (event) => {
+    if (event.target.files && event.target.files[0]) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setUserAvatar(e.target.result);
+      };
+      reader.readAsDataURL(event.target.files[0]);
+    }
+  };
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-3 sm:gap-x-4 md:gap-x-6 gap-y-2 sm:gap-y-3 md:gap-y-4">
-        <form className="lg:col-span-2 space-y-2 sm:space-y-3 md:space-y-4">
-          {/* Các trường input với kích thước và khoảng cách đã được thu nhỏ */}
-          {/* Tên đăng nhập */}
-          <div className="grid grid-cols-[70px_1fr] sm:grid-cols-[90px_1fr] md:grid-cols-4 items-center gap-1 sm:gap-2">
-            <label htmlFor="username" className="text-[10px] sm:text-xs md:text-sm text-gray-600 md:text-right md:pr-2 lg:pr-4 col-span-1 truncate">Tên đăng nhập</label>
-            <div className="md:col-span-3">
-              <input type="text" id="username" value="khinguynquoc013" readOnly className="w-full p-1 sm:p-1.5 md:p-2 border border-gray-300 rounded-sm bg-gray-50 text-[10px] sm:text-xs md:text-sm text-gray-700 cursor-not-allowed focus:outline-none" />
-              <p className="text-[9px] sm:text-[10px] md:text-xs text-gray-500 mt-0.5 sm:mt-1">Tên Đăng nhập chỉ có thể thay đổi một lần.</p>
+  const renderProfileContent = () => (
+    <div className="bg-white p-6 shadow-md rounded-md border border-gray-200">
+      <h1 className="text-xl font-semibold text-gray-800 mb-1.5">Hồ Sơ Của Tôi</h1>
+      <p className="text-sm text-gray-600 mb-8">Quản lý thông tin hồ sơ để bảo mật tài khoản</p>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-10 gap-y-6">
+        <form className="lg:col-span-2 space-y-5">
+          <div className="grid grid-cols-[110px_1fr] items-center gap-4">
+            <label htmlFor="username" className="text-sm text-gray-500 text-right pr-2">Tên đăng nhập</label>
+            <div className="md:col-span-1">
+              <input type="text" id="username" value={userName} readOnly className="w-full p-2.5 border-none text-sm text-gray-800 bg-transparent focus:outline-none" />
+              <p className="text-xs text-gray-400 mt-1">Tên Đăng nhập chỉ có thể thay đổi một lần.</p>
             </div>
           </div>
-          {/* Tên */}
-          <div className="grid grid-cols-[70px_1fr] sm:grid-cols-[90px_1fr] md:grid-cols-4 items-center gap-1 sm:gap-2">
-            <label htmlFor="name" className="text-[10px] sm:text-xs md:text-sm text-gray-600 md:text-right md:pr-2 lg:pr-4 col-span-1">Tên</label>
-            <div className="md:col-span-3">
-              <input type="text" id="name" placeholder="Nhập tên của bạn" className="w-full p-1 sm:p-1.5 md:p-2 border border-gray-300 rounded-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500 text-[10px] sm:text-xs md:text-sm" />
+          <div className="grid grid-cols-[110px_1fr] items-center gap-4">
+            <label htmlFor="name" className="text-sm text-gray-500 text-right pr-2">Tên</label>
+            <div>
+              <input type="text" id="name" placeholder="Nhập tên của bạn" className="w-full p-2.5 border border-gray-300 rounded focus:border-orange-500 focus:ring-1 focus:ring-orange-500/30 text-sm placeholder-gray-400" />
             </div>
           </div>
-          {/* Email */}
-          <div className="grid grid-cols-[70px_1fr] sm:grid-cols-[90px_1fr] md:grid-cols-4 items-center gap-1 sm:gap-2">
-            <label htmlFor="email" className="text-[10px] sm:text-xs md:text-sm text-gray-600 md:text-right md:pr-2 lg:pr-4 col-span-1">Email</label>
-            <div className="md:col-span-3 flex items-center">
-              <p className="text-[10px] sm:text-xs md:text-sm text-gray-700 mr-1.5 sm:mr-2 truncate">ng**********@gmail.com</p>
-              <button type="button" className="text-[10px] sm:text-xs md:text-sm text-blue-600 hover:underline flex-shrink-0">Thay Đổi</button>
+          <div className="grid grid-cols-[110px_1fr] items-center gap-4">
+            <label htmlFor="email" className="text-sm text-gray-500 text-right pr-2">Email</label>
+            <div className="flex items-center">
+              <p className="text-sm text-gray-800 mr-3 truncate">{userEmail}</p>
+              <button type="button" className="text-sm text-blue-600 hover:text-blue-700 flex-shrink-0">Thay Đổi</button>
             </div>
           </div>
-          {/* Số điện thoại */}
-          <div className="grid grid-cols-[70px_1fr] sm:grid-cols-[90px_1fr] md:grid-cols-4 items-center gap-1 sm:gap-2">
-            <label htmlFor="phone" className="text-[10px] sm:text-xs md:text-sm text-gray-600 md:text-right md:pr-2 lg:pr-4 col-span-1">SĐT</label>
-            <div className="md:col-span-3">
-              <button type="button" className="text-[10px] sm:text-xs md:text-sm text-blue-600 hover:underline">Thêm</button>
+          <div className="grid grid-cols-[110px_1fr] items-center gap-4">
+            <label htmlFor="phone" className="text-sm text-gray-500 text-right pr-2">Số điện thoại</label>
+            <div className="flex items-center">
+                 <p className="text-sm text-gray-800 mr-3 truncate">{userPhone}</p>
+                <button type="button" className="text-sm text-blue-600 hover:text-blue-700 flex-shrink-0">Thay Đổi</button>
             </div>
           </div>
-          {/* Giới tính */}
-          <div className="grid grid-cols-[70px_1fr] sm:grid-cols-[90px_1fr] md:grid-cols-4 items-center gap-1 sm:gap-2">
-            <label className="text-[10px] sm:text-xs md:text-sm text-gray-600 md:text-right md:pr-2 lg:pr-4 col-span-1">Giới tính</label>
-            <div className="md:col-span-3 flex items-center gap-x-1.5 sm:gap-x-2 md:gap-x-3">
-              <label className="flex items-center text-[10px] sm:text-xs md:text-sm text-gray-700">
-                <input type="radio" name="gender" value="male" className="form-radio !w-3 !h-3 sm:!w-3.5 sm:!h-3.5 md:!w-4 md:!h-4 text-orange-500 focus:ring-orange-500 mr-0.5 sm:mr-1" /> Nam
+          <div className="grid grid-cols-[110px_1fr] items-center gap-4">
+            <label className="text-sm text-gray-500 text-right pr-2">Giới tính</label>
+            <div className="flex items-center gap-x-6">
+              <label className="flex items-center text-sm text-gray-700 cursor-pointer">
+                <input type="radio" name="gender" value="male" className="form-radio-custom" />
+                <span className="ml-2">Nam</span>
               </label>
-              <label className="flex items-center text-[10px] sm:text-xs md:text-sm text-gray-700">
-                <input type="radio" name="gender" value="female" className="form-radio !w-3 !h-3 sm:!w-3.5 sm:!h-3.5 md:!w-4 md:!h-4 text-orange-500 focus:ring-orange-500 mr-0.5 sm:mr-1" /> Nữ
+              <label className="flex items-center text-sm text-gray-700 cursor-pointer">
+                <input type="radio" name="gender" value="female" className="form-radio-custom" />
+                <span className="ml-2">Nữ</span>
               </label>
-              <label className="flex items-center text-[10px] sm:text-xs md:text-sm text-gray-700">
-                <input type="radio" name="gender" value="other" className="form-radio !w-3 !h-3 sm:!w-3.5 sm:!h-3.5 md:!w-4 md:!h-4 text-orange-500 focus:ring-orange-500 mr-0.5 sm:mr-1" defaultChecked /> Khác
+              <label className="flex items-center text-sm text-gray-700 cursor-pointer">
+                <input type="radio" name="gender" value="other" className="form-radio-custom" defaultChecked />
+                <span className="ml-2">Khác</span>
               </label>
             </div>
           </div>
-          {/* Ngày sinh */}
-          <div className="grid grid-cols-[70px_1fr] sm:grid-cols-[90px_1fr] md:grid-cols-4 items-start sm:items-center gap-1 sm:gap-2">
-            <label className="text-[10px] sm:text-xs md:text-sm text-gray-600 md:text-right md:pr-2 lg:pr-4 col-span-1 pt-0.5 sm:pt-1">Ngày sinh</label>
-            <div className="md:col-span-3 grid grid-cols-3 gap-1 sm:gap-1.5 md:gap-2">
-              <select defaultValue="" className="w-full p-1 sm:p-1.5 md:p-2 border border-gray-300 rounded-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500 text-[10px] sm:text-xs md:text-sm text-gray-700">
+          <div className="grid grid-cols-[110px_1fr] items-start gap-4">
+            <label className="text-sm text-gray-500 text-right pr-2 pt-2.5">Ngày sinh</label>
+            <div className="grid grid-cols-3 gap-3">
+              <select defaultValue="" className="w-full p-2.5 border border-gray-300 rounded focus:border-orange-500 focus:ring-1 focus:ring-orange-500/30 text-sm text-gray-700 bg-white appearance-none">
                 <option value="" disabled>Ngày</option>
                 {[...Array(31)].map((_, i) => <option key={i + 1} value={i + 1}>{i + 1}</option>)}
               </select>
-              <select defaultValue="" className="w-full p-1 sm:p-1.5 md:p-2 border border-gray-300 rounded-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500 text-[10px] sm:text-xs md:text-sm text-gray-700">
+              <select defaultValue="" className="w-full p-2.5 border border-gray-300 rounded focus:border-orange-500 focus:ring-1 focus:ring-orange-500/30 text-sm text-gray-700 bg-white appearance-none">
                 <option value="" disabled>Tháng</option>
                 {[...Array(12)].map((_, i) => <option key={i + 1} value={i + 1}>{i + 1}</option>)}
               </select>
-              <select defaultValue="" className="w-full p-1 sm:p-1.5 md:p-2 border border-gray-300 rounded-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500 text-[10px] sm:text-xs md:text-sm text-gray-700">
+              <select defaultValue="" className="w-full p-2.5 border border-gray-300 rounded focus:border-orange-500 focus:ring-1 focus:ring-orange-500/30 text-sm text-gray-700 bg-white appearance-none">
                 <option value="" disabled>Năm</option>
                 {Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i).map(year => <option key={year} value={year}>{year}</option>)}
               </select>
             </div>
           </div>
-          {/* Nút Lưu */}
-          <div className="grid grid-cols-[70px_1fr] sm:grid-cols-[90px_1fr] md:grid-cols-4 items-center gap-1 sm:gap-2">
-            <div className="md:col-start-2 md:col-span-3">
-              <button type="submit" className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-1 sm:py-1.5 md:py-2 px-3 sm:px-4 md:px-6 rounded-sm text-[10px] sm:text-xs md:text-sm transition-colors shadow-sm">
+          <div className="grid grid-cols-[110px_1fr] items-center gap-4">
+            <div className="lg:col-start-2">
+              <button type="submit" className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2.5 px-7 rounded text-sm transition-colors shadow-sm hover:shadow">
                 Lưu
               </button>
             </div>
           </div>
         </form>
 
-        {/* Avatar */}
-        <div className="lg:col-span-1 flex flex-col items-center mt-3 sm:mt-4 lg:mt-0">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full bg-gray-200 flex items-center justify-center mb-1.5 sm:mb-2 overflow-hidden">
-            <User size={32} className="text-gray-400" />
+        <div className="lg:col-span-1 flex flex-col items-center pt-3 lg:pt-0 lg:border-l lg:border-gray-200 lg:pl-8">
+          <div className="w-24 h-24 rounded-full bg-orange-500 flex items-center justify-center mb-4 overflow-hidden">
+            {userAvatar ? (
+              <img src={userAvatar} alt="User Avatar" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-white text-5xl font-semibold">{userInitial}</span>
+            )}
           </div>
-          <input type="file" id="avatarUpload" className="hidden" accept=".jpg,.jpeg,.png" />
-          <label htmlFor="avatarUpload" className="cursor-pointer bg-white border border-gray-300 text-gray-700 text-[10px] sm:text-xs md:text-sm py-1 sm:py-1.5 px-2 sm:px-3 rounded-sm hover:bg-gray-50 transition-colors shadow-sm mb-1 sm:mb-1.5">
+          <input type="file" id="avatarUpload" className="hidden" accept=".jpg,.jpeg,.png" onChange={handleAvatarChange} />
+          <label htmlFor="avatarUpload" className="cursor-pointer bg-white border border-gray-300/80 text-gray-700 text-sm py-2 px-5 rounded hover:bg-gray-50 transition-colors shadow-sm mb-2.5">
             Chọn Ảnh
           </label>
-          <p className="text-[9px] sm:text-[10px] md:text-xs text-gray-500 mt-1 text-center">Dung lượng file tối đa 1 MB<br />Định dạng: .JPEG, .PNG</p>
+          <div className="text-xs text-gray-500 text-center leading-snug">
+            <p>Dung lượng file tối đa 1 MB</p>
+            <p>Định dạng: .JPEG, .PNG</p>
+          </div>
         </div>
       </div>
     </div>
   );
 
-
   return (
-    <div className="bg-gray-100 min-h-screen font-sans">
-      <div className="max-w-screen-xl mx-auto">
-        <div className="flex flex-row"> {/* Bỏ h-screen ở đây nếu muốn toàn trang cuộn */}
+    <div className="bg-[#F5F5F5] min-h-screen font-sans">
+      <div className="max-w-screen-xl mx-auto pt-5">
+        <div className="flex flex-row">
           {renderSidebarContent()}
-          {/* Thêm h-screen ở đây nếu muốn content cuộn độc lập và sidebar sticky */}
-          <div className="flex-1 min-w-0 overflow-y-auto">
-            <div className="p-2 sm:p-3 md:p-4">
-              {activeTab === 'ho-so' && renderProfileContent()}
-              {activeTab === 'ngan-hang' && <div className="bg-white p-3 sm:p-4 md:p-6 shadow-sm rounded-md border border-gray-200"><h2 className="text-sm sm:text-base md:text-lg font-semibold">Ngân Hàng</h2><p className="text-xs sm:text-sm">Nội dung trang Ngân Hàng...</p></div>}
-              {activeTab === 'dia-chi' && <div className="bg-white p-3 sm:p-4 md:p-6 shadow-sm rounded-md border border-gray-200"><h2 className="text-sm sm:text-base md:text-lg font-semibold">Địa Chỉ</h2><p className="text-xs sm:text-sm">Nội dung trang Địa Chỉ...</p></div>}
-              {activeTab === 'doi-mat-khau' && <div className="bg-white p-3 sm:p-4 md:p-6 shadow-sm rounded-md border border-gray-200"><h2 className="text-sm sm:text-base md:text-lg font-semibold">Đổi Mật Khẩu</h2><p className="text-xs sm:text-sm">Nội dung trang Đổi Mật Khẩu...</p></div>}
-              {activeTab === 'thong-bao' && <div className="bg-white p-3 sm:p-4 md:p-6 shadow-sm rounded-md border border-gray-200"><h2 className="text-sm sm:text-base md:text-lg font-semibold">Thông Báo</h2><p className="text-xs sm:text-sm">Nội dung trang Thông Báo...</p></div>}
-              {activeTab === 'ngay-sale' && <div className="bg-white p-3 sm:p-4 md:p-6 shadow-sm rounded-md border border-gray-200"><h2 className="text-sm sm:text-base md:text-lg font-semibold">Ngày 15 Sale Giữa Tháng</h2><p className="text-xs sm:text-sm">Nội dung trang Sale...</p></div>}
-              {activeTab === 'cai-dat-thong-bao' && <div className="bg-white p-3 sm:p-4 md:p-6 shadow-sm rounded-md border border-gray-200"><h2 className="text-sm sm:text-base md:text-lg font-semibold">Cài Đặt Thông Báo</h2><p className="text-xs sm:text-sm">Nội dung trang Cài Đặt Thông Báo...</p></div>}
-              {activeTab === 'thiet-lap-rieng-tu' && <div className="bg-white p-3 sm:p-4 md:p-6 shadow-sm rounded-md border border-gray-200"><h2 className="text-sm sm:text-base md:text-lg font-semibold">Những Thiết Lập Riêng Tư</h2><p className="text-xs sm:text-sm">Nội dung trang Thiết Lập Riêng Tư...</p></div>}
-             {activeTab === 'don-mua' && <RenderDonMuaContent />}
-              {activeTab === 'kho-voucher' && <div className="bg-white p-3 sm:p-4 md:p-6 shadow-sm rounded-md border border-gray-200"><h2 className="text-sm sm:text-base md:text-lg font-semibold">Kho Voucher</h2><p className="text-xs sm:text-sm">Nội dung trang Kho Voucher...</p></div>}
-              {activeTab === 'shopee-xu' && <div className="bg-white p-3 sm:p-4 md:p-6 shadow-sm rounded-md border border-gray-200"><h2 className="text-sm sm:text-base md:text-lg font-semibold">Shopee Xu</h2><p className="text-xs sm:text-sm">Nội dung trang Shopee Xu...</p></div>}
-            </div>
+          {/* CHỈNH SỬA: Loại bỏ div với p-5 bao ngoài, thêm pl vào đây để tạo khoảng cách với sidebar */}
+          <div className="flex-1 min-w-0 lg:pl-8 md:pl-6 pl-5"> {/* Spacing between sidebar and main content card area */}
+            {activeTab === 'ho-so' && renderProfileContent()}
+            {activeTab === 'ngan-hang' && <div className="bg-white p-6 shadow-md rounded-md border border-gray-200"><h2 className="text-xl font-semibold">Ngân Hàng</h2><p className="text-sm">Nội dung trang Ngân Hàng...</p></div>}
+ {activeTab === 'dia-chi' && <AddressPageContent />}
+            {activeTab === 'doi-mat-khau' && <div className="bg-white p-6 shadow-md rounded-md border border-gray-200"><h2 className="text-xl font-semibold">Đổi Mật Khẩu</h2><p className="text-sm">Nội dung trang Đổi Mật Khẩu...</p></div>}
+            {activeTab === 'thong-bao' && <div className="bg-white p-6 shadow-md rounded-md border border-gray-200"><h2 className="text-xl font-semibold">Thông Báo</h2><p className="text-sm">Nội dung trang Thông Báo...</p></div>}
+            {activeTab === 'ngay-sale' && <div className="bg-white p-6 shadow-md rounded-md border border-gray-200"><h2 className="text-xl font-semibold">Ngày 15 Sale Giữa Tháng</h2><p className="text-sm">Nội dung trang Sale...</p></div>}
+            {activeTab === 'cai-dat-thong-bao' && <div className="bg-white p-6 shadow-md rounded-md border border-gray-200"><h2 className="text-xl font-semibold">Cài Đặt Thông Báo</h2><p className="text-sm">Nội dung trang Cài Đặt Thông Báo...</p></div>}
+            {activeTab === 'thiet-lap-rieng-tu' && <div className="bg-white p-6 shadow-md rounded-md border border-gray-200"><h2 className="text-xl font-semibold">Những Thiết Lập Riêng Tư</h2><p className="text-sm">Nội dung trang Thiết Lập Riêng Tư...</p></div>}
+             {activeTab === 'don-mua' && <RenderDonMuaContentTuyChinh />} {/* THAY ĐỔI Ở ĐÂY */}
+            {activeTab === 'kho-voucher' && <div className="bg-white p-6 shadow-md rounded-md border border-gray-200"><h2 className="text-xl font-semibold">Kho Voucher</h2><p className="text-sm">Nội dung trang Kho Voucher...</p></div>}
+            {activeTab === 'shopee-xu' && <div className="bg-white p-6 shadow-md rounded-md border border-gray-200"><h2 className="text-xl font-semibold">Shopee Xu</h2><p className="text-sm">Nội dung trang Shopee Xu...</p></div>}
           </div>
         </div>
       </div>
       <style jsx global>{`
         body {
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+          font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
+          color: #333;
         }
-        .form-radio {
+        .form-radio-custom {
           appearance: none;
+          -webkit-appearance: none;
+          width: 18px;
+          height: 18px;
+          border: 1.5px solid #BDBDBD;
           border-radius: 50%;
-          border: 1.5px solid #D1D5DB; /* gray-300 */ /* Giảm độ dày border */
-          transition: all 0.15s ease-in-out;
-          position: relative;
-          top: 1px;
+          outline: none;
           cursor: pointer;
+          position: relative;
+          top: 0.1em; 
+          transition: border-color 0.2s ease;
         }
-        .form-radio:checked {
-          border-color: #F97316; /* orange-500 */
-          background-color: #F97316; /* orange-500 */
+        .form-radio-custom:checked {
+          border-color: #EE4D2D;
         }
-        .form-radio:checked:after {
+        .form-radio-custom:checked::before {
           content: '';
           display: block;
-          width: calc(100% - 4px); /* Chấm nhỏ hơn */
-          height: calc(100% - 4px); /* Chấm nhỏ hơn */
-          background: white;
+          width: 10px; 
+          height: 10px; 
+          background-color: #EE4D2D;
           border-radius: 50%;
           position: absolute;
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%);
         }
-        .form-radio:focus {
-          outline: none;
-          box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.3); /* Giảm độ đậm shadow */
+        .form-radio-custom:focus-visible {
+           box-shadow: 0 0 0 2px rgba(238, 77, 45, 0.3);
         }
-        /* Custom scrollbar cho webkit browsers (Chrome, Safari) */
+        select.appearance-none {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23757575' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 0.75em;
+            padding-right: 2.5rem;
+        }
         .overflow-y-auto::-webkit-scrollbar {
-          width: 5px; /* Scrollbar mỏng hơn */
+          width: 6px; 
         }
         .overflow-y-auto::-webkit-scrollbar-thumb {
-          background-color: #CBD5E0; /* gray-400 */
-          border-radius: 2.5px;
+          background-color: #D1D5DB;
+          border-radius: 3px;
         }
         .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-          background-color: #A0AEC0; /* gray-500 */
+          background-color: #9CA3AF;
         }
         .overflow-y-auto::-webkit-scrollbar-track {
-          background-color: transparent; /* Nền trong suốt */
+          background-color: transparent; 
         }
       `}</style>
     </div>

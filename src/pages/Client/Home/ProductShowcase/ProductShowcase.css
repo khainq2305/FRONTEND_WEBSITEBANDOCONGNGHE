@@ -1,0 +1,10 @@
+/* src/components/ProductShowcase.css */
+.product-name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 2.6rem; /* Đảm bảo chỉ hiện 2 dòng */
+  line-height: 1.3rem;
+}
