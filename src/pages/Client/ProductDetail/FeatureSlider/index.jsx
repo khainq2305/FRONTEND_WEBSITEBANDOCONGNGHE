@@ -49,7 +49,7 @@ export default function FeatureSlider({ onSelect }) {
       {features.map((item, index) => (
         <SwiperSlide
           key={index}
-          className="!w-[70px] !h-[70px] rounded overflow-hidden border cursor-pointer"
+          className="!w-[70px] !h-[70px] rounded overflow-hidden border-gray-400-gray-200 cursor-pointer"
           onClick={() => onSelect?.(item.imageFull)}
         >
           <img
