@@ -16,7 +16,7 @@ const UserProfilePage = Loadable(lazy(() => import('pages/Client/Auth/UserProfil
 const CartPage = Loadable(lazy(() => import('pages/Client/Cart')));
 const CheckoutPage = Loadable(lazy(() => import('pages/Client/Payment')));
 const OrderConfirmation = Loadable(lazy(() => import('pages/Client/OrderConfirmation')));
-const CompareProducts = Loadable(lazy(() => import('pages/Client/CompareProducts')));
+
 const News = Loadable(lazy(() => import('pages/Client/Blog/index.jsx')));
 const NewsDetails = Loadable(lazy(() => import('pages/Client/BlogDetail')));
 const ClientRoutes = {
@@ -57,7 +57,7 @@ const ClientRoutes = {
     { path: 'cart', element: <CartPage /> },
     { path: 'checkout', element: <CheckoutPage /> },
     { path: 'order-confirmation', element: <OrderConfirmation /> },
-    { path: 'compare-products', element: <CompareProducts /> },
+
     { path: 'news', element: <News /> },
     { path: 'news/:id', element: <NewsDetails /> }
   ]
