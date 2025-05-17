@@ -48,7 +48,15 @@ const pages = [
     url: '/admin/orders',
     icon: icons.FileTextOutlined,
     breadcrumbs: false
-  }
+  },
+  {
+  id: 'userlist',
+  title: 'Tài khoản',
+  type: 'item',
+  url: '/admin/users',
+  icon: icons.TableOutlined, 
+  breadcrumbs: false
+},
 ];
 
 export default pages;
