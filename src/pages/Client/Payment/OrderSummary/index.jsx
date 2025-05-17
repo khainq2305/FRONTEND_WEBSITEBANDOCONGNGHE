@@ -90,7 +90,7 @@ const OrderSummary = ({ totalAmount, discount, shippingFee }) => {
         {/* Nút đặt hàng */}
         <button
           onClick={handlePlaceOrder}
-          className="block text-center w-full bg-red-600 text-white font-semibold py-3 rounded-md hover:bg-red-700 transition"
+          className="block text-center w-full bg-primary text-white font-semibold py-3 rounded-md  transition"
         >
           Đặt hàng
         </button>

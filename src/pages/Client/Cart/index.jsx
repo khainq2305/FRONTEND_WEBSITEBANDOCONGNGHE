@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import CartItem from "./CartItem";
 import CartSummary from "./CartSummary";
+import { FiTrash2 } from "react-icons/fi";
 
 const dummyItems = [
   {
@@ -36,11 +37,13 @@ const dummyItems = [
 ];
 
 const CartPage = () => {
-  const [checkedItems, setCheckedItems] = useState(dummyItems.map(() => true));
-  const isAllChecked = checkedItems.every(Boolean);
+  const [cartItems, setCartItems] = useState(dummyItems);
+  const [checkedItems, setCheckedItems] = useState(cartItems.map(() => true));
+  const isAllChecked = cartItems.length > 0 && checkedItems.every(Boolean);
+  const hasSelectedItems = cartItems.length > 0 && checkedItems.some(Boolean); // BIẾN MỚI
 
   const toggleAll = () => {
-    setCheckedItems(checkedItems.map(() => !isAllChecked));
+    setCheckedItems(cartItems.map(() => !isAllChecked));
   };
 
   const handleToggleChecked = (index) => {
@@ -49,51 +52,73 @@ const CartPage = () => {
     setCheckedItems(updated);
   };
 
+  const handleDeleteSelected = () => {
+    if (!hasSelectedItems) { // Sử dụng hasSelectedItems
+        alert("Vui lòng chọn sản phẩm để xóa.");
+        return;
+    }
+    const newCartItems = cartItems.filter((item, index) => !checkedItems[index]);
+    const newCheckedItems = newCartItems.map(() => false);
+    setCartItems(newCartItems);
+    setCheckedItems(newCheckedItems);
+    alert("Đã xóa các sản phẩm đã chọn!");
+  };
+
   return (
     <main className="max-w-screen-xl mx-auto px-4 pb-20">
-      {/* Breadcrumb */}
       <nav className="py-3 text-xs sm:text-sm text-blue-500 whitespace-normal">
         <a href="#" className="hover:underline">Trang chủ</a> / <span>Giỏ hàng</span>
       </nav>
 
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Danh sách sản phẩm */}
-        <section className="w-full lg:w-[calc(100%-1rem)] lg:w-2/3 bg-white rounded-md p-3 sm:p-4 border border-gray-200">
-          <div className="flex justify-between items-center mb-3 sm:mb-4 flex-wrap gap-y-2">
+        <section className="w-full lg:w-2/3 bg-white rounded-md p-3 sm:p-4 border border-gray-200">
+          <div className="flex justify-between items-center ml-3 mb-3 sm:mb-4 flex-wrap gap-y-2">
             <div
               onClick={toggleAll}
               className="flex items-center gap-2 cursor-pointer"
             >
               <div
-                className={`w-5 h-5 border rounded-sm flex items-center justify-center ${isAllChecked ? "bg-red-600 border-red-600" : "border-gray-400"
-                  }`}
+                className={`w-5 h-5 border rounded-sm flex items-center justify-center transition-colors ${
+                  isAllChecked
+                    ? "bg-primary border-primary"
+                    : "border-gray-400 bg-white"
+                }`}
               >
                 {isAllChecked && <span className="text-white text-xs font-bold">✓</span>}
               </div>
-              <span className="text-sm">Chọn tất cả ({dummyItems.length})</span>
+              <span className="text-sm text-gray-700">Chọn tất cả ({cartItems.length})</span>
             </div>
-            <button className="text-gray-400 hover:text-red-600">
-              <i className="fas fa-trash-alt"></i>
+            <button
+              onClick={handleDeleteSelected}
+              className="text-gray-500 hover:text-red-600 p-1 transition-colors"
+              title="Xóa các mục đã chọn"
+              disabled={!hasSelectedItems} // Có thể disable cả nút xóa nếu không có gì được chọn
+            >
+              <FiTrash2 size={20} />
             </button>
           </div>
 
-          <div className="flex flex-col gap-3 sm:gap-5">
-            {dummyItems.map((item, index) => (
-              <CartItem
-                key={item.id}
-                item={item}
-                isChecked={checkedItems[index]}
-                onToggleChecked={() => handleToggleChecked(index)}
-              />
-            ))}
-          </div>
+          {cartItems.length > 0 ? (
+            <div className="flex flex-col gap-3 sm:gap-5">
+              {cartItems.map((item, index) => (
+                <CartItem
+                  key={item.id}
+                  item={item}
+                  isChecked={checkedItems[index]}
+                  onToggleChecked={() => handleToggleChecked(index)}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-gray-500 py-8">Giỏ hàng của bạn đang trống.</p>
+          )}
         </section>
 
-        {/* Tóm tắt đơn hàng */}
         <aside className="w-full lg:w-1/3 mt-6 lg:mt-0">
-          {checkedItems.some((c) => c) && (
+          {/* CartSummary sẽ luôn hiển thị nếu có sản phẩm trong giỏ */}
+          {cartItems.length > 0 && (
             <div className="sticky top-20">
-              <CartSummary />
+              <CartSummary hasSelectedItems={hasSelectedItems} /> {/* TRUYỀN PROP XUỐNG */}
             </div>
           )}
         </aside>

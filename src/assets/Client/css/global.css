@@ -5,14 +5,14 @@
   --secondary-color: #0047AB;
   --text-primary: #FFFFFF;
   --text-secondary: #1CA7EC;
-    /* Màu cho nút ở trạng thái thường */
-  --arrow-button-bg-normal: #FFFFFF; /* Nền trắng cho nút thường */
-  --arrow-button-border-normal: #e0e0e0; /* Viền xám nhạt cho nút thường */
-  --arrow-icon-normal: #333333; /* Màu mũi tên thường (đen/xám đậm) */
+   
+  --arrow-button-bg-normal: #FFFFFF; 
+  --arrow-button-border-normal: #e0e0e0; 
+  --arrow-icon-normal: #333333; 
 
-  /* Màu cho nút khi hover */
-  --arrow-button-bg-hover: var(--primary-color); /* Nền xanh khi hover */
-  --arrow-icon-hover: var(--text-primary); /* Mũi tên trắng khi hover */
+
+  --arrow-button-bg-hover: var(--primary-color);
+  --arrow-icon-hover: var(--text-primary); 
 }
 
 
@@ -67,7 +67,7 @@
 .scrollbar-thin::-webkit-scrollbar {
   width: 6px; 
 }
-
+/* Scroll */
 .scrollbar-thin::-webkit-scrollbar-thumb {
   background-color: var(--primary-color);
   border-radius: 8px;
@@ -76,6 +76,7 @@
 .scrollbar-thin::-webkit-scrollbar-track {
   background-color: transparent;
 }
+/* end */
 /* === CUSTOM SWIPER NAVIGATION ARROWS === */
 .swiper-button-next,
 .swiper-button-prev {
@@ -139,17 +140,59 @@
     color: #999999 !important;
 }
 
-/* === CUSTOM SWIPER PAGINATION DOTS === */
+/* Ghi đè style cho Swiper pagination bullets */
+
+/* Định dạng chung cho tất cả các bullet */
 .swiper-pagination-bullet {
-  width: 8px !important;
-  height: 8px !important;
-  background-color: #ccc !important;
-  opacity: 0.6 !important;
+  width: 18px !important;  
+  height: 6px !important; 
+  border-radius: 2px; 
+  background-color: #A0AEC0; 
+  opacity: 0.7; 
+  transition: all 0.3s ease; 
+  margin: 0 4px !important; 
+}
+
+
+.swiper-pagination-bullet-active {
+  width: 20px !important; 
+  background-color: #4299E1; 
+  opacity: 1;
+}
+
+.swiper-pagination-bullet {
+    border-radius: 2px !important; 
+    height: 4px !important;
+
+    background-color: #A0AEC0;
+    opacity: 0.5;
 }
 
 .swiper-pagination-bullet-active {
-  background-color: var(--primary-color) !important;
-  opacity: 1 !important;
-  width: 10px !important;
-  height: 10px !important;
+    background-color: #4299E1; 
+    opacity: 1;
+    height: 5px !important; 
+   
+}
+
+.swiper-pagination-bullet span {
+    display: none;
+}
+
+.has-arrow-up {
+  position: relative;
+}
+
+.has-arrow-up::before {
+  content: "";
+  position: absolute;
+  bottom: 100%;   
+  right: 22px;     
+  width: 0;
+  height: 0;
+  border-left: 13px solid transparent;   
+  border-right: 13px solid transparent;  
+  border-bottom: 13px solid white;  
+
+ 
 }

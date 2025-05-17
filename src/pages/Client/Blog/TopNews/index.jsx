@@ -9,7 +9,7 @@ const TopNews = () => {
             {/* Thanh tiêu đề hot */}
             <div className="flex items-stretch w-full overflow-hidden mb-4">
                 {/* TIN TỨC HOT */}
-                <div className="flex-shrink-0 bg-yellow-400 px-2 md:px-4 py-1 md:py-2 font-bold text-xs md:text-sm flex items-center gap-1 md:gap-2 rounded">
+                <div className="flex-shrink-0 bg-primary text-white px-2 md:px-4 py-1 md:py-2 font-bold text-xs md:text-sm flex items-center gap-1 md:gap-2 rounded">
                     ⚡
                     <span className="hidden md:inline">TIN TỨC HOT</span>
                 </div>
@@ -34,7 +34,7 @@ const TopNews = () => {
 
             {/* Thanh tiêu đề khuyến mãi */}
             <div className="text-left">
-                <div className="inline-block font-bold text-2xl border-b-4 border-yellow-300 rounded-b-md mb-3 pt-4">
+                <div className="inline-block font-bold text-2xl  border-b-4 border-primary rounded-b-md mb-3 pt-4">
                     Tin nổi bật nhất
                 </div>
             </div>

@@ -281,11 +281,11 @@ export default function ProductList() {
         <div className="text-center mt-8">
           <button
             onClick={handleToggle}
-            className="px-6 py-2.5 rounded-md text-sm font-bold 
-                    border border-yellow-500 bg-yellow-50 text-yellow-700 
-                    hover:bg-yellow-100 hover:text-yellow-800 transition duration-200 ease-in-out
-                    focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50
-                    shadow-sm hover:shadow-md"
+        className="px-6 py-2.5 rounded-md text-sm font-bold 
+                 bg-primary text-white   সাপ্লাই চেইন ব্যবস্থাপন   /* Màu nền xanh, chữ trắng */
+                 hover:bg-secondary transition duration-200 ease-in-out /* Hover màu xanh đậm hơn */
+                 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 /* Focus ring màu xanh */
+                 shadow-sm hover:shadow-md"
           >
             {isAllVisible
               ? "Thu gọn"
