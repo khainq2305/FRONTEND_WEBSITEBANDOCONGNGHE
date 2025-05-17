@@ -19,6 +19,7 @@ const OrderConfirmation = Loadable(lazy(() => import('pages/Client/OrderConfirma
 
 const News = Loadable(lazy(() => import('pages/Client/Blog/index.jsx')));
 const NewsDetails = Loadable(lazy(() => import('pages/Client/BlogDetail')));
+const CompareProducts = Loadable(lazy(() => import('pages/Client/CompareProduct')));
 const ClientRoutes = {
   path: '/',
   element: <ClientLayout />,
@@ -59,7 +60,10 @@ const ClientRoutes = {
     { path: 'order-confirmation', element: <OrderConfirmation /> },
 
     { path: 'news', element: <News /> },
-    { path: 'news/:id', element: <NewsDetails /> }
+    { path: 'news/:id', element: <NewsDetails /> },
+
+    { path: 'compare-products', element: <CompareProducts /> }
+
   ]
 };
 
