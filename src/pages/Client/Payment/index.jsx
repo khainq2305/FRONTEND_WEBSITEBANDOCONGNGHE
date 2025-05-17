@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import CheckoutForm from './CheckoutForm';
 import PaymentMethod from './PaymentMethod';
 import OrderSummary from './OrderSummary';
-
+import { Link } from "react-router-dom"; // THÊM IMPORT Link
 const CheckoutPage = () => {
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(1);
     const productsInOrder = [
@@ -42,6 +42,15 @@ const CheckoutPage = () => {
 
     return (
         <div className="bg-gray-100 min-h-screen py-4 sm:py-6 lg:py-8 px-3 sm:px-4 lg:px-6">
+             <div className="max-w-7xl mx-auto mb-4"> {/* Thêm container cho breadcrumb để căn chỉnh */}
+                <nav className="text-xs sm:text-sm text-gray-600 whitespace-normal">
+                    <Link to="/" className="text-blue-500 hover:underline">Trang chủ</Link>
+                    <span className="mx-1 sm:mx-2">/</span>
+                    <Link to="/cart" className="text-blue-500 hover:underline">Giỏ hàng</Link>
+                    <span className="mx-1 sm:mx-2">/</span>
+                    <span>Thanh toán</span>
+                </nav>
+            </div>
             <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
                 {/* Cột trái: Form người đặt hàng + phương thức thanh toán */}
                 <div className="lg:col-span-2 space-y-3 sm:space-y-4">

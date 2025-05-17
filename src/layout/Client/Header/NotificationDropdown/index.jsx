@@ -53,8 +53,10 @@ const NotificationDropdown = ({ isOpen, notifications = [], onClose }) => {
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   return (
-    <div className="absolute top-full right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-40 flex flex-col">
-      <div className="p-3 border-b border-gray-200 flex-shrink-0">
+ <div
+      className="absolute top-full right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-40 flex flex-col has-arrow-up" // << THÊM CLASS 'has-arrow-up'
+    >
+      <div className="p-3 border-b border-gray-200 flex-shrink-0 ">
         <div className="flex justify-between items-center mb-2.5">
           <h3 className="text-sm font-semibold text-gray-800">Thông báo</h3>
           {notifications.length > 0 && (

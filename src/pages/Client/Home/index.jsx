@@ -3,33 +3,64 @@ import SliderBanner from "./SliderBanner";
 import ProductCategorySection from "./ProductCategorySection";
 
 import ViewedProductsSlider from "./ViewedProductsSlider";
-import ProductShowcase from "./ProductShowcase";
+import FreshProductSlider from "./FreshProductSlider";
+import PromoGridSection from "./PromoGridSection";
+import MainBannerSlider from "./MainBannerSlider";
+
+import ProductCategorySlider from "./ProductCategorySlider";
+import TwoRowMarketSlider from "./TwoRowMarketSlider";
 const HomePage = () => {
   return (
     <>
-    {/* KHỐI SLIDER BANNER CHÍNH (Summer Sale) */}
-      <div className="flex justify-center px-2 py-2 bg-gray-100">
+    <div className="flex justify-center px-2 py-2 bg-gray-100">
         <div className="max-w-screen-xl w-full mx-auto">
           <SliderBanner />
         </div>
       </div>
-      {/* KHỐI DANH MỤC SẢN PHẨM - ĐẢM BẢO CHỈ XUẤT HIỆN MỘT LẦN */}
-      <div className="flex justify-center px-2 py-2 bg-gray-100">
+       <div className="flex justify-center px-2 py-2 bg-gray-100">
         <div className="max-w-screen-xl w-full mx-auto">
           <ProductCategorySection />
         </div>
       </div>
-       {/* KHỐI VIEWED PRODUCTS */}
       <div className="flex justify-center px-2 py-2 bg-gray-100">
         <div className="max-w-screen-xl w-full mx-auto flex flex-col gap-6 items-start">
           <ViewedProductsSlider />
         </div>
       </div>
-        <div className="flex justify-center py-10 bg-gray-100">
+      
+      <div className="flex justify-center px-2 py-2 bg-gray-100">
         <div className="max-w-screen-xl w-full mx-auto flex flex-col gap-6 items-start">
-          <ProductShowcase />
+          <PromoGridSection />
         </div>
       </div>
+    {/* KHỐI SLIDER BANNER CHÍNH (Summer Sale) */}
+      <div className="flex justify-center px-2 py-2 bg-gray-100">
+        <div className="max-w-screen-xl w-full mx-auto">
+          <TwoRowMarketSlider />
+        </div>
+      </div>
+      
+      <div className="flex justify-center px-2 py-2 bg-gray-100">
+        <div className="max-w-screen-xl w-full mx-auto">
+          <FreshProductSlider />
+        </div>
+      </div>
+      <div className="flex justify-center px-2 py-2 bg-gray-100">
+        <div className="max-w-screen-xl w-full mx-auto">
+          <ProductCategorySlider />
+        </div>
+      </div>
+    
+      
+      
+         <div className="flex justify-center py-2 bg-gray-100">
+        <div className="max-w-screen-xl w-full mx-auto flex flex-col gap-6 items-start">
+          <MainBannerSlider />
+        </div>
+      </div>
+      
+   
+     
         </>
   );
 };

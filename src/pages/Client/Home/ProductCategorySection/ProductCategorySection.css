@@ -1,0 +1,77 @@
+/* ProductCategorySection.css */
+
+.category-slider-wrapper .slick-slider {
+  position: relative;
+
+}
+
+.category-slider-wrapper .slick-list {
+  overflow: hidden;
+}
+
+.category-slider-wrapper .slick-track {
+  display: flex;
+}
+
+
+.category-slider-wrapper .slick-slide > div {
+  height: 100%;
+  width: 100%;
+  display: flex;
+}
+
+.category-slider-wrapper .slick-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  cursor: pointer;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--arrow-button-bg-normal, #FFFFFF);
+  border: 1px solid var(--arrow-button-border-normal, #e5e7eb);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: all 0.2s ease-in-out;
+  color: var(--primary-color, #1CA7EC) !important;
+  opacity: 0; 
+  pointer-events: none; 
+}
+
+@media (min-width: 768px) {
+  .group:hover .category-slider-wrapper .slick-arrow:not(.slick-disabled) {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .group:hover .category-slider-wrapper .slick-arrow.slick-disabled {
+    opacity: 0.3 !important; 
+    pointer-events: none !important;
+  }
+}
+
+.category-slider-wrapper .slick-arrow.slick-disabled {
+  opacity: 0.3 !important;
+  pointer-events: none !important;
+  cursor: default !important;
+  background-color: #f3f4f6 !important; 
+  border-color: #e5e7eb !important; 
+  color: #9ca3af !important; 
+}
+
+.category-slider-wrapper .slick-arrow:hover:not(.slick-disabled) {
+  background-color: var(--primary-color, #1CA7EC) !important;
+  border-color: var(--primary-color, #1CA7EC) !important;
+  color: var(--text-primary, #FFFFFF) !important;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+}
+
+.category-slider-wrapper .slick-prev { left: 8px; }
+.category-slider-wrapper .slick-next { right: 8px; }
+
+.category-slider-wrapper .slick-prev:before,
+.category-slider-wrapper .slick-next:before {
+  display: none !important;
+}

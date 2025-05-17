@@ -5,17 +5,16 @@ import Header from './Header';
 import Footer from './Footer';
 import AuthHeader from './AuthHeader';
 import Topbar from './Topbar';
-import BottomNavigationBar from "./BottomNavigationBar"; // IMPORT COMPONENT MỚI
+import BottomNavigationBar from './BottomNavigationBar';
 const ClientLayout = () => {
   const location = useLocation();
-  
-  // ✅ Kiểm tra nếu là các trang Auth và OTP
+
   const isAuthPage = [
     '/dang-nhap',
     '/dang-ky',
     '/quen-mat-khau',
     '/dat-lai-mat-khau',
-    '/otp-verification', // ✅ Thêm OTP vào đây
+    '/otp-verification',
     '/forgot-password-notice',
     '/register-email-sent'
   ].includes(location.pathname);
@@ -24,7 +23,7 @@ const ClientLayout = () => {
     <>
       {isAuthPage ? (
         <AuthHeader />
-      ) : ( 
+      ) : (
         <>
           <Topbar />
           <Header />
@@ -36,10 +35,8 @@ const ClientLayout = () => {
       </main>
 
       <Footer />
-        <BottomNavigationBar />
+      <BottomNavigationBar />
 
-      {/* Thêm một khoảng trống ở cuối trang để nội dung không bị thanh nav che mất */}
-      {/* Chiều cao của khoảng trống này nên bằng hoặc lớn hơn chiều cao của BottomNavigationBar (56px) */}
       <div className="pb-[56px] lg:pb-0"></div>
     </>
   );

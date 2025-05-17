@@ -1,0 +1,138 @@
+/* ProductCategorySlider.css */
+
+/* Wrapper chính của component, class "group" dùng để hover hiện mũi tên */
+.category-slider-wrapper {
+  /* overflow: hidden; */ /* Cẩn thận với overflow nếu nút chờm ra ngoài */
+}
+
+/* Class được gán vào component Slider của react-slick */
+.fresh-slick-slider.slick-slider { /* Giả sử bạn dùng class "fresh-slick-slider" cho slider sản phẩm */
+  position: relative;
+  /* Bỏ margin âm nếu không thực sự cần thiết hoặc gây lỗi tràn */
+  /* margin-left: -6px; */ /* Ví dụ: - (p-1.5 của slide item) */
+  /* margin-right: -6px; */
+}
+
+.fresh-slick-slider .slick-list {
+  overflow: hidden; 
+  /* Cân nhắc overflow: visible; nếu muốn thấy hiệu ứng shadow của card rõ hơn,
+     nhưng cẩn thận với việc tính toán chiều rộng và vị trí nút.
+     Mặc định của react-slick thường là hidden.
+  */
+}
+
+.fresh-slick-slider .slick-slide {
+  box-sizing: border-box;
+}
+
+/* Đảm bảo div con trực tiếp của slick-slide co giãn tốt */
+.fresh-slick-slider .slick-slide > div { 
+  height: 100%;
+  display: flex; /* Giúp InlinedProductCard bên trong có thể dùng h-full */
+  box-sizing: border-box;
+}
+
+/* Đảm bảo InlinedProductCard (nếu nó là con trực tiếp của div trong slick-slide) chiếm full width/height */
+.fresh-slick-slider .slick-slide > div > .product-card-item {
+    width: 100% !important; 
+    height: 100% !important; 
+}
+
+
+/* --- Nút điều hướng cho fresh-slick-slider --- */
+.fresh-slick-slider .slick-arrow { 
+  position: absolute;
+  top: 50%; 
+  transform: translateY(-50%);
+  z-index: 20;
+  cursor: pointer;
+  border-radius: 50%;
+  width: 40px; /* Kích thước nút */
+  height: 40px;
+  display: flex !important; 
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.7); 
+  border: 1px solid rgba(0,0,0,0.1);
+  color: #374151; /* text-gray-700 */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  transition: all 0.2s ease-in-out;
+  
+  opacity: 0; 
+  pointer-events: none;
+  transform: translateY(-50%) scale(0.9); 
+}
+
+/* Hiển thị nút khi hover vào .category-slider-wrapper.group */
+.category-slider-wrapper.group:hover .fresh-slick-slider .slick-arrow {
+  opacity: 1; 
+  pointer-events: auto;
+  transform: translateY(-50%) scale(1);
+}
+
+.fresh-slick-slider .slick-arrow.slick-disabled {
+  opacity: 0 !important; 
+  pointer-events: none !important;
+  cursor: default;
+}
+.category-slider-wrapper.group:hover .fresh-slick-slider .slick-arrow.slick-disabled {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+.fresh-slick-slider .slick-arrow:hover:not(.slick-disabled) {
+  background-color: rgba(255, 255, 255, 0.95); 
+  color: #000000; 
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.fresh-slick-slider .slick-prev {
+  left: -12px; /* Điều chỉnh vị trí chờm ra ngoài */
+}
+.fresh-slick-slider .slick-next {
+  right: -12px; /* Điều chỉnh vị trí chờm ra ngoài */
+}
+
+/* Bỏ icon mặc định của Slick */
+.fresh-slick-slider .slick-arrow:before {
+  display: none !important; 
+}
+
+.slick-arrow-icon { /* Class cho icon SVG bên trong nút */
+  width: 20px; 
+  height: 20px;
+}
+
+/* Responsive cho nút: JS đã đặt arrows:false cho mobile nhỏ hơn */
+@media (max-width: 767px) { /* Ví dụ: ẩn hẳn trên mobile nếu JS chưa làm */
+  /* .fresh-slick-slider .slick-arrow {
+     display: none !important; 
+  } */
+}
+
+
+/* --- CSS cho tên sản phẩm (line-clamp) bên trong InlinedProductCard --- */
+/* Áp dụng cho class .product-card-name bên trong .product-card-item */
+.product-card-item .product-card-name a { /* Hoặc .product-card-item .product-card-name */
+  display: -webkit-box !important; 
+  -webkit-line-clamp: 2 !important; 
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  /* Bỏ dòng này nếu có: height: calc(2 * 1.35em); */
+  /* Có thể thử line-height ở đây nếu cần, ví dụ: */
+   line-height: 1.2; 
+}
+/* CSS cho scrollbar của filter trên mobile (nếu dùng plugin tailwind-scrollbar) */
+/* Hoặc bạn có thể style thủ công */
+.scrollbar-thin::-webkit-scrollbar {
+  height: 4px; /* Chiều cao của thanh cuộn ngang */
+  width: 4px; /* Chiều rộng của thanh cuộn dọc (nếu có) */
+}
+.scrollbar-thumb-gray-300::-webkit-scrollbar-thumb {
+  background-color: #D1D5DB; /* màu của con trượt (gray-300) */
+  border-radius: 20px;
+}
+.scrollbar-track-gray-100::-webkit-scrollbar-track {
+  background-color: #F3F4F6; /* màu của rãnh cuộn (gray-100) */
+}

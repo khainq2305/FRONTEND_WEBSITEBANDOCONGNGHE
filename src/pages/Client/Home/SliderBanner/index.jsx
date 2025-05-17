@@ -6,7 +6,6 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
-
 const mainSlideImage1 = 'https://dienthoaigiakho.vn/_next/image?url=https%3A%2F%2Fcdn.dienthoaigiakho.vn%2Fphotos%2F1746670662906-984x395_Main-Banner.jpg&w=1080&q=75';
 const mainSlideImage2 = 'https://dienthoaigiakho.vn/_next/image?url=https%3A%2F%2Fcdn.dienthoaigiakho.vn%2Fphotos%2F1747024324761-984x395_Galaxy-Tab-S10-Series_Update_0605.jpg&w=1080&q=75';
 const mainSlideImage3 = 'https://dienthoaigiakho.vn/_next/image?url=https%3A%2F%2Fcdn.dienthoaigiakho.vn%2Fphotos%2F1745480836001-984x395_Main-Banner-redmi-note-14.jpg&w=1080&q=75';
@@ -32,13 +31,11 @@ const SliderBanner = () => {
 
   const desktopSidebarHeight = 'h-[430px]';
   const mainGap = 'gap-4';
-  
 
   return (
-    
     <div className={`flex flex-col ${mainGap} lg:flex-row `}>
     
-      <div className={`w-full lg:w-2/3 rounded-lg overflow-hidden shadow-lg aspect-[984/395]`}>
+      <div className={`w-full lg:w-3/4 rounded-lg overflow-hidden shadow-lg aspect-[984/395]`}> 
         <Swiper {...swiperParams} className="h-full w-full">
           {[mainSlideImage1, mainSlideImage2, mainSlideImage3].map((src, index) => (
             <SwiperSlide key={index} className="h-full w-full">
@@ -48,9 +45,8 @@ const SliderBanner = () => {
         </Swiper>
       </div>
 
-      
-      
-      <div className={`hidden lg:flex flex-col ${mainGap} w-full lg:w-1/3 ${desktopSidebarHeight}`}>
+     
+      <div className={`hidden lg:flex flex-col ${mainGap} w-full lg:w-1/4 ${desktopSidebarHeight}`}> 
         {[sidebarAdImage1, sidebarAdImage2, sidebarAdImage3].map((src, index) => (
           <div key={index} className="flex-1 rounded-lg overflow-hidden shadow-lg">
             <img src={src} alt={`Sidebar Ad ${index + 1}`} className="h-full w-full object-cover" />

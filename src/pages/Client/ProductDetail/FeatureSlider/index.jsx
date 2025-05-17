@@ -1,60 +1,37 @@
+// предположим, это FeatureSlider.js
+import React from "react"; // Добавлен импорт React
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/free-mode";
 import { FreeMode } from "swiper/modules";
 
-const features = [
-  {
-    label: "Tính năng nổi bật",
-    imageThumb:
-      "https://cdn2.cellphones.com.vn/insecure/rs:fill:58:58/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/p/iphone-16-pro-max-7.png",
-    imageFull:
-      "https://cellphones.com.vn/media/catalog/product/i/p/iphone-16-pro-max-7.png",
-  },
-  {
-    imageThumb:
-      "https://cdn2.cellphones.com.vn/insecure/rs:fill:58:58/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/p/iphone-16-pro-max.png",
-    imageFull:
-      "https://cellphones.com.vn/media/catalog/product/i/p/iphone-16-pro-max.png",
-  },
-  {
-    imageThumb:
-      "https://cdn2.cellphones.com.vn/insecure/rs:fill:58:58/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/p/iphone-16-pro-max-3.png",
-    imageFull:
-      "https://cellphones.com.vn/media/catalog/product/i/p/iphone-16-pro-max-3.png",
-  },
-  {
-    imageThumb:
-      "https://cdn2.cellphones.com.vn/insecure/rs:fill:58:58/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/p/iphone-16-pro-max-4.png",
-    imageFull:
-      "https://cellphones.com.vn/media/catalog/product/i/p/iphone-16-pro-max-4.png",
-  },
-  {
-    imageThumb:
-      "https://cdn2.cellphones.com.vn/insecure/rs:fill:58:58/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/p/iphone-16-pro-max-5.png",
-    imageFull:
-      "https://cellphones.com.vn/media/catalog/product/i/p/iphone-16-pro-max-5.png",
-  },
-];
+export default function FeatureSlider({ images = [], currentImage, onSelect }) {
+  if (!images || images.length === 0) {
+    return null; // Не отображать, если нет изображений
+  }
 
-export default function FeatureSlider({ onSelect }) {
   return (
     <Swiper
       spaceBetween={10}
-      slidesPerView="auto"
-      freeMode
+      slidesPerView="auto" // Позволяет Swiper определять количество видимых слайдов
+      freeMode={true} // Используйте true для freeMode
       modules={[FreeMode]}
-      className="py-2"
+      className="py-2" // Существующая стилизация
     >
-      {features.map((item, index) => (
+      {images.map((item, index) => (
         <SwiperSlide
           key={index}
-          className="!w-[70px] !h-[70px] rounded overflow-hidden border-gray-400-gray-200 cursor-pointer"
-          onClick={() => onSelect?.(item.imageFull)}
+          className={`!w-[70px] !h-[70px] rounded overflow-hidden border-2 cursor-pointer transition-all duration-150 ease-in-out
+                      ${currentImage === item.imageFull 
+                        ? 'border-blue-500 ring-2 ring-blue-300' // Стиль для активного слайда
+                        : 'border-gray-300 hover:border-gray-400' // Стиль для неактивных слайдов
+                      }`}
+          onClick={() => onSelect?.(item.imageFull)} // Вызвать onSelect с URL полного изображения
         >
+          {/* Можно добавить item.label сюда, если он есть и нужен */}
           <img
-            src={item.imageThumb}
-            alt=""
+            src={item.imageThumb} // Использовать imageThumb для отображения
+            alt={item.label || `Thumbnail ${index + 1}`}
             className="w-full h-full object-cover"
           />
         </SwiperSlide>
