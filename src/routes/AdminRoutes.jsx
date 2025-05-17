@@ -11,6 +11,8 @@ const OrderList = Loadable(lazy(() => import('pages/Admin/OrderList')));
 const OrderDetail = Loadable(lazy(() => import('pages/Admin/OrderDetail')));
 const BannerList = Loadable(lazy(() => import('pages/Admin/BannerList')));
 const BannerDetail = Loadable(lazy(() => import('pages/Admin/BannerDetail')));
+const CouponList = Loadable(lazy(() => import('pages/Admin/CouponList')));
+
 
 
 const AdminRoutes = {
@@ -44,6 +46,10 @@ const AdminRoutes = {
     {
       path: 'banners/:id',
       element: <BannerDetail />
+    },
+        {
+      path: 'coupons',
+      element: <CouponList />
     },
   ]
 };

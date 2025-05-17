@@ -21,17 +21,17 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem as SelectMenuItem,
+  TextField,
   Typography
 } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import SearchInput from 'components/common/SearchInput';
-import Pagination from 'components/common/Pagination';
+import SearchInput from 'components/common/SearchInput'; 
+import Pagination from 'components/common/Pagination'; 
 import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-
+// Mock dữ liệu
 const mockBanners = [
   {
     id: 1,
@@ -56,6 +56,7 @@ const mockBanners = [
   }
 ];
 
+// Component menu cho hành động (MoreActionsMenu)
 const MoreActionsMenu = ({ actions }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
@@ -90,40 +91,59 @@ const BannerList = () => {
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
   const [banners, setBanners] = useState(mockBanners);
+
   const [openUpdateStatus, setOpenUpdateStatus] = useState(false);
   const [bannerToUpdate, setBannerToUpdate] = useState(null);
   const [newStatus, setNewStatus] = useState('');
+
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [bannerToDelete, setBannerToDelete] = useState(null);
+
+  // Dialog thêm banner mới
+  const [openAddDialog, setOpenAddDialog] = useState(false);
+  const [newBannerName, setNewBannerName] = useState('');
+  const [newBannerImage, setNewBannerImage] = useState('');
+  const [newBannerStatus, setNewBannerStatus] = useState('active');
 
   const navigate = useNavigate();
   const itemsPerPage = 5;
 
+  // Lọc banner theo search và status
   const filteredBanners = banners.filter(
-    (banner) =>
-      banner.name.toLowerCase().includes(search.toLowerCase()) &&
-      (status === '' || banner.status === status)
+    (banner) => banner.name.toLowerCase().includes(search.toLowerCase()) && (status === '' || banner.status === status)
   );
-  const paginatedBanners = filteredBanners.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
+  // Tổng số trang dựa trên filteredBanners
+  const totalPages = Math.ceil(filteredBanners.length / itemsPerPage);
+
+  // Reset page nếu page hiện tại vượt quá totalPages sau mỗi lần filteredBanners thay đổi
+  useEffect(() => {
+    if (page > totalPages && totalPages > 0) {
+      setPage(1);
+    }
+  }, [page, totalPages]);
+
+  // Reset page về 1 khi search hoặc status thay đổi
   useEffect(() => {
     setPage(1);
   }, [search, status]);
 
-  // 👇 Tính số lượng theo từng trạng thái
+  // Lấy danh sách banner hiển thị trang hiện tại
+  const paginatedBanners = filteredBanners.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+
+  // Đếm số lượng theo trạng thái
   const totalCount = banners.length;
   const activeCount = banners.filter((b) => b.status === 'active').length;
   const hiddenCount = banners.filter((b) => b.status === 'hidden').length;
   const trashCount = banners.filter((b) => b.status === 'trash').length;
 
-  // 👇 Đặt trong BannerList, sau khi có access tới banners
   const statusTabs = [
     { value: '', label: `Tất cả (${totalCount})` },
     { value: 'active', label: `Hiển thị (${activeCount})` },
     { value: 'hidden', label: `Ẩn (${hiddenCount})` },
     { value: 'trash', label: `Thùng rác (${trashCount})` }
   ];
-  
+
   const getStatusChip = (status) => {
     const map = {
       active: ['Hiển thị', 'success'],
@@ -134,63 +154,95 @@ const BannerList = () => {
     return <Chip label={label} color={color} size="small" />;
   };
 
+  // Các hàm dialog cập nhật trạng thái
   const openUpdateStatusDialog = (banner) => {
     setBannerToUpdate(banner);
     setNewStatus(banner.status);
     setOpenUpdateStatus(true);
   };
-
   const closeUpdateStatusDialog = () => {
     setOpenUpdateStatus(false);
     setBannerToUpdate(null);
   };
-
   const submitUpdateStatus = () => {
-    setBanners((prev) =>
-      prev.map((banner) =>
-        banner.id === bannerToUpdate.id ? { ...banner, status: newStatus } : banner
-      )
-    );
+    setBanners((prev) => prev.map((banner) => (banner.id === bannerToUpdate.id ? { ...banner, status: newStatus } : banner)));
     toast.success(`Đã cập nhật trạng thái banner "${bannerToUpdate.name}" thành "${newStatus}"`);
     closeUpdateStatusDialog();
   };
 
+  // Dialog xóa tạm thời
   const openDeleteBannerDialog = (banner) => {
     setBannerToDelete(banner);
     setOpenDeleteDialog(true);
   };
-
   const closeDeleteBannerDialog = () => {
     setOpenDeleteDialog(false);
     setBannerToDelete(null);
   };
-
   const submitDeleteBanner = () => {
-    setBanners((prev) =>
-      prev.map((banner) =>
-        banner.id === bannerToDelete.id ? { ...banner, status: 'trash' } : banner
-      )
-    );
+    setBanners((prev) => prev.map((banner) => (banner.id === bannerToDelete.id ? { ...banner, status: 'trash' } : banner)));
     toast.success(`Đã chuyển banner "${bannerToDelete.name}" vào thùng rác`);
     closeDeleteBannerDialog();
   };
 
+  // Khôi phục banner
   const restoreBanner = (banner) => {
-    setBanners((prev) =>
-      prev.map((b) => (b.id === banner.id ? { ...b, status: 'active' } : b))
-    );
+    setBanners((prev) => prev.map((b) => (b.id === banner.id ? { ...b, status: 'active' } : b)));
     toast.success(`Đã khôi phục banner "${banner.name}"`);
   };
 
+  // Xóa vĩnh viễn banner
   const permanentlyDeleteBanner = (banner) => {
     setBanners((prev) => prev.filter((b) => b.id !== banner.id));
     toast.success(`Đã xóa vĩnh viễn banner "${banner.name}"`);
   };
 
+  // Dialog thêm banner mới
+  const openAddBannerDialog = () => {
+    setNewBannerName('');
+    setNewBannerImage('');
+    setNewBannerStatus('active');
+    setOpenAddDialog(true);
+  };
+  const closeAddBannerDialog = () => setOpenAddDialog(false);
+  const submitAddBanner = () => {
+    if (!newBannerName.trim()) {
+      toast.error('Tên banner không được để trống');
+      return;
+    }
+    if (!newBannerImage.trim()) {
+      toast.error('URL hình ảnh không được để trống');
+      return;
+    }
+    const newId = banners.length ? Math.max(...banners.map((b) => b.id)) + 1 : 1;
+    const newBanner = {
+      id: newId,
+      name: newBannerName,
+      image: newBannerImage,
+      status: newBannerStatus,
+      createdAt: new Date().toISOString().slice(0, 10) // yyyy-mm-dd
+    };
+    setBanners((prev) => [newBanner, ...prev]);
+    toast.success(`Đã thêm banner "${newBannerName}"`);
+    setOpenAddDialog(false);
+  };
+  // Xử lý phân trang khi user chọn page mới
+  const handleChangePage = (event, value) => {
+    setPage(value);
+  };
   return (
     <Box sx={{ p: 2 }}>
       <ToastContainer />
-      <Box sx={{ display: 'flex', gap: 4, borderBottom: '1px solid #eee', mb: 2 }}>
+
+      {/* Tabs trạng thái */}
+      <Box
+        sx={{
+          display: 'flex',
+          gap: 4,
+          borderBottom: '1px solid #eee',
+          mb: 2
+        }}
+      >
         {statusTabs.map((tab) => (
           <Box
             key={tab.value}
@@ -210,10 +262,24 @@ const BannerList = () => {
         ))}
       </Box>
 
-      <Box sx={{ mb: 2, maxWidth: 400 }}>
-        <SearchInput placeholder="Tìm tên banner..." value={search} onChange={setSearch} />
+      {/* Search và nút thêm mới */}
+      <Box
+        sx={{
+          mb: 2,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}
+      >
+        <Box sx={{ flexGrow: 1, maxWidth: 400 }}>
+          <SearchInput placeholder="Tìm tên banner..." value={search} onChange={setSearch} />
+        </Box>
+        <Button variant="contained" onClick={openAddBannerDialog} sx={{ ml: 2, whiteSpace: 'nowrap' }}>
+          Thêm banner mới
+        </Button>
       </Box>
 
+      {/* Bảng danh sách banner */}
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
@@ -233,49 +299,47 @@ const BannerList = () => {
                   <TableCell>{(page - 1) * itemsPerPage + idx + 1}</TableCell>
                   <TableCell>{banner.name}</TableCell>
                   <TableCell>
-                    <img src={banner.image} alt={banner.name} style={{ width: 120, height: 50, objectFit: 'cover', borderRadius: 4 }} />
+                    <img src={banner.image} alt={banner.name} width={120} style={{ borderRadius: 8 }} />
                   </TableCell>
                   <TableCell>{getStatusChip(banner.status)}</TableCell>
                   <TableCell>{banner.createdAt}</TableCell>
                   <TableCell align="right">
-                    <MoreActionsMenu
-                      actions={
-                        banner.status === 'trash'
-                          ? [
-                              {
-                                label: 'Khôi phục',
-                                onClick: () => restoreBanner(banner)
-                              },
-                              {
-                                label: 'Xóa vĩnh viễn',
-                                onClick: () => permanentlyDeleteBanner(banner),
-                                color: 'error'
-                              }
-                            ]
-                          : [
-                              {
-                                label: 'Xem chi tiết',
-                                onClick: () => navigate(`/admin/banners/${banner.id}`)
-                              },
-                              {
-                                label: 'Cập nhật trạng thái',
-                                onClick: () => openUpdateStatusDialog(banner)
-                              },
-                              {
-                                label: 'Xóa tạm thời',
-                                onClick: () => openDeleteBannerDialog(banner),
-                                color: 'error'
-                              }
-                            ]
-                      }
-                    />
+                    {/* Các hành động theo trạng thái */}
+                    {banner.status === 'trash' ? (
+                      <>
+                        <Button size="small" onClick={() => restoreBanner(banner)} sx={{ mr: 1 }} variant="outlined">
+                          Khôi phục
+                        </Button>
+                        <Button size="small" color="error" variant="outlined" onClick={() => permanentlyDeleteBanner(banner)}>
+                          Xóa vĩnh viễn
+                        </Button>
+                      </>
+                    ) : (
+                      <MoreActionsMenu
+                        actions={[
+                          {
+                            label: 'Sửa banner',
+                            onClick: () => navigate(`/admin/banner/${banner.id}`)
+                          },
+                          {
+                            label: 'Cập nhật trạng thái',
+                            onClick: () => openUpdateStatusDialog(banner)
+                          },
+                          {
+                            label: 'Xóa tạm thời',
+                            color: 'error',
+                            onClick: () => openDeleteBannerDialog(banner)
+                          }
+                        ]}
+                      />
+                    )}
                   </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
                 <TableCell colSpan={6} align="center">
-                  Không có banner phù hợp.
+                  Không có banner phù hợp
                 </TableCell>
               </TableRow>
             )}
@@ -283,32 +347,24 @@ const BannerList = () => {
         </Table>
       </TableContainer>
 
-      <Box sx={{ mt: 2 }}>
-        <Pagination
-          page={page}
-          count={Math.ceil(filteredBanners.length / itemsPerPage)}
-          onChange={(e, val) => setPage(val)}
-        />
+      {/* Phân trang */}
+      <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+        <Pagination count={totalPages} page={page} onChange={handleChangePage} color="primary" />
       </Box>
 
       {/* Dialog cập nhật trạng thái */}
       <Dialog open={openUpdateStatus} onClose={closeUpdateStatusDialog}>
         <DialogTitle>Cập nhật trạng thái banner</DialogTitle>
         <DialogContent>
-          <Typography variant="subtitle1" gutterBottom>
-            Banner: {bannerToUpdate?.name}
+          <Typography sx={{ mb: 2 }}>
+            Banner: <strong>{bannerToUpdate?.name}</strong>
           </Typography>
           <FormControl fullWidth>
-            <InputLabel id="select-status-label">Trạng thái</InputLabel>
-            <Select
-              labelId="select-status-label"
-              value={newStatus}
-              label="Trạng thái"
-              onChange={(e) => setNewStatus(e.target.value)}
-            >
-              <SelectMenuItem value="active">Hiển thị</SelectMenuItem>
-              <SelectMenuItem value="hidden">Ẩn</SelectMenuItem>
-              <SelectMenuItem value="trash">Thùng rác</SelectMenuItem>
+            <InputLabel id="status-select-label">Trạng thái</InputLabel>
+            <Select labelId="status-select-label" value={newStatus} label="Trạng thái" onChange={(e) => setNewStatus(e.target.value)}>
+              <MenuItem value="active">Hiển thị</MenuItem>
+              <MenuItem value="hidden">Ẩn</MenuItem>
+              <MenuItem value="trash">Thùng rác</MenuItem>
             </Select>
           </FormControl>
         </DialogContent>
@@ -322,14 +378,42 @@ const BannerList = () => {
 
       {/* Dialog xóa tạm thời */}
       <Dialog open={openDeleteDialog} onClose={closeDeleteBannerDialog}>
-        <DialogTitle>Xác nhận xóa banner</DialogTitle>
+        <DialogTitle>Xác nhận xóa tạm thời</DialogTitle>
         <DialogContent>
-          Bạn có chắc muốn chuyển banner <strong>{bannerToDelete?.name}</strong> vào thùng rác không?
+          Bạn có chắc muốn chuyển banner <strong>{bannerToDelete?.name}</strong> vào thùng rác?
         </DialogContent>
         <DialogActions>
-          <Button onClick={closeDeleteBannerDialog}>Không</Button>
+          <Button onClick={closeDeleteBannerDialog}>Hủy</Button>
           <Button variant="contained" color="error" onClick={submitDeleteBanner}>
-            Xác nhận
+            Xóa
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog thêm banner mới */}
+      <Dialog open={openAddDialog} onClose={closeAddBannerDialog}>
+        <DialogTitle>Thêm banner mới</DialogTitle>
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: 400 }}>
+          <TextField label="Tên banner" value={newBannerName} onChange={(e) => setNewBannerName(e.target.value)} fullWidth />
+          <TextField label="URL hình ảnh" value={newBannerImage} onChange={(e) => setNewBannerImage(e.target.value)} fullWidth />
+          <FormControl fullWidth>
+            <InputLabel id="new-banner-status-label">Trạng thái</InputLabel>
+            <Select
+              labelId="new-banner-status-label"
+              value={newBannerStatus}
+              label="Trạng thái"
+              onChange={(e) => setNewBannerStatus(e.target.value)}
+            >
+              <MenuItem value="active">Hiển thị</MenuItem>
+              <MenuItem value="hidden">Ẩn</MenuItem>
+              <MenuItem value="trash">Thùng rác</MenuItem>
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeAddBannerDialog}>Hủy</Button>
+          <Button variant="contained" onClick={submitAddBanner}>
+            Thêm mới
           </Button>
         </DialogActions>
       </Dialog>

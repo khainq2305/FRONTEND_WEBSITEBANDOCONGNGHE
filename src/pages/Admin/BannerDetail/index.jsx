@@ -41,7 +41,7 @@ const mockBanners = [
     endDate: '2025-06-15',
     status: 'inactive',
     description: 'Giới thiệu bộ sưu tập sản phẩm mới tháng 5.'
-  }
+  },
 ];
 
 // Map trạng thái banner tương tự statusLabels

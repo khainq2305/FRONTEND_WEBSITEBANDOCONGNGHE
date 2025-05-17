@@ -39,6 +39,7 @@
     "react-router": "^6.23.0",
     "react-router-dom": "^6.23.0",
     "react-slick": "^0.30.3",
+    "react-swipeable": "^7.0.2",
     "react-toastify": "^11.0.5",
     "simplebar-react": "^3.3.1",
     "slick-carousel": "^1.8.1",
