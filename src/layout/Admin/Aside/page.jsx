@@ -1,11 +1,12 @@
 // assets
-import { LoginOutlined, ProfileOutlined, TableOutlined } from '@ant-design/icons';
+import { LoginOutlined, ProfileOutlined, TableOutlined, FileTextOutlined } from '@ant-design/icons';
 
 // icons
 const icons = {
   LoginOutlined,
   ProfileOutlined,
-  TableOutlined
+  TableOutlined,
+  FileTextOutlined
 };
 
 // ==============================|| MENU ITEMS - FLAT AUTH PAGES ||============================== //
@@ -34,7 +35,17 @@ const pages = [
     url: '/admin/basic-table',
     icon: icons.TableOutlined,
     breadcrumbs: false
+  },
+  {
+    id: 'news',
+    title: 'Bài viết',
+    type: 'item',
+    url: '/admin/news',
+    icon: icons.FileTextOutlined,
+    breadcrumbs: false,
   }
+
+
 ];
 
 export default pages;
