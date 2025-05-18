@@ -2,15 +2,23 @@ import {
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer, Paper, Button
 } from '@mui/material';
 import MoreActionsMenu from 'components/common/MoreActionsMenu';
+import { useArticle } from '../News';
+import { useNavigate } from 'react-router-dom';
 
-const ArticleTable = ({
-  rows,
-  selectedRows,
-  onSelectRow,
-  onSelectAll,
-  onView,
-  onDelete
-}) => {
+const ArticleTable = () => {
+  const navigate = useNavigate();
+
+  const {
+    filteredArticles,
+    selectedRows,
+    handleSelectRow,
+    handleSelectAll,
+    setModalItem,
+    handleDelete
+  } = useArticle();
+
+  const rows = filteredArticles;
+
   return (
     <TableContainer component={Paper}>
       <Table>
@@ -20,7 +28,7 @@ const ArticleTable = ({
               <input
                 type="checkbox"
                 checked={selectedRows.length === rows.length && rows.length > 0}
-                onChange={onSelectAll}
+                onChange={handleSelectAll}
               />
             </TableCell>
             <TableCell>Tiêu đề</TableCell>
@@ -38,22 +46,29 @@ const ArticleTable = ({
                 <input
                   type="checkbox"
                   checked={selectedRows.includes(row.id)}
-                  onChange={() => onSelectRow(row.id)}
+                  onChange={() => handleSelectRow(row.id)}
                 />
               </TableCell>
               <TableCell>{row.name}</TableCell>
               <TableCell>{row.author}</TableCell>
               <TableCell>{row.category}</TableCell>
               <TableCell>
-                <Button variant="contained" size="small" onClick={() => onView(row)}>
+                <Button variant="contained" size="small" onClick={() => setModalItem(row)}>
                   Xem
                 </Button>
               </TableCell>
               <TableCell>
-                {row.status === 'active' ? 'Đang hoạt động' : 'Ngưng'}
+
+                <Button variant="contained" size="extraSmall" color={row.status === 'active' ? 'success' : 'error'}>{row.status === 'active' ? 'Đang hoạt động' : 'Ngưng'}</Button>
+
               </TableCell>
               <TableCell align="right">
-                <MoreActionsMenu onDelete={() => onDelete(row)} />
+                <MoreActionsMenu
+                  onDelete={() => handleDelete(row)}
+                  onEdit={() => navigate(`/admin/bai-viet/chinh-sua/${row.id}`)}
+                />
+
+
               </TableCell>
             </TableRow>
           ))}

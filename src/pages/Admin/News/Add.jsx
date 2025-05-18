@@ -1,10 +1,11 @@
 // src/pages/Admin/News/Add.jsx
-import { useState } from 'react';
+import { createContext, useContext, useState } from 'react';
 import { Grid } from '@mui/material';
 import Content from './components/Content';
 import Sidebar from './components/Sidebar';
- // dùng nếu có, hoặc <div>
 
+const AddContext = createContext();
+export const useArticle = () => useContext(AddContext);
 
 const Add = () => {
   const [title, setTitle] = useState('');
@@ -14,28 +15,30 @@ const Add = () => {
 
   const handleSubmit = () => {
     console.log({ title, category, status, content });
-    // TODO: Gửi API
+    // Gửi API tạo bài viết ở đây sau này
   };
 
   return (
-    <div title="Thêm bài viết mới">
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={9}>
-          <Content content={content} setContent={setContent} />
+    <AddContext.Provider
+      value={{
+        title, setTitle,
+        category, setCategory,
+        status, setStatus,
+        content, setContent,
+        handleSubmit
+      }}
+    >
+      <div title="Thêm bài viết mới">
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={9}>
+            <Content />
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <Sidebar />
+          </Grid>
         </Grid>
-        <Grid item xs={12} md={3}>
-          <Sidebar
-            title={title}
-            setTitle={setTitle}
-            category={category}
-            setCategory={setCategory}
-            status={status}
-            setStatus={setStatus}
-            onSubmit={handleSubmit}
-          />
-        </Grid>
-      </Grid>
-    </div>
+      </div>
+    </AddContext.Provider>
   );
 };
 
