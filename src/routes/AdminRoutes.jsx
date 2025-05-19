@@ -17,6 +17,12 @@ const AddBanner = Loadable(lazy(() => import('pages/Admin/BannerList/AddBanner')
 const EditBanner = Loadable(lazy(() => import('pages/Admin/BannerList/EditBanner')));
 
 
+//Coupon
+const CouponList = Loadable(lazy(() => import('pages/Admin/CouponList')));
+const CouponDetail = Loadable(lazy(() => import('pages/Admin/CouponList/CouponDetail')));
+const AddCoupon = Loadable(lazy(() => import('pages/Admin/CouponList/AddCoupon')));
+const EditCoupon = Loadable(lazy(() => import('pages/Admin/CouponList/EditCoupon')));
+
 const AdminRoutes = {
   path: '/admin',
   element: <DashboardLayout />,
@@ -57,7 +63,22 @@ const AdminRoutes = {
       path: 'banners/edit/:id',
       element: <EditBanner />
     },
-    
+    {
+      path: 'coupons',
+      element: <CouponList />
+    },
+    {
+      path: 'coupons/:id',
+      element: <CouponDetail />
+    },
+    {
+      path: 'coupons/add',
+      element: <AddCoupon />
+    },
+    {
+      path: 'coupons/edit/:id',
+      element: <EditCoupon />
+    }
   ]
 };
 
