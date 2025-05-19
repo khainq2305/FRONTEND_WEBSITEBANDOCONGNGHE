@@ -9,6 +9,8 @@ const DashboardDefault = Loadable(lazy(() => import('pages/Admin/Dashboard')));
 const BasicTableDemo = Loadable(lazy(() => import('pages/Admin/BasicTableDemo'))); // <- THÊM DÒNG NÀY
 const OrderList = Loadable(lazy(() => import('pages/Admin/OrderList')));
 const OrderDetail = Loadable(lazy(() => import('pages/Admin/OrderDetail')));
+const Brand = Loadable(lazy(() => import('pages/Admin/Brand')));
+
 
 const AdminRoutes = {
   path: '/admin',
@@ -33,7 +35,11 @@ const AdminRoutes = {
     {
       path: 'orders/:id',
       element: <OrderDetail />
-    }
+    },
+    {
+      path: 'brands',
+      element: <Brand />
+    },
   ]
 };
 
