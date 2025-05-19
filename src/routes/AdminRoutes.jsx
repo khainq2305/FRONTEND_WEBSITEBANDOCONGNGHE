@@ -9,10 +9,12 @@ const DashboardDefault = Loadable(lazy(() => import('pages/Admin/Dashboard')));
 const BasicTableDemo = Loadable(lazy(() => import('pages/Admin/BasicTableDemo'))); // <- THÊM DÒNG NÀY
 const OrderList = Loadable(lazy(() => import('pages/Admin/OrderList')));
 const OrderDetail = Loadable(lazy(() => import('pages/Admin/OrderDetail')));
+
+//Banner
 const BannerList = Loadable(lazy(() => import('pages/Admin/BannerList')));
 const BannerDetail = Loadable(lazy(() => import('pages/Admin/BannerDetail')));
-const CouponList = Loadable(lazy(() => import('pages/Admin/CouponList')));
-
+const AddBanner = Loadable(lazy(() => import('pages/Admin/BannerList/AddBanner')));
+const EditBanner = Loadable(lazy(() => import('pages/Admin/BannerList/EditBanner')));
 
 
 const AdminRoutes = {
@@ -47,10 +49,15 @@ const AdminRoutes = {
       path: 'banners/:id',
       element: <BannerDetail />
     },
-        {
-      path: 'coupons',
-      element: <CouponList />
+    {
+      path: 'banners/add',
+      element: <AddBanner />
     },
+    {
+      path: 'banners/edit/:id',
+      element: <EditBanner />
+    },
+    
   ]
 };
 
