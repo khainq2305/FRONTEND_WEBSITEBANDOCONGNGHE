@@ -27,6 +27,7 @@ const EditCoupon = Loadable(lazy(() => import('pages/Admin/CouponList/EditCoupon
 const Brand = Loadable(lazy(() => import('pages/Admin/Brand')));
 
 
+const HisLog = Loadable(lazy(() => import('pages/Admin/HisLog'))); 
 const AdminRoutes = {
   path: '/admin',
   element: <DashboardLayout />,
@@ -94,6 +95,11 @@ const AdminRoutes = {
       element: <EditBanner />
     },
     
+    {
+      path: 'hislog',
+      element: < HisLog/>
+    },
+    { path: 'users/create', element: <UserAdd /> }
   ]
 };
 

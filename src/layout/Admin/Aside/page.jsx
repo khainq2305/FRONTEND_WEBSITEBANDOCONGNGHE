@@ -66,7 +66,15 @@ const pages = [
     url: '/admin/brands',
     icon: icons.TagsOutlined, // <- ICON GỢI Ý
     breadcrumbs: false
-  }
+  },
+  {
+  id: 'hislog',
+  title: 'Nhật ký hoạt động',
+  type: 'item',
+  url: '/admin/hislog',
+  icon: icons.TableOutlined, 
+  breadcrumbs: false
+},
 ];
 
 export default pages;
