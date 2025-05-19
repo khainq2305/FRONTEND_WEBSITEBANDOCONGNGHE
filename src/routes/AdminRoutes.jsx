@@ -11,6 +11,20 @@ const OrderList = Loadable(lazy(() => import('pages/Admin/OrderList')));
 const OrderDetail = Loadable(lazy(() => import('pages/Admin/OrderDetail')));
 const UserList = Loadable(lazy(() => import('pages/Admin/User/UserList')));
 const UserAdd = Loadable(lazy(() => import('pages/Admin/User/UserAdd')));
+
+//Banner
+const BannerList = Loadable(lazy(() => import('pages/Admin/BannerList')));
+const BannerDetail = Loadable(lazy(() => import('pages/Admin/BannerDetail')));
+const AddBanner = Loadable(lazy(() => import('pages/Admin/BannerList/AddBanner')));
+const EditBanner = Loadable(lazy(() => import('pages/Admin/BannerList/EditBanner')));
+
+
+//Coupon
+const CouponList = Loadable(lazy(() => import('pages/Admin/CouponList')));
+const CouponDetail = Loadable(lazy(() => import('pages/Admin/CouponList/CouponDetail')));
+const AddCoupon = Loadable(lazy(() => import('pages/Admin/CouponList/AddCoupon')));
+const EditCoupon = Loadable(lazy(() => import('pages/Admin/CouponList/EditCoupon')));
+
 const AdminRoutes = {
   path: '/admin',
   element: <DashboardLayout />,
@@ -39,7 +53,35 @@ const AdminRoutes = {
       path: 'users',
       element: <UserList />
     },
-    { path: 'users/create', element: <UserAdd /> }
+    { path: 'users/create', element: <UserAdd /> },
+    {
+      path: 'banners/:id',
+      element: <BannerDetail />
+    },
+    {
+      path: 'banners/add',
+      element: <AddBanner />
+    },
+    {
+      path: 'banners/edit/:id',
+      element: <EditBanner />
+    },
+    {
+      path: 'coupons',
+      element: <CouponList />
+    },
+    {
+      path: 'coupons/:id',
+      element: <CouponDetail />
+    },
+    {
+      path: 'coupons/add',
+      element: <AddCoupon />
+    },
+    {
+      path: 'coupons/edit/:id',
+      element: <EditCoupon />
+    }
   ]
 };
 
