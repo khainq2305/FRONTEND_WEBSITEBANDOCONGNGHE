@@ -11,6 +11,7 @@ const OrderList = Loadable(lazy(() => import('pages/Admin/OrderList')));
 const OrderDetail = Loadable(lazy(() => import('pages/Admin/OrderDetail')));
 const UserList = Loadable(lazy(() => import('pages/Admin/User/UserList')));
 const UserAdd = Loadable(lazy(() => import('pages/Admin/User/UserAdd')));
+const HisLog = Loadable(lazy(() => import('pages/Admin/HisLog'))); 
 const AdminRoutes = {
   path: '/admin',
   element: <DashboardLayout />,
@@ -38,6 +39,10 @@ const AdminRoutes = {
     {
       path: 'users',
       element: <UserList />
+    },
+    {
+      path: 'hislog',
+      element: < HisLog/>
     },
     { path: 'users/create', element: <UserAdd /> }
   ]

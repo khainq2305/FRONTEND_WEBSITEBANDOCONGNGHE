@@ -57,6 +57,14 @@ const pages = [
   icon: icons.TableOutlined, 
   breadcrumbs: false
 },
+{
+  id: 'hislog',
+  title: 'Nhật ký hoạt động',
+  type: 'item',
+  url: '/admin/hislog',
+  icon: icons.TableOutlined, 
+  breadcrumbs: false
+},
 ];
 
 export default pages;
