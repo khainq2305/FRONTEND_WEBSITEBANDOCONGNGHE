@@ -88,6 +88,12 @@ const AdminRoutes = {
       path: 'brands',
       element: <Brand />
     },
+    
+    {
+      path: 'banners/edit/:id',
+      element: <EditBanner />
+    },
+    
   ]
 };
 
