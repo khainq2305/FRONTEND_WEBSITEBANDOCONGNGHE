@@ -3,7 +3,8 @@ import {
   LoginOutlined,
   ProfileOutlined,
   TableOutlined,
-  FileTextOutlined 
+  FileTextOutlined,
+  TagsOutlined // <- THÊM ICON PHÙ HỢP
 } from '@ant-design/icons';
 
 // icons
@@ -11,7 +12,8 @@ const icons = {
   LoginOutlined,
   ProfileOutlined,
   TableOutlined,
-  FileTextOutlined 
+  FileTextOutlined,
+  TagsOutlined // <- THÊM VÀO ICONS
 };
 
 // ==============================|| MENU ITEMS - FLAT AUTH PAGES ||============================== //
@@ -57,6 +59,14 @@ const pages = [
   icon: icons.TableOutlined, 
   breadcrumbs: false
 },
+{
+    id: 'brand',
+    title: 'Thương hiệu',
+    type: 'item',
+    url: '/admin/brands',
+    icon: icons.TagsOutlined, // <- ICON GỢI Ý
+    breadcrumbs: false
+  }
 ];
 
 export default pages;
