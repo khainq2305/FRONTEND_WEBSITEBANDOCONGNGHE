@@ -22,6 +22,12 @@ export const API_ENDPOINT = {
        verificationCooldown: '/verification-cooldown', // ✅ Thêm endpoint này
       userInfo: '/user-info', // ✅ Endpoint lấy thông tin người dùng
        updateProfile: '/update-profile'
+    },
+     shipping: {
+      base: `${API_BASE_URL}/shipping`,
+      provinces: '/provinces',
+      districts: '/districts',
+      wards: '/wards',
     }
   },
 };

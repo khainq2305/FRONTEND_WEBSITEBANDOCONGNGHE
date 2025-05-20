@@ -41,17 +41,10 @@ export const authService = {
    
     return get(`${base}${API_ENDPOINT.client.auth.userInfo}`);
   },
-   updateProfile: (data, isFormData = false) => {
-    if (isFormData) {
-      return put(`${base}${API_ENDPOINT.client.auth.updateProfile}`, data, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-    } else {
-      return put(`${base}${API_ENDPOINT.client.auth.updateProfile}`, data);
-    }
-  },
+updateProfile: (data, isFormData = false) => {
+  return put(`${base}${API_ENDPOINT.client.auth.updateProfile}`, data);
+}
+,
    getResetCooldown: (email) =>
     get(`${base}${API_ENDPOINT.client.auth.getResetCooldown}?email=${email}`),
   getVerificationCooldown: (email) =>

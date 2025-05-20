@@ -217,21 +217,26 @@ const Header = () => {
 const handleAccountDropdownLeave = () => {
   accountDropdownTimerRef.current = setTimeout(() => {
     setIsDropdownOpen(false);
-  }, 300); // Thời gian trễ 300ms, bạn có thể điều chỉnh
+  }, 300);
 };
-  useEffect(() => {
-    const fetchUserInfo = async () => {
-      try {
-        const response = await authService.getUserInfo();
-        setUserInfo(response.data.user);
-      } catch (err) {
-        console.error("❌ Lỗi lấy thông tin người dùng:", err);
-      }
-    };
-    fetchUserInfo();
-  }, []);
-// Hàm tiện ích để giới hạn độ dài tên và thêm "..."
-// Hàm tiện ích để giới hạn độ dài tên (lấy TỪ CUỐI CÙNG) và thêm "..."
+ 
+useEffect(() => {
+  const fetchUserInfo = async () => {
+    try {
+      const response = await authService.getUserInfo();
+      const user = response.data?.user || {};
+      setUserInfo({
+        fullName: user.fullName || '',
+        avatarUrl: user.avatarUrl || null,
+      });
+    } catch (err) {
+      console.error("❌ Lỗi lấy thông tin người dùng:", err);
+      setUserInfo({ fullName: '', avatarUrl: null }); 
+    }
+  };
+  fetchUserInfo();
+}, []);
+
 const getDisplayName = (fullName, maxLength = 8) => { // Bạn có thể điều chỉnh maxLength
   if (!fullName) return '';
   const nameParts = fullName.split(" "); // Tách tên thành mảng các từ
@@ -242,6 +247,34 @@ const getDisplayName = (fullName, maxLength = 8) => { // Bạn có thể điều
   }
   return lastName;
 };
+useEffect(() => {
+  const handleAvatarUpdate = (event) => {
+    setUserInfo((prev) => ({
+      ...prev,
+      avatarUrl: event.detail || null,
+    }));
+  };
+
+  const handleProfileUpdate = (event) => {
+    const updatedUser = event.detail?.user || {};
+    setUserInfo((prev) => ({
+      ...prev,
+      fullName: updatedUser.fullName || prev.fullName,
+      email: updatedUser.email || prev.email
+    }));
+  };
+
+  window.addEventListener("avatarUpdated", handleAvatarUpdate);
+  window.addEventListener("profileUpdated", handleProfileUpdate);
+
+  return () => {
+    window.removeEventListener("avatarUpdated", handleAvatarUpdate);
+    window.removeEventListener("profileUpdated", handleProfileUpdate);
+  };
+}, []);
+
+
+
  const handleLogout = async () => {
   try {
     // ✅ Gọi API logout (nếu có)
@@ -477,39 +510,36 @@ const getDisplayName = (fullName, maxLength = 8) => { // Bạn có thể điều
   onMouseEnter={handleAccountDropdownEnter}
   onMouseLeave={handleAccountDropdownLeave}
 >
-  {userInfo ? (
-    <div className="flex items-center gap-2 cursor-pointer p-2 bg-primary rounded-lg transition-colors duration-150">
-      {/* ==== BẮT ĐẦU SỬA ĐỂ HIỂN THỊ AVATAR THẬT ==== */}
-      {userInfo.avatarUrl ? ( // Kiểm tra xem có avatarUrl không
-        <img
-          // userInfo.avatarUrl đã là URL đầy đủ từ Cloudinary
-          // Thêm cache-busting đơn giản bằng timestamp
-          src={`${userInfo.avatarUrl.split('?')[0]}?t=${new Date().getTime()}`}
-          alt="Avatar"
-          className="w-8 h-8 rounded-full object-cover" // object-cover rất quan trọng
-        />
-      ) : (
-        // Nếu không có avatarUrl, hiển thị chữ cái đầu tiên
-        <div className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center text-sm font-semibold">
-          {userInfo.fullName ? userInfo.fullName.charAt(0).toUpperCase() : '?'}
-        </div>
-      )}
-      {/* ==== KẾT THÚC SỬA ĐỂ HIỂN THỊ AVATAR THẬT ==== */}
+{userInfo ? (
+  <div className="flex items-center gap-2 cursor-pointer p-2 bg-primary rounded-lg transition-colors duration-150">
+    {/* ✅ SỬA LẠI ĐỂ ĐỒNG BỘ AVATAR */}
+    {userInfo.avatarUrl ? (
+      <img
+        src={userInfo.avatarUrl} // Đã được cập nhật ngay lập tức
+        alt="Avatar"
+        className="w-8 h-8 rounded-full object-cover" 
+      />
+    ) : (
+      <div className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center text-sm font-semibold">
+        {userInfo?.fullName ? userInfo.fullName.charAt(0).toUpperCase() : '?'}
+      </div>
+    )}
 
-      <span className="text-sm font-semibold">
-        {/* Đảm bảo getDisplayName là hàm và userInfo.fullName tồn tại */}
-        {typeof getDisplayName === 'function' && userInfo.fullName ? getDisplayName(userInfo.fullName) : (userInfo.fullName || 'User')}
-      </span>
-    </div>
-  ) : (
-    <button
-      onClick={toggleLoginPopup}
-      className="flex items-center gap-2 px-3 py-2 rounded-lg hover-primary bg-white/40 transition"
-    >
-      <CircleUserRound className="w-6 h-6" strokeWidth={1.5} color="#fff" />
-      <span className="text-sm font-semibold">Tài khoản</span>
-    </button>
-  )}
+    <span className="text-sm font-semibold">
+      {userInfo?.fullName ? getDisplayName(userInfo.fullName) : 'Tài khoản'}
+    </span>
+  </div>
+) : (
+  <button
+    onClick={toggleLoginPopup}
+    className="flex items-center gap-2 px-3 py-2 rounded-lg hover-primary bg-white/40 transition"
+  >
+    <CircleUserRound className="w-6 h-6" strokeWidth={1.5} color="#fff" />
+    <span className="text-sm font-semibold">Tài khoản</span>
+  </button>
+)}
+
+
 
   {/* Dropdown Tài Khoản */}
   {isDropdownOpen && userInfo && (

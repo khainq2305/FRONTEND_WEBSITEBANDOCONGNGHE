@@ -1,6 +1,8 @@
 // AddressPageContent.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, ChevronDown, Search as SearchIcon, X as CloseIcon } from 'lucide-react';
+import { shippingService } from '../../../../services/client/shippingService'; // điều chỉnh path nếu cần
+import MapModal from './MapModal'; // chỉnh lại đường dẫn nếu bạn đặt ở nơi khác
 
 // AddressItem component (giữ nguyên như bạn cung cấp)
 const AddressItem = ({ address, isDefault, onSetDefault, onUpdate, onDelete }) => {
@@ -42,19 +44,6 @@ const sampleAddressesData = [
   { id: '2', name: 'Nguyễn Quốc Khải', phone: '0878899894', street: 'Trường Vĩnh Nguyên', ward: 'Phường Thường Thạnh', district: 'Quận Cái Răng', city: 'Cần Thơ', isDefault: false, addressType: 'Nhà Riêng'},
   { id: '3', name: 'Nguyễn Vũ Duy', phone: '0815979019', street: 'Ấp Tân Phú Thành', ward: 'Xã Tân Hưng Tây', district: 'Huyện Phú Tân', city: 'Cà Mau', isDefault: false, addressType: 'Văn Phòng'},
 ];
-const provinces = ["An Giang", "Bà Rịa - Vũng Tàu", "Bình Dương", "Bình Phước", "Bình Thuận", "Bình Định", "Cà Mau", "Cần Thơ", "Đà Nẵng", "Hà Nội", "TP. Hồ Chí Minh", "Hải Phòng", "Huế"];
-const districts = {
-  "Cà Mau": ["Huyện Phú Tân", "TP. Cà Mau", "Huyện Trần Văn Thời", "Huyện U Minh", "Huyện Cái Nước"],
-  "Cần Thơ": ["Quận Cái Răng", "Quận Ninh Kiều", "Huyện Phong Điền", "Quận Bình Thủy", "Quận Ô Môn"],
-  "TP. Hồ Chí Minh": ["Quận 1", "Quận 3", "Quận 4", "Quận 5", "Quận 6", "Quận 7", "Quận 8", "Quận 10", "Quận 11", "Quận 12", "Quận Bình Tân", "Quận Bình Thạnh", "Quận Gò Vấp", "Quận Phú Nhuận", "Quận Tân Bình", "Quận Tân Phú", "TP. Thủ Đức" , "Huyện Bình Chánh", "Huyện Cần Giờ", "Huyện Củ Chi", "Huyện Hóc Môn", "Huyện Nhà Bè"],
-  "Hà Nội": ["Quận Ba Đình", "Quận Hoàn Kiếm", "Quận Hai Bà Trưng", "Quận Đống Đa", "Quận Tây Hồ", "Quận Cầu Giấy", "Quận Thanh Xuân", "Quận Hoàng Mai", "Quận Long Biên", "Huyện Đông Anh", "Huyện Gia Lâm", "Huyện Thanh Trì", "Huyện Từ Liêm"],
-};
-const wards = { 
-  "Huyện Phú Tân": ["Xã Tân Hưng Tây", "Thị trấn Cái Đôi Vàm", "Xã Phú Mỹ", "Xã Phú Thuận"],
-  "Quận Cái Răng": ["Phường Thường Thạnh", "Phường Hưng Phú", "Phường Lê Bình", "Phường Ba Láng"],
-  "Quận 1": ["Phường Bến Nghé", "Phường Cầu Ông Lãnh", "Phường Cô Giang", "Phường Đa Kao", "Phường Nguyễn Cư Trinh"],
-  "Quận Bình Thạnh": ["Phường 1", "Phường 2", "Phường 3", "Phường 5", "Phường 6", "Phường 7"],
-};
 
 const AddressPageContent = () => {
   const [addresses, setAddresses] = useState(sampleAddressesData);
@@ -67,6 +56,21 @@ const AddressPageContent = () => {
   const [locationSearchTerm, setLocationSearchTerm] = useState('');
   const locationPickerRef = useRef(null);
   const locationTriggerRef = useRef(null);
+  const addressInputRef = useRef(null); // 👈 THÊM DÒNG NÀY
+const [selectedLocation, setSelectedLocation] = useState({ lat: null, lng: null });
+const [mapVisible, setMapVisible] = useState(false);
+
+const [provinceList, setProvinceList] = useState([]);
+const [districtList, setDistrictList] = useState([]);
+const [wardList, setWardList] = useState([]);
+useEffect(() => {
+  if (showAddressModal) {
+    shippingService.getProvinces().then(res => {
+      console.log("✅ Provinces from API:", res); // 👉 Xem log có phải là mảng không
+      setProvinceList(res);
+    });
+  }
+}, [showAddressModal]);
 
   useEffect(() => {
     if (showAddressModal) {
@@ -111,35 +115,71 @@ const AddressPageContent = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showLocationPicker]);
+useEffect(() => {
+  if (!showAddressModal || !window.google || !addressInputRef.current) return;
+
+  const autocomplete = new window.google.maps.places.Autocomplete(addressInputRef.current, {
+    types: ['geocode'],
+    componentRestrictions: { country: 'vn' }
+  });
+
+  autocomplete.addListener("place_changed", () => {
+    const place = autocomplete.getPlace();
+    if (place.geometry) {
+      const lat = place.geometry.location.lat();
+      const lng = place.geometry.location.lng();
+      setSelectedLocation({ lat, lng });
+      setFormData(prev => ({ ...prev, street: place.formatted_address }));
+    }
+  });
+}, [showAddressModal]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
-  const handleLocationSelect = (type, value) => {
-    if (type === 'city') {
-      setFormData(prev => ({ ...prev, city: value, district: '', ward: '' }));
-      setLocationPickerTab('district'); setLocationSearchTerm('');
-    } else if (type === 'district') {
-      setFormData(prev => ({ ...prev, district: value, ward: '' }));
-      setLocationPickerTab('ward'); setLocationSearchTerm('');
-    } else if (type === 'ward') {
-      setFormData(prev => ({ ...prev, ward: value }));
-      setShowLocationPicker(false); setLocationSearchTerm('');
+  const handleLocationSelect = async (type, value) => {
+  if (type === 'city') {
+    setFormData(prev => ({ ...prev, city: value, district: '', ward: '' }));
+const selected = provinceList.find(p => p.ProvinceName === value);
+
+    if (selected) {
+      const districts = await shippingService.getDistricts(selected.ProvinceID || selected.id);
+      setDistrictList(districts);
     }
-  };
+    setLocationPickerTab('district');
+    setLocationSearchTerm('');
+  } else if (type === 'district') {
+    setFormData(prev => ({ ...prev, district: value, ward: '' }));
+  const selected = districtList.find(d => d.DistrictName === value);
+
+    if (selected) {
+      const wards = await shippingService.getWards(selected.DistrictID || selected.id);
+      setWardList(wards);
+    }
+    setLocationPickerTab('ward');
+    setLocationSearchTerm('');
+  } else if (type === 'ward') {
+    setFormData(prev => ({ ...prev, ward: value }));
+    setShowLocationPicker(false);
+    setLocationSearchTerm('');
+  }
+};
+
   
   const filteredLocationItems = () => {
-    let items = [];
-    if (locationPickerTab === 'city') items = provinces;
-    else if (locationPickerTab === 'district') items = formData.city ? (districts[formData.city] || []) : [];
-    else if (locationPickerTab === 'ward') items = formData.district ? (wards[formData.district] || []) : [];
-    if (locationSearchTerm) {
-        return items.filter(item => item.toLowerCase().includes(locationSearchTerm.toLowerCase()));
-    }
-    return items;
-  };
+  let items = [];
+if (locationPickerTab === 'city') items = provinceList.map(p => p.ProvinceName);
+else if (locationPickerTab === 'district') items = districtList.map(d => d.DistrictName);
+else if (locationPickerTab === 'ward') items = wardList.map(w => w.WardName);
+
+  if (locationSearchTerm) {
+    return items.filter(item => item.toLowerCase().includes(locationSearchTerm.toLowerCase()));
+  }
+  return items;
+};
+
 
   const handleSetDefault = (id) => setAddresses(addresses.map(addr => ({ ...addr, isDefault: addr.id === id })));
   const handleUpdate = (id) => { const addressToEdit = addresses.find(addr => addr.id === id); setEditingAddress(addressToEdit); setShowAddressModal(true); };
@@ -287,21 +327,43 @@ const AddressPageContent = () => {
                             </div>
                         </div>
                         <ul className="overflow-y-auto flex-1">
-                          {filteredLocationItems().length > 0 ? filteredLocationItems().map(item => (
-                            <li key={item} onClick={() => handleLocationSelect(locationPickerTab, item)}
-                                className="px-3 py-1.5 text-sm text-gray-700 hover:bg-orange-50 cursor-pointer">
-                              {item}
-                            </li>
-                          )) : <li className="px-3 py-2 text-sm text-gray-400 text-center">Không có kết quả hoặc vui lòng chọn cấp trên.</li>}
+                        {filteredLocationItems().map(item => (
+  <li key={item} // ✅ THÊM DÒNG NÀY
+      onClick={() => handleLocationSelect(locationPickerTab, item)}
+      className="px-3 py-1.5 text-sm text-gray-700 hover:bg-orange-50 cursor-pointer">
+    {item}
+  </li>
+))}
+
                         </ul>
                       </div>
                   )}
                 </div>
 
-                <textarea name="street" id="street" value={formData.street} onChange={handleInputChange} 
-                          placeholder="Địa chỉ cụ thể"
-                          rows="3"
-                          className="w-full p-2.5 border border-gray-300 rounded-sm text-sm focus:ring-1 focus:ring-orange-500/50 focus:border-orange-500 placeholder-gray-400"></textarea>
+              <input
+  type="text"
+  name="street"
+  placeholder="Địa chỉ cụ thể"
+  ref={addressInputRef}
+  defaultValue={formData.street}
+  className="w-full p-2.5 border border-gray-300 rounded-sm text-sm focus:ring-1 focus:ring-orange-500/50 focus:border-orange-500 placeholder-gray-400"
+/>
+
+{formData.street && (
+  <>
+    <button type="button" onClick={() => setMapVisible(true)} className="mt-2 text-sm text-blue-600">
+      + Thêm vị trí
+    </button>
+    {mapVisible && (
+      <MapModal
+        center={selectedLocation || { lat: 10.7769, lng: 106.7009 }}
+        onClose={() => setMapVisible(false)}
+        setSelectedLocation={setSelectedLocation}
+      />
+    )}
+  </>
+)}
+
                 <p className="text-xs text-gray-500 -mt-3 px-0.5">Ví dụ: Số nhà 123, Tên đường (Tên tòa nhà)</p>
 
                 <div className="flex items-center space-x-3 pt-0.5">

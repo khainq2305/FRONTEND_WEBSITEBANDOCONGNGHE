@@ -27,70 +27,78 @@ const [loading, setLoading] = useState(false);
   }, [email, navigate]);
 
   // ✅ Kiểm tra trạng thái xác thực từ Database (API)
-  const checkStatus = async () => {
-  setLoading(true); // ✅ Bật Loader toàn màn hình
+// ✅ Đếm ngược thời gian khóa và cooldown
+useEffect(() => {
+  const interval = setInterval(() => {
+    setLockTime((prev) => (prev > 0 ? prev - 1000 : 0));
+    setResendTimeout((prev) => (prev > 0 ? prev - 1 : 0));
+  }, 1000);
+
+  return () => clearInterval(interval);
+}, []);
+
+// ✅ Cập nhật trạng thái từ API
+const checkStatus = async () => {
+  setLoading(true);
 
   try {
     const statusResponse = await authService.checkResetStatus(email);
-    const { verified, lockTime: serverLockTime, resendCooldown } = statusResponse.data;
+    const { verified, lockTime, resendCooldown } = statusResponse.data;
 
     setVerified(verified);
-    setLockTime(serverLockTime || 0);
+    setLockTime(lockTime || 0);
     setResendTimeout(Math.ceil(resendCooldown / 1000) || 0);
 
     if (verified) {
       toast.success("Tài khoản đã được xác thực. Đang chuyển đến trang Đăng nhập...");
       setTimeout(() => {
         navigate("/dang-nhap");
-      }, 1000); // ✅ Tự động chuyển sau 1 giây
+      }, 1000);
     }
   } catch (error) {
     console.error("❌ Lỗi kiểm tra trạng thái:", error);
     toast.error("❌ Không thể kiểm tra trạng thái đặt lại mật khẩu.");
   } finally {
-    setTimeout(() => {
-      setLoading(false); // ✅ Tắt Loader với delay để chắc chắn hiển thị
-    }, 300); // ✅ Thêm chút thời gian để Loader hiển thị rõ
+    setLoading(false);
   }
 };
 
-  // ✅ Đếm ngược thời gian khóa và cooldown
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!verified) {
-        setLockTime((prev) => (prev > 1000 ? prev - 1000 : 0));
-        setResendTimeout((prev) => (prev > 0 ? prev - 1 : 0));
-      }
-    }, 1000);
+// ✅ Gọi checkStatus khi load trang
+useEffect(() => {
+  checkStatus();
+}, [email, navigate]);
 
-    return () => clearInterval(interval);
-  }, [verified]);
 
   // ✅ Xử lý gửi lại liên kết đặt lại mật khẩu
- const handleResendEmail = async () => {
+const handleResendEmail = async () => {
   if (resendLoading || lockTime > 0 || resendTimeout > 0 || verified) {
     toast.error("❌ Không thể gửi lại liên kết.");
     return;
   }
 
   setResendLoading(true);
-  setLoading(true); // ✅ Bật Loader toàn màn hình
+  setLoading(true);
 
   try {
-    await authService.resendForgotPassword({ email });
+    const response = await authService.forgotPassword({ email });
+    const { resendCooldown } = response.data;
+    setResendTimeout(Math.ceil(resendCooldown / 1000)); // ✅ Cập nhật cooldown mới
     toast.success("✅ Đã gửi lại liên kết đến email của bạn.");
-    setResendTimeout(10); // Đặt lại cooldown 10 giây
-    await checkStatus(); // ✅ Cập nhật lại trạng thái khóa và cooldown
   } catch (error) {
-    console.error("❌ Lỗi gửi lại liên kết:", error);
-    toast.error("❌ Không thể gửi lại liên kết.");
+    if (error.response && error.response.data.resendCooldown) {
+      setResendTimeout(Math.ceil(error.response.data.resendCooldown / 1000));
+      toast.error(`❌ ${error.response.data.message}`);
+    } else {
+      toast.error("❌ Không thể gửi lại liên kết.");
+    }
   } finally {
     setTimeout(() => {
       setResendLoading(false);
-      setLoading(false); // ✅ Tắt Loader với delay để chắc chắn hiển thị
-    }, 300); // ✅ Thêm chút thời gian để Loader hiển thị rõ
+      setLoading(false);
+    }, 300);
   }
 };
+
 
 
   // ✅ Định dạng thời gian khóa thành chuỗi dễ đọc
@@ -124,35 +132,44 @@ const [loading, setLoading] = useState(false);
           Không nhận được? Vui lòng kiểm tra thư mục <strong>'Spam'</strong> hoặc <strong>'Junk'</strong>.
         </p>
 
-        {/* ✅ Nút gửi lại liên kết */}
-        <button
-          onClick={handleResendEmail}
-          className={`mt-4 w-full py-3 rounded-lg font-semibold transition ${
-            resendLoading || lockTime > 0 || resendTimeout > 0 || verified
-              ? "bg-gray-300 text-white cursor-not-allowed" 
-              : "bg-blue-600 text-white hover:bg-blue-700"
-          }`}
-          disabled={resendLoading || lockTime > 0 || resendTimeout > 0 || verified}
-        >
-          {verified
-            ? "Tài khoản đã xác thực! Đang chuyển đến trang Đăng nhập..."
-            : lockTime > 0 
-            ? `Đang khóa (${formatLockTime(lockTime)})`
-            : resendTimeout > 0 
-            ? `Gửi lại liên kết (${resendTimeout}s)` 
-            : "Gửi lại liên kết"}
-        </button>
+      {/* ✅ Nút gửi lại liên kết */}
+<button
+  onClick={handleResendEmail}
+  className={`mt-4 w-full py-3 rounded-lg font-semibold transition ${
+    resendLoading || lockTime > 0 || resendTimeout > 0 || verified
+      ? "bg-gray-300 text-white cursor-not-allowed"
+      : "bg-blue-600 text-white hover:bg-blue-700"
+  }`}
+  disabled={resendLoading || lockTime > 0 || resendTimeout > 0 || verified}
+>
+  {verified
+    ? "Tài khoản đã xác thực! Đang chuyển đến trang Đăng nhập..."
+    : lockTime > 0 
+    ? `Đang khóa (${formatLockTime(lockTime)})`
+    : resendTimeout > 0 
+    ? `Vui lòng đợi (${formatLockTime(resendTimeout * 1000)})` 
+    : "Gửi lại liên kết"}
+</button>
 
-        {/* ✅ Hiển thị thông báo khóa */}
-        {lockTime > 0 && (
-          <div className="mt-4 p-3 text-left text-red-700 bg-red-100 border border-red-400 rounded-md flex items-start gap-2">
-            <XCircle className="w-5 h-5 text-red-600 mt-1" />
-            <div>
-              <p className="font-semibold">Bạn đã gửi xác thực quá thường xuyên.</p>
-              <p>Vui lòng thử lại sau {formatLockTime(lockTime)}.</p>
-            </div>
-          </div>
-        )}
+{/* ✅ Hiển thị thông báo khóa */}
+{lockTime > 0 ? (
+  <div className="mt-4 p-3 text-left text-red-700 bg-red-100 border border-red-400 rounded-md flex items-start gap-2">
+    <XCircle className="w-5 h-5 text-red-600 mt-1" />
+    <div>
+      <p className="font-semibold">Bạn đã gửi xác thực quá thường xuyên.</p>
+      <p>Vui lòng thử lại sau {formatLockTime(lockTime)}.</p>
+    </div>
+  </div>
+) : resendTimeout > 0 ? (
+  <div className="mt-4 p-3 text-left text-yellow-700 bg-yellow-100 border border-yellow-400 rounded-md flex items-start gap-2">
+    <XCircle className="w-5 h-5 text-yellow-600 mt-1" />
+    <div>
+      <p className="font-semibold">Vui lòng đợi trước khi gửi lại.</p>
+      <p>Thời gian chờ: {formatLockTime(resendTimeout * 1000)}.</p>
+    </div>
+  </div>
+) : null}
+
       </div>
     </div>
   );
