@@ -14,7 +14,7 @@ const UserAdd = Loadable(lazy(() => import('pages/Admin/User/UserAdd')));
 
 //Banner
 const BannerList = Loadable(lazy(() => import('pages/Admin/BannerList')));
-const BannerDetail = Loadable(lazy(() => import('pages/Admin/BannerDetail')));
+// const BannerDetail = Loadable(lazy(() => import('pages/Admin/BannerDetail')));
 const AddBanner = Loadable(lazy(() => import('pages/Admin/BannerList/AddBanner')));
 const EditBanner = Loadable(lazy(() => import('pages/Admin/BannerList/EditBanner')));
 
@@ -56,10 +56,10 @@ const AdminRoutes = {
       element: <UserList />
     },
     { path: 'users/create', element: <UserAdd /> },
-    {
-      path: 'banners/:id',
-      element: <BannerDetail />
-    },
+    // {
+    //   path: 'banners/:id',
+    //   element: <BannerDetail />
+    // },
     {
       path: 'banners/add',
       element: <AddBanner />
