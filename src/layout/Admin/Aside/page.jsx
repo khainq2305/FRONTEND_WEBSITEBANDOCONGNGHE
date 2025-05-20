@@ -4,7 +4,8 @@ import {
   ProfileOutlined,
   TableOutlined,
   FileTextOutlined,
-  TagsOutlined // <- THÊM ICON PHÙ HỢP
+  TagsOutlined,
+  CommentOutlined
 } from '@ant-design/icons';
 
 // icons
@@ -13,7 +14,8 @@ const icons = {
   ProfileOutlined,
   TableOutlined,
   FileTextOutlined,
-  TagsOutlined // <- THÊM VÀO ICONS
+  TagsOutlined,
+  CommentOutlined 
 };
 
 // ==============================|| MENU ITEMS - FLAT AUTH PAGES ||============================== //
@@ -73,7 +75,15 @@ const pages = [
     title: 'Thương hiệu',
     type: 'item',
     url: '/admin/brands',
-    icon: icons.TagsOutlined, // <- ICON GỢI Ý
+    icon: icons.TagsOutlined,
+    breadcrumbs: false
+  },
+  {
+    id: 'productqna',
+    title: 'Hỏi đáp sản phẩm',
+    type: 'item',
+    url: '/admin/product-question',
+    icon: icons.CommentOutlined, 
     breadcrumbs: false
   },
   {
