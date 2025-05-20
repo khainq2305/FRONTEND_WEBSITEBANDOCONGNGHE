@@ -21,7 +21,7 @@ const MapModal = ({ center, onClose, setSelectedLocation }) => {
           <button onClick={onClose} className="text-sm text-gray-500 hover:text-gray-700">Đóng</button>
         </div>
         <div className="w-full h-[400px]">
-          <LoadScript googleMapsApiKey="AIzaSyAYZDXj5ZB_TeFNOeWE0CJFkmTuCQ--0T4">
+          <LoadScript googleMapsApiKey="AIzaSyAbtM7StFMB1GewF4W52-gJFu_snJtSbFA">
             <GoogleMap
               mapContainerStyle={containerStyle}
               center={center}

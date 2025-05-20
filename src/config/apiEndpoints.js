@@ -28,6 +28,12 @@ export const API_ENDPOINT = {
       provinces: '/provinces',
       districts: '/districts',
       wards: '/wards',
-    }
+    },
+  userAddress: {
+  base: `${API_BASE_URL}/user-address`,
+  list: '/',          // ✅ vì bạn dùng router.get('/') để lấy danh sách địa chỉ
+  create: '/',        // ✅ vì bạn dùng router.post('/') để tạo địa chỉ mới
+}
+
   },
 };

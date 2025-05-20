@@ -108,10 +108,7 @@ const AdminRoutes = {
           path: 'edit/:id',
           element: <BrandEditPage />
         },
-    {
-      path: 'quan-ly-bai-viet', // <- THÊM ROUTE MỚI
-      element: <News /> 
-    },
+    
     
     {
       path: 'banners/edit/:id',
@@ -123,6 +120,20 @@ const AdminRoutes = {
       element: < HisLog/>
     },
     { path: 'users/create', element: <UserAdd /> }
+    ,
+    {
+      path: 'quan-ly-bai-viet', // <- THÊM ROUTE MỚI
+      element: <News /> 
+    },
+    
+    {
+      path: 'bai-viet/them-bai-viet-moi', // <- THÊM ROUTE MỚI
+      element: <Add /> 
+    },
+    {
+      path: 'bai-viet/chinh-sua/:id', // <- THÊM ROUTE MỚI
+      element: <Edit /> 
+    },
     ,
     {
       path: 'danh-muc-bai-viet', // <- THÊM ROUTE MỚI

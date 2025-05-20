@@ -50,6 +50,13 @@ const pages = [
     title: 'Đơn hàng',
     type: 'item',
     url: '/admin/orders',
+    icon: icons.FileTextOutlined,
+    breadcrumbs: false,
+  },
+   {
+    id: 'news',
+    title: 'Bài viết',
+    type: 'item',
     url: '/admin/quan-ly-bai-viet',
     icon: icons.FileTextOutlined,
     breadcrumbs: false,
