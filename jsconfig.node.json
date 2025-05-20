@@ -1,9 +1,12 @@
 {
   "compilerOptions": {
-    "composite": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
     "module": "ESNext",
     "moduleResolution": "Node",
     "allowSyntheticDefaultImports": true
   },
-  "include": ["vite.config.mjs"]
+  "include": ["src", "vite.config.js"]
 }

@@ -10,6 +10,8 @@ const BasicTableDemo = Loadable(lazy(() => import('pages/Admin/BasicTableDemo'))
 const News = Loadable(lazy(() => import('pages/Admin/News/News'))); // <- THÊM DÒNG NÀY
 const Add = Loadable(lazy(() => import('pages/Admin/News/Add'))); // <- THÊM DÒNG NÀY
 const Edit = Loadable(lazy(() => import('pages/Admin/News/Edit')))
+const CategoryNews = Loadable(lazy(() => import('pages/Admin/News/Category')))
+const CategoryAdd = Loadable(lazy(() => import('pages/Admin/News/CategoryAdd')))
 const AdminRoutes = {
   path: '/admin',
   element: <DashboardLayout />,
@@ -27,7 +29,7 @@ const AdminRoutes = {
       element: <BasicTableDemo />
     },
     {
-      path: 'news', // <- THÊM ROUTE MỚI
+      path: 'quan-ly-bai-viet', // <- THÊM ROUTE MỚI
       element: <News /> 
     },
     
@@ -39,6 +41,17 @@ const AdminRoutes = {
       path: 'bai-viet/chinh-sua/:id', // <- THÊM ROUTE MỚI
       element: <Edit /> 
     },
+    ,
+    {
+      path: 'danh-muc-bai-viet', // <- THÊM ROUTE MỚI
+      element: <CategoryNews /> 
+    },
+    ,
+    {
+      path: 'them-danh-muc-bai-viet', // <- THÊM ROUTE MỚI
+      element: <CategoryAdd /> 
+    },
+
   ]
 };
 

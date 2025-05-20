@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Box, Chip, InputBase } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import { useArticle } from './FormPost';
 
 const Tag = () => {
   const theme = useTheme();
-  const [tags, setTags] = useState([]);
+  const { tags, setTags } = useArticle();
   const [inputValue, setInputValue] = useState('');
 
   const handleAddTag = () => {

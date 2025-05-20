@@ -15,8 +15,8 @@ const Top = () => {
     { label: 'Bản nháp', value: 'draft' },
     { label: 'Thùng rác', value: 'trash' },
 
-  ];
-  const handleChange = (key, value) => {
+  ];  const handleChange = (key, value) => {
+
     setFilters({ ...filters, [key]: value });
   };
   return (

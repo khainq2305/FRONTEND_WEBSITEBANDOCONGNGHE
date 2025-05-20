@@ -40,7 +40,15 @@ const pages = [
     id: 'news',
     title: 'Bài viết',
     type: 'item',
-    url: '/admin/news',
+    url: '/admin/quan-ly-bai-viet',
+    icon: icons.FileTextOutlined,
+    breadcrumbs: false,
+  },
+  {
+    id: 'category-new',
+    title: 'Danh mục bài viết',
+    type: 'item',
+    url: '/admin/danh-muc-bai-viet',
     icon: icons.FileTextOutlined,
     breadcrumbs: false,
   }

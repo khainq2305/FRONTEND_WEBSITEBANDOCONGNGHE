@@ -3,7 +3,7 @@ import { useRef } from 'react';
 import { Editor } from '@tinymce/tinymce-react';
 import { TextField } from '@mui/material';
 
-import { useArticle } from '../Add'; // dùng context nội bộ
+import { useArticle } from './FormPost'; // dùng context nội bộ
 
 // TinyMCE core
 import 'tinymce/tinymce';
@@ -25,17 +25,22 @@ import 'tinymce/skins/ui/oxide/skin.min.css';
 
 const Content = () => {
   const editorRef = useRef(null);
-  const { title, setTitle, content, setContent } = useArticle(); // lấy từ context
+  const { title, setTitle, content, setContent, errors, setErrors } = useArticle(); // lấy từ context
 
   return (
     <>
       <TextField
-        sx={{ mb: 3 }}
-        label="Tiêu đề bài viết"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        fullWidth
-      />
+          label="Tiêu đề"
+          value={title}
+          // onChange={(e) => setTitle(e.target.value)}
+          onChange={(e) => {
+            setTitle(e.target.value);
+            setErrors(prev => ({ ...prev, title: null })); // xoá lỗi khi sửa
+          }}
+          error={!!errors.title}
+          helperText={errors.title || ''}
+          fullWidth
+        />
 
       <Editor
         apiKey="no-api-key"
