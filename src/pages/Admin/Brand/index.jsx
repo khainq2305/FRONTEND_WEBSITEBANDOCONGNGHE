@@ -5,11 +5,11 @@ import {
   TextField, Select, FormControl, Checkbox, Avatar
 } from '@mui/material';
 import {
-  MoreVert, Add, ImportExport,
-  Restore, DeleteForever
+  MoreVert, Add, Restore, DeleteForever
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+
 import Pagination from 'components/common/Pagination';
-import BrandFormDialog from './BrandFormDialog';
 import DeleteConfirmationDialog from './DeleteConfirmationDialog';
 import RestoreConfirmationDialog from './RestoreConfirmationDialog';
 import TrashConfirmationDialog from './TrashConfirmationDialog';
@@ -23,19 +23,20 @@ const statusTabs = [
 ];
 
 const mockBrands = [
-  { id: 1, name: 'Nike', slug: 'nike', status: 'published', productsCount: 120, createdAt: '2023-05-15', image: '/images/brands/nike.png' },
-  { id: 2, name: 'Adidas', slug: 'adidas', status: 'published', productsCount: 95, createdAt: '2023-04-22', image: '/images/brands/adidas.png' },
-  { id: 3, name: 'Puma', slug: 'puma', status: 'draft', productsCount: 42, createdAt: '2023-03-10', image: '/images/brands/puma.png' },
-  { id: 4, name: 'Reebok', slug: 'reebok', status: 'trash', productsCount: 78, createdAt: '2023-02-28', image: '/images/brands/reebok.png' },
-  { id: 5, name: 'New Balance', slug: 'new-balance', status: 'published', productsCount: 65, createdAt: '2023-01-15', image: '/images/brands/new-balance.png' }
+  { id: 1, name: 'Nike', slug: 'nike', description: 'Thương hiệu thể thao hàng đầu', status: 'published', createdAt: '2023-05-15', image: '/images/brands/nike.png' },
+  { id: 2, name: 'Adidas', slug: 'adidas', description: 'Đối thủ lớn của Nike', status: 'published', createdAt: '2023-04-22', image: '/images/brands/adidas.png' },
+  { id: 3, name: 'Puma', slug: 'puma', description: 'Phong cách trẻ trung', status: 'draft', createdAt: '2023-03-10', image: '/images/brands/puma.png' },
+  { id: 4, name: 'Reebok', slug: 'reebok', description: 'Thương hiệu lâu đời', status: 'trash', createdAt: '2023-02-28', image: '/images/brands/reebok.png' },
+  { id: 5, name: 'New Balance', slug: 'new-balance', description: 'Giày quốc dân', status: 'published', createdAt: '2023-01-15', image: '/images/brands/new-balance.png' }
 ];
 
 const BrandList = () => {
+  const navigate = useNavigate();
+
   const [status, setStatus] = useState('all');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [selectedBrand, setSelectedBrand] = useState(null);
-  const [openForm, setOpenForm] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [restoreDialogOpen, setRestoreDialogOpen] = useState(false);
@@ -95,17 +96,14 @@ const BrandList = () => {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
         <Box sx={{ display: 'flex', gap: 2 }}>
           {status !== 'trash' && (
-            <>
-              <Button
-                variant="contained"
-                startIcon={<Add />}
-                onClick={() => setOpenForm(true)}
-                sx={{ bgcolor: 'red', '&:hover': { bgcolor: 'darkred' } }}
-              >
-                Thêm thương hiệu
-              </Button>
-
-            </>
+            <Button
+              variant="contained"
+              startIcon={<Add />}
+              onClick={() => navigate('/admin/brands/create')}
+              sx={{ bgcolor: 'red', '&:hover': { bgcolor: 'darkred' } }}
+            >
+              Thêm thương hiệu
+            </Button>
           )}
         </Box>
 
@@ -133,7 +131,7 @@ const BrandList = () => {
             onClick={() => {
               setStatus(tab.value);
               setPage(1);
-              setSelectedIds([]); // reset selection on tab change
+              setSelectedIds([]);
             }}
             sx={{
               pb: 1,
@@ -187,8 +185,8 @@ const BrandList = () => {
               </TableCell>
               <TableCell>Hình ảnh</TableCell>
               <TableCell>Tên thương hiệu</TableCell>
-              <TableCell>Slug</TableCell>
-              <TableCell>Số sản phẩm</TableCell>
+              <TableCell>Slug</TableCell> {/* ✅ Thêm cột Slug */}
+              <TableCell>Mô tả</TableCell>
               <TableCell>Trạng thái</TableCell>
               <TableCell>Ngày tạo</TableCell>
               <TableCell align="right">Hành động</TableCell>
@@ -207,8 +205,10 @@ const BrandList = () => {
                   <Avatar src={brand.image} alt={brand.name} />
                 </TableCell>
                 <TableCell>{brand.name}</TableCell>
-                <TableCell>{brand.slug}</TableCell>
-                <TableCell>{brand.productsCount}</TableCell>
+                <TableCell>{brand.slug}</TableCell> {/* ✅ Hiển thị Slug */}
+                <TableCell sx={{ maxWidth: 300, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {brand.description}
+                </TableCell>
                 <TableCell>{getStatusChip(brand.status)}</TableCell>
                 <TableCell>{brand.createdAt}</TableCell>
                 <TableCell align="right">
@@ -243,7 +243,12 @@ const BrandList = () => {
           </>
         ) : (
           <>
-            <MenuItem onClick={() => { setOpenForm(true); closeMenu(); }}>
+            <MenuItem
+              onClick={() => {
+                navigate(`/admin/brands/edit/${selectedBrand?.id}`);
+                closeMenu();
+              }}
+            >
               Chỉnh sửa
             </MenuItem>
             <MenuItem onClick={() => { setTrashDialogOpen(true); closeMenu(); }} sx={{ color: 'error.main' }}>
@@ -254,21 +259,6 @@ const BrandList = () => {
       </Menu>
 
       {/* Dialogs */}
-      <BrandFormDialog
-        open={openForm}
-        onClose={() => setOpenForm(false)}
-        brand={selectedBrand}
-        onSubmit={(data) => {
-          Toastify.success(
-            selectedBrand
-              ? `Đã cập nhật thương hiệu ${data.name}`
-              : `Đã thêm thương hiệu ${data.name}`
-          );
-          setOpenForm(false);
-          setSelectedBrand(null);
-        }}
-      />
-
       <DeleteConfirmationDialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
