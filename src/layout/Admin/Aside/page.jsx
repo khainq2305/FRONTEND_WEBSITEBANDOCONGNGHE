@@ -48,6 +48,15 @@ const pages = [
     title: 'Đơn hàng',
     type: 'item',
     url: '/admin/orders',
+    url: '/admin/quan-ly-bai-viet',
+    icon: icons.FileTextOutlined,
+    breadcrumbs: false,
+  },
+  {
+    id: 'category-new',
+    title: 'Danh mục bài viết',
+    type: 'item',
+    url: '/admin/danh-muc-bai-viet',
     icon: icons.FileTextOutlined,
     breadcrumbs: false
   },

@@ -28,6 +28,11 @@ const Brand = Loadable(lazy(() => import('pages/Admin/Brand')));
 
 
 const HisLog = Loadable(lazy(() => import('pages/Admin/HisLog'))); 
+const News = Loadable(lazy(() => import('pages/Admin/News/News'))); // <- THÊM DÒNG NÀY
+const Add = Loadable(lazy(() => import('pages/Admin/News/Add'))); // <- THÊM DÒNG NÀY
+const Edit = Loadable(lazy(() => import('pages/Admin/News/Edit')))
+const CategoryNews = Loadable(lazy(() => import('pages/Admin/News/Category')))
+const CategoryAdd = Loadable(lazy(() => import('pages/Admin/News/CategoryAdd')))
 const AdminRoutes = {
   path: '/admin',
   element: <DashboardLayout />,
@@ -88,6 +93,8 @@ const AdminRoutes = {
     {
       path: 'brands',
       element: <Brand />
+      path: 'quan-ly-bai-viet', // <- THÊM ROUTE MỚI
+      element: <News /> 
     },
     
     {
@@ -100,6 +107,17 @@ const AdminRoutes = {
       element: < HisLog/>
     },
     { path: 'users/create', element: <UserAdd /> }
+    ,
+    {
+      path: 'danh-muc-bai-viet', // <- THÊM ROUTE MỚI
+      element: <CategoryNews /> 
+    },
+    ,
+    {
+      path: 'them-danh-muc-bai-viet', // <- THÊM ROUTE MỚI
+      element: <CategoryAdd /> 
+    },
+
   ]
 };
 
