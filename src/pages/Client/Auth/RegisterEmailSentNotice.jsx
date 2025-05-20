@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { authService } from "services/client/authService";
 import { toast } from "react-toastify";
 import { XCircle } from "lucide-react";
+import Loader from "components/common/Loader";
 
 const RegisterEmailSentNotice = () => {
   const navigate = useNavigate();
@@ -10,77 +11,105 @@ const RegisterEmailSentNotice = () => {
   const email = location.state?.email;
   const [resendLoading, setResendLoading] = useState(false);
   const [resendTimeout, setResendTimeout] = useState(0);
-  const [locked, setLocked] = useState(false);
   const [lockTime, setLockTime] = useState(0);
+  const [isVerified, setIsVerified] = useState(false);
+const [loading, setLoading] = useState(false);
 
-  // ✅ Kiểm tra trạng thái khi trang tải lại
+  
   useEffect(() => {
-    const fetchStatus = async () => {
-      try {
-        const response = await authService.getVerificationCooldown(email);
-        const { lockUntil, resendCooldown } = response.data;
-        const now = Date.now();
+    if (!email) {
+      toast.error("Không tìm thấy email. Vui lòng thử lại.");
+      navigate("/dang-ky");
+    }
+  }, [email, navigate]);
 
-        if (lockUntil) {
-          const lockRemaining = Math.max(0, new Date(lockUntil).getTime() - now);
-          setLockTime(lockRemaining);
-          setLocked(lockRemaining > 0);
-        } else {
-          setLockTime(0);
-          setLocked(false);
-        }
 
-        if (resendCooldown) {
-          const cooldownRemaining = Math.max(0, new Date(resendCooldown).getTime() - now);
-          setResendTimeout(Math.ceil(cooldownRemaining / 1000));
-        } else {
-          setResendTimeout(0);
-        }
-      } catch (error) {
-        console.error("❌ Lỗi kiểm tra trạng thái:", error);
+ useEffect(() => {
+  const fetchStatus = async () => {
+    if (!email) return;
+
+    setLoading(true); // ✅ Hiển thị Loader toàn màn hình
+    try {
+      const checkResponse = await authService.checkVerificationStatus(email);
+      if (checkResponse.data.verified) {
+        setIsVerified(true);
+        toast.success("Tài khoản của bạn đã được xác thực! Vui lòng đăng nhập");
+        navigate("/dang-nhap");
+        return;
       }
-    };
 
-    fetchStatus();
-    const interval = setInterval(fetchStatus, 5000); // Cập nhật sau mỗi 5 giây
+      const response = await authService.getVerificationCooldown(email);
+      const { cooldown, lockTime } = response.data;
+      setLockTime(lockTime || 0);
+      setResendTimeout(Math.ceil(cooldown / 1000) || 0);
+    } catch (error) {
+      toast.error("Không thể kiểm tra trạng thái xác thực.");
+    } finally {
+      setLoading(false); // ✅ Tắt Loader toàn màn hình
+    }
+  };
 
-    return () => clearInterval(interval);
-  }, [email]);
+  fetchStatus();
+  const interval = setInterval(fetchStatus, 3000); 
+  return () => {
+    clearInterval(interval);
+    setLoading(false); // ✅ Đảm bảo tắt Loader khi rời khỏi component
+  };
+}, [email, navigate]);
 
-  // ✅ Đếm ngược cooldown và lockTime
+  
   useEffect(() => {
     const interval = setInterval(() => {
+      setLockTime((prev) => (prev > 1000 ? prev - 1000 : 0));
       setResendTimeout((prev) => (prev > 0 ? prev - 1 : 0));
-      setLockTime((prev) => {
-        if (prev > 1000) {
-          return prev - 1000;
-        } else {
-          setLocked(false);
-          return 0;
-        }
-      });
     }, 1000);
 
     return () => clearInterval(interval);
   }, []);
 
-  // ✅ Xử lý gửi lại link xác thực
-  const handleResendEmail = async () => {
-    if (resendLoading || locked || resendTimeout > 0) return;
 
-    setResendLoading(true);
-    try {
-      const response = await authService.resendVerificationLink({ email });
-      toast.success("✅ Đã gửi lại liên kết đến email của bạn.");
-    } catch (error) {
-      toast.error("❌ Không thể gửi lại liên kết.");
-    } finally {
-      setResendLoading(false);
-    }
+  const handleResendEmail = async () => {
+  if (resendLoading || lockTime > 0 || resendTimeout > 0) {
+    toast.error("Không thể gửi lại liên kết.");
+    return;
+  }
+
+  setResendLoading(true);
+  setLoading(true); // ✅ Hiển thị Loader toàn màn hình
+
+  try {
+    await authService.resendVerificationLink({ email });
+    toast.success("Đã gửi lại liên kết đến email của bạn.");
+    setResendTimeout(10); 
+  } catch (error) {
+    console.error("Lỗi gửi lại liên kết:", error);
+    toast.error("Không thể gửi lại liên kết.");
+  } finally {
+    setResendLoading(false);
+    setLoading(false); // ✅ Tắt Loader toàn màn hình
+  }
+};
+
+ 
+  const formatLockTime = (milliseconds) => {
+    const hours = Math.floor(milliseconds / (60 * 60 * 1000));
+    const minutes = Math.floor((milliseconds % (60 * 60 * 1000)) / (60 * 1000));
+    const seconds = Math.floor((milliseconds % (60 * 1000)) / 1000);
+
+    if (hours > 0) return `${hours} giờ ${minutes} phút ${seconds} giây`;
+    if (minutes > 0) return `${minutes} phút ${seconds} giây`;
+    return `${seconds} giây`;
   };
+
+
+  if (isVerified) {
+    return null; 
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50 px-4">
+      {loading && <Loader fullscreen />} {/* ✅ Loader toàn màn hình */}
+
       <div className="bg-white rounded-lg shadow-md p-8 w-full max-w-md text-center">
         <img 
           src="https://www.geetest.com/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fsuccess.04438e03.png&w=384&q=75" 
@@ -88,7 +117,6 @@ const RegisterEmailSentNotice = () => {
           className="w-16 mx-auto mb-3" 
         />
         <h2 className="text-2xl font-semibold mb-2 text-gray-800">Cảm ơn bạn!</h2>
-        <hr className="my-4" />
         <p className="text-gray-600">
           Chúng tôi đã gửi liên kết kích hoạt tài khoản đến địa chỉ email: 
           <span className="text-blue-600 font-semibold block mt-1">{email}</span>
@@ -97,30 +125,30 @@ const RegisterEmailSentNotice = () => {
           Không nhận được? Vui lòng kiểm tra thư mục <strong>'Spam'</strong> hoặc <strong>'Junk'</strong>.
         </p>
 
+    
         <button
           onClick={handleResendEmail}
           className={`mt-4 w-full py-3 rounded-lg font-semibold transition ${
-            resendLoading || locked || resendTimeout > 0 
+            resendLoading || lockTime > 0 || resendTimeout > 0 
               ? "bg-gray-300 text-white cursor-not-allowed" 
               : "bg-blue-600 text-white hover:bg-blue-700"
           }`}
-          disabled={resendLoading || locked || resendTimeout > 0}
+          disabled={resendLoading || lockTime > 0 || resendTimeout > 0}
         >
-          {resendLoading
-            ? "Đang gửi lại liên kết..."
-            : locked
-            ? `Đang khóa (${Math.floor(lockTime / 60000)} phút ${Math.floor((lockTime % 60000) / 1000)} giây)`
-            : resendTimeout > 0
-            ? `Gửi lại liên kết (${resendTimeout}s)`
+          {lockTime > 0 
+            ? `Đang khóa (${formatLockTime(lockTime)})`
+            : resendTimeout > 0 
+            ? `Gửi lại liên kết (${resendTimeout}s)` 
             : "Gửi lại liên kết"}
         </button>
 
-        {locked && lockTime > 0 && (
+       
+        {lockTime > 0 && (
           <div className="mt-4 p-3 text-left text-red-700 bg-red-100 border border-red-400 rounded-md flex items-start gap-2">
             <XCircle className="w-5 h-5 text-red-600 mt-1" />
             <div>
               <p className="font-semibold">Bạn đã gửi liên kết xác thực quá thường xuyên.</p>
-              <p>Vui lòng thử lại sau</p>
+              <p>Vui lòng thử lại sau {formatLockTime(lockTime)}.</p>
             </div>
           </div>
         )}

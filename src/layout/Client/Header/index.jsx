@@ -8,12 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import NotificationDropdown from './NotificationDropdown';
 import PopupModal from './PopupModal';
-
-// BƯỚC 1: Import logo từ thư mục assets
-// Đường dẫn này là tương đối so với vị trí file Header.js hiện tại.
-// Giả sử Header.js nằm trong src/layout/Client/ và logo nằm trong src/assets/Client/images/Logo/
-// thì đường dẫn có thể là '../../assets/Client/images/Logo/logo.svg'
-// HÃY ĐIỀU CHỈNH ĐƯỜNG DẪN NÀY CHO ĐÚNG VỚI CẤU TRÚC THỰC TẾ CỦA BẠN
+import { authService } from 'services/client/authService';
 import logoSrc from '../../../assets/Client/images/Logo/logo.svg'; 
 
 const flatCategoriesFromAPI = [
@@ -211,6 +206,84 @@ const sampleNotifications = [
 
 const Header = () => {
   const navigate = useNavigate();
+ const [userInfo, setUserInfo] = useState(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+ const accountDropdownTimerRef = useRef(null);
+ const handleAccountDropdownEnter = () => {
+  clearTimeout(accountDropdownTimerRef.current);
+  setIsDropdownOpen(true);
+};
+const handleAccountDropdownLeave = () => {
+  accountDropdownTimerRef.current = setTimeout(() => {
+    setIsDropdownOpen(false);
+  }, 300); // Thời gian trễ 300ms, bạn có thể điều chỉnh
+};
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const response = await authService.getUserInfo();
+        setUserInfo(response.data.user);
+      } catch (err) {
+        console.error("❌ Lỗi lấy thông tin người dùng:", err);
+      }
+    };
+    fetchUserInfo();
+  }, []);
+// Hàm tiện ích để giới hạn độ dài tên và thêm "..."
+// Hàm tiện ích để giới hạn độ dài tên (lấy TỪ CUỐI CÙNG) và thêm "..."
+const getDisplayName = (fullName, maxLength = 8) => { // Bạn có thể điều chỉnh maxLength
+  if (!fullName) return '';
+  const nameParts = fullName.split(" "); // Tách tên thành mảng các từ
+  const lastName = nameParts[nameParts.length - 1]; // Lấy từ cuối cùng
+
+  if (lastName.length > maxLength) {
+    return `${lastName.substring(0, maxLength)}...`;
+  }
+  return lastName;
+};
+ const handleLogout = async () => {
+  try {
+    // ✅ Gọi API logout (nếu có)
+    await authService.logout(); // Đảm bảo API này hoạt động đúng (server xóa session)
+
+    // ✅ Xóa token khỏi LocalStorage và SessionStorage
+    localStorage.removeItem("token");
+    sessionStorage.removeItem("token");
+
+    // ✅ Cập nhật lại state để UI tự động thay đổi
+    setUserInfo(null);
+    setIsDropdownOpen(false);
+
+    // ✅ Điều hướng về trang đăng nhập
+    navigate("/dang-nhap");
+  } catch (error) {
+    console.error("❌ Lỗi khi gọi API đăng xuất:", error);
+    
+    // ✅ Dù có lỗi vẫn xóa token ở phía client để đảm bảo đăng xuất
+    localStorage.removeItem("token");
+    sessionStorage.removeItem("token");
+
+    setUserInfo(null);
+    setIsDropdownOpen(false);
+    navigate("/dang-nhap");
+  }
+};
+
+
+
+
+  const handleOutsideClick = (e) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+      setIsDropdownOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("click", handleOutsideClick);
+    return () => document.removeEventListener("click", handleOutsideClick);
+  }, []);
+
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const categoryMenuTimerRef = useRef(null);
   const [isMobilePanelOpen, setIsMobilePanelOpen] = useState(false);
@@ -398,16 +471,96 @@ const Header = () => {
                 <ShoppingCart className="w-6 h-6" strokeWidth={1.8} color="#fff" />
                 <span className="text-white text-[11px] font-semibold leading-tight text-center">Giỏ hàng</span>
               </button>
-              <button
-                className="flex items-center gap-2 px-3 py-2 rounded-lg hover-primary bg-white/40 transition"
-                onClick={toggleLoginPopup}
-              >
-                <CircleUserRound className="w-6 h-6" strokeWidth={1.5} color="#fff" />
-                <span className="text-sm font-semibold">Tài khoản</span>
-              </button>
-            </div>
-          </div>
-        </div>
+
+<div
+  className="hidden lg:block relative"
+  onMouseEnter={handleAccountDropdownEnter}
+  onMouseLeave={handleAccountDropdownLeave}
+>
+  {userInfo ? (
+    <div className="flex items-center gap-2 cursor-pointer p-2 bg-primary rounded-lg transition-colors duration-150">
+      {/* ==== BẮT ĐẦU SỬA ĐỂ HIỂN THỊ AVATAR THẬT ==== */}
+      {userInfo.avatarUrl ? ( // Kiểm tra xem có avatarUrl không
+        <img
+          // userInfo.avatarUrl đã là URL đầy đủ từ Cloudinary
+          // Thêm cache-busting đơn giản bằng timestamp
+          src={`${userInfo.avatarUrl.split('?')[0]}?t=${new Date().getTime()}`}
+          alt="Avatar"
+          className="w-8 h-8 rounded-full object-cover" // object-cover rất quan trọng
+        />
+      ) : (
+        // Nếu không có avatarUrl, hiển thị chữ cái đầu tiên
+        <div className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center text-sm font-semibold">
+          {userInfo.fullName ? userInfo.fullName.charAt(0).toUpperCase() : '?'}
+        </div>
+      )}
+      {/* ==== KẾT THÚC SỬA ĐỂ HIỂN THỊ AVATAR THẬT ==== */}
+
+      <span className="text-sm font-semibold">
+        {/* Đảm bảo getDisplayName là hàm và userInfo.fullName tồn tại */}
+        {typeof getDisplayName === 'function' && userInfo.fullName ? getDisplayName(userInfo.fullName) : (userInfo.fullName || 'User')}
+      </span>
+    </div>
+  ) : (
+    <button
+      onClick={toggleLoginPopup}
+      className="flex items-center gap-2 px-3 py-2 rounded-lg hover-primary bg-white/40 transition"
+    >
+      <CircleUserRound className="w-6 h-6" strokeWidth={1.5} color="#fff" />
+      <span className="text-sm font-semibold">Tài khoản</span>
+    </button>
+  )}
+
+  {/* Dropdown Tài Khoản */}
+  {isDropdownOpen && userInfo && (
+    <div
+      ref={dropdownRef}
+      className="absolute right-0 mt-2 w-38 bg-white rounded-md shadow-xl z-50 text-gray-800 text-sm"
+      onMouseEnter={handleAccountDropdownEnter}
+      onMouseLeave={handleAccountDropdownLeave}
+    >
+      {/* Caret / Arrow */}
+      <div className="absolute -top-2 right-5 w-0 h-0
+                        border-l-[8px] border-l-transparent
+                        border-r-[8px] border-r-transparent
+                        border-b-[8px] border-b-white
+                       ">
+      </div>
+      <ul className="py-1">
+        <li>
+          <Link
+            to="/user-profile"
+            className="block px-4 py-2.5 text-gray-700 hover-primary hover:text-white transition-colors duration-150"
+          >
+            Tài Khoản Của Tôi
+          </Link>
+        </li>
+        <li>
+          <Link
+            to="/don-mua"
+            className="block px-4 py-2.5 text-primary-focus hover-primary hover:text-white transition-colors duration-150"
+          >
+            Đơn Mua
+          </Link>
+        </li>
+        <li>
+          <button
+            onClick={handleLogout}
+            className="block w-full text-left px-4 py-2.5 text-gray-700 hover-primary hover:text-white transition-colors duration-150"
+          >
+            Đăng Xuất
+          </button>
+        </li>
+      </ul>
+    </div>
+  )}
+</div>
+    </div>
+  </div>
+</div>
+
+       
+          
       </header>
 
       <Overlay isOpen={isMobilePanelOpen} onClick={toggleMobilePanel} />

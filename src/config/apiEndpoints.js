@@ -18,8 +18,10 @@ export const API_ENDPOINT = {
       checkResetStatus: '/check-reset-status', // ✅ Thêm endpoint này
       resetPassword: '/reset-password' , 
        // 👈 thêm endpoint này
+        getResetCooldown: '/get-reset-cooldown',
        verificationCooldown: '/verification-cooldown', // ✅ Thêm endpoint này
-      userInfo: '/user-info' // ✅ Endpoint lấy thông tin người dùng
+      userInfo: '/user-info', // ✅ Endpoint lấy thông tin người dùng
+       updateProfile: '/update-profile'
     }
   },
 };

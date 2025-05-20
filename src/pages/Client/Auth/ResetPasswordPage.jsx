@@ -1,10 +1,10 @@
 // src/components/ResetPasswordPage.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { authService } from "services/client/authService";
 import { Eye, EyeOff } from "lucide-react";
 import { toast } from "react-toastify";
-
+import Loader from "components/common/Loader"; // Đảm bảo bạn có component Loader
 const ResetPasswordPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -15,6 +15,33 @@ const ResetPasswordPage = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [tokenValid, setTokenValid] = useState(false);
+
+useEffect(() => {
+  const verifyToken = async () => {
+    if (!token) {
+      toast.error("❌ Thiếu token xác thực!");
+      navigate("/quen-mat-khau");
+      return;
+    }
+
+    try {
+      const response = await authService.verifyResetToken(token);
+      if (response.data.verified) {
+        setTokenValid(true);
+      } else {
+        toast.error(response.data.message || "❌ Liên kết không hợp lệ hoặc đã hết hạn.");
+        navigate("/quen-mat-khau");
+      }
+    } catch (err) {
+      const errorMessage = err?.response?.data?.message || "❌ Lỗi xác thực token. Vui lòng thử lại.";
+      toast.error(errorMessage);
+      navigate("/quen-mat-khau");
+    }
+  };
+
+  verifyToken();
+}, [token, navigate]);
 
   const validatePassword = (password) => {
     const strongPasswordRegex =
@@ -26,9 +53,14 @@ const ResetPasswordPage = () => {
     e.preventDefault();
     setErrors({});
 
+    if (!tokenValid) {
+      toast.error("❌ Liên kết không hợp lệ hoặc đã hết hạn.");
+      setTimeout(() => navigate("/dang-nhap"), 2000);
+      return;
+    }
+
     let validationErrors = {};
 
-    // ✅ Kiểm tra mật khẩu mới
     if (!newPassword.trim()) {
       validationErrors.newPassword = "Mật khẩu không được để trống!";
     } else if (!validatePassword(newPassword)) {
@@ -36,7 +68,6 @@ const ResetPasswordPage = () => {
         "Mật khẩu phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt!";
     }
 
-    // ✅ Kiểm tra xác nhận mật khẩu chỉ khi submit
     if (confirmPassword.trim() && newPassword !== confirmPassword) {
       validationErrors.confirmPassword = "Mật khẩu xác nhận không khớp!";
     }
@@ -50,7 +81,7 @@ const ResetPasswordPage = () => {
     try {
       await authService.resetPassword({ token, newPassword });
       toast.success("✅ Đặt lại mật khẩu thành công! Vui lòng đăng nhập.");
-      navigate("/dang-nhap");
+      setTimeout(() => navigate("/dang-nhap"), 2000); // Chuyển hướng sau 2 giây
     } catch (err) {
       setErrors({ global: err?.response?.data?.message || "❌ Lỗi xảy ra!" });
     } finally {
@@ -59,68 +90,139 @@ const ResetPasswordPage = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-white px-4">
-      <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md text-center">
-        <h2 className="text-2xl font-semibold mb-4">Đặt lại mật khẩu</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Mật khẩu mới"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className={`w-full px-4 py-3 border rounded-md text-sm ${
-                errors.newPassword ? "border-red-500" : "border-gray-300"
-              }`}
-            />
-            <div
-              className="absolute right-3 top-3 cursor-pointer"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-            </div>
-            {errors.newPassword && (
-              <p className="text-red-500 text-sm mt-1 text-left">{errors.newPassword}</p>
-            )}
-          </div>
+<div className="flex justify-center items-center min-h-screen bg-gray-100 px-4">
+  {loading && <Loader fullscreen />}
 
-          <div className="relative">
-            <input
-              type={showConfirmPassword ? "text" : "password"}
-              placeholder="Xác nhận mật khẩu"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className={`w-full px-4 py-3 border rounded-md text-sm ${
-                errors.confirmPassword ? "border-red-500" : "border-gray-300"
-              }`}
-            />
-            <div
-              className="absolute right-3 top-3 cursor-pointer"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            >
-              {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-            </div>
-            {errors.confirmPassword && (
-              <p className="text-red-500 text-sm mt-1 text-left">{errors.confirmPassword}</p>
-            )}
-          </div>
+  <div
+    className="bg-white shadow-xl rounded-lg w-full text-center relative"
+    style={{
+      maxWidth: "480px",
+      paddingTop: "40px",
+      paddingBottom: "40px",
+      paddingLeft: "32px",
+      paddingRight: "32px",
+      borderRadius: "8px",
+    }}
+  >
+    <h2 className="text-xl font-semibold text-gray-700 mb-6">
+      Đặt lại mật khẩu
+    </h2>
 
-          {errors.global && (
-            <p className="text-red-500 text-sm text-left">{errors.global}</p>
-          )}
-
-          <button
-            type="submit"
-            className={`w-full py-3 rounded-md text-white font-semibold ${
-              loading ? "bg-red-300 cursor-not-allowed" : "bg-red-500 hover:bg-red-600"
-            }`}
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Trường Mật khẩu mới */}
+      <div className="relative flex flex-col items-start">
+        <label htmlFor="newPasswordInput" className="text-sm font-medium text-gray-600 mb-1">
+          Mật khẩu mới
+        </label>
+        <div className="w-full relative">
+          <input
+            id="newPasswordInput"
+            type={showPassword ? "text" : "password"}
+            placeholder="Nhập mật khẩu mới của bạn"
+            value={newPassword}
+            onChange={(e) => {
+              setNewPassword(e.target.value);
+              if (errors?.newPassword) {
+                const updatedErrors = { ...errors };
+                delete updatedErrors.newPassword;
+                // setErrors(updatedErrors); 
+              }
+            }}
+            className={`w-full px-4 py-3 border rounded-md text-sm
+              ${ errors?.newPassword
+                ? "border-red-500 focus:ring-red-300"
+                // Sử dụng var(--primary-color) cho focus khi không có lỗi
+                : "border-gray-300 focus:border-[var(--primary-color)] focus:ring-[var(--primary-color)]" 
+              }
+              focus:outline-none focus:ring-1 transition-colors duration-200 ease-in-out`}
             disabled={loading}
+          />
+          <div
+            // Sử dụng var(--primary-color) cho hover icon
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500 hover:text-[var(--primary-color)]" 
+            onClick={() => setShowPassword(!showPassword)}
+            aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
           >
-            {loading ? "Đang đặt lại..." : "Đặt lại mật khẩu"}
-          </button>
-        </form>
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </div>
+        </div>
+        {errors?.newPassword && (
+          <div className="text-red-500 text-xs mt-1 flex items-center gap-1">
+            <XCircle className="w-3.5 h-3.5 flex-shrink-0" />
+            <span>{errors.newPassword}</span>
+          </div>
+        )}
       </div>
-    </div>
+
+      {/* Trường Xác nhận mật khẩu */}
+      <div className="relative flex flex-col items-start">
+        <label htmlFor="confirmPasswordInput" className="text-sm font-medium text-gray-600 mb-1">
+          Xác nhận mật khẩu
+        </label>
+        <div className="w-full relative">
+          <input
+            id="confirmPasswordInput"
+            type={showConfirmPassword ? "text" : "password"}
+            placeholder="Xác nhận lại mật khẩu mới"
+            value={confirmPassword}
+            onChange={(e) => {
+              setConfirmPassword(e.target.value);
+              if (errors?.confirmPassword) {
+                const updatedErrors = { ...errors };
+                delete updatedErrors.confirmPassword;
+                // setErrors(updatedErrors);
+              }
+            }}
+            className={`w-full px-4 py-3 border rounded-md text-sm
+              ${ errors?.confirmPassword
+                ? "border-red-500 focus:ring-red-300"
+                // Sử dụng var(--primary-color) cho focus khi không có lỗi
+                : "border-gray-300 focus:border-[var(--primary-color)] focus:ring-[var(--primary-color)]"
+              }
+              focus:outline-none focus:ring-1 transition-colors duration-200 ease-in-out`}
+            disabled={loading}
+          />
+          <div
+            // Sử dụng var(--primary-color) cho hover icon
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500 hover:text-[var(--primary-color)]"
+            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            aria-label={showConfirmPassword ? "Ẩn mật khẩu xác nhận" : "Hiện mật khẩu xác nhận"}
+          >
+            {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </div>
+        </div>
+        {errors?.confirmPassword && (
+          <div className="text-red-500 text-xs mt-1 flex items-center gap-1">
+            <XCircle className="w-3.5 h-3.5 flex-shrink-0" />
+            <span>{errors.confirmPassword}</span>
+          </div>
+        )}
+      </div>
+
+      {errors?.global && (
+        <div className="text-red-600 text-sm text-left bg-red-50 p-3 rounded-md border border-red-300 flex items-start gap-2">
+            <XCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+            <span>{errors.global}</span>
+        </div>
+      )}
+
+      {/* Nút Submit - Sử dụng var(--primary-color) */}
+      <button
+        type="submit"
+        className={`w-full py-3 rounded-md text-white text-base font-semibold transition-opacity duration-200 ease-in-out
+          ${ loading
+            // Sử dụng var(--primary-color) cho nút
+            ? "bg-[var(--primary-color)] opacity-50 cursor-not-allowed" 
+            : "bg-[var(--primary-color)] hover:opacity-85" // Có thể bạn muốn một màu hover tối hơn của primary-color, ví dụ: hover:bg-[var(--secondary-color)] hoặc điều chỉnh opacity
+        }`}
+        disabled={loading}
+        style={{ letterSpacing: '0.5px' }}
+      >
+        {loading ? "Đang đặt lại..." : "Đặt lại mật khẩu"}
+      </button>
+    </form>
+  </div>
+</div>
   );
 };
 

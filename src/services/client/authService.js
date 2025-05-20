@@ -1,6 +1,6 @@
 // src/services/client/authService.js
 import { API_ENDPOINT } from '../../config/apiEndpoints';
-import { get, post } from '../common/crud'; // Sửa lại chỗ này
+import { get, post, put } from '../common/crud'; // ✅ Đảm bảo đã import put
 
 const base = API_ENDPOINT.client.auth.base;
 
@@ -41,6 +41,19 @@ export const authService = {
    
     return get(`${base}${API_ENDPOINT.client.auth.userInfo}`);
   },
+   updateProfile: (data, isFormData = false) => {
+    if (isFormData) {
+      return put(`${base}${API_ENDPOINT.client.auth.updateProfile}`, data, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+    } else {
+      return put(`${base}${API_ENDPOINT.client.auth.updateProfile}`, data);
+    }
+  },
+   getResetCooldown: (email) =>
+    get(`${base}${API_ENDPOINT.client.auth.getResetCooldown}?email=${email}`),
   getVerificationCooldown: (email) =>
     get(`${base}${API_ENDPOINT.client.auth.verificationCooldown}?email=${email}`),
   logout: () => post(`${base}/logout`, {}, { withCredentials: true }),
