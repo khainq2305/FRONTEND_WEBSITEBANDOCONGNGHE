@@ -22,9 +22,16 @@ import { gray } from '@ant-design/colors';
 
 const BasicModal = () => {
   const { modalItem, setModalItem } = useArticle();
-  const textProps = {
-    fontSize: '18px',
-    fontWeight: 500
+  const timeLeftText = (publishAt) => {
+    if (!publishAt) return '-';
+    const diff = new Date(publishAt) - new Date();
+
+    const m = Math.floor(diff / 60000);
+    const d = Math.floor(m / 1440);
+    const h = Math.floor((m % 1440) / 60);
+    const min = m % 60;
+
+    return `Còn ${d} ngày ${h} giờ ${min} phút`;
   };
 
   return (
@@ -48,7 +55,7 @@ const BasicModal = () => {
                 alignItems="center"
                 gap={0.5}
                 fontSize="14px"
-                sx={{cursor: "pointer"}}
+                sx={{ cursor: "pointer" }}
               >
                 <OpenInNew fontSize="small" /> Đi đến bài viết
               </Link>
@@ -63,7 +70,7 @@ const BasicModal = () => {
                       modalItem.thumbnail ||
                       'https://eki.com.vn/wp-content/uploads/2024/03/tuyen-dung-chuyen-vien-cong-nghe-thong-tin-lam-viec-tai-Duc-EK-GROUP-1024x682.webp'
                     }
-                    alt={modalItem.name}
+                    alt={modalItem.title}
                     sx={{
                       width: '100%',
                       height: 200,
@@ -115,6 +122,39 @@ const BasicModal = () => {
                     </Box>
                   </Grid>
 
+                  <Grid item xs={6}>
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <ChatBubble fontSize="small" color="action" />
+                      <Typography fontSize={14} fontWeight={500}>Trạng thái:</Typography>
+                      <Chip
+                        label={modalItem.status}
+                        size="small"
+                        color={
+                          modalItem.status === 'scheduled'
+                            ? 'info'
+                            : modalItem.status === 'published'
+                              ? 'success'
+                              : 'warning'
+                        }
+                      />
+
+                    </Box>
+                  </Grid>
+
+                  {modalItem.publishAt && (
+                    <Grid item xs={12}>
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <ChatBubble fontSize="small" color="action" />
+                        <Typography fontSize={14} fontWeight={500}>Thời gian đăng:</Typography>
+                        <Typography fontSize={14} color={'red'}>
+                          {modalItem.status === 'scheduled'
+                            ? timeLeftText(modalItem.publishAt)
+                            : modalItem.publishAt}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  )}
+
                   {/* Tag */}
                   <Grid item xs={12}>
                     <Box display="flex" alignItems="center" gap={1}>
@@ -125,9 +165,8 @@ const BasicModal = () => {
                   </Grid>
 
                   {/* Nội dung */}
-                  <Grid item xs={12}>
 
-                  </Grid>
+
                 </Grid>
               </Box>
             </Box>

@@ -1,47 +1,40 @@
 // src/services/client/authService.js
 import { API_ENDPOINT } from '../../config/apiEndpoints';
-import { get, post } from '../common/crud'; // Sửa lại chỗ này
+import { get, post, put } from '../common/crud'; // Sửa lại chỗ này
 
-const base = API_ENDPOINT.client.auth.base;
+const base = API_ENDPOINT.admin.news.base;
 
-export const authService = {
+export const newsService = {
   register: (data) =>
     post(`${base}${API_ENDPOINT.client.auth.register}`, data),
 
-  login: (data) =>
-    post(`${base}${API_ENDPOINT.client.auth.login}`, data, {
-      withCredentials: true
-    }),
-
-  loginWithGoogle: (data) =>
-    post(`${base}${API_ENDPOINT.client.auth.google}`, data, {
-      withCredentials: true
-    }),
-  
-  loginWithFacebook: (data, config = {}) =>
-    post(`${base}${API_ENDPOINT.client.auth.facebook}`, data, config),
-
-  verifyEmail: (token) =>
-    get(`${base}${API_ENDPOINT.client.auth.verifyEmail}?token=${token}`), // 👈 thêm hàm này
-  resendVerificationLink: (data) => post(`${base}${API_ENDPOINT.client.auth.resendVerificationLink}`, data),
-  checkVerificationStatus: (email) =>
-    get(`${base}${API_ENDPOINT.client.auth.checkVerificationStatus}?email=${email}`), // ✅ Thêm API kiểm tra xác thực
-  forgotPassword: (data) =>
-    post(`${base}${API_ENDPOINT.client.auth.forgotPassword}`, data),
-  resendForgotPassword: (data) => post(`${base}${API_ENDPOINT.client.auth.resendForgotPassword}`, data), // ✅ API gửi lại email
-  // ✅ Đặt lại mật khẩu với token (SỬA LẠI ĐÚNG POST)
-  resetPassword: (data) =>
-    post(`${base}${API_ENDPOINT.client.auth.resetPassword}`, data), // 👈 Đúng hàm post
-  // ✅ Xác thực token đặt lại mật khẩu (Mới thêm)
-  verifyResetToken: (token) =>
-    get(`${base}${API_ENDPOINT.client.auth.verifyResetToken}?token=${token}`),
-  checkResetStatus: (email) =>
-    get(`${API_ENDPOINT.client.auth.base}${API_ENDPOINT.client.auth.checkResetStatus}?email=${email}`),
-  getUserInfo: () => {
-   
-    return get(`${base}${API_ENDPOINT.client.auth.userInfo}`);
+  getAll: () => {
+    console.log('là',`${base}${API_ENDPOINT.admin.news.getAll}`)
+    return get(`${base}${API_ENDPOINT.admin.news.getAll}`);
   },
-  getVerificationCooldown: (email) =>
-    get(`${base}${API_ENDPOINT.client.auth.verificationCooldown}?email=${email}`),
-  logout: () => post(`${base}/logout`, {}, { withCredentials: true }),
+  create: (data) => {
+  return post(`${base}${API_ENDPOINT.admin.news.create}`, data);
+},
+getById: (id) => {
+  console.log('đã gọi edit')
+  return get(`${base}${API_ENDPOINT.admin.news.getById}/${id}`);
+},
+update: (id, data) => {
+  console.log('đã gọi edit')
+  return put(`${base}${API_ENDPOINT.admin.news.update}/${id}`, data);
+},
+  trashPost: (ids) => {
+  console.log("ID đây", ids);
+  return post(`${base}${API_ENDPOINT.admin.news.trashPost}`, { ids });
+},
+forceDelete: (ids) => {
+  console.log("ID đây", ids);
+  return post(`${base}${API_ENDPOINT.admin.news.forceDelete}`, { ids });
+},
+  restorePost: (ids) => {
+  console.log("ID khôi phục đây", ids );
+  return post(`${base}${API_ENDPOINT.admin.news.restorePost}`, { ids }); // ✅ bọc lại trong object
+},
+
+
 };

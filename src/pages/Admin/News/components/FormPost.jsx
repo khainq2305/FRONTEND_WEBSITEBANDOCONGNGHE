@@ -31,31 +31,28 @@ const FormPost = ({ onSubmit, initialData, mode = 'add' }) => {
   }, [initialData]);
 
   const handleSubmit = () => {
-    console.log('Submit start'); // 👈 test chạy không
-
   const formData = {
     title,
     content,
     category,
-    status,
+    status: isScheduled ? 'scheduled' : status, // ✅ override nếu có lịch
     tags,
     avatar,
-    isScheduled,
-    publishAt
+    publishAt: isScheduled ? publishAt : null,
+    isScheduled
   };
 
   const result = validatePostForm(formData);
-
-  
   if (!result.valid) {
-    setErrors(result.errors); // 👈 dùng để hiện lỗi ở dưới input
+    setErrors(result.errors);
     return;
   }
+
   if (onSubmit) {
-      onSubmit(formData);
-    }
-  
+    onSubmit(formData);
+  }
 };
+
 
   return (
     <AddContext.Provider

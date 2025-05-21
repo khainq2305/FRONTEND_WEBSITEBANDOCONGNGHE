@@ -1,3 +1,4 @@
+import { Update } from '@mui/icons-material';
 import { API_BASE_URL } from '../constants/environment';
 
 
@@ -22,4 +23,16 @@ export const API_ENDPOINT = {
       userInfo: '/user-info' // ✅ Endpoint lấy thông tin người dùng
     }
   },
+  admin: {
+    news: {
+      base: `${API_BASE_URL}/admin/quan-ly-bai-viet`,
+      getAll: '',
+      create: '/them-bai-viet',
+      getById: '/chinh-sua-bai-viet',
+      update: '/cap-nhat-bai-viet',
+      trashPost: '/chuyen-vao-thung-rac',
+      forceDelete: '/xoa-vinh-vien',
+      restorePost: '/khoi-phuc'
+    }
+  }
 };

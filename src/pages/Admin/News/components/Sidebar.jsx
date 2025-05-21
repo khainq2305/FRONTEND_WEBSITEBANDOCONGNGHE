@@ -86,9 +86,9 @@ const Sidebar = () => {
           <Select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
+            disabled={isScheduled}
           >
-            <MenuItem value="active">Hiển thị</MenuItem>
-            <MenuItem value="inactive">Ẩn</MenuItem>
+            <MenuItem value="published">Đăng bài</MenuItem>
             <MenuItem value="draft">Nháp</MenuItem>
           </Select>
         </FormControl>

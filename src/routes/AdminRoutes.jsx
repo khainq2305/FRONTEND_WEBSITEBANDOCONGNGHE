@@ -34,11 +34,11 @@ const AdminRoutes = {
     },
     
     {
-      path: 'bai-viet/them-bai-viet-moi', // <- THÊM ROUTE MỚI
+      path: 'them-bai-viet-moi', // <- THÊM ROUTE MỚI
       element: <Add /> 
     },
     {
-      path: 'bai-viet/chinh-sua/:id', // <- THÊM ROUTE MỚI
+      path: 'chinh-sua-bai-viet/:id', // <- THÊM ROUTE MỚI
       element: <Edit /> 
     },
     ,
