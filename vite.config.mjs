@@ -21,9 +21,6 @@ export default defineConfig(({ mode }) => {
     define: {
       global: 'window'
     },
-    resolve: {
-      alias: []
-    },
     base: API_URL,
     plugins: [react(), jsconfigPaths(), tailwindcss()]
   };

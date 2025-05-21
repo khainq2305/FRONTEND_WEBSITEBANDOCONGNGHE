@@ -1,7 +1,7 @@
 import { Button } from '@mui/material';
 import SearchInput from 'components/common/SearchInput';
 import FilterSelect from 'components/common/FilterSelect';
-import { useArticle } from '../News';
+import { useArticle } from '@/pages/Admin/News/News';
 
 const ArticleFilters = () => {
   const {

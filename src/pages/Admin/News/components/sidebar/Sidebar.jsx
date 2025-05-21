@@ -13,8 +13,8 @@ import {
   FormHelperText
 } from '@mui/material';
 import Tag from './Tag';
-import UploadImage from './UploadImage';
-import { useArticle } from './FormPost'; // lấy từ context nội bộ
+import UploadImage from '@/pages/Admin/News/components/form/UploadImage';
+import { useArticle } from '@/pages/Admin/News/components/form/FormPost'; // lấy từ context nội bộ
 
 const Sidebar = () => {
   const {

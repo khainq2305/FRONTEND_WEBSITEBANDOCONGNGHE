@@ -2,8 +2,8 @@ import React, {createContext, useContext, useState, useEffect } from 'react'
 import { use } from 'react'
 import { TableContainer } from '@mui/material';
 
-import CategoryFilters from './CategoryFilters';
-import CategoryTable from './CategoryTable';
+import CategoryFilters from '@/pages/Admin/News/components/filter/CategoryFilters';
+import CategoryTable from '@/pages/Admin/News/components/table/CategoryTable';
 
 const CategoryContex = createContext()
 export const useCategory = () => useContext(CategoryContex);

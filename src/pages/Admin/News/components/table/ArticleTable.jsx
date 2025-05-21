@@ -2,7 +2,7 @@ import {
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer, Paper, Button
 } from '@mui/material';
 import MoreActionsMenu from 'components/common/MoreActionsMenu';
-import { useArticle } from '../News';
+import { useArticle } from '../../News';
 import { useNavigate } from 'react-router-dom';
 
 const ArticleTable = () => {

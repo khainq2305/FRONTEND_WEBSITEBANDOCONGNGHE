@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button, Box } from '@mui/material';
-import { useArticle } from './FormPost';
+import { useArticle } from '@/pages/Admin/News/components/form/FormPost';
 
 const UploadImage = () => {
   const { avatar, setAvatar} = useArticle()

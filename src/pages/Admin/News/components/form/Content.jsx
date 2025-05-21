@@ -3,7 +3,7 @@ import { useRef } from 'react';
 import { Editor } from '@tinymce/tinymce-react';
 import { TextField } from '@mui/material';
 
-import { useArticle } from './FormPost'; // dùng context nội bộ
+import { useArticle } from '@/pages/Admin/News/components/form/FormPost'; // dùng context nội bộ
 
 // TinyMCE core
 import 'tinymce/tinymce';
@@ -40,6 +40,7 @@ const Content = () => {
           error={!!errors.title}
           helperText={errors.title || ''}
           fullWidth
+          sx={{mb: 2}}
         />
 
       <Editor

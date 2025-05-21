@@ -8,7 +8,7 @@ import {
   Chip,
   Box
 } from '@mui/material';
-import { useArticle } from '../News';
+import { useArticle } from '@/pages/Admin/News/News';
 import {
   OpenInNew,
   Person,

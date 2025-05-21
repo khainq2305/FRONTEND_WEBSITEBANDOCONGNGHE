@@ -1,5 +1,5 @@
 import React from 'react'
-import CategoryPage from './components/CategoryPage'
+import CategoryPage from '@/pages/Admin/News/components/table/CategoryPage'
 
 const Category = () => {
   return (

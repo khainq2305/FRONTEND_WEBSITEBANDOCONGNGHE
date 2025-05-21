@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Box, Chip, InputBase } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { useArticle } from './FormPost';
+import { useArticle } from '../form/FormPost';
 
 const Tag = () => {
   const theme = useTheme();

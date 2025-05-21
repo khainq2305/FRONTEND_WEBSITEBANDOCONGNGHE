@@ -1,6 +1,6 @@
 import React from 'react'
-import { useCategory } from './CategoryPage';
-import FilterSelect from '/src/components/common/FilterSelect/index.jsx'
+import { useCategory } from '../table/CategoryPage';
+import FilterSelect from '@/components/common/FilterSelect/index'
 import { Button } from '@mui/material';
 const CategoryFilters = () => {
     const {

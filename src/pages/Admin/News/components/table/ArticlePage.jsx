@@ -1,9 +1,9 @@
-import ArticleFilters from './ArticleFilters';
-import ArticleTable from './ArticleTable';
+import ArticleFilters from '@/pages/Admin/News/components/filter/ArticleFilters';
+import ArticleTable from '@/pages/Admin/News/components/table/ArticleTable';
 import Pagination from 'components/common/Pagination';
 import Toastify from 'components/common/Toastify';
-import BasicModal from './Modal';
-import { useArticle } from '../News';
+import BasicModal from '@/pages/Admin/News/components/modal/Modal';
+import { useArticle } from '@/pages/Admin/News/News';
 
 const ArticlePage = () => {
   const { currentPage, setCurrentPage, filteredArticles } = useArticle();

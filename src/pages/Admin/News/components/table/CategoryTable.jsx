@@ -12,8 +12,7 @@ import { TableContainer,
 
 
  } from '@mui/material';
-import FilterSelect from '/src/components/common/FilterSelect/index.jsx';
-import MoreActionsMenu from '/src/components/common/MoreActionsMenu/index.jsx'
+import MoreActionsMenu from '@/components/common/MoreActionsMenu'
 const CategoryTable = () => {
   const {
     filteredArticles,

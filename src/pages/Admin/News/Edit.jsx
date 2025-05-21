@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import FormPost from './components/FormPost';
-import { newsService } from '../../../services/admin/postService';
+import FormPost from '@/pages/Admin/News/components/form/FormPost';
+import { newsService } from '@/services/admin/postService';
 
 const Edit = () => {
   const { id } = useParams();

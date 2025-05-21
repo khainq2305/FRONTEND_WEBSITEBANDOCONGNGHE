@@ -1,6 +1,6 @@
 import React from 'react'
-import FormPost from './components/FormPost'
-import { newsService } from '../../../services/admin/postService';
+import FormPost from './components/form/FormPost'
+import { newsService } from '@/services/admin/postService';
 import { useNavigate } from 'react-router';
 const Add = () => {
   const navigate = useNavigate();

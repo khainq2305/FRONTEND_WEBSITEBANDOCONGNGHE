@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import Top from './components/Top';
-import ArticlePage from './components/ArticlePage';
-import { newsService } from '../../../services/admin/postService';
+import Top from '@/pages/Admin/News/components/sidebar/Top';
+import ArticlePage from '@/pages/Admin/News/components/table/ArticlePage';
+import { newsService } from '@/services/admin/postService';
 
 // 1. Tạo context
 const ArticleContext = createContext();

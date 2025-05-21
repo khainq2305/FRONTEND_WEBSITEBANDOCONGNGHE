@@ -3,7 +3,7 @@ import Button from '@mui/material/Button';
 import SearchInput from 'components/common/SearchInput';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
-import { useArticle } from '../News';
+import { useArticle } from '../../News';
 import { useNavigate } from 'react-router-dom';
 const Top = () => {
   const { activeTab, handleTabClick, counts, filters,

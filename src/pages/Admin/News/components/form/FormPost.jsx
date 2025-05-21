@@ -1,8 +1,8 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { Grid } from '@mui/material';
-import { validatePostForm } from '../../../../utils/News/validatePostForm'
-import Content from './Content';
-import Sidebar from './Sidebar';
+import { validatePostForm } from '@/utils/News/validatePostForm'
+import Content from '@/pages/Admin/News/components/form/Content';
+import Sidebar from '@/pages/Admin/News/components/sidebar/Sidebar';
 
 const AddContext = createContext();
 export const useArticle = () => useContext(AddContext);
@@ -72,7 +72,7 @@ const FormPost = ({ onSubmit, initialData, mode = 'add' }) => {
     >
       <div title="Thêm bài viết mới">
         <Grid container spacing={3}>
-          <Grid item xs={12} md={9}>
+          <Grid item xs={12} md={9} >
             <Content />
           </Grid>
           <Grid item xs={12} md={3}>
