@@ -6,26 +6,15 @@ import {
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from 'react-router-dom';
 import Toastify from 'components/common/Toastify';
-
-const generateSlug = (text) => {
-  return text
-    .toLowerCase()
-    .trim()
-    .normalize('NFD')                       // Remove accents
-    .replace(/[\u0300-\u036f]/g, '')        // Remove accents
-    .replace(/[^a-z0-9 -]/g, '')            // Remove invalid chars
-    .replace(/\s+/g, '-')                   // Replace spaces with -
-    .replace(/-+/g, '-');                   // Collapse multiple -
-};
+import axios from 'axios';
 
 const BrandCreatePage = () => {
   const navigate = useNavigate();
-
   const [name, setName] = useState('');
-  const [slug, setSlug] = useState('');
   const [description, setDescription] = useState('');
   const [imageFile, setImageFile] = useState(null);
   const [isActive, setIsActive] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -35,7 +24,7 @@ const BrandCreatePage = () => {
     const maxSize = 2 * 1024 * 1024;
 
     if (!validTypes.includes(file.type)) {
-      Toastify.error('Chỉ chấp nhận ảnh JPG, PNG, WEBP, SVG, ICO');
+      Toastify.error('Chỉ chấp nhận JPG, PNG, WEBP, SVG, ICO');
       return;
     }
 
@@ -47,33 +36,31 @@ const BrandCreatePage = () => {
     setImageFile(file);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!name.trim()) {
-      Toastify.error('Tên thương hiệu là bắt buộc');
-      return;
+    if (!name.trim()) return Toastify.error('Tên thương hiệu là bắt buộc');
+    if (!imageFile) return Toastify.error('Vui lòng chọn logo thương hiệu');
+
+    try {
+      setLoading(true);
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('description', description);
+      formData.append('isActive', isActive);
+      formData.append('logo', imageFile);
+
+      const res = await axios.post('http://localhost:5000/admin/brands', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      Toastify.success(res.data?.message || `✅ Đã tạo thương hiệu "${res.data?.brand?.name}"`);
+      navigate('/admin/brands');
+    } catch (err) {
+      Toastify.error(err?.response?.data?.message || 'Tạo thương hiệu thất bại');
+    } finally {
+      setLoading(false);
     }
-
-    if (!slug.trim()) {
-      Toastify.error('Slug là bắt buộc');
-      return;
-    }
-
-    if (!imageFile) {
-      Toastify.error('Vui lòng chọn logo thương hiệu');
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('name', name);
-    formData.append('slug', slug);
-    formData.append('description', description);
-    formData.append('is_active', isActive);
-    formData.append('image', imageFile);
-
-    Toastify.success(`Đã tạo thương hiệu "${name}"`);
-    navigate('/admin/brands');
   };
 
   return (
@@ -87,7 +74,7 @@ const BrandCreatePage = () => {
         Quay lại
       </Button>
 
-      <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, borderRadius: 3, width: '100%' }}>
+      <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
         <Typography variant="h5" fontWeight={600} gutterBottom>
           Thêm thương hiệu mới
         </Typography>
@@ -95,12 +82,10 @@ const BrandCreatePage = () => {
         <Divider sx={{ mb: 3 }} />
 
         <form onSubmit={handleSubmit}>
-          {/* Logo upload */}
           <Box sx={{ mb: 3 }}>
             <Typography fontWeight={500} gutterBottom>
               Logo thương hiệu <span style={{ color: 'red' }}>*</span>
             </Typography>
-
             <Box
               onClick={() => document.getElementById('brand-image-input')?.click()}
               onDragOver={(e) => e.preventDefault()}
@@ -118,21 +103,14 @@ const BrandCreatePage = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                bgcolor: '#f9f9f9',
-                position: 'relative',
+                bgcolor: '#f9f9f9'
               }}
             >
               <Avatar
                 src={imageFile ? URL.createObjectURL(imageFile) : ''}
                 alt="Logo"
                 variant="rounded"
-                sx={{
-                  width: '100%',
-                  height: '100%',
-                  borderRadius: 2,
-                  objectFit: 'contain',
-                  border: imageFile ? 'none' : '1px dashed #ccc',
-                }}
+                sx={{ width: '100%', height: '100%' }}
               />
               <input
                 id="brand-image-input"
@@ -142,36 +120,20 @@ const BrandCreatePage = () => {
                 onChange={handleImageChange}
               />
             </Box>
-
             <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-              Kéo ảnh vào hoặc click để chọn file. Chấp nhận JPG, PNG, SVG, WEBP. Tối đa 2MB.
+              Kéo ảnh vào hoặc click để chọn. Chấp nhận JPG, PNG, SVG, WEBP. Tối đa 2MB.
             </Typography>
           </Box>
 
-          {/* Tên thương hiệu */}
           <TextField
             label="Tên thương hiệu"
             value={name}
-            onChange={(e) => {
-              setName(e.target.value);
-              setSlug(generateSlug(e.target.value)); // Tự động sinh slug
-            }}
+            onChange={(e) => setName(e.target.value)}
             fullWidth
             required
             margin="normal"
           />
 
-          {/* Slug */}
-          <TextField
-            label="Slug"
-            value={slug}
-            onChange={(e) => setSlug(generateSlug(e.target.value))}
-            fullWidth
-            required
-            margin="normal"
-          />
-
-          {/* Mô tả */}
           <TextField
             label="Mô tả"
             value={description}
@@ -182,7 +144,6 @@ const BrandCreatePage = () => {
             margin="normal"
           />
 
-          {/* Trạng thái */}
           <FormControlLabel
             control={
               <Switch
@@ -191,15 +152,15 @@ const BrandCreatePage = () => {
                 color="primary"
               />
             }
-            label="Hiển thị thương hiệu"
+            label={isActive ? 'Trạng thái: Đã xuất bản' : 'Trạng thái: Bản nháp'}
             sx={{ mt: 2 }}
           />
 
           <Divider sx={{ my: 4 }} />
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button variant="contained" size="large" type="submit">
-              Lưu thương hiệu
+            <Button variant="contained" type="submit" disabled={loading}>
+              {loading ? 'Đang lưu...' : 'Lưu thương hiệu'}
             </Button>
           </Box>
         </form>

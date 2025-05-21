@@ -1,19 +1,35 @@
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-  Button
+  Dialog, DialogTitle, DialogContent, DialogContentText,
+  DialogActions, Button
 } from '@mui/material';
+import { useState } from 'react';
+import axios from 'axios';
+import Toastify from 'components/common/Toastify';
 
 const RestoreConfirmationDialog = ({
   open,
   onClose,
-  onConfirm,
+  brandId,
   itemName = '',
-  itemType = 'mục'
+  itemType = 'mục',
+  onSuccess = () => { }
 }) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleRestore = async () => {
+    try {
+      setLoading(true);
+      await axios.patch(`http://localhost:5000/admin/brands/${brandId}/restore`);
+      Toastify.success(`✅ Đã khôi phục ${itemType} "${itemName}"`);
+      onClose();
+      onSuccess();
+    } catch (err) {
+      Toastify.error('❌ Khôi phục thất bại');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>Khôi phục {itemType}</DialogTitle>
@@ -23,9 +39,9 @@ const RestoreConfirmationDialog = ({
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Hủy</Button>
-        <Button onClick={onConfirm} variant="contained" color="primary">
-          Khôi phục
+        <Button onClick={onClose} disabled={loading}>Hủy</Button>
+        <Button onClick={handleRestore} variant="contained" color="primary" disabled={loading}>
+          {loading ? '...Đang khôi phục' : 'Khôi phục'}
         </Button>
       </DialogActions>
     </Dialog>
