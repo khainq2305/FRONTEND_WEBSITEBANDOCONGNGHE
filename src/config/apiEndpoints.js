@@ -1,6 +1,5 @@
 import { API_BASE_URL } from '../constants/environment';
 
-
 export const API_ENDPOINT = {
   client: {
     auth: {
@@ -10,30 +9,55 @@ export const API_ENDPOINT = {
       resendVerificationLink: '/resend-verification-link',
       google: '/google',
       facebook: '/facebook',
-      verifyEmail: '/verify-email', 
-      verifyResetToken: '/verify-reset-token', // ✅ Thêm đúng endpoint này
-      forgotPassword: '/forgot-password', // 👈 thêm endpoint này
-      checkVerificationStatus: '/check-verification-status', // ✅ Thêm endpoint này
+      verifyEmail: '/verify-email',
+      verifyResetToken: '/verify-reset-token',
+      forgotPassword: '/forgot-password',
+      checkVerificationStatus: '/check-verification-status',
       resendForgotPassword: '/resend-forgot-password',
-      checkResetStatus: '/check-reset-status', // ✅ Thêm endpoint này
-      resetPassword: '/reset-password' , 
-       // 👈 thêm endpoint này
-        getResetCooldown: '/get-reset-cooldown',
-       verificationCooldown: '/verification-cooldown', // ✅ Thêm endpoint này
-      userInfo: '/user-info', // ✅ Endpoint lấy thông tin người dùng
-       updateProfile: '/update-profile'
+      checkResetStatus: '/check-reset-status',
+      resetPassword: '/reset-password',
+
+      getResetCooldown: '/get-reset-cooldown',
+      verificationCooldown: '/verification-cooldown',
+      userInfo: '/user-info',
+      updateProfile: '/update-profile'
     },
-     shipping: {
+    shipping: {
       base: `${API_BASE_URL}/shipping`,
       provinces: '/provinces',
       districts: '/districts',
-      wards: '/wards',
+      wards: '/wards'
     },
-  userAddress: {
-  base: `${API_BASE_URL}/user-address`,
-  list: '/',          // ✅ vì bạn dùng router.get('/') để lấy danh sách địa chỉ
-  create: '/',        // ✅ vì bạn dùng router.post('/') để tạo địa chỉ mới
-}
-
+    userAddress: {
+      base: `${API_BASE_URL}/user-address`,
+      list: '/',
+      create: '/'
+    }
   },
+  admin: {
+    product: {
+      base: `${API_BASE_URL}/admin`,
+      create: '/product/create',
+      list: '/product/list'
+    },
+    variant: {
+      base: `${API_BASE_URL}/admin`,
+      list: '/variants'
+    },
+    user: {
+      base: `${API_BASE_URL}/admin`,
+      users: '/users',
+      roles: '/roles'
+    },
+    news: {
+      base: `${API_BASE_URL}/admin/quan-ly-bai-viet`,
+      getAll: '',
+      create: '/them-bai-viet',
+      getById: '/chinh-sua-bai-viet',
+      update: '/cap-nhat-bai-viet',
+      trashPost: '/chuyen-vao-thung-rac',
+      forceDelete: '/xoa-vinh-vien',
+      restorePost: '/khoi-phuc'
+    }
+  }
 };

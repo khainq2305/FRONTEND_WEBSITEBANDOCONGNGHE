@@ -2,14 +2,40 @@ import UserFormDialog from '../UserForm';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, Typography, Container } from '@mui/material';
 import { toast } from 'react-toastify';
+import { createUser } from '../../../../services/admin/userService';
+import { useState } from 'react';
 
 const UserAddPage = () => {
   const navigate = useNavigate();
+  const [fieldErrors, setFieldErrors] = useState({});
 
-  const handleSubmit = (data) => {
-    console.log('Tạo user:', data);
-    toast.success('Đã tạo tài khoản');
-    navigate('/admin/users');
+  const handleSubmit = async (data) => {
+    const payload = {
+      fullName: data.fullName,
+      email: data.email,
+      password: data.password,
+      phone: '',
+      roleId: parseInt(data.roleId),
+      status: data.status,
+    };
+
+    try {
+      setFieldErrors({});
+      await createUser(payload);
+      toast.success('✅ Tạo tài khoản thành công!');
+      navigate('/admin/users');
+    } catch (err) {
+      const backendErrors = err?.errors || err?.response?.data?.errors;
+      if (Array.isArray(backendErrors)) {
+        const errors = {};
+        backendErrors.forEach(e => {
+          errors[e.field] = e.message;
+        });
+        setFieldErrors(errors); // ✅ Gửi xuống Form
+      } else {
+        toast.error('❌ Tạo tài khoản thất bại!');
+      }
+    }
   };
 
   return (
@@ -26,6 +52,7 @@ const UserAddPage = () => {
             onClose={() => navigate('/admin/users')}
             initialData={null}
             onSubmit={handleSubmit}
+            errors={fieldErrors}
           />
         </CardContent>
       </Card>

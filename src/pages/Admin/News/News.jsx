@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import Top from './components/Top';
-import ArticlePage from './components/ArticlePage';
+import Top from '@/pages/Admin/News/components/sidebar/Top';
+import ArticlePage from '@/pages/Admin/News/components/table/ArticlePage';
+import { newsService } from '@/services/admin/postService';
 
 // 1. Tạo context
 const ArticleContext = createContext();
@@ -21,32 +22,56 @@ const News = () => {
   const [activeTab, setActiveTab] = useState('all');
 
   useEffect(() => {
-    fetch('http://localhost:3000/articles')
-      .then(res => res.json())
-      .then(data => setArticles(data))
-      .catch(err => console.error('Lỗi khi fetch dữ liệu:', err));
+    newsService.getAll()
+      .then(res => {
+        setArticles(res.data.data);
+        console.log(res.data.data)
+      })
+      .catch(err => {
+        console.error('Lỗi lấy bài viết:', err);
+      });
   }, []);
 
   const filteredArticles = articles.filter(item => {
-    const matchSearch = item.name.toLowerCase().includes(filters.search.toLowerCase());
-    const matchCategory = filters.category === '' || item.category === filters.category;
+    const title = (item.title || '').toLowerCase();
+    const search = (filters.search || '').toLowerCase();
+    const matchSearch = search === '' || title.includes(search);
 
-    if (filters.status === 'trash') return item.deleted && matchSearch && matchCategory;
-    if (filters.status === 'draft') return !item.deleted && item.tag === 'draft' && matchSearch && matchCategory;
+    const matchCategory =
+      filters.category === '' || item.categoryId === parseInt(filters.category);
 
-    const isNormal = ['active', 'inactive', ''].includes(filters.status);
-    return isNormal && !item.deleted &&
-      matchSearch &&
-      matchCategory &&
-      (filters.status === '' || item.status === filters.status);
+    const status = item.status || '';
+    const fStatus = filters.status || '';
+
+    const isNormal = ['active', 'inactive', 'published', ''].includes(fStatus);
+
+    const match =
+      (fStatus === 'trash' && item.deletedAt && matchSearch && matchCategory) ||
+      (fStatus === 'draft' && !item.deletedAt && status === 'draft' && matchSearch && matchCategory) ||
+      (isNormal && !item.deletedAt && matchSearch && matchCategory && (fStatus === '' || status === fStatus));
+
+    // console.log({
+    //   id: item.id,
+    //   title: item.title,
+    //   matchSearch,
+    //   matchCategory,
+    //   status,
+    //   fStatus,
+    //   isNormal,
+    //   match
+    // });
+
+    return match;
   });
 
+
   const counts = {
-    all: articles.filter(a => !a.deleted).length,
-    active: articles.filter(a => a.status === 'active' && !a.deleted).length,
-    trash: articles.filter(a => a.deleted).length,
-    draft: articles.filter(a => a.tag === 'draft' && !a.deleted).length
+    all: articles.filter(a => !a.deletedAt).length, // tất cả chưa xóa
+    published: articles.filter(a => a.status === 'published' && !a.deletedAt).length,
+    draft: articles.filter(a => a.status === 'draft' && !a.deletedAt).length,
+    trash: articles.filter(a => a.deletedAt).length // bài đã bị xóa mềm
   };
+
 
   const handleTabClick = (statusValue) => {
     setFilters(prev => ({ ...prev, status: statusValue === 'all' ? '' : statusValue }));
@@ -64,21 +89,63 @@ const News = () => {
     setSelectedRows(
       selectedRows.length === filteredArticles.length ? [] : filteredArticles.map(item => item.id)
     );
+    
   };
 
-  const handleAction = () => {
-    console.log('Bulk action:', filters.action, selectedRows);
-  };
+  const handleAction = async () => {
+  try {
+    console.log('GỌI HANDLE ACTION', filters.action, selectedRows);
 
-  const handleDelete = (row) => {
-    console.log('Xoá bài:', row.name);
-  };
+    switch (filters.action) {
+      case 'restore':
+        await newsService.restorePost(selectedRows);
+        break;
+
+      case 'trash':
+        console.log('GỌI TRASH POST với IDs:', selectedRows);
+        await newsService.trashPost(selectedRows);
+        break;
+      case 'forceDelete':
+        console.log('Đang định xóa',selectedRows)
+        await newsService.forceDelete(selectedRows);
+        break;
+
+      default:
+        return;
+    }
+
+    const res = await newsService.getAll();
+    setArticles(res.data.data);
+    setSelectedRows([]);
+  } catch (err) {
+    console.error('LỖI:', err?.response?.data || err?.message || err);
+  }
+};
+
+
+
+  const handleSoftDelete = (article) => {
+  const res = newsService.trashPost([article.id]); // <-- dùng `id` thật
+
+  if (!res || !res.then) {
+    console.error('trashPost không trả về Promise:', res);
+    // toast.error('Không thể xoá bài viết – API bị lỗi');
+    return;
+  }
+
+  res.then(() => {
+    // toast.success('Đã đưa vào thùng rác');
+    newsService.getAll().then(res => setArticles(res.data.data));
+  }).catch(err => ('Lỗi xoá mềm'));
+};
+
+
 
   const getActionOptions = () => {
     if (filters.status === 'trash') {
       return [
         { value: 'restore', label: 'Khôi phục đã chọn' },
-        { value: 'delete_forever', label: 'Xoá vĩnh viễn' }
+        { value: 'forceDelete', label: 'Xoá vĩnh viễn' }
       ];
     } else if (filters.status === 'draft') {
       return [
@@ -87,7 +154,7 @@ const News = () => {
       ];
     } else {
       return [
-        { value: 'delete', label: 'Xoá đã chọn' },
+        { value: 'trash', label: 'Xoá đã chọn' },
         { value: 'edit', label: 'Chỉnh sửa' }
       ];
     }
@@ -97,7 +164,7 @@ const News = () => {
   return (
     <ArticleContext.Provider value={{
       filters, setFilters,
-      articles,
+      articles, setArticles,
       filteredArticles,
       selectedRows, setSelectedRows,
       modalItem, setModalItem,
@@ -107,7 +174,7 @@ const News = () => {
       handleSelectRow,
       handleSelectAll,
       handleAction,
-      handleDelete,
+      handleSoftDelete,
       getActionOptions,
       counts
     }}>

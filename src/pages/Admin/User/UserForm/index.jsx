@@ -1,48 +1,66 @@
-// src/pages/Admin/User/UserForm/index.jsx
-import {
-  Dialog, DialogTitle, DialogContent, DialogActions,
-  TextField, Button, MenuItem
-} from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, TextField, Button, MenuItem, Box } from '@mui/material';
 import { useState, useEffect } from 'react';
-import { Box } from '@mui/material';
+import { getAllRoles } from '../../../../services/admin/userService';
+import { toast } from 'react-toastify';
 
-const roles = ['admin', 'sales', 'product', 'marketing', 'support', 'content', 'user'];
 const statuses = [
-  { label: 'Hoạt động', value: 'active' },
-  { label: 'Khóa', value: 'inactive' }
+  { label: 'Hoạt động', value: 1 },
+  { label: 'Khóa', value: 0 }
 ];
 
-const UserFormDialog = ({ open, onClose, onSubmit, initialData = {}, asPage = false }) => {
+const UserFormDialog = ({ open, onClose, onSubmit, initialData = {}, asPage = false, errors = {} }) => {
   const [form, setForm] = useState({
-    name: '',
+    fullName: '',
     email: '',
-    role: '',
+    roleId: '',
     password: '',
-    status: 'active'
+    status: 1
   });
+
+  const [formErrors, setFormErrors] = useState({});
+  const [roles, setRoles] = useState([]);
 
   useEffect(() => {
     if (initialData) {
       setForm({
-        name: initialData.name || '',
+        fullName: initialData.fullName || '',
         email: initialData.email || '',
-        role: initialData.role || '',
+        roleId: initialData.roleId || '',
         password: '',
-        status: initialData.status || 'active'
+        status: initialData.status ?? 1
       });
     }
   }, [initialData]);
+
+useEffect(() => {
+  setFormErrors(errors || {}); 
+}, [errors]);
+
+
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const data = await getAllRoles();
+        setRoles(data);
+
+        if (data.length > 0 && !form.roleId) {
+          setForm((prev) => ({ ...prev, roleId: data[0].id }));
+        }
+      } catch {
+        toast.error('Không tải được danh sách vai trò');
+      }
+    };
+    fetchRoles();
+  }, []);
 
   const handleChange = (field, value) => {
     setForm({ ...form, [field]: value });
   };
 
-  const handleSubmit = () => {
-    if (!form.email) return alert('Email không được để trống');
-    if (!form.role) return alert('Vui lòng chọn vai trò');
-    onSubmit(form);
-    if (!asPage) onClose();
-  };
+const handleSubmit = async () => {
+  await onSubmit(form); 
+};
+
 
   const FormContent = (
     <Box display="flex" flexDirection="column" gap={2} width="100%">
@@ -50,8 +68,10 @@ const UserFormDialog = ({ open, onClose, onSubmit, initialData = {}, asPage = fa
         fullWidth
         label="Họ tên"
         variant="outlined"
-        value={form.name}
-        onChange={(e) => handleChange('name', e.target.value)}
+        value={form.fullName}
+        onChange={(e) => handleChange('fullName', e.target.value)}
+        error={!!formErrors.fullName}
+        helperText={formErrors.fullName}
       />
       <TextField
         fullWidth
@@ -59,6 +79,8 @@ const UserFormDialog = ({ open, onClose, onSubmit, initialData = {}, asPage = fa
         variant="outlined"
         value={form.email}
         onChange={(e) => handleChange('email', e.target.value)}
+        error={!!formErrors.email}
+        helperText={formErrors.email}
       />
       {!initialData?.id && (
         <TextField
@@ -68,6 +90,8 @@ const UserFormDialog = ({ open, onClose, onSubmit, initialData = {}, asPage = fa
           variant="outlined"
           value={form.password}
           onChange={(e) => handleChange('password', e.target.value)}
+          error={!!formErrors.password}
+          helperText={formErrors.password}
         />
       )}
       <TextField
@@ -75,15 +99,22 @@ const UserFormDialog = ({ open, onClose, onSubmit, initialData = {}, asPage = fa
         fullWidth
         label="Vai trò"
         variant="outlined"
-        value={form.role}
-        onChange={(e) => handleChange('role', e.target.value)}
-        SelectProps={{ MenuProps: { PaperProps: { style: { maxHeight: 200 } } } }}
+        value={form.roleId?.toString() || ''}
+        onChange={(e) => handleChange('roleId', e.target.value)}
+        error={!!formErrors.roleId}
+        helperText={formErrors.roleId}
       >
-        {roles.map((role) => (
-          <MenuItem key={role} value={role}>
-            {role}
+        {roles.length > 0 ? (
+          roles.map((role) => (
+            <MenuItem key={role.id} value={role.id.toString()}>
+              {role.name}
+            </MenuItem>
+          ))
+        ) : (
+          <MenuItem disabled value="">
+            Không có vai trò
           </MenuItem>
-        ))}
+        )}
       </TextField>
 
       <TextField
@@ -103,7 +134,9 @@ const UserFormDialog = ({ open, onClose, onSubmit, initialData = {}, asPage = fa
 
       <Box display="flex" justifyContent="flex-end" gap={1} pt={2}>
         <Button onClick={onClose}>Hủy</Button>
-        <Button variant="contained" onClick={handleSubmit}>Lưu</Button>
+        <Button variant="contained" onClick={handleSubmit}>
+          Lưu
+        </Button>
       </Box>
     </Box>
   );

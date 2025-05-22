@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import List from '@mui/material/List';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-
+import NavCollapse from './NavCollapse';
 // project import
 import NavItem from './NavItem';
 import { useGetMenuMaster } from 'api/menu';
@@ -15,11 +15,8 @@ export default function NavGroup({ item }) {
   const navCollapse = item.children?.map((menuItem) => {
     switch (menuItem.type) {
       case 'collapse':
-        return (
-          <Typography key={menuItem.id} variant="caption" color="error" sx={{ p: 2.5 }}>
-            collapse - only available in paid version
-          </Typography>
-        );
+       
+        return <NavCollapse key={menuItem.id} menu={menuItem} level={1} />; 
       case 'item':
         return <NavItem key={menuItem.id} item={menuItem} level={1} />;
       default:
@@ -40,7 +37,6 @@ export default function NavGroup({ item }) {
             <Typography variant="subtitle2" color="textSecondary">
               {item.title}
             </Typography>
-            {/* only available in paid version */}
           </Box>
         )
       }

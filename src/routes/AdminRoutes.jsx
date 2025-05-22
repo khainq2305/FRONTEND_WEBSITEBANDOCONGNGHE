@@ -16,7 +16,6 @@ const BannerList = Loadable(lazy(() => import('pages/Admin/BannerList')));
 const AddBanner = Loadable(lazy(() => import('pages/Admin/BannerList/AddBanner')));
 const EditBanner = Loadable(lazy(() => import('pages/Admin/BannerList/EditBanner')));
 
-
 //Coupon
 const CouponList = Loadable(lazy(() => import('pages/Admin/CouponList')));
 const CouponDetail = Loadable(lazy(() => import('pages/Admin/CouponList/CouponDetail')));
@@ -28,12 +27,18 @@ const BrandEditPage = Loadable(lazy(() => import('pages/Admin/Brand/BrandEditPag
 
 const ProductQuestion = Loadable(lazy(() => import('pages/Admin/ProductQuestion')));
 
-const HisLog = Loadable(lazy(() => import('pages/Admin/HisLog'))); 
-const News = Loadable(lazy(() => import('pages/Admin/News/News'))); // <- THÊM DÒNG NÀY
-const Add = Loadable(lazy(() => import('pages/Admin/News/Add'))); // <- THÊM DÒNG NÀY
-const Edit = Loadable(lazy(() => import('pages/Admin/News/Edit')))
-const CategoryNews = Loadable(lazy(() => import('pages/Admin/News/Category')))
-const CategoryAdd = Loadable(lazy(() => import('pages/Admin/News/CategoryAdd')))
+const HisLog = Loadable(lazy(() => import('pages/Admin/HisLog')));
+const News = Loadable(lazy(() => import('pages/Admin/News/News')));
+const Add = Loadable(lazy(() => import('pages/Admin/News/Add')));
+const Edit = Loadable(lazy(() => import('pages/Admin/News/Edit')));
+const CategoryNews = Loadable(lazy(() => import('pages/Admin/News/Category')));
+const CategoryAdd = Loadable(lazy(() => import('pages/Admin/News/CategoryAdd')));
+const ProductAddPage = Loadable(lazy(() => import('pages/Admin/Product/ProductAddPage')));
+const ProductAttributes = Loadable(lazy(() => import('pages/Admin/ProductAttributes')));
+const TermPage = Loadable(lazy(() => import('pages/Admin/ProductAttributes/terms/TermPage.jsx')));
+const CommentList = Loadable(lazy(() => import('pages/Admin/Comment/CommentList/index.jsx')));
+const CommentDetail = Loadable(lazy(() => import('pages/Admin/Comment/CommentDetail/index.jsx')));
+
 const AdminRoutes = {
   path: '/admin',
   element: <DashboardLayout />,
@@ -72,6 +77,14 @@ const AdminRoutes = {
       element: <AddBanner />
     },
     {
+      path: 'product-attributes',
+      element: <ProductAttributes />
+    },
+    {
+      path: 'product-attributes/:id/terms',
+      element: <TermPage />
+    },
+    {
       path: 'banners/edit/:id',
       element: <EditBanner />
     },
@@ -91,61 +104,71 @@ const AdminRoutes = {
       path: 'coupons/edit/:id',
       element: <EditCoupon />
     },
+
+    {
+      path: 'products/create',
+      element: <ProductAddPage />
+    },
+
     {
       path: 'brands',
 
       element: <Brand />
     },
-     {
-          index: true,
-          element: <Brand />
-        },
-        {
-          path: 'create',
-          element: <BrandCreatePage />
-        },
-        {
-          path: 'edit/:id',
-          element: <BrandEditPage />
-        },
-    
-    
+    {
+      index: true,
+      element: <Brand />
+    },
+    {
+      path: 'create',
+      element: <BrandCreatePage />
+    },
+    {
+      path: 'edit/:id',
+      element: <BrandEditPage />
+    },
+
     {
       path: 'banners/edit/:id',
       element: <EditBanner />
     },
-    
+
     {
       path: 'hislog',
-      element: < HisLog/>
+      element: <HisLog />
     },
-    { path: 'users/create', element: <UserAdd /> }
-    ,
+    { path: 'users/create', element: <UserAdd /> },
     {
-      path: 'quan-ly-bai-viet', // <- THÊM ROUTE MỚI
-      element: <News /> 
-    },
-    
-    {
-      path: 'bai-viet/them-bai-viet-moi', // <- THÊM ROUTE MỚI
-      element: <Add /> 
-    },
-    {
-      path: 'bai-viet/chinh-sua/:id', // <- THÊM ROUTE MỚI
-      element: <Edit /> 
-    },
-    ,
-    {
-      path: 'danh-muc-bai-viet', // <- THÊM ROUTE MỚI
-      element: <CategoryNews /> 
-    },
-    ,
-    {
-      path: 'them-danh-muc-bai-viet', // <- THÊM ROUTE MỚI
-      element: <CategoryAdd /> 
+      path: 'quan-ly-bai-viet', 
+      element: <News />
     },
 
-    
+    {
+      path: 'bai-viet/them-bai-viet-moi', 
+      element: <Add />
+    },
+    {
+      path: 'bai-viet/chinh-sua/:id', 
+      element: <Edit />
+    },
+    ,
+    {
+      path: 'danh-muc-bai-viet', 
+      element: <CategoryNews />
+    },
+    ,
+    {
+      path: 'them-danh-muc-bai-viet', 
+      element: <CategoryAdd />
+    },
+    {
+      path: 'comments',
+      element: <CommentList />
+    },
+    {
+      path: 'comments/:id',
+      element: <CommentDetail />
+    },
 
     {
       path: 'product-question',

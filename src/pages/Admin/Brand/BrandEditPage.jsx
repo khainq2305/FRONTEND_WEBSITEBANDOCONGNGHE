@@ -1,40 +1,41 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Box, Button, Paper, TextField, Typography,
     Divider, Avatar, FormControlLabel, Switch
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Toastify from 'components/common/Toastify';
-
-// Dữ liệu giả – nên thay bằng gọi API thực tế
-const mockBrands = [
-    { id: 1, name: 'Nike', slug: 'nike', image: '/images/brands/nike.png', description: 'Thương hiệu thể thao nổi tiếng', is_active: true },
-    { id: 2, name: 'Adidas', slug: 'adidas', image: '/images/brands/adidas.png', description: '', is_active: false }
-];
+import axios from 'axios';
 
 const BrandEditPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const brand = mockBrands.find((b) => b.id === Number(id));
 
-    const [name, setName] = useState(brand?.name || '');
-    const [slug, setSlug] = useState(brand?.slug || '');
-    const [description, setDescription] = useState(brand?.description || '');
-    const [isActive, setIsActive] = useState(brand?.is_active || false);
+    const [name, setName] = useState('');
+    const [description, setDescription] = useState('');
+    const [isActive, setIsActive] = useState(true);
     const [imageFile, setImageFile] = useState(null);
-    const [currentImage, setCurrentImage] = useState(brand?.image || '');
+    const [currentImage, setCurrentImage] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    if (!brand) {
-        return (
-            <Box sx={{ p: 4 }}>
-                <Typography variant="h6">Không tìm thấy thương hiệu</Typography>
-                <Button onClick={() => navigate(-1)} sx={{ mt: 2 }}>
-                    Quay lại
-                </Button>
-            </Box>
-        );
-    }
+    const fetchBrand = async () => {
+        try {
+            const res = await axios.get(`http://localhost:5000/admin/brands/${id}`);
+            const brand = res.data;
+            setName(brand.name);
+            setDescription(brand.description || '');
+            setIsActive(brand.isActive);
+            setCurrentImage(brand.logo);
+        } catch (err) {
+            Toastify.error('Không tìm thấy thương hiệu');
+            navigate('/admin/brands');
+        }
+    };
+
+    useEffect(() => {
+        fetchBrand();
+    }, [id]);
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -56,7 +57,7 @@ const BrandEditPage = () => {
         setImageFile(file);
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (!name.trim()) {
@@ -64,22 +65,28 @@ const BrandEditPage = () => {
             return;
         }
 
-        if (!slug.trim()) {
-            Toastify.error('Slug là bắt buộc');
-            return;
-        }
+        try {
+            setLoading(true);
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('description', description);
+            formData.append('isActive', isActive);
+            if (imageFile) {
+                formData.append('logo', imageFile);
+            }
 
-        const formData = new FormData();
-        formData.append('name', name);
-        formData.append('slug', slug);
-        formData.append('description', description);
-        formData.append('is_active', isActive);
-        if (imageFile) {
-            formData.append('image', imageFile);
-        }
+            await axios.put(`http://localhost:5000/admin/brands/${id}`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
 
-        Toastify.success(`Đã cập nhật thương hiệu "${name}"`);
-        navigate('/admin/brands');
+            Toastify.success(`✅ Đã cập nhật thương hiệu "${name}"`);
+            navigate('/admin/brands');
+        } catch (err) {
+            console.error('❌ Lỗi cập nhật brand:', err);
+            Toastify.error('Cập nhật thất bại');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -154,7 +161,6 @@ const BrandEditPage = () => {
                         </Typography>
                     </Box>
 
-                    {/* Tên thương hiệu */}
                     <TextField
                         label="Tên thương hiệu"
                         value={name}
@@ -164,17 +170,6 @@ const BrandEditPage = () => {
                         margin="normal"
                     />
 
-                    {/* Slug */}
-                    <TextField
-                        label="Slug"
-                        value={slug}
-                        onChange={(e) => setSlug(e.target.value)}
-                        fullWidth
-                        required
-                        margin="normal"
-                    />
-
-                    {/* Mô tả */}
                     <TextField
                         label="Mô tả"
                         value={description}
@@ -185,7 +180,6 @@ const BrandEditPage = () => {
                         margin="normal"
                     />
 
-                    {/* Trạng thái */}
                     <FormControlLabel
                         control={
                             <Switch
@@ -201,8 +195,8 @@ const BrandEditPage = () => {
                     <Divider sx={{ my: 4 }} />
 
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                        <Button variant="contained" size="large" type="submit">
-                            Cập nhật
+                        <Button variant="contained" size="large" type="submit" disabled={loading}>
+                            {loading ? 'Đang lưu...' : 'Cập nhật'}
                         </Button>
                     </Box>
                 </form>

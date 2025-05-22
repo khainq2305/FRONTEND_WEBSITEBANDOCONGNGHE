@@ -1,19 +1,27 @@
+// File: Navigation.js (CẦN SỬA LẠI NHƯ SAU)
+
 import NavItem from './NavItem';
 import NavGroup from './NavGroup';
+import NavCollapse from './NavCollapse'; 
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import menuItem from '../../../Aside';
-
+import menuItem from '../../../Aside'; 
 export default function Navigation() {
   const navGroups = menuItem.items.map((item) => {
+
+
     if (item.type === 'group') {
       return <NavGroup key={item.id} item={item} />;
     } else if (item.type === 'item') {
       return <NavItem key={item.id} item={item} level={1} />;
+    } else if (item.type === 'collapse') { 
+   
+      return <NavCollapse key={item.id} menu={item} level={1} />;
     } else {
+    
       return (
         <Typography key={item.id} variant="h6" color="error" align="center">
-          Fix - Navigation Group
+          Fix - Navigation Group or Unknown Type
         </Typography>
       );
     }
