@@ -119,6 +119,7 @@ const AdminRoutes = {
       index: true,
       element: <Brand />
     },
+    
     {
       path: 'create',
       element: <BrandCreatePage />
