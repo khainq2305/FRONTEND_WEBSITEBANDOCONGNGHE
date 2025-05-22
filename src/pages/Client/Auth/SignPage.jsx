@@ -86,13 +86,13 @@ const AuthPage = () => {
       console.error(err);
       setErrorMessage(err?.response?.data?.message || "Email hoặc mật khẩu không chính xác.");
     } finally {
-      setIsLoading(false); // Loader tắt, useEffect ở trên sẽ cho phép cuộn lại
+      setIsLoading(false); 
     }
   };
 
   const handleGoogleLogin = async (credentialResponse) => {
     try {
-      setIsLoading(true); // Loader hiển thị, useEffect ở trên sẽ khóa cuộn
+      setIsLoading(true); 
       const response = await authService.loginWithGoogle(
         { token: credentialResponse.credential },
         { withCredentials: true }
@@ -103,14 +103,14 @@ const AuthPage = () => {
 
       if (user.fullName) {
         localStorage.setItem("token", token);
-        localStorage.setItem("user", JSON.stringify(user)); // ✅ Lưu thông tin user
+        localStorage.setItem("user", JSON.stringify(user)); 
       }
       navigate('/');
     } catch (err) {
       console.error("❌ Đăng nhập Google thất bại:", err);
       alert(err?.response?.data?.message || 'Đăng nhập Google thất bại!');
     } finally {
-      setIsLoading(false); // Loader tắt, useEffect ở trên sẽ cho phép cuộn lại
+      setIsLoading(false); 
     }
   };
 

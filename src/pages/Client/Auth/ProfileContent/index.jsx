@@ -33,12 +33,12 @@ const SuccessModal = ({ isOpen, message, onClose }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" // Đã xóa dấu cách thừa
-      onClick={onClose} // Cho phép đóng khi nhấp vào overlay
+      className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" 
+      onClick={onClose} 
     >
       <div
         className="bg-white p-6 sm:p-8 rounded-xl shadow-xl text-center w-full max-w-xs sm:max-w-sm mx-auto"
-        onClick={(e) => e.stopPropagation()} // Ngăn việc đóng modal khi nhấp vào nội dung bên trong
+        onClick={(e) => e.stopPropagation()} 
       >
         <svg 
             className="w-14 h-14 sm:w-16 sm:h-16 text-green-500 mx-auto mb-3 sm:mb-4" 
@@ -57,8 +57,7 @@ const SuccessModal = ({ isOpen, message, onClose }) => {
 
 
 const ProfileContent = () => {
-  // ... (Phần còn lại của component ProfileContent giữ nguyên như bạn đã cung cấp)
-  // (Không cần thay đổi gì ở đây cho yêu cầu ngăn cuộn)
+
   const [formData, setFormData] = useState({
     id: null,
     fullName: '',

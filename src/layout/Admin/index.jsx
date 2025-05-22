@@ -16,19 +16,17 @@ import Breadcrumbs from 'components/Admin/@extended/Breadcrumbs';
 // API and Utility Imports
 import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 
-// ==============================|| MAIN LAYOUT ||============================== //
 
 export default function DashboardLayout() {
   const { pathname } = useLocation();
   const { menuMasterLoading } = useGetMenuMaster();
   const downXL = useMediaQuery((theme) => theme.breakpoints.down('xl'));
 
-  // Set media wise responsive drawer
+
   useEffect(() => {
     handlerDrawerOpen(!downXL);
   }, [downXL]);
 
-  // Show loading state if menu is still loading
   if (menuMasterLoading) return <Loader />;
 
   return (
