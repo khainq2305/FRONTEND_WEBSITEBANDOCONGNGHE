@@ -5,16 +5,19 @@ import {
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from 'react-router-dom';
-import Toastify from 'components/common/Toastify';
-import axios from 'axios';
+import { toast } from 'react-toastify';
+import { brandService } from '@/services/admin/brandService';
+import slugify from 'slugify';
 
 const BrandCreatePage = () => {
   const navigate = useNavigate();
   const [name, setName] = useState('');
+  const [slug, setSlug] = useState('');
   const [description, setDescription] = useState('');
   const [imageFile, setImageFile] = useState(null);
   const [isActive, setIsActive] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -24,40 +27,62 @@ const BrandCreatePage = () => {
     const maxSize = 2 * 1024 * 1024;
 
     if (!validTypes.includes(file.type)) {
-      Toastify.error('Chỉ chấp nhận JPG, PNG, WEBP, SVG, ICO');
+      toast.error('Chỉ chấp nhận JPG, PNG, WEBP, SVG, ICO');
       return;
     }
 
     if (file.size > maxSize) {
-      Toastify.error('Dung lượng ảnh tối đa là 2MB');
+      toast.error('Dung lượng ảnh tối đa là 2MB');
       return;
     }
 
     setImageFile(file);
+    setErrors(prev => ({ ...prev, logo: undefined }));
+  };
+
+  const handleNameChange = (e) => {
+    const value = e.target.value;
+    setName(value);
+    setSlug(slugify(value, { lower: true, strict: true }));
+    setErrors(prev => ({ ...prev, name: undefined }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrors({});
 
-    if (!name.trim()) return Toastify.error('Tên thương hiệu là bắt buộc');
-    if (!imageFile) return Toastify.error('Vui lòng chọn logo thương hiệu');
+    if (!name.trim()) {
+      setErrors(prev => ({ ...prev, name: 'Tên thương hiệu là bắt buộc' }));
+      return;
+    }
+
+    if (!imageFile) {
+      setErrors(prev => ({ ...prev, logo: 'Vui lòng chọn logo thương hiệu' }));
+      return;
+    }
 
     try {
       setLoading(true);
-      const formData = new FormData();
-      formData.append('name', name);
-      formData.append('description', description);
-      formData.append('isActive', isActive);
-      formData.append('logo', imageFile);
+      const payload = {
+        name,
+        slug,
+        description,
+        isActive,
+        logo: imageFile
+      };
 
-      const res = await axios.post('http://localhost:5000/admin/brands', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-
-      Toastify.success(res.data?.message || `✅ Đã tạo thương hiệu "${res.data?.brand?.name}"`);
+      const res = await brandService.create(payload);
+      toast.success(res.data?.message || '✅ Đã tạo thương hiệu thành công');
       navigate('/admin/brands');
     } catch (err) {
-      Toastify.error(err?.response?.data?.message || 'Tạo thương hiệu thất bại');
+      const msg = err?.response?.data?.message;
+      const field = err?.response?.data?.field;
+
+      if (field) {
+        setErrors({ [field]: msg });
+      }
+
+      toast.error(msg || 'Tạo thương hiệu thất bại');
     } finally {
       setLoading(false);
     }
@@ -103,7 +128,8 @@ const BrandCreatePage = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                bgcolor: '#f9f9f9'
+                bgcolor: '#f9f9f9',
+                overflow: 'hidden'
               }}
             >
               <Avatar
@@ -120,6 +146,11 @@ const BrandCreatePage = () => {
                 onChange={handleImageChange}
               />
             </Box>
+            {errors.logo && (
+              <Typography variant="caption" color="error">
+                {errors.logo}
+              </Typography>
+            )}
             <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
               Kéo ảnh vào hoặc click để chọn. Chấp nhận JPG, PNG, SVG, WEBP. Tối đa 2MB.
             </Typography>
@@ -128,10 +159,19 @@ const BrandCreatePage = () => {
           <TextField
             label="Tên thương hiệu"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={handleNameChange}
             fullWidth
-            required
             margin="normal"
+            error={Boolean(errors.name)}
+            helperText={errors.name}
+          />
+
+          <TextField
+            label="Slug"
+            value={slug}
+            fullWidth
+            margin="normal"
+            disabled
           />
 
           <TextField

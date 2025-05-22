@@ -57,6 +57,20 @@ export const API_ENDPOINT = {
       trashPost: '/chuyen-vao-thung-rac',
       forceDelete: '/xoa-vinh-vien',
       restorePost: '/khoi-phuc'
+    },
+    brand: {
+      base: `${API_BASE_URL}/admin/brands`,
+      getAll: '/',
+      getById: (id) => `/detail/${id}`,
+      create: '/create',
+      update: (id) => `/update/${id}`,
+      softDelete: '/soft-delete',
+      forceDelete: '/force-delete',
+      restore: '/restore',
+      updateOrder: '/update-order'
+
     }
+
+
   }
 };

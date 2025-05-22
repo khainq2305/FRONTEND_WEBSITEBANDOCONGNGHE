@@ -119,13 +119,13 @@ const AdminRoutes = {
       index: true,
       element: <Brand />
     },
-    
+
     {
-      path: 'create',
+      path: 'brands/create',
       element: <BrandCreatePage />
     },
     {
-      path: 'edit/:id',
+      path: 'brands/edit/:id',
       element: <BrandEditPage />
     },
 
@@ -140,26 +140,26 @@ const AdminRoutes = {
     },
     { path: 'users/create', element: <UserAdd /> },
     {
-      path: 'quan-ly-bai-viet', 
+      path: 'quan-ly-bai-viet',
       element: <News />
     },
 
     {
-      path: 'bai-viet/them-bai-viet-moi', 
+      path: 'bai-viet/them-bai-viet-moi',
       element: <Add />
     },
     {
-      path: 'bai-viet/chinh-sua/:id', 
+      path: 'bai-viet/chinh-sua/:id',
       element: <Edit />
     },
     ,
     {
-      path: 'danh-muc-bai-viet', 
+      path: 'danh-muc-bai-viet',
       element: <CategoryNews />
     },
     ,
     {
-      path: 'them-danh-muc-bai-viet', 
+      path: 'them-danh-muc-bai-viet',
       element: <CategoryAdd />
     },
     {

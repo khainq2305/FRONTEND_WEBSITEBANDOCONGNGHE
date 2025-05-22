@@ -5,3 +5,6 @@ export const post = (url, data, config = {}) => API.post(url, data, config);
 
 export const put = (url, data) => API.put(url, data);
 export const del = (url) => API.delete(url);
+export const delWithBody = (url, data = {}) => API.delete(url, { data });
+
+export const patch = (url, data = {}, config = {}) => API.patch(url, data, config);

@@ -1,10 +1,11 @@
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
-  Button, Typography
+  Button, Typography, CircularProgress, Box
 } from '@mui/material';
+import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 import { useState } from 'react';
-import axios from 'axios';
-import Toastify from 'components/common/Toastify';
+import { toast } from 'react-toastify';
+import { brandService } from '@/services/admin/brandService';
 
 const DeleteConfirmationDialog = ({
   open,
@@ -21,33 +22,59 @@ const DeleteConfirmationDialog = ({
     try {
       setLoading(true);
       if (permanent) {
-        await axios.delete(`http://localhost:5000/admin/brands/${brandId}/force`);
-        Toastify.success(`✅ Đã xoá vĩnh viễn ${itemType} "${itemName}"`);
+        await brandService.forceDelete([brandId]);
+        toast.success(`Đã xoá vĩnh viễn ${itemType} "${itemName}"`);
       } else {
-        await axios.delete(`http://localhost:5000/admin/brands/${brandId}`);
-        Toastify.success(`✅ Đã xoá ${itemType} "${itemName}"`);
+        await brandService.softDelete([brandId]);
+        toast.success(`Đã xoá ${itemType} "${itemName}"`);
       }
       onClose();
       onSuccess();
     } catch (err) {
-      Toastify.error(permanent ? '❌ Xoá vĩnh viễn thất bại' : '❌ Xoá thất bại');
+      console.error('Lỗi xoá:', err);
+      toast.error(permanent ? 'Xoá vĩnh viễn thất bại' : 'Xoá thất bại');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>{permanent ? 'Xác nhận xóa vĩnh viễn' : 'Xác nhận xóa'}</DialogTitle>
+    <Dialog open={open} onClose={loading ? undefined : onClose} maxWidth="xs">
+      <DialogTitle textAlign="center" color="error">
+      </DialogTitle>
+
       <DialogContent>
-        <Typography>
-          Bạn có chắc chắn muốn {permanent ? 'xóa vĩnh viễn' : 'xóa'} {itemType} <b>{itemName}</b>?
-        </Typography>
+        <Box textAlign="center">
+          <WarningAmberRoundedIcon color="error" sx={{ fontSize: 50, mb: 1 }} />
+          <Typography>
+            {permanent
+              ? 'Bạn chắc chắn muốn xóa vĩnh viễn?'
+              : 'Bạn có chắc muốn xóa mục này?'}
+          </Typography>
+          <Typography fontWeight="bold" color="error" mt={1}>
+            {itemName}
+          </Typography>
+        </Box>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} disabled={loading}>Hủy</Button>
-        <Button onClick={handleDelete} variant="contained" color="error" disabled={loading}>
-          {loading ? 'Đang xử lý...' : (permanent ? 'Xóa vĩnh viễn' : 'Xóa')}
+
+      <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
+        <Button
+          onClick={onClose}
+          disabled={loading}
+          variant="outlined"
+          sx={{ minWidth: 100 }}
+        >
+          Hủy
+        </Button>
+        <Button
+          onClick={handleDelete}
+          color={permanent ? 'error' : 'warning'}
+          variant="contained"
+          disabled={loading}
+          startIcon={loading && <CircularProgress size={20} />}
+          sx={{ minWidth: 120 }}
+        >
+          {loading ? 'Đang xử lý' : 'Xác nhận'}
         </Button>
       </DialogActions>
     </Dialog>
