@@ -154,6 +154,7 @@ const pages = [
     icon: icons.TableOutlined,
     breadcrumbs: false
   }
+  
 ];
 
 export default pages;

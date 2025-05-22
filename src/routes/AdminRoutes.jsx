@@ -145,7 +145,7 @@ const AdminRoutes = {
     },
 
     {
-      path: 'bai-viet/them-bai-viet-moi', 
+      path: 'them-bai-viet-moi', 
       element: <Add />
     },
     {

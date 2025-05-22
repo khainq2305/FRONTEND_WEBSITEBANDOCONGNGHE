@@ -54,7 +54,17 @@ const AddressPageContent = () => {
   const [addresses, setAddresses] = useState([]);
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [editingAddress, setEditingAddress] = useState(null);
-  const initialFormState = { fullName: '', phone: '', city: '', district: '', ward: '', street: '', isDefault: false, addressType: 'Nhà Riêng' };
+  const initialFormState = {
+  fullName: '',
+  phone: '',
+  city: '', cityObj: null,
+  district: '', districtObj: null,
+  ward: '', wardObj: null,
+  street: '',
+  isDefault: false,
+  addressType: 'Nhà Riêng',
+};
+
   const [formData, setFormData] = useState(initialFormState);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [locationPickerTab, setLocationPickerTab] = useState('city');
@@ -189,31 +199,62 @@ const AddressPageContent = () => {
     setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
-  const handleLocationSelect = async (type, value) => {
-    if (type === 'city') {
-      setFormData(prev => ({ ...prev, city: value, district: '', ward: '' }));
-      const selected = provinceList.find(p => p.name === value);
-      if (selected) {
-        const districts = await shippingService.getDistricts(selected.ProvinceID || selected.id);
-        setDistrictList(districts);
-      }
-      setLocationPickerTab('district');
-      setLocationSearchTerm('');
-    } else if (type === 'district') {
-      setFormData(prev => ({ ...prev, district: value, ward: '' }));
-      const selected = districtList.find(d => d.name === value);
-      if (selected) {
-        const wards = await shippingService.getWards(selected.DistrictID || selected.id);
-        setWardList(wards);
-      }
-      setLocationPickerTab('ward');
-      setLocationSearchTerm('');
-    } else if (type === 'ward') {
-      setFormData(prev => ({ ...prev, ward: value }));
-      setShowLocationPicker(false);
-      setLocationSearchTerm('');
-    }
-  };
+const handleLocationSelect = async (type, value) => {
+  if (type === 'city') {
+    const selected = provinceList.find(p => p.name === value);
+    if (!selected) return;
+
+    const districts = await shippingService.getDistricts(selected.ProvinceID || selected.id);
+    setDistrictList(districts);
+
+    setFormData(prev => ({
+      ...prev,
+      city: selected.name,
+      cityObj: selected,
+      district: '',
+      districtObj: null,
+      ward: '',
+      wardObj: null
+    }));
+
+    setLocationPickerTab('district');
+    setLocationSearchTerm('');
+  }
+
+  else if (type === 'district') {
+    const selected = districtList.find(d => d.name === value);
+    if (!selected) return;
+
+    const wards = await shippingService.getWards(selected.DistrictID || selected.id);
+    setWardList(wards);
+
+    setFormData(prev => ({
+      ...prev,
+      district: selected.name,
+      districtObj: selected,
+      ward: '',
+      wardObj: null
+    }));
+
+    setLocationPickerTab('ward');
+    setLocationSearchTerm('');
+  }
+
+  else if (type === 'ward') {
+    const selected = wardList.find(w => w.name === value);
+    if (!selected) return;
+
+    setFormData(prev => ({
+      ...prev,
+      ward: selected.name,
+      wardObj: selected
+    }));
+
+    setShowLocationPicker(false);
+    setLocationSearchTerm('');
+  }
+};
+
 
   const filteredLocationItems = () => {
     let items = [];
@@ -275,60 +316,62 @@ const AddressPageContent = () => {
   };
 
   const handleSaveAddress = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const selectedProvince = provinceList.find(p => p.name === formData.city);
-    const selectedDistrict = districtList.find(d => d.name === formData.district);
-    const selectedWard = wardList.find(w => w.name === formData.ward);
-    const provinceId = selectedProvince?.id || selectedProvince?.ProvinceID; // API có thể trả về id hoặc ProvinceID
-    const districtId = selectedDistrict?.id || selectedDistrict?.DistrictID;
-    const wardCode = selectedWard?.code || selectedWard?.WardCode; // API có thể trả về code hoặc WardCode
+  const provinceId = formData.cityObj?.id || formData.cityObj?.ProvinceID;
+  const districtId = formData.districtObj?.id || formData.districtObj?.DistrictID;
+  const wardCode = formData.wardObj?.code || formData.wardObj?.WardCode;
 
-    if (!formData.fullName || !formData.phone || !provinceId || !districtId || !wardCode || !formData.street) {
-      alert("Vui lòng điền đầy đủ thông tin bắt buộc: Họ tên, Số điện thoại, Tỉnh/Thành, Quận/Huyện, Phường/Xã và Địa chỉ cụ thể.");
-      console.error("❌ Thiếu dữ liệu bắt buộc hoặc không tìm thấy ID/code tương ứng", { formData, provinceId, districtId, wardCode });
-      return;
-    }
+  if (!formData.fullName || !formData.phone || !provinceId || !districtId || !wardCode || !formData.street) {
+    alert("Vui lòng điền đầy đủ thông tin bắt buộc: Họ tên, Số điện thoại, Tỉnh/Thành, Quận/Huyện, Phường/Xã và Địa chỉ cụ thể.");
+    console.error("❌ Thiếu dữ liệu bắt buộc hoặc không tìm thấy ID/code tương ứng", { formData, provinceId, districtId, wardCode });
+    return;
+  }
 
-    const addressDataToSave = {
-      fullName: formData.fullName,
-      phone: formData.phone,
-      street: formData.street,
-      provinceId,
-      districtId,
-      wardCode,
-      isDefault: formData.isDefault,
-      addressType: formData.addressType,
-      // Thêm latitude, longitude nếu có từ selectedLocation
-      ...(selectedLocation.lat && selectedLocation.lng && { latitude: selectedLocation.lat, longitude: selectedLocation.lng }),
-    };
+  // ✅ Lấy lại object từ formData để dùng sau khi thêm
+  const selectedProvince = formData.cityObj;
+  const selectedDistrict = formData.districtObj;
+  const selectedWard = formData.wardObj;
 
-    try {
-      if (editingAddress) {
-        await userAddressService.update(editingAddress.id, addressDataToSave);
-        setAddresses(prev =>
-          prev.map(addr =>
-            addr.id === editingAddress.id
-              ? { ...addr, ...addressDataToSave, id: editingAddress.id, province: selectedProvince, district: selectedDistrict, ward: selectedWard } // Giữ id gốc và cập nhật province, district, ward object
-              : addr
-          )
-        );
-        setSuccessMessage("Cập nhật địa chỉ thành công!");
-      } else {
-        const res = await userAddressService.create(addressDataToSave);
-        // Đảm bảo res.data có cấu trúc khớp với các địa chỉ khác trong state
-        const newAddress = { ...res.data, province: selectedProvince, district: selectedDistrict, ward: selectedWard };
-        setAddresses(prev => [...prev, newAddress]);
-        setSuccessMessage("Đã thêm địa chỉ mới thành công!");
-      }
-      closeModalAndPicker();
-    } catch (err) {
-      console.error("❌ Lỗi khi lưu địa chỉ:", err);
-      alert("Có lỗi xảy ra khi lưu địa chỉ. Vui lòng thử lại.");
-    }
+  const addressDataToSave = {
+    fullName: formData.fullName,
+    phone: formData.phone,
+    street: formData.street,
+    provinceId,
+    districtId,
+    wardCode,
+    isDefault: formData.isDefault,
+    addressType: formData.addressType,
+    ...(selectedLocation.lat && selectedLocation.lng && { latitude: selectedLocation.lat, longitude: selectedLocation.lng }),
   };
+
+  try {
+    if (editingAddress) {
+      await userAddressService.update(editingAddress.id, addressDataToSave);
+      setAddresses(prev =>
+        prev.map(addr =>
+          addr.id === editingAddress.id
+            ? { ...addr, ...addressDataToSave, id: editingAddress.id, province: selectedProvince, district: selectedDistrict, ward: selectedWard }
+            : addr
+        )
+      );
+      setSuccessMessage("Cập nhật địa chỉ thành công!");
+    } else {
+      const res = await userAddressService.create(addressDataToSave);
+      const newAddress = { ...res.data, province: selectedProvince, district: selectedDistrict, ward: selectedWard };
+      setAddresses(prev => [...prev, newAddress]);
+      setSuccessMessage("Đã thêm địa chỉ mới thành công!");
+    }
+    closeModalAndPicker();
+  } catch (err) {
+    console.error("❌ Lỗi khi lưu địa chỉ:", err);
+    alert("Có lỗi xảy ra khi lưu địa chỉ. Vui lòng thử lại.");
+  }
+};
+
   
   const locationInputDisplay = [formData.city, formData.district, formData.ward].filter(Boolean).join(' / ');
+console.log("Đã chọn:", { city: formData.city, district: formData.district, ward: formData.ward });
 
   return (
     <div className="bg-white dark:bg-gray-900 p-4 sm:p-6 shadow-sm rounded-md border border-gray-200 dark:border-gray-700 min-h-[calc(100vh-150px)]">
@@ -433,7 +476,9 @@ const AddressPageContent = () => {
                   placeholder="Địa chỉ cụ thể"
                   ref={addressInputRef}
                   // onChange={handleInputChange} // Nếu muốn cập nhật formData.street ngay khi Google Autocomplete điền thì dùng, nếu không thì nó sẽ được cập nhật trong listener "place_changed"
-                  defaultValue={formData.street} // Hoặc value={formData.street} nếu bạn dùng onChange
+                 value={formData.street}
+onChange={handleInputChange}
+
                   // Thay thế màu focus
                   className="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-sm text-sm focus:ring-1 focus:ring-blue-500/50 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-400"
                 />
