@@ -10,18 +10,19 @@ const BasicTableDemo = Loadable(lazy(() => import('pages/Admin/BasicTableDemo'))
 const OrderList = Loadable(lazy(() => import('pages/Admin/OrderList')));
 const OrderDetail = Loadable(lazy(() => import('pages/Admin/OrderDetail')));
 
-//Banner
-const BannerList = Loadable(lazy(() => import('pages/Admin/BannerList')));
-const BannerDetail = Loadable(lazy(() => import('pages/Admin/BannerDetail')));
-const AddBanner = Loadable(lazy(() => import('pages/Admin/BannerList/AddBanner')));
-const EditBanner = Loadable(lazy(() => import('pages/Admin/BannerList/EditBanner')));
-
-
 //Coupon
 const CouponList = Loadable(lazy(() => import('pages/Admin/CouponList')));
 const CouponDetail = Loadable(lazy(() => import('pages/Admin/CouponList/CouponDetail')));
 const AddCoupon = Loadable(lazy(() => import('pages/Admin/CouponList/AddCoupon')));
 const EditCoupon = Loadable(lazy(() => import('pages/Admin/CouponList/EditCoupon')));
+
+// //Media
+const MediaList = Loadable(lazy(() => import('pages/Admin/Media')));
+const MediaTypeList = Loadable(lazy(() => import('pages/Admin/Media/MediaTypeList')));
+
+const MediaDetail = Loadable(lazy(() => import('pages/Admin/Media/MediaDetail')));
+const AddMedia = Loadable(lazy(() => import('pages/Admin/Media/AddMedia')));
+const EditMedia = Loadable(lazy(() => import('pages/Admin/Media/EditMedia')));
 
 const AdminRoutes = {
   path: '/admin',
@@ -48,22 +49,6 @@ const AdminRoutes = {
       element: <OrderDetail />
     },
     {
-      path: 'banners',
-      element: <BannerList />
-    },
-    {
-      path: 'banners/:id',
-      element: <BannerDetail />
-    },
-    {
-      path: 'banners/add',
-      element: <AddBanner />
-    },
-    {
-      path: 'banners/edit/:id',
-      element: <EditBanner />
-    },
-    {
       path: 'coupons',
       element: <CouponList />
     },
@@ -78,6 +63,26 @@ const AdminRoutes = {
     {
       path: 'coupons/edit/:id',
       element: <EditCoupon />
+    },
+    {
+      path: 'medias',
+      element: <MediaList />
+    },
+    {
+      path: 'medias/type/:type',
+      element: <MediaTypeList />
+    },
+    {
+      path: 'medias/:id',
+      element: <MediaDetail />
+    },
+    {
+      path: 'medias/add',
+      element: <AddMedia />
+    },
+        {
+      path: 'medias/edit/:id',
+      element: <EditMedia />
     }
   ]
 };
