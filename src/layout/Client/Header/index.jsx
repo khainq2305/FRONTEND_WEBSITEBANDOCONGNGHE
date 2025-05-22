@@ -231,7 +231,8 @@ useEffect(() => {
       });
     } catch (err) {
       console.error("❌ Lỗi lấy thông tin người dùng:", err);
-      setUserInfo({ fullName: '', avatarUrl: null }); 
+     setUserInfo(null);
+
     }
   };
   fetchUserInfo();
@@ -513,17 +514,20 @@ useEffect(() => {
 {userInfo ? (
   <div className="flex items-center gap-2 cursor-pointer p-2 bg-primary rounded-lg transition-colors duration-150">
     {/* ✅ SỬA LẠI ĐỂ ĐỒNG BỘ AVATAR */}
-    {userInfo.avatarUrl ? (
-      <img
-        src={userInfo.avatarUrl} // Đã được cập nhật ngay lập tức
-        alt="Avatar"
-        className="w-8 h-8 rounded-full object-cover" 
-      />
-    ) : (
-      <div className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center text-sm font-semibold">
-        {userInfo?.fullName ? userInfo.fullName.charAt(0).toUpperCase() : '?'}
-      </div>
-    )}
+   {userInfo?.avatarUrl ? (
+  <img
+    src={userInfo.avatarUrl}
+    alt="Avatar"
+    className="w-8 h-8 rounded-full object-cover" 
+  />
+) : userInfo?.fullName ? (
+  <div className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center text-sm font-semibold">
+    {userInfo.fullName.charAt(0).toUpperCase()}
+  </div>
+) : (
+  <CircleUserRound className="w-8 h-8 text-white" strokeWidth={1.5} />
+)}
+
 
     <span className="text-sm font-semibold">
       {userInfo?.fullName ? getDisplayName(userInfo.fullName) : 'Tài khoản'}

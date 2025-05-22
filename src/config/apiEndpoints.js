@@ -16,7 +16,6 @@ export const API_ENDPOINT = {
       resendForgotPassword: '/resend-forgot-password',
       checkResetStatus: '/check-reset-status',
       resetPassword: '/reset-password',
-
       getResetCooldown: '/get-reset-cooldown',
       verificationCooldown: '/verification-cooldown',
       userInfo: '/user-info',
