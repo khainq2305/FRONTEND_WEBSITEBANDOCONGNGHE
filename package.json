@@ -38,7 +38,10 @@
     "react-apexcharts": "^1.7.0",
     "react-device-detect": "^2.2.3",
     "react-dom": "^18.3.1",
+<<<<<<< HEAD
     "react-dropzone": "^14.3.8",
+=======
+>>>>>>> 758b662e14155079fbaefcfda99cbed90339859c
     "react-easy-crop": "^5.4.1",
     "react-hook-form": "^7.56.3",
     "react-icons": "^5.5.0",
@@ -53,7 +56,10 @@
     "react-toastify": "^11.0.5",
     "simplebar-react": "^3.3.1",
     "slick-carousel": "^1.8.1",
+<<<<<<< HEAD
     "slugify": "^1.6.6",
+=======
+>>>>>>> 758b662e14155079fbaefcfda99cbed90339859c
     "sortablejs": "^1.15.6",
     "sweetalert2": "^11.21.0",
     "swiper": "^11.2.6",
