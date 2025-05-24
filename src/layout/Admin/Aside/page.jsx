@@ -115,12 +115,40 @@ const pages = [
     ]
   },
   {
-    id: 'userlist',
+    id: 'user-management',
     title: 'Tài khoản',
+    type: 'collapse',
+    icon: icons.TableOutlined,
+    url: '/admin/users',
+children: [
+  {
+    id: 'user-list',
+    title: 'Danh sách',
     type: 'item',
     url: '/admin/users',
     icon: icons.TableOutlined,
-    breadcrumbs: false
+    exact: true,
+    activeMenu: '/admin/users'
+  },
+  {
+    id: 'user-add',
+    title: 'Thêm tài khoản',
+    type: 'item',
+    url: '/admin/users/create',
+    icon: icons.FileTextOutlined,
+    exact: true
+  },
+  {
+    id: 'user-deleted',
+    title: 'Thùng rác',
+    type: 'item',
+    url: '/admin/users/deleted',
+    icon: icons.FileTextOutlined,
+    exact: true,
+    activeMenu: '/admin/users/deleted'
+  }
+]
+
   },
   {
     id: 'comments',
@@ -154,7 +182,6 @@ const pages = [
     icon: icons.TableOutlined,
     breadcrumbs: false
   }
-  
 ];
 
 export default pages;

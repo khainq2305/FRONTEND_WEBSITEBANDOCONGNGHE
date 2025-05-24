@@ -2,30 +2,24 @@ import { useState } from 'react';
 import { Menu, MenuItem, IconButton } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import Swal from 'sweetalert2';
-import 'sweetalert2/dist/sweetalert2.min.css';
 
-const MoreActionsMenu = ({ user, currentStatus, onChangeStatus, onResetPassword, onCancelBlock }) => {
+const MoreActionsMenu = ({ user, onChangeStatus, onResetPassword, onViewDetail }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 
-  const handleClick = (event) => setAnchorEl(event.currentTarget);
+  const handleClick = (e) => setAnchorEl(e.currentTarget);
   const handleClose = () => setAnchorEl(null);
 
   const confirmAction = async (title, callback) => {
     handleClose();
-    const result = await Swal.fire({
+    const res = await Swal.fire({
       title,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Xác nhận',
-      cancelButtonText: 'Hủy',
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6'
+      cancelButtonText: 'Hủy'
     });
-
-    if (result.isConfirmed) {
-      callback();
-    }
+    if (res.isConfirmed) callback();
   };
 
   return (
@@ -34,37 +28,29 @@ const MoreActionsMenu = ({ user, currentStatus, onChangeStatus, onResetPassword,
         <MoreVertIcon />
       </IconButton>
       <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
-        {currentStatus === 'active' && (
-          <>
-            {!user.scheduledBlockAt && (
-              <MenuItem onClick={() =>
-                confirmAction(`Lên lịch khóa tài khoản "${user.fullName}"?`, () =>
-                  onChangeStatus('inactive')
-                )
-              }>
-                Lên lịch khóa
-              </MenuItem>
-            )}
-            <MenuItem onClick={() =>
-              confirmAction(`Khóa vĩnh viễn tài khoản "${user.fullName}"?`, () =>
-                onChangeStatus('permanent')
-              )
-            }>
-              Khóa vĩnh viễn
-            </MenuItem>
-          </>
-        )}
-
-        {currentStatus === 'inactive' && (
+        <MenuItem onClick={() => {
+          handleClose();
+          onViewDetail(user);
+        }}>
+          Xem chi tiết
+        </MenuItem>
+        {user.status === 1 ? (
           <MenuItem onClick={() =>
-            confirmAction(`Mở khóa tài khoản "${user.fullName}"?`, () =>
+            confirmAction(`Ngưng hoạt động tài khoản "${user.fullName}"?`, () =>
+              onChangeStatus('inactive')
+            )
+          }>
+            Ngưng hoạt động
+          </MenuItem>
+        ) : (
+          <MenuItem onClick={() =>
+            confirmAction(`Kích hoạt lại tài khoản "${user.fullName}"?`, () =>
               onChangeStatus('active')
             )
           }>
-            Mở khóa
+            Kích hoạt lại
           </MenuItem>
         )}
-
         <MenuItem onClick={() =>
           confirmAction(`Cấp lại mật khẩu cho "${user.fullName}"?`, () =>
             onResetPassword(user)
@@ -72,16 +58,6 @@ const MoreActionsMenu = ({ user, currentStatus, onChangeStatus, onResetPassword,
         }>
           Cấp lại mật khẩu
         </MenuItem>
-
-        {user.scheduledBlockAt && (
-          <MenuItem onClick={() =>
-            confirmAction(`Huỷ lịch khóa của "${user.fullName}"?`, () =>
-              onCancelBlock(user)
-            )
-          }>
-            Huỷ lịch khóa
-          </MenuItem>
-        )}
       </Menu>
     </>
   );

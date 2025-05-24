@@ -38,6 +38,8 @@ const ProductAttributes = Loadable(lazy(() => import('pages/Admin/ProductAttribu
 const TermPage = Loadable(lazy(() => import('pages/Admin/ProductAttributes/terms/TermPage.jsx')));
 const CommentList = Loadable(lazy(() => import('pages/Admin/Comment/CommentList/index.jsx')));
 const CommentDetail = Loadable(lazy(() => import('pages/Admin/Comment/CommentDetail/index.jsx')));
+const DeletedUserList = Loadable(lazy(() => import('pages/Admin/User/DeletedUserList')));
+const UserDetailPage = Loadable(lazy(() => import('pages/Admin/User/UserDetailDialog')));
 
 const AdminRoutes = {
   path: '/admin',
@@ -68,10 +70,19 @@ const AdminRoutes = {
       element: <UserList />
     },
     { path: 'users/create', element: <UserAdd /> },
+
+    {
+      path: '/admin/users/:id',
+      element: <UserDetailPage />
+    },
     // {
     //   path: 'banners/:id',
     //   element: <BannerDetail />
     // },
+    {
+      path: 'users/deleted',
+      element: <DeletedUserList />
+    },
     {
       path: 'banners/add',
       element: <AddBanner />
@@ -119,7 +130,7 @@ const AdminRoutes = {
       index: true,
       element: <Brand />
     },
-    
+
     {
       path: 'create',
       element: <BrandCreatePage />
@@ -140,26 +151,26 @@ const AdminRoutes = {
     },
     { path: 'users/create', element: <UserAdd /> },
     {
-      path: 'quan-ly-bai-viet', 
+      path: 'quan-ly-bai-viet',
       element: <News />
     },
 
     {
-      path: 'them-bai-viet-moi', 
+      path: 'them-bai-viet-moi',
       element: <Add />
     },
     {
-      path: 'bai-viet/chinh-sua/:id', 
+      path: 'bai-viet/chinh-sua/:id',
       element: <Edit />
     },
     ,
     {
-      path: 'danh-muc-bai-viet', 
+      path: 'danh-muc-bai-viet',
       element: <CategoryNews />
     },
     ,
     {
-      path: 'them-danh-muc-bai-viet', 
+      path: 'them-danh-muc-bai-viet',
       element: <CategoryAdd />
     },
     {

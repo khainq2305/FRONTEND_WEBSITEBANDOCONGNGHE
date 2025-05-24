@@ -27,7 +27,7 @@ const mockQuestions = [
     product_name: 'Smartphone X200',
     fullname: 'Nguyễn Văn A',
     email: 'nguyenvana@example.com',
-    content: 'Sản phẩm này còn hàng không?',
+    content: 'Sản phẩm này còn hàng không?Sản phẩm này còn hàng không?Sản phẩm này còn hàng không?Sản phẩm này còn hàng không?Sản phẩm này còn hàng không?Sản phẩm này còn hàng không?Sản phẩm này còn hàng không?Sản phẩm này còn hàng không?Sản phẩm này còn hàng không?Sản phẩm này còn hàng không?Sản phẩm này còn hàng không?Sản phẩm này còn hàng không?Sản phẩm này còn hàng không?Sản phẩm này còn hàng không?Sản phẩm này còn hàng không?Sản phẩm này còn hàng không?Sản phẩm này còn hàng không?Sản phẩm này còn hàng không?Sản phẩm này còn hàng không?Sản phẩm này còn hàng không?Sản phẩm này còn hàng không?Sản phẩm này còn hàng không?Sản phẩm này còn hàng không?',
     is_hidden: false,
     created_at: '2024-05-01T10:00:00Z',
     replies: []
