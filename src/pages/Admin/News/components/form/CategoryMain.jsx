@@ -14,15 +14,8 @@ import {
   Button,
   Box
 } from "@mui/material";
+import { newsCategoryService } from "@/services/admin/newCategoryService";
 
-// Demo data danh mục cha
-const parentCategories = [
-  { id: 1, name: "Electronics" },
-  { id: 2, name: "Clothing" },
-  { id: 3, name: "Home & Kitchen" },
-  { id: 4, name: "Books" },
-  { id: 5, name: "Sports" },
-];
 
 const CategoryMain = ({ initialData = null, onSubmit }) => {
   const [category, setCategory] = useState({
@@ -31,18 +24,36 @@ const CategoryMain = ({ initialData = null, onSubmit }) => {
     status: true,
     description: ""
   });
-
+  const [categories, setCategories] = useState([]);
   // Nếu có initialData (mode edit) thì load vào state
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+
   useEffect(() => {
-    if (initialData) {
-      setCategory({
-        name: initialData.name || "",
-        parentId: initialData.parentId || "",
-        status: initialData.status ?? true,
-        description: initialData.description || ""
-      });
+  if (initialData) {
+    setCategory({
+      name: initialData.name || "",
+      parentId: initialData.parentId || "",
+      status: initialData.status ?? true,
+      description: initialData.description || ""
+    });
+  }
+}, [initialData]);
+
+
+useEffect(() => {
+  const fetchCategories = async () => {
+    try {
+      const res = await newsCategoryService.getAll();
+      console.log('📡 API trả về:', res.data.data); // 👈 LOG NÀY QUAN TRỌNG
+      setCategories(res.data.data); // 👈 hoặc res.data, tuỳ backend
+    } catch (error) {
+      console.error('Lỗi lấy danh mục:', error);
     }
-  }, [initialData]);
+  };
+
+  fetchCategories();
+}, []);
+
 
   const handleChange = (field, value) => {
     setCategory((prev) => ({
@@ -68,20 +79,25 @@ const CategoryMain = ({ initialData = null, onSubmit }) => {
           />
 
           <FormControl fullWidth>
-            <InputLabel>Danh mục cha</InputLabel>
-            <Select
-              value={category.parentId}
-              label="Danh mục cha"
-              onChange={(e) => handleChange("parentId", e.target.value)}
-            >
-              <MenuItem value="">Không có</MenuItem>
-              {parentCategories.map((parent) => (
-                <MenuItem key={parent.id} value={parent.id.toString()}>
-                  {parent.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+  <InputLabel>Danh mục cha</InputLabel>
+  <Select
+    value={category.parentId}
+    label="Danh mục cha"
+    onChange={(e) => handleChange("parentId", e.target.value)}
+  >
+    {Array.isArray(categories) && categories.length > 0 ? (
+      categories.map((cat) => (
+        <MenuItem key={cat.id} value={cat.id.toString()}>
+          {cat.name}
+        </MenuItem>
+      ))
+    ) : (
+      <MenuItem disabled>Không có danh mục</MenuItem>
+    )}
+  </Select>
+</FormControl>
+
+
 
           <FormControlLabel
             control={
@@ -105,9 +121,18 @@ const CategoryMain = ({ initialData = null, onSubmit }) => {
 
         <CardActions sx={{ justifyContent: "flex-end", px: 2, pb: 2 }}>
           <Button variant="outlined" type="button">Huỷ</Button>
-          <Button variant="contained" onClick={() => onSubmit(category)}>
-            {initialData ? "Cập nhật" : "Thêm mới"}
-          </Button>
+          <Button
+  variant="contained"
+  onClick={() =>
+    onSubmit({
+      ...category,
+      parentId: category.parentId === "" ? null : parseInt(category.parentId)
+    })
+  }
+>
+  {initialData ? "Cập nhật" : "Thêm mới"}
+</Button>
+
         </CardActions>
       </Card>
     </Box>

@@ -51,12 +51,23 @@ export const API_ENDPOINT = {
     news: {
       base: `${API_BASE_URL}/admin/quan-ly-bai-viet`,
       getAll: '',
-      create: '/them-bai-viet',
-      getById: '/chinh-sua-bai-viet',
+      create: '/them-bai-viet-moi',
+      getBySlug: '/chinh-sua-bai-viet',
       update: '/cap-nhat-bai-viet',
       trashPost: '/chuyen-vao-thung-rac',
       forceDelete: '/xoa-vinh-vien',
       restorePost: '/khoi-phuc'
+    },
+    newsCategory: {
+      base: `${API_BASE_URL}/admin/quan-ly-danh-muc`,
+      getAll: '',
+      create: '/them-danh-muc-moi',
+      getBySlug: '/chinh-sua-danh-muc',
+      update: '/cap-nhat-danh-muc',
+      trashPost: '/chuyen-vao-thung-rac',
+      forceDelete: '/xoa-vinh-vien',
+      restorePost: '/khoi-phuc',
+      postCount: '/tong-so-bai-viet'
     }
   }
 };

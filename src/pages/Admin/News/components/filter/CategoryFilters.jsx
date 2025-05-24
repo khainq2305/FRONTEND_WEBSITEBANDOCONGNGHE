@@ -23,10 +23,6 @@ const CategoryFilters = () => {
     ];
 
 
-    console.log('status:', filters.status || 'ko có'
-
-    );
-
     return (
         <div className="flex gap-4 w-2/3 mb-5">
             {/* Hành động + nút */}

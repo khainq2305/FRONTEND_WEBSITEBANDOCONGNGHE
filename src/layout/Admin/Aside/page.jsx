@@ -99,7 +99,7 @@ const pages = [
         id: 'news-create',
         title: 'Thêm bài viết',
         type: 'item',
-        url: '/admin/quan-ly-bai-viet/create',
+        url: '/admin/them-bai-viet-moi',
         icon: icons.FileTextOutlined,
         breadcrumbs: false
       },
@@ -109,6 +109,15 @@ const pages = [
         title: 'Danh mục bài viết',
         type: 'item',
         url: '/admin/danh-muc-bai-viet',
+        icon: icons.FileTextOutlined,
+        breadcrumbs: false
+      },
+
+      {
+        id: 'category-new',
+        title: 'Thêm danh mục',
+        type: 'item',
+        url: '/admin/them-danh-muc-bai-viet',
         icon: icons.FileTextOutlined,
         breadcrumbs: false
       }

@@ -12,6 +12,8 @@ import { TableContainer,
 
 
  } from '@mui/material';
+ import { useNavigate } from 'react-router-dom';
+
 import MoreActionsMenu from '@/components/common/MoreActionsMenu'
 const CategoryTable = () => {
   const {
@@ -20,10 +22,12 @@ const CategoryTable = () => {
     handleSelectRow,
     handleSelectAll,
     setModalItem,
-    handleDelete
+    handleDelete,
+    categories, postCounts
   } = useCategory()
   const rows = filteredArticles;
-
+  console.log('✅ row data:', rows);
+const navigate = useNavigate();
   return (
     <TableContainer component={Paper}>
       <Table>
@@ -36,32 +40,24 @@ const CategoryTable = () => {
                 onChange={handleSelectAll}
               />
             </TableCell>
-            <TableCell>Tiêu đề</TableCell>
-            <TableCell>Tác giả</TableCell>
-            <TableCell>Danh mục</TableCell>
-            <TableCell>Xem chi tiết</TableCell>
+            <TableCell>Tên danh mục</TableCell>
+            <TableCell>Bài viết</TableCell>
             <TableCell>Trạng thái</TableCell>
             <TableCell align="right">Hành động</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {rows.map((row) => (
-            <TableRow key={row.id}>
+            <TableRow key={row.slug}>
               <TableCell padding="checkbox">
                 <input
                   type="checkbox"
-                  checked={selectedRows.includes(row.id)}
-                  onChange={() => handleSelectRow(row.id)}
+                  checked={selectedRows.includes(row.slug)}
+                  onChange={() => handleSelectRow(row.slug)}
                 />
               </TableCell>
-              <TableCell>{row.name}</TableCell>
-              <TableCell>{row.author}</TableCell>
-              <TableCell>{row.category}</TableCell>
-              <TableCell>
-                <Button variant="contained" size="small" onClick={() => setModalItem(row)}>
-                  Xem
-                </Button>
-              </TableCell>
+              <TableCell>{'— '.repeat(row.level) + row.name}</TableCell>
+              <TableCell>{row.postCount}</TableCell>
               <TableCell>
 
                 <Button variant="contained" size="extraSmall" color={row.status === 'active' ? 'success' : 'error'}>{row.status === 'active' ? 'Đang hoạt động' : 'Ngưng'}</Button>
@@ -70,7 +66,7 @@ const CategoryTable = () => {
               <TableCell align="right">
                 <MoreActionsMenu
                   onDelete={() => handleDelete(row)}
-                  onEdit={() => navigate(`/admin/bai-viet/chinh-sua/${row.id}`)}
+                  onEdit={() => navigate(`/admin/danh-muc-bai-viet/chinh-sua-danh-muc/${row.slug}`)}
                 />
 
 

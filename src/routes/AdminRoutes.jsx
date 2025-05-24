@@ -30,9 +30,10 @@ const ProductQuestion = Loadable(lazy(() => import('pages/Admin/ProductQuestion'
 const HisLog = Loadable(lazy(() => import('pages/Admin/HisLog')));
 const News = Loadable(lazy(() => import('pages/Admin/News/News')));
 const Add = Loadable(lazy(() => import('pages/Admin/News/Add')));
-const Edit = Loadable(lazy(() => import('pages/Admin/News/Edit')));
+const Edit = Loadable(lazy(() => import('@/pages/Admin/News/Edit')));
 const CategoryNews = Loadable(lazy(() => import('pages/Admin/News/Category')));
 const CategoryAdd = Loadable(lazy(() => import('pages/Admin/News/CategoryAdd')));
+const CategoryEdit = Loadable(lazy(() => import('@/pages/Admin/News/CategoryEdit')));
 const ProductAddPage = Loadable(lazy(() => import('pages/Admin/Product/ProductAddPage')));
 const ProductAttributes = Loadable(lazy(() => import('pages/Admin/ProductAttributes')));
 const TermPage = Loadable(lazy(() => import('pages/Admin/ProductAttributes/terms/TermPage.jsx')));
@@ -149,7 +150,7 @@ const AdminRoutes = {
       element: <Add />
     },
     {
-      path: 'bai-viet/chinh-sua/:id', 
+      path: 'quan-ly-bai-viet/chinh-sua-bai-viet/:slug', 
       element: <Edit />
     },
     ,
@@ -161,6 +162,10 @@ const AdminRoutes = {
     {
       path: 'them-danh-muc-bai-viet', 
       element: <CategoryAdd />
+    },
+    {
+      path: 'danh-muc-bai-viet/chinh-sua-danh-muc/:slug', 
+      element: <CategoryEdit/>
     },
     {
       path: 'comments',

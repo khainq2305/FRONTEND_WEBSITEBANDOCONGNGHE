@@ -3,19 +3,20 @@ import Button from '@mui/material/Button';
 import SearchInput from 'components/common/SearchInput';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
-import { useArticle } from '../../News';
+import { useArticle } from '../Context/ArticleContext';
+
 import { useNavigate } from 'react-router-dom';
 const Top = () => {
   const { activeTab, handleTabClick, counts, filters,
     setFilters, } = useArticle();
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const tabs = [
     { label: 'Tất cả', value: 'all' },
     { label: 'Đã xuất bản', value: 'published' },
     { label: 'Bản nháp', value: 'draft' },
     { label: 'Thùng rác', value: 'trash' },
 
-  ];  const handleChange = (key, value) => {
+  ]; const handleChange = (key, value) => {
 
     setFilters({ ...filters, [key]: value });
   };
@@ -24,14 +25,6 @@ const Top = () => {
       {/* Tiêu đề + nút thêm */}
       <div className="flex items-center gap-2">
         <h1 className="uppercase font-bold text-md">Tất cả bài viết</h1>
-        <Button
-      variant="contained"
-      size="medium"
-      onClick={() => navigate('/admin/them-bai-viet-moi')} // ✅ điều hướng
-    >
-      <FontAwesomeIcon icon={faPlus} style={{ marginRight: 8 }} />
-      Thêm bài viết
-    </Button>
 
       </div>
 

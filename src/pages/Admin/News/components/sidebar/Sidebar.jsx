@@ -19,6 +19,7 @@ import { useArticle } from '@/pages/Admin/News/components/form/FormPost'; // l�
 const Sidebar = () => {
   const {
     category, setCategory,
+    categories, setCategories,
     status, setStatus,
     isScheduled, setIsScheduled,
     publishAt, setPublishAt,
@@ -68,16 +69,19 @@ const Sidebar = () => {
         <FormControl fullWidth error={!!errors.category}>
           <InputLabel>Danh mục</InputLabel>
           <Select
-            value={category}
-            onChange={(e) => {
-              setCategory(e.target.value);
-              setErrors(prev => ({ ...prev, category: null }))
-            }}
-          >
-            <MenuItem value="congnghe">Công nghệ</MenuItem>
-            <MenuItem value="marketing">Marketing</MenuItem>
-            <MenuItem value="giaitri">Giải trí</MenuItem>
-          </Select>
+  value={category}
+  onChange={(e) => {
+    setCategory(e.target.value);
+    setErrors(prev => ({ ...prev, category: null }));
+  }}
+>
+  {categories.map((c) => (
+    <MenuItem key={c.id} value={c.id}>
+      {c.name}
+    </MenuItem>
+  ))}
+</Select>
+
           <FormHelperText>{errors.category || ''}</FormHelperText>
         </FormControl>
 
@@ -88,8 +92,8 @@ const Sidebar = () => {
             onChange={(e) => setStatus(e.target.value)}
             disabled={isScheduled}
           >
-            <MenuItem value="published">Đăng bài</MenuItem>
-            <MenuItem value="draft">Nháp</MenuItem>
+            <MenuItem value="1">Đăng bài</MenuItem>
+            <MenuItem value="0">Nháp</MenuItem>
           </Select>
         </FormControl>
 
