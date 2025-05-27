@@ -7,7 +7,8 @@ import {
   TagsOutlined,
   MessageOutlined,
   AppstoreOutlined,
-  CommentOutlined
+  CommentOutlined,
+  GiftOutlined
 } from '@ant-design/icons';
 
 // icons
@@ -19,7 +20,8 @@ const icons = {
   AppstoreOutlined,
   FileTextOutlined,
   TagsOutlined,
-  CommentOutlined
+  CommentOutlined,
+  GiftOutlined
 };
 
 const pages = [
@@ -38,10 +40,26 @@ const pages = [
         breadcrumbs: false
       },
       {
+        id: 'featured-products',
+        title: 'Sản phẩm nổi bật',
+        type: 'item',
+        url: '/admin/home-sections',
+        icon: icons.AppstoreOutlined, 
+        breadcrumbs: false
+      },
+      {
+        id: 'highlighted-category',
+        title: 'Danh mục nổi bật',
+        type: 'item',
+        url: '/admin/highlighted-category-items',
+        icon: icons.AppstoreOutlined, 
+        breadcrumbs: false
+      },
+      {
         id: 'product-category',
         title: 'Danh mục sản phẩm',
         type: 'item',
-        url: '/admin/categories',
+        url: '/admin/categories/list',
         icon: icons.TagsOutlined,
         breadcrumbs: false
       },
@@ -49,28 +67,128 @@ const pages = [
         id: 'product-attribute',
         title: 'Thuộc tính sản phẩm',
         type: 'item',
-        url: '/admin/product-attributes',
+        url: '/admin/product-variants',
         icon: icons.CommentOutlined,
-        breadcrumbs: false
-      },
-      {
-        id: 'product-create',
-        title: 'Thêm sản phẩm',
-        type: 'item',
-        url: '/admin/products/create',
-        icon: icons.FileTextOutlined,
         breadcrumbs: false
       }
     ]
   },
   {
-    id: 'basictable',
-    title: 'Basic Table',
-    type: 'item',
-    url: '/admin/basic-table',
-    icon: icons.TableOutlined,
-    breadcrumbs: false
+    id: 'brand-section-collapse',
+    title: 'Thương hiệu',
+    type: 'collapse',
+    icon: icons.TagsOutlined,
+    children: [
+      {
+        id: 'brand-list',
+        title: 'Danh sách',
+        type: 'item',
+        url: '/admin/brands',
+        icon: icons.TableOutlined,
+        breadcrumbs: false
+      },
+      {
+        id: 'brand-create',
+        title: 'Thêm thương hiệu',
+        type: 'item',
+        url: '/admin/brands/create',
+        icon: icons.FileTextOutlined,
+        breadcrumbs: false
+      }
+    ]
   },
+
+  {
+    id: 'flash-sale',
+    title: 'Flash Sale',
+    type: 'collapse',
+    icon: icons.GiftOutlined,
+    children: [
+      {
+        id: 'flash-sale-list',
+        title: 'Danh sách Flash Sale',
+        type: 'item',
+        url: '/admin/flash-sale',
+        icon: icons.TableOutlined,
+        breadcrumbs: false
+      },
+      {
+        id: 'flash-sale-create',
+        title: 'Tạo Flash Sale',
+        type: 'item',
+        url: '/admin/flash-sale/create',
+        icon: icons.FileTextOutlined,
+        breadcrumbs: false
+      }
+    ]
+  },
+
+  {
+    id: 'slider-section',
+    title: 'Slider & Banner',
+    type: 'collapse',
+    icon: icons.FileTextOutlined,
+    children: [
+      {
+        id: 'placement-list',
+        title: 'Danh sách khối hiển thị',
+        type: 'item',
+        url: '/admin/placements',
+        icon: icons.TableOutlined,
+        breadcrumbs: false
+      },
+      {
+        id: 'placement-create',
+        title: 'Thêm khối hiển thị',
+        type: 'item',
+        url: '/admin/placements/create',
+        icon: icons.FileTextOutlined,
+        breadcrumbs: false
+      },
+      {
+        id: 'banner-list',
+        title: 'Danh sách Banner',
+        type: 'item',
+        url: '/admin/banners',
+        icon: icons.TableOutlined,
+        breadcrumbs: false
+      },
+      {
+        id: 'banner-create',
+        title: 'Thêm Banner',
+        type: 'item',
+        url: '/admin/banners/create',
+        icon: icons.FileTextOutlined,
+        breadcrumbs: false
+      }
+    ]
+  },
+
+  {
+    id: 'coupon-section',
+    title: 'Mã giảm giá',
+    type: 'collapse',
+    icon: icons.GiftOutlined,
+    children: [
+      {
+        id: 'coupon-list',
+        title: 'Danh sách mã giảm',
+        type: 'item',
+        url: '/admin/coupons',
+        icon: icons.TableOutlined,
+        breadcrumbs: false
+      },
+      {
+        id: 'coupon-add',
+        title: 'Thêm mã giảm giá',
+        type: 'item',
+        url: '/admin/coupons/create', 
+        icon: icons.FileTextOutlined,
+        breadcrumbs: false
+      }
+    ]
+  },
+
   {
     id: 'orderlist',
     title: 'Đơn hàng',
@@ -79,12 +197,12 @@ const pages = [
     icon: icons.FileTextOutlined,
     breadcrumbs: false
   },
+
   {
     id: 'news',
     title: 'Bài viết',
     type: 'collapse',
     icon: icons.FileTextOutlined,
-
     breadcrumbs: false,
     children: [
       {
@@ -99,11 +217,10 @@ const pages = [
         id: 'news-create',
         title: 'Thêm bài viết',
         type: 'item',
-        url: '/admin/quan-ly-bai-viet/create',
+        url: '/admin/them-bai-viet-moi',
         icon: icons.FileTextOutlined,
         breadcrumbs: false
       },
-
       {
         id: 'category-new',
         title: 'Danh mục bài viết',
@@ -114,13 +231,65 @@ const pages = [
       }
     ]
   },
+
   {
-    id: 'userlist',
+    id: 'user-management',
     title: 'Tài khoản',
-    type: 'item',
-    url: '/admin/users',
+    type: 'collapse',
     icon: icons.TableOutlined,
-    breadcrumbs: false
+    url: '/admin/users',
+    children: [
+      {
+        id: 'user-list',
+        title: 'Danh sách',
+        type: 'item',
+        url: '/admin/users',
+        icon: icons.TableOutlined,
+        exact: true,
+        activeMenu: '/admin/users'
+      },
+      {
+        id: 'user-add',
+        title: 'Thêm tài khoản',
+        type: 'item',
+        url: '/admin/users/create',
+        icon: icons.FileTextOutlined,
+        exact: true
+      },
+      {
+        id: 'user-deleted',
+        title: 'Thùng rác',
+        type: 'item',
+        url: '/admin/users/deleted',
+        icon: icons.FileTextOutlined,
+        exact: true,
+        activeMenu: '/admin/users/deleted'
+      }
+    ]
+  },
+  {
+    id: 'notification-section',
+    title: 'Thông báo',
+    type: 'collapse',
+    icon: icons.MessageOutlined,
+    children: [
+      {
+        id: 'notification-list',
+        title: 'Danh sách thông báo',
+        type: 'item',
+        url: '/admin/notifications',
+        icon: icons.TableOutlined,
+        breadcrumbs: false
+      },
+      {
+        id: 'notification-create',
+        title: 'Tạo thông báo',
+        type: 'item',
+        url: '/admin/notifications/create',
+        icon: icons.FileTextOutlined,
+        breadcrumbs: false
+      }
+    ]
   },
   {
     id: 'comments',
@@ -130,14 +299,7 @@ const pages = [
     icon: icons.MessageOutlined,
     breadcrumbs: false
   },
-  {
-    id: 'brand',
-    title: 'Thương hiệu',
-    type: 'item',
-    url: '/admin/brands',
-    icon: icons.TagsOutlined,
-    breadcrumbs: false
-  },
+
   {
     id: 'productqna',
     title: 'Hỏi đáp sản phẩm',
@@ -154,7 +316,6 @@ const pages = [
     icon: icons.TableOutlined,
     breadcrumbs: false
   }
-  
 ];
 
 export default pages;

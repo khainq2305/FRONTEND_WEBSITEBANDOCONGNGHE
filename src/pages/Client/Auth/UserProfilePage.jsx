@@ -6,8 +6,8 @@ import ProfileContent from './ProfileContent';
 import RenderDonMuaContentTuyChinh from './PurchaseHistoryPage';
 import AddressPageContent from './RenderDiaChiContent';
 import { authService } from '../../../services/client/authService';
-// Giả sử API_BASE_URL được định nghĩa ở đâu đó, ví dụ: import { API_BASE_URL } from '../../../config';
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'; // Ví dụ
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'; 
 
 const UserProfilePage = () => {
   const [activeTab, setActiveTab] = useState(() => {

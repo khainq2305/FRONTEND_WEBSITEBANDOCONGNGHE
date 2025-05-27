@@ -1,16 +1,15 @@
-// ✅ BrandList.jsx hoàn chỉnh và khớp với backend (status=published/draft/trash, phân trang, tìm kiếm, bulk, drag)
-
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import {
   Box, Button, Chip, IconButton, Menu, MenuItem,
   Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   TextField, Select, FormControl, Checkbox, Avatar
 } from '@mui/material';
 import {
-  MoreVert, Add, Restore, DeleteForever
+  MoreVert, Add, Restore, DeleteForever, ImportExport
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { useDebounce } from 'use-debounce';
 
 import Pagination from 'components/common/Pagination';
 import DeleteConfirmationDialog from './DeleteConfirmationDialog';
@@ -18,31 +17,22 @@ import RestoreConfirmationDialog from './RestoreConfirmationDialog';
 import TrashConfirmationDialog from './TrashConfirmationDialog';
 import Toastify from 'components/common/Toastify';
 
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy
-} from '@dnd-kit/sortable';
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+
+import { brandService } from '@/services/admin/brandService';
 
 const statusTabs = [
   { value: 'all', label: 'Tất cả' },
-  { value: 'published', label: 'Đã xuất bản' },
-  { value: 'draft', label: 'Bản nháp' },
+  { value: 'published', label: 'Hiển thị' },
+  { value: 'draft', label: 'Ẩn' },
   { value: 'trash', label: 'Thùng rác' }
 ];
 
 const getStatusChip = (status) => {
   const map = {
-    published: ['Đã xuất bản', 'success'],
-    draft: ['Bản nháp', 'warning'],
+    published: ['Hiển thị', 'success'],
+    draft: ['Ẩn', 'warning'],
     trash: ['Thùng rác', 'error']
   };
   const [label, color] = map[status] || [status, 'default'];
@@ -59,7 +49,7 @@ const bulkActions = {
   ]
 };
 
-const SortableRow = ({ brand, selectedIds, onSelect, onMenuOpen }) => {
+const SortableRow = ({ brand, index, selectedIds, onSelect, onMenuOpen, page, limit }) => {
   const {
     attributes,
     listeners,
@@ -77,32 +67,29 @@ const SortableRow = ({ brand, selectedIds, onSelect, onMenuOpen }) => {
   };
 
   return (
-    <TableRow ref={setNodeRef} style={style}>
+    <TableRow ref={setNodeRef} style={style} hover>
       <TableCell padding="checkbox">
         <Checkbox
           checked={selectedIds.includes(brand.id)}
           onChange={onSelect(brand.id)}
         />
       </TableCell>
+      <TableCell>{(page - 1) * limit + index + 1}</TableCell>
       <TableCell>
-        <Avatar
-          src={brand.logo}
-          alt={brand.name}
-          {...listeners}
-          {...attributes}
-          sx={{ cursor: 'grab' }}
-        />
+        <Avatar src={brand.logoUrl} alt={brand.name} sx={{ width: 40, height: 40 }} />
       </TableCell>
       <TableCell>{brand.name}</TableCell>
-      <TableCell sx={{ maxWidth: 300, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-        {brand.description}
-      </TableCell>
+      <TableCell>{brand.slug}</TableCell>
       <TableCell>{getStatusChip(brand.status)}</TableCell>
-      <TableCell>{new Date(brand.createdAt).toLocaleDateString()}</TableCell>
       <TableCell align="right">
-        <IconButton onClick={(e) => onMenuOpen(e, brand)} size="small">
-          <MoreVert />
-        </IconButton>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1 }}>
+          <IconButton onClick={(e) => onMenuOpen(e, brand)} size="small">
+            <MoreVert />
+          </IconButton>
+          <IconButton {...attributes} {...listeners} size="small" sx={{ cursor: 'grab' }} title="Kéo để thay đổi vị trí">
+            <ImportExport fontSize="small" />
+          </IconButton>
+        </Box>
       </TableCell>
     </TableRow>
   );
@@ -113,63 +100,70 @@ const BrandList = () => {
   const [brands, setBrands] = useState([]);
   const [status, setStatus] = useState('all');
   const [search, setSearch] = useState('');
+  const [debouncedSearch] = useDebounce(search, 500);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [total, setTotal] = useState(0);
   const [selectedBrand, setSelectedBrand] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState({ id: null, name: '', isBulk: false });
   const [restoreDialogOpen, setRestoreDialogOpen] = useState(false);
   const [trashDialogOpen, setTrashDialogOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
   const [bulkAction, setBulkAction] = useState('');
-  const itemsPerPage = 10;
-
   const sensors = useSensors(useSensor(PointerSensor));
 
   const fetchBrands = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/admin/brands', {
-        params: {
-          page,
-          limit: itemsPerPage,
-          search,
-          status
-        }
-      });
-      const mapped = res.data.data.map(b => ({
+      const res = await brandService.getAll({ page, limit, search: debouncedSearch, status });
+      const data = res.data?.data || [];
+      const transformed = data.map(b => ({
         ...b,
-        status: b.deletedAt ? 'trash' : (b.isActive ? 'published' : 'draft')
+        status: b.deletedAt ? 'trash' : b.isActive ? 'published' : 'draft'
       }));
-      setBrands(mapped);
-      setTotalPages(res.data.totalPages);
+      setBrands(transformed);
+      setTotal(res.data?.total || 0);
     } catch (err) {
-      console.error('❌ Lỗi lấy danh sách brand:', err);
-      Toastify.error('Không thể tải danh sách thương hiệu');
+      toast.error('Không thể tải danh sách thương hiệu');
     }
   };
 
   useEffect(() => {
     fetchBrands();
-  }, [status, search, page]);
+  }, [page, limit, status, debouncedSearch]);
+
+  const handleDragEnd = async ({ active, over }) => {
+    if (active.id !== over?.id) {
+      const oldIndex = brands.findIndex(b => b.id === active.id);
+      const newIndex = brands.findIndex(b => b.id === over.id);
+      const newBrands = arrayMove(brands, oldIndex, newIndex);
+      setBrands(newBrands);
+      const ordered = newBrands.map((b, index) => ({ id: b.id, orderIndex: index }));
+      try {
+        await brandService.updateOrderIndex(ordered);
+        toast.success('Đã lưu thứ tự hiển thị');
+      } catch (err) {
+        toast.error('Cập nhật thứ tự thất bại');
+      }
+    }
+  };
 
   const handleBulkAction = async () => {
     try {
-      if (bulkAction === 'delete') {
-        await Promise.all(selectedIds.map(id => axios.delete(`http://localhost:5000/admin/brands/${id}`)));
-        Toastify.success('Đã chuyển vào thùng rác');
-      } else if (bulkAction === 'restore') {
-        await Promise.all(selectedIds.map(id => axios.patch(`http://localhost:5000/admin/brands/${id}/restore`)));
-        Toastify.success('Đã khôi phục');
-      } else if (bulkAction === 'forceDelete') {
-        await Promise.all(selectedIds.map(id => axios.delete(`http://localhost:5000/admin/brands/${id}/force`)));
-        Toastify.success('Đã xoá vĩnh viễn');
+      if (bulkAction === 'forceDelete') {
+        setDeleteTarget({ id: selectedIds, name: `${selectedIds.length} thương hiệu`, isBulk: true });
+        setDeleteDialogOpen(true);
+        return;
       }
+      if (bulkAction === 'delete') await brandService.softDelete(selectedIds);
+      else if (bulkAction === 'restore') await brandService.restore(selectedIds);
+      toast.success('Thao tác thành công');
       fetchBrands();
       setSelectedIds([]);
       setBulkAction('');
-    } catch (err) {
-      console.error('❌ Lỗi thao tác bulk:', err);
-      Toastify.error('Thao tác thất bại');
+    } catch {
+      toast.error('Thao tác thất bại');
     }
   };
 
@@ -179,19 +173,8 @@ const BrandList = () => {
   };
 
   const handleSelectOne = (id) => (e) => {
-    setSelectedIds(e.target.checked
-      ? [...selectedIds, id]
-      : selectedIds.filter(i => i !== id));
+    setSelectedIds(e.target.checked ? [...selectedIds, id] : selectedIds.filter(i => i !== id));
   };
-
-  const filteredBrands = brands.filter(brand =>
-    brand.name.toLowerCase().includes(search.toLowerCase()) &&
-    (status === 'all' ? brand.status !== 'trash' :
-      status === 'trash' ? brand.status === 'trash' :
-        brand.status === status)
-  );
-
-  const paginatedBrands = filteredBrands;
 
   return (
     <Box sx={{ p: 2 }}>
@@ -204,29 +187,46 @@ const BrandList = () => {
         >
           Thêm thương hiệu
         </Button>
+        <FormControl size="small" sx={{ minWidth: 100 }}>
+          <Select value={limit} onChange={(e) => setLimit(Number(e.target.value))}>
+            {[10, 20, 50].map(val => (
+              <MenuItem key={val} value={val}>{val} / trang</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </Box>
 
-      <Box sx={{ display: 'flex', gap: 4, borderBottom: '1px solid #eee', mb: 2, py: 1, overflowX: 'auto' }}>
-        {statusTabs.map(tab => (
-          <Box
-            key={tab.value}
-            onClick={() => {
-              setStatus(tab.value);
-              setPage(1);
-              setSelectedIds([]);
-              setBulkAction('');
-            }}
-            sx={{
-              pb: 1,
-              cursor: 'pointer',
-              fontWeight: status === tab.value ? 600 : 400,
-              borderBottom: status === tab.value ? '2px solid red' : '2px solid transparent',
-              color: status === tab.value ? 'red' : 'black'
-            }}
-          >
-            {tab.label}
-          </Box>
-        ))}
+      <Box sx={{ display: 'flex', gap: 4, borderBottom: '1px solid #eee', mb: 2, py: 1 }}>
+        {statusTabs.map(tab => {
+          const isActive = status === tab.value;
+          return (
+            <Box
+              key={tab.value}
+              onClick={() => {
+                setStatus(tab.value);
+                setSelectedIds([]);
+                setBulkAction('');
+              }}
+              sx={{
+                position: 'relative',
+                cursor: 'pointer',
+                fontWeight: isActive ? 700 : 400,
+                color: isActive ? 'red' : 'black',
+                '&::after': {
+                  content: '""',
+                  position: 'absolute',
+                  left: 0,
+                  right: 0,
+                  bottom: -2,
+                  height: '2px',
+                  backgroundColor: isActive ? 'red' : 'transparent'
+                }
+              }}
+            >
+              {tab.label}
+            </Box>
+          );
+        })}
       </Box>
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, mb: 2 }}>
@@ -270,107 +270,36 @@ const BrandList = () => {
             <TableRow>
               <TableCell padding="checkbox">
                 <Checkbox
-                  checked={paginatedBrands.length > 0 && paginatedBrands.every(b => selectedIds.includes(b.id))}
-                  indeterminate={selectedIds.length > 0 && selectedIds.length < paginatedBrands.length}
+                  checked={brands.length > 0 && brands.every(b => selectedIds.includes(b.id))}
+                  indeterminate={selectedIds.length > 0 && selectedIds.length < brands.length}
                   onChange={handleSelectAll}
                 />
               </TableCell>
+              <TableCell>STT</TableCell>
               <TableCell>Hình ảnh</TableCell>
               <TableCell>Tên thương hiệu</TableCell>
-              <TableCell>Mô tả</TableCell>
+              <TableCell>Slug</TableCell>
               <TableCell>Trạng thái</TableCell>
-              <TableCell>Ngày tạo</TableCell>
               <TableCell align="right">Hành động</TableCell>
             </TableRow>
           </TableHead>
 
-          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
-            {status === 'trash' ? (
-              <>
-                <MenuItem onClick={() => { setRestoreDialogOpen(true); setAnchorEl(null); }}>
-                  <Restore fontSize="small" sx={{ mr: 1 }} /> Khôi phục
-                </MenuItem>
-                <MenuItem onClick={() => { setDeleteDialogOpen(true); setAnchorEl(null); }} sx={{ color: 'error.main' }}>
-                  <DeleteForever fontSize="small" sx={{ mr: 1 }} /> Xoá vĩnh viễn
-                </MenuItem>
-              </>
-            ) : (
-              <>
-                <MenuItem onClick={() => { navigate(`/admin/brands/edit/${selectedBrand?.id}`); setAnchorEl(null); }}>
-                  Chỉnh sửa
-                </MenuItem>
-                <MenuItem onClick={() => { setTrashDialogOpen(true); setAnchorEl(null); }} sx={{ color: 'error.main' }}>
-                  Chuyển vào thùng rác
-                </MenuItem>
-              </>
-            )}
-          </Menu>
-
-          <DeleteConfirmationDialog
-            open={deleteDialogOpen}
-            onClose={() => setDeleteDialogOpen(false)}
-            brandId={selectedBrand?.id}
-            itemName={selectedBrand?.name}
-            itemType="thương hiệu"
-            permanent={true}
-            onSuccess={() => {
-              fetchBrands();
-              setSelectedIds([]);
-            }}
-          />
-
-
-
-          <RestoreConfirmationDialog
-            open={restoreDialogOpen}
-            onClose={() => setRestoreDialogOpen(false)}
-            brandId={selectedBrand?.id}
-            itemName={selectedBrand?.name}
-            itemType="thương hiệu"
-            onSuccess={() => {
-              fetchBrands();
-              setSelectedIds([]);
-            }}
-          />
-
-
-
-
-          <TrashConfirmationDialog
-            open={trashDialogOpen}
-            onClose={() => setTrashDialogOpen(false)}
-            brandId={selectedBrand?.id}
-            itemName={selectedBrand?.name}
-            itemType="thương hiệu"
-            onSuccess={() => {
-              fetchBrands();
-              setSelectedIds([]);
-            }}
-          />
-
-
-          <Toastify />
-
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={({ active, over }) => {
-            if (active.id !== over?.id) {
-              const oldIndex = brands.findIndex(b => b.id === active.id);
-              const newIndex = brands.findIndex(b => b.id === over.id);
-              setBrands(arrayMove(brands, oldIndex, newIndex));
-              Toastify.success('Đã sắp xếp lại thương hiệu');
-            }
-          }}>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={brands.map(b => b.id)} strategy={verticalListSortingStrategy}>
               <TableBody>
-                {paginatedBrands.map((brand) => (
+                {brands.map((brand, index) => (
                   <SortableRow
                     key={brand.id}
                     brand={brand}
+                    index={index}
                     selectedIds={selectedIds}
                     onSelect={handleSelectOne}
                     onMenuOpen={(e, b) => {
                       setAnchorEl(e.currentTarget);
                       setSelectedBrand(b);
                     }}
+                    page={page}
+                    limit={limit}
                   />
                 ))}
               </TableBody>
@@ -379,13 +308,95 @@ const BrandList = () => {
         </Table>
       </TableContainer>
 
-      <Pagination
-        currentPage={page}
-        totalItems={filteredBrands.length}
-        itemsPerPage={itemsPerPage}
-        onPageChange={setPage}
-        sx={{ mt: 2 }}
+      {brands.length === 0 ? (
+        <Box sx={{ textAlign: 'center', py: 5, fontSize: 16, fontWeight: 500, color: '#999' }}>
+          Không có thương hiệu nào
+        </Box>
+      ) : (
+        total > limit && (
+          <Pagination
+            currentPage={page}
+            totalItems={total}
+            itemsPerPage={limit}
+            onPageChange={setPage}
+          />
+        )
+      )}
+
+      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
+        {status === 'trash' ? (
+          <>
+            <MenuItem onClick={() => { setRestoreDialogOpen(true); setAnchorEl(null); }}>
+              <Restore fontSize="small" sx={{ mr: 1 }} /> Khôi phục
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                setDeleteTarget({
+                  id: selectedBrand?.id,
+                  name: selectedBrand?.name,
+                  isBulk: false
+                });
+                setDeleteDialogOpen(true);
+                setAnchorEl(null);
+              }}
+              sx={{ color: 'error.main' }}
+            >
+              <DeleteForever fontSize="small" sx={{ mr: 1 }} /> Xoá vĩnh viễn
+            </MenuItem>
+          </>
+        ) : (
+          <>
+            <MenuItem onClick={() => { navigate(`/admin/brands/edit/${selectedBrand?.id}`); setAnchorEl(null); }}>
+              Chỉnh sửa
+            </MenuItem>
+            <MenuItem onClick={() => { setTrashDialogOpen(true); setAnchorEl(null); }} sx={{ color: 'error.main' }}>
+              Chuyển vào thùng rác
+            </MenuItem>
+          </>
+        )}
+      </Menu>
+
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        brandId={deleteTarget.id}
+        itemName={deleteTarget.name}
+        itemType="thương hiệu"
+        permanent={true}
+        onSuccess={() => {
+          fetchBrands();
+          if (deleteTarget.isBulk) {
+            setSelectedIds([]);
+            setBulkAction('');
+          }
+        }}
       />
+
+      <RestoreConfirmationDialog
+        open={restoreDialogOpen}
+        onClose={() => setRestoreDialogOpen(false)}
+        brandId={selectedBrand?.id}
+        itemName={selectedBrand?.name}
+        itemType="thương hiệu"
+        onSuccess={() => {
+          fetchBrands();
+          setSelectedIds([]);
+        }}
+      />
+
+      <TrashConfirmationDialog
+        open={trashDialogOpen}
+        onClose={() => setTrashDialogOpen(false)}
+        brandId={selectedBrand?.id}
+        itemName={selectedBrand?.name}
+        itemType="thương hiệu"
+        onSuccess={() => {
+          fetchBrands();
+          setSelectedIds([]);
+        }}
+      />
+
+      <Toastify />
     </Box>
   );
 };

@@ -14,4 +14,12 @@ export const userAddressService = {
   update: (id, data) => API.put(`/user-address/${id}`, data),  
   remove: (id) => API.delete(`/user-address/${id}`),          
   create: (data) => post(`${base}${API_ENDPOINT.client.userAddress.create}`, data),
+  getDefault: (addressId) => {
+  let url = `${base}/default`;
+  if (addressId) {
+    url += `?addressId=${addressId}`;
+  }
+  return get(url);
+},
+
 };

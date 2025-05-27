@@ -7,16 +7,18 @@ import { productService } from '../../../../services/admin/productService';
 const ProductAddPage = () => {
   const navigate = useNavigate();
 
-  const handleSubmit = async (formData) => {
-    try {
-      await productService.create(formData);
-      toast.success('✅ Đã thêm sản phẩm thành công');
-      navigate('/admin/products');
-    } catch (error) {
-      toast.error('❌ Lỗi khi thêm sản phẩm');
-      console.error('Lỗi thêm sản phẩm:', error);
-    }
-  };
+const handleSubmit = async (formData) => {
+  try {
+    await productService.create(formData);
+    toast.success('✅ Đã thêm sản phẩm thành công');
+    navigate('/admin/products');
+  } catch (error) {
+    toast.error('❌ Lỗi khi thêm sản phẩm');
+    console.error('Lỗi thêm sản phẩm:', error);
+    throw error; // ✅ THÊM DÒNG NÀY
+  }
+};
+
 
   return (
     <Container maxWidth="lg" sx={{ pt: 3 }}>

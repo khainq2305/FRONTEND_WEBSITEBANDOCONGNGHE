@@ -5,35 +5,41 @@ import {
     Divider, Avatar, FormControlLabel, Switch
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import Toastify from 'components/common/Toastify';
-import axios from 'axios';
+import { toast } from 'react-toastify';
+import { brandService } from '@/services/admin/brandService';
+import slugify from 'slugify';
 
 const BrandEditPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
 
     const [name, setName] = useState('');
+    const [slug, setSlug] = useState('');
     const [description, setDescription] = useState('');
     const [isActive, setIsActive] = useState(true);
     const [imageFile, setImageFile] = useState(null);
     const [currentImage, setCurrentImage] = useState('');
+    const [orderIndex, setOrderIndex] = useState(0);
     const [loading, setLoading] = useState(false);
-
-    const fetchBrand = async () => {
-        try {
-            const res = await axios.get(`http://localhost:5000/admin/brands/${id}`);
-            const brand = res.data;
-            setName(brand.name);
-            setDescription(brand.description || '');
-            setIsActive(brand.isActive);
-            setCurrentImage(brand.logo);
-        } catch (err) {
-            Toastify.error('Không tìm thấy thương hiệu');
-            navigate('/admin/brands');
-        }
-    };
+    const [errors, setErrors] = useState({});
 
     useEffect(() => {
+        const fetchBrand = async () => {
+            try {
+                const res = await brandService.getById(id);
+                const brand = res.data.data;
+                setName(brand.name);
+                setSlug(brand.slug || '');
+                setDescription(brand.description || '');
+                setIsActive(brand.isActive);
+                setCurrentImage(brand.logoUrl);
+                setOrderIndex(brand.orderIndex || 0);
+            } catch (err) {
+                toast.error('Không tìm thấy thương hiệu');
+                navigate('/admin/brands');
+            }
+        };
+
         fetchBrand();
     }, [id]);
 
@@ -45,45 +51,61 @@ const BrandEditPage = () => {
         const maxSize = 2 * 1024 * 1024;
 
         if (!validTypes.includes(file.type)) {
-            Toastify.error('Chỉ chấp nhận JPG, PNG, WEBP, SVG, ICO');
+            toast.error('Chỉ chấp nhận JPG, PNG, WEBP, SVG, ICO');
             return;
         }
 
         if (file.size > maxSize) {
-            Toastify.error('Dung lượng tối đa là 2MB');
+            toast.error('Dung lượng tối đa là 2MB');
             return;
         }
 
         setImageFile(file);
+        setErrors(prev => ({ ...prev, logoUrl: undefined }));
+    };
+
+    const handleNameChange = (e) => {
+        const value = e.target.value;
+        setName(value);
+        setSlug(slugify(value, { lower: true, strict: true }));
+        setErrors(prev => ({ ...prev, name: undefined }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setErrors({});
 
         if (!name.trim()) {
-            Toastify.error('Tên thương hiệu là bắt buộc');
+            setErrors(prev => ({ ...prev, name: 'Tên thương hiệu là bắt buộc' }));
             return;
         }
 
         try {
             setLoading(true);
-            const formData = new FormData();
-            formData.append('name', name);
-            formData.append('description', description);
-            formData.append('isActive', isActive);
+            const payload = {
+                name,
+                slug,
+                description,
+                isActive,
+                orderIndex
+            };
+
             if (imageFile) {
-                formData.append('logo', imageFile);
+                payload.logoUrl = imageFile;
             }
 
-            await axios.put(`http://localhost:5000/admin/brands/${id}`, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-
-            Toastify.success(`✅ Đã cập nhật thương hiệu "${name}"`);
+            const res = await brandService.update(id, payload);
+            toast.success(res.data?.message || '✅ Cập nhật thương hiệu thành công');
             navigate('/admin/brands');
         } catch (err) {
-            console.error('❌ Lỗi cập nhật brand:', err);
-            Toastify.error('Cập nhật thất bại');
+            const msg = err?.response?.data?.message;
+            const field = err?.response?.data?.field;
+
+            if (field) {
+                setErrors(prev => ({ ...prev, [field]: msg }));
+            }
+
+            toast.error(msg || 'Cập nhật thương hiệu thất bại');
         } finally {
             setLoading(false);
         }
@@ -100,7 +122,7 @@ const BrandEditPage = () => {
                 Quay lại
             </Button>
 
-            <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, borderRadius: 3, width: '100%' }}>
+            <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
                 <Typography variant="h5" fontWeight={600} gutterBottom>
                     Chỉnh sửa thương hiệu
                 </Typography>
@@ -108,7 +130,7 @@ const BrandEditPage = () => {
                 <Divider sx={{ mb: 3 }} />
 
                 <form onSubmit={handleSubmit}>
-                    {/* Logo upload */}
+                    {/* logoUrl */}
                     <Box sx={{ mb: 3 }}>
                         <Typography fontWeight={500} gutterBottom>
                             Logo thương hiệu
@@ -116,12 +138,6 @@ const BrandEditPage = () => {
 
                         <Box
                             onClick={() => document.getElementById('brand-image-input')?.click()}
-                            onDragOver={(e) => e.preventDefault()}
-                            onDrop={(e) => {
-                                e.preventDefault();
-                                const file = e.dataTransfer.files[0];
-                                if (file) handleImageChange({ target: { files: [file] } });
-                            }}
                             sx={{
                                 border: '2px dashed #ccc',
                                 borderRadius: 2,
@@ -132,20 +148,14 @@ const BrandEditPage = () => {
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 bgcolor: '#f9f9f9',
-                                position: 'relative',
+                                overflow: 'hidden'
                             }}
                         >
                             <Avatar
                                 src={imageFile ? URL.createObjectURL(imageFile) : currentImage}
-                                alt="Logo"
+                                alt="logo"
                                 variant="rounded"
-                                sx={{
-                                    width: '100%',
-                                    height: '100%',
-                                    borderRadius: 2,
-                                    objectFit: 'contain',
-                                    border: imageFile ? 'none' : '1px dashed #ccc',
-                                }}
+                                sx={{ width: '100%', height: '100%' }}
                             />
                             <input
                                 id="brand-image-input"
@@ -156,18 +166,37 @@ const BrandEditPage = () => {
                             />
                         </Box>
 
+                        {errors.logoUrl && (
+                            <Typography variant="caption" color="error">
+                                {errors.logoUrl}
+                            </Typography>
+                        )}
+
                         <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                            Kéo ảnh vào hoặc click để chọn file. Chấp nhận JPG, PNG, SVG, WEBP. Tối đa 2MB.
+                            Click để chọn ảnh. Chấp nhận JPG, PNG, SVG, WEBP. Tối đa 2MB.
                         </Typography>
                     </Box>
 
                     <TextField
                         label="Tên thương hiệu"
                         value={name}
-                        onChange={(e) => setName(e.target.value)}
+                        onChange={handleNameChange}
                         fullWidth
-                        required
                         margin="normal"
+                        error={Boolean(errors.name)}
+                        helperText={errors.name}
+                    />
+
+
+                    <TextField
+                        label="Thứ tự (STT)"
+                        type="number"
+                        value={orderIndex}
+                        onChange={(e) => setOrderIndex(Number(e.target.value))}
+                        fullWidth
+                        margin="normal"
+                        inputProps={{ min: 0 }}
+                        helperText="STT càng nhỏ sẽ hiển thị trước"
                     />
 
                     <TextField
@@ -188,14 +217,14 @@ const BrandEditPage = () => {
                                 color="primary"
                             />
                         }
-                        label="Hiển thị thương hiệu"
+                        label={isActive ? 'Trạng thái: Hiển thị' : 'Trạng thái: Ẩn'}
                         sx={{ mt: 2 }}
                     />
 
                     <Divider sx={{ my: 4 }} />
 
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                        <Button variant="contained" size="large" type="submit" disabled={loading}>
+                        <Button variant="contained" type="submit" disabled={loading}>
                             {loading ? 'Đang lưu...' : 'Cập nhật'}
                         </Button>
                     </Box>

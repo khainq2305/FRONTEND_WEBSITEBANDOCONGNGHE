@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { authService } from "services/client/authService";
 import { Eye, EyeOff } from "lucide-react";
 import { toast } from "react-toastify";
-import Loader from "components/common/Loader"; // Đảm bảo bạn có component Loader
+import Loader from "components/common/Loader"; 
 const ResetPasswordPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -20,7 +20,7 @@ const ResetPasswordPage = () => {
 useEffect(() => {
   const verifyToken = async () => {
     if (!token) {
-      toast.error("❌ Thiếu token xác thực!");
+      toast.error("Thiếu token xác thực!");
       navigate("/quen-mat-khau");
       return;
     }
@@ -30,11 +30,11 @@ useEffect(() => {
       if (response.data.verified) {
         setTokenValid(true);
       } else {
-        toast.error(response.data.message || "❌ Liên kết không hợp lệ hoặc đã hết hạn.");
+        toast.error(response.data.message || "Liên kết không hợp lệ hoặc đã hết hạn.");
         navigate("/quen-mat-khau");
       }
     } catch (err) {
-      const errorMessage = err?.response?.data?.message || "❌ Lỗi xác thực token. Vui lòng thử lại.";
+      const errorMessage = err?.response?.data?.message || "Lỗi xác thực token. Vui lòng thử lại.";
       toast.error(errorMessage);
       navigate("/quen-mat-khau");
     }
@@ -54,7 +54,7 @@ useEffect(() => {
     setErrors({});
 
     if (!tokenValid) {
-      toast.error("❌ Liên kết không hợp lệ hoặc đã hết hạn.");
+      toast.error("Liên kết không hợp lệ hoặc đã hết hạn.");
       setTimeout(() => navigate("/dang-nhap"), 2000);
       return;
     }
@@ -80,10 +80,10 @@ useEffect(() => {
     setLoading(true);
     try {
       await authService.resetPassword({ token, newPassword });
-      toast.success("✅ Đặt lại mật khẩu thành công! Vui lòng đăng nhập.");
-      setTimeout(() => navigate("/dang-nhap"), 2000); // Chuyển hướng sau 2 giây
+      toast.success("Đặt lại mật khẩu thành công! Vui lòng đăng nhập.");
+      setTimeout(() => navigate("/dang-nhap"), 2000); 
     } catch (err) {
-      setErrors({ global: err?.response?.data?.message || "❌ Lỗi xảy ra!" });
+      setErrors({ global: err?.response?.data?.message || "Lỗi xảy ra!" });
     } finally {
       setLoading(false);
     }
@@ -109,7 +109,7 @@ useEffect(() => {
     </h2>
 
     <form onSubmit={handleSubmit} className="space-y-5">
-      {/* Trường Mật khẩu mới */}
+  
       <div className="relative flex flex-col items-start">
         <label htmlFor="newPasswordInput" className="text-sm font-medium text-gray-600 mb-1">
           Mật khẩu mới
@@ -125,20 +125,20 @@ useEffect(() => {
               if (errors?.newPassword) {
                 const updatedErrors = { ...errors };
                 delete updatedErrors.newPassword;
-                // setErrors(updatedErrors); 
+                
               }
             }}
             className={`w-full px-4 py-3 border rounded-md text-sm
               ${ errors?.newPassword
                 ? "border-red-500 focus:ring-red-300"
-                // Sử dụng var(--primary-color) cho focus khi không có lỗi
+             
                 : "border-gray-300 focus:border-[var(--primary-color)] focus:ring-[var(--primary-color)]" 
               }
               focus:outline-none focus:ring-1 transition-colors duration-200 ease-in-out`}
             disabled={loading}
           />
           <div
-            // Sử dụng var(--primary-color) cho hover icon
+          
             className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500 hover:text-[var(--primary-color)]" 
             onClick={() => setShowPassword(!showPassword)}
             aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
@@ -170,20 +170,20 @@ useEffect(() => {
               if (errors?.confirmPassword) {
                 const updatedErrors = { ...errors };
                 delete updatedErrors.confirmPassword;
-                // setErrors(updatedErrors);
+     
               }
             }}
             className={`w-full px-4 py-3 border rounded-md text-sm
               ${ errors?.confirmPassword
                 ? "border-red-500 focus:ring-red-300"
-                // Sử dụng var(--primary-color) cho focus khi không có lỗi
+          
                 : "border-gray-300 focus:border-[var(--primary-color)] focus:ring-[var(--primary-color)]"
               }
               focus:outline-none focus:ring-1 transition-colors duration-200 ease-in-out`}
             disabled={loading}
           />
           <div
-            // Sử dụng var(--primary-color) cho hover icon
+          
             className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500 hover:text-[var(--primary-color)]"
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             aria-label={showConfirmPassword ? "Ẩn mật khẩu xác nhận" : "Hiện mật khẩu xác nhận"}
@@ -206,14 +206,14 @@ useEffect(() => {
         </div>
       )}
 
-      {/* Nút Submit - Sử dụng var(--primary-color) */}
+      
       <button
         type="submit"
         className={`w-full py-3 rounded-md text-white text-base font-semibold transition-opacity duration-200 ease-in-out
           ${ loading
-            // Sử dụng var(--primary-color) cho nút
+        
             ? "bg-[var(--primary-color)] opacity-50 cursor-not-allowed" 
-            : "bg-[var(--primary-color)] hover:opacity-85" // Có thể bạn muốn một màu hover tối hơn của primary-color, ví dụ: hover:bg-[var(--secondary-color)] hoặc điều chỉnh opacity
+            : "bg-[var(--primary-color)] hover:opacity-85" 
         }`}
         disabled={loading}
         style={{ letterSpacing: '0.5px' }}

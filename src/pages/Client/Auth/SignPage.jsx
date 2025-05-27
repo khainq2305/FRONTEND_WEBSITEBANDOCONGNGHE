@@ -1,12 +1,13 @@
 // AuthPage.jsx
 import { useForm } from 'react-hook-form';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { useState, useEffect } from 'react'; // useEffect đã có sẵn
+import { useState, useEffect } from 'react';
 import { authService } from 'services/client/authService';
 import Loader from 'components/common/Loader';
 import { GoogleLogin } from '@react-oauth/google';
-import { Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 
+import GradientButton from '../../../components/Client/GradientButton';
 
 const AuthPage = () => {
   const location = useLocation();
@@ -18,48 +19,42 @@ const AuthPage = () => {
     handleSubmit,
     setError,
     watch,
-    formState: { errors, isValid },
-   
+    formState: { errors, isValid }
   } = useForm({
-    mode: "onChange",
+    mode: 'onChange'
   });
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState('');
 
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
   const toggleConfirmPasswordVisibility = () => setShowConfirmPassword((prev) => !prev);
 
-  
   useEffect(() => {
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     if (token) navigate('/');
   }, [navigate]);
 
-  
   useEffect(() => {
     if (isLoading) {
-     
       const originalOverflow = document.body.style.overflow;
-  
+
       document.body.style.overflow = 'hidden';
 
-      
       return () => {
         document.body.style.overflow = originalOverflow;
       };
     } else {
-
-      document.body.style.overflow = 'auto'; 
+      document.body.style.overflow = 'auto';
     }
-  }, [isLoading]); 
+  }, [isLoading]);
 
   const onSubmit = async (data) => {
     try {
       setIsLoading(true);
-      setErrorMessage(""); 
+      setErrorMessage('');
 
       if (isLogin) {
         const response = await authService.login(data);
@@ -78,39 +73,36 @@ const AuthPage = () => {
             email: data.email,
             fullName: data.fullName,
             password: data.password,
-            otpToken,
-          },
+            otpToken
+          }
         });
       }
     } catch (err) {
       console.error(err);
-      setErrorMessage(err?.response?.data?.message || "Email hoặc mật khẩu không chính xác.");
+      setErrorMessage(err?.response?.data?.message || 'Email hoặc mật khẩu không chính xác.');
     } finally {
-      setIsLoading(false); 
+      setIsLoading(false);
     }
   };
 
   const handleGoogleLogin = async (credentialResponse) => {
     try {
-      setIsLoading(true); 
-      const response = await authService.loginWithGoogle(
-        { token: credentialResponse.credential },
-        { withCredentials: true }
-      );
-      console.log("🔎 Đăng nhập Google response:", response.data);
+      setIsLoading(true);
+      const response = await authService.loginWithGoogle({ token: credentialResponse.credential }, { withCredentials: true });
+      console.log('🔎 Đăng nhập Google response:', response.data);
 
       const { token, user } = response.data;
 
       if (user.fullName) {
-        localStorage.setItem("token", token);
-        localStorage.setItem("user", JSON.stringify(user)); 
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
       }
       navigate('/');
     } catch (err) {
-      console.error("❌ Đăng nhập Google thất bại:", err);
+      console.error('❌ Đăng nhập Google thất bại:', err);
       alert(err?.response?.data?.message || 'Đăng nhập Google thất bại!');
     } finally {
-      setIsLoading(false); 
+      setIsLoading(false);
     }
   };
 
@@ -147,13 +139,13 @@ const AuthPage = () => {
         }}
       >
         <div className="relative z-10 flex flex-col justify-center items-center h-full text-center p-10">
-          <h2 className="text-3xl font-bold mb-4" style={{ color: "var(--text-color)" }}>
-            {isLogin ? "Bạn đã có tài khoản?" : "Bạn mới đến?"}
+          <h2 className="text-3xl font-bold mb-4" style={{ color: 'var(--text-color)' }}>
+            {isLogin ? 'Bạn đã có tài khoản?' : 'Bạn mới đến?'}
           </h2>
-          <p className="text-lg max-w-xs mb-4" style={{ color: "var(--text-color)" }}>
+          <p className="text-lg max-w-xs mb-4" style={{ color: 'var(--text-color)' }}>
             {isLogin
-              ? "Đăng nhập để tiếp tục khám phá các tính năng tuyệt vời của chúng tôi."
-              : "Hãy đăng ký để tham gia cộng đồng của chúng tôi và khám phá những điều thú vị!"}
+              ? 'Đăng nhập để tiếp tục khám phá các tính năng tuyệt vời của chúng tôi.'
+              : 'Hãy đăng ký để tham gia cộng đồng của chúng tôi và khám phá những điều thú vị!'}
           </p>
         </div>
       </div>
@@ -161,9 +153,7 @@ const AuthPage = () => {
       {/* Phần form bên phải */}
       <div className="flex flex-col justify-center items-center w-full lg:w-1/2 p-8">
         <div className="bg-light shadow-md rounded-lg p-6 w-full max-w-md">
-          <h2 className="text-2xl font-bold mb-4 text-center text-primary">
-            {isLogin ? 'Đăng nhập' : 'Đăng ký'}
-          </h2>
+          <h2 className="text-2xl font-bold mb-4 text-center text-primary">{isLogin ? 'Đăng nhập' : 'Đăng ký'}</h2>
           {errorMessage && (
             <div className="flex items-center gap-2 mt-3 mb-3 text-red-600 bg-red-50 border border-red-200 rounded-md p-2">
               <AlertCircle className="w-5 h-5" />
@@ -177,8 +167,9 @@ const AuthPage = () => {
                 <input
                   {...register('fullName', { required: 'Vui lòng nhập họ và tên.' })}
                   placeholder="Họ và Tên"
-                  className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 ${errors.fullName ? 'border-red-500 focus:ring-red-500' : 'border-primary focus:ring-primary'
-                    }`}
+                  className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 ${
+                    errors.fullName ? 'border-red-500 focus:ring-red-500' : 'border-primary focus:ring-primary'
+                  }`}
                 />
                 {errors.fullName && <p className="text-red-500 text-sm mt-0.5">{errors.fullName.message}</p>}
               </div>
@@ -191,12 +182,13 @@ const AuthPage = () => {
                   required: 'Vui lòng nhập email.',
                   pattern: {
                     value: /^\S+@\S+\.\S+$/,
-                    message: 'Email không hợp lệ.',
-                  },
+                    message: 'Email không hợp lệ.'
+                  }
                 })}
                 placeholder="Email"
-                className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 ${errors.email ? 'border-red-500 focus:ring-red-500' : 'border-primary focus:ring-primary'
-                  }`}
+                className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 ${
+                  errors.email ? 'border-red-500 focus:ring-red-500' : 'border-primary focus:ring-primary'
+                }`}
               />
               {errors.email && <p className="text-red-500 text-sm mt-0.5">{errors.email.message}</p>}
             </div>
@@ -211,12 +203,13 @@ const AuthPage = () => {
                     ...(!isLogin && {
                       pattern: {
                         value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-                        message: 'Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.',
-                      },
-                    }),
+                        message: 'Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.'
+                      }
+                    })
                   })}
-                  className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 pr-10 ${errors.password ? 'border-red-500 focus:ring-red-500' : 'border-primary focus:ring-primary'
-                    }`}
+                  className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 pr-10 ${
+                    errors.password ? 'border-red-500 focus:ring-red-500' : 'border-primary focus:ring-primary'
+                  }`}
                   placeholder="Mật khẩu"
                 />
                 <button
@@ -238,10 +231,11 @@ const AuthPage = () => {
                     type={showConfirmPassword ? 'text' : 'password'}
                     {...register('confirmPassword', {
                       required: 'Vui lòng nhập lại mật khẩu.',
-                      validate: (value) => value === watch('password') || 'Mật khẩu không khớp.',
+                      validate: (value) => value === watch('password') || 'Mật khẩu không khớp.'
                     })}
-                    className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 pr-10 ${errors.confirmPassword ? 'border-red-500 focus:ring-red-500' : 'border-primary focus:ring-primary'
-                      }`}
+                    className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 pr-10 ${
+                      errors.confirmPassword ? 'border-red-500 focus:ring-red-500' : 'border-primary focus:ring-primary'
+                    }`}
                     placeholder="Xác nhận mật khẩu"
                   />
                   <button
@@ -259,32 +253,35 @@ const AuthPage = () => {
             {isLogin && (
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    {...register('remember')}
-                    className="focus:ring-primary text-primary"
-                  />
+                  <input type="checkbox" {...register('remember')} className="focus:ring-primary text-primary" />
                   <label className="text-sm text-text-color">Ghi nhớ đăng nhập</label>
                 </div>
-                <Link to="/quen-mat-khau" className="text-primary text-sm font-semibold">Quên mật khẩu?</Link>
+                <Link to="/quen-mat-khau" className="text-primary text-sm font-semibold">
+                  Quên mật khẩu?
+                </Link>
               </div>
             )}
 
-            <button
-              type="submit"
-              className={`w-full bg-primary-gradient text-light-color font-bold py-2 rounded hover:bg-opacity-90 transition ${!isValid || isLoading ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-              disabled={!isValid || isLoading}
-            >
+            <GradientButton type="submit" disabled={!isValid || isLoading} className="w-full" size="compact">
               {isLogin ? 'Đăng nhập' : 'Đăng ký'}
-            </button>
+            </GradientButton>
           </form>
 
           <div className="mt-4 text-center text-neutral-color">
             {isLogin ? (
-              <p>Bạn chưa có tài khoản? <Link to="/dang-ky" className="text-primary font-semibold">Đăng ký ngay</Link></p>
+              <p>
+                Bạn chưa có tài khoản?{' '}
+                <Link to="/dang-ky" className="text-primary font-semibold">
+                  Đăng ký ngay
+                </Link>
+              </p>
             ) : (
-              <p>Bạn đã có tài khoản? <Link to="/dang-nhap" className="text-primary font-semibold">Đăng nhập ngay</Link></p>
+              <p>
+                Bạn đã có tài khoản?{' '}
+                <Link to="/dang-nhap" className="text-primary font-semibold">
+                  Đăng nhập ngay
+                </Link>
+              </p>
             )}
           </div>
 

@@ -1,24 +1,6 @@
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  Grid,
-  Typography,
-  Link,
-  Chip,
-  Box
-} from '@mui/material';
-import { useArticle } from '@/pages/Admin/News/News';
-import {
-  OpenInNew,
-  Person,
-  Category as CategoryIcon,
-  CalendarToday,
-  Label,
-  ChatBubble,
-  Description
-} from '@mui/icons-material';
-import { gray } from '@ant-design/colors';
+import { Dialog, DialogTitle, DialogContent, Grid, Typography, Link, Chip, Box } from '@mui/material';
+import { useArticle } from '../Context/ArticleContext';
+import { OpenInNew, Person, Category as CategoryIcon, CalendarToday, Label, ChatBubble, Description, Info, AccessTime } from '@mui/icons-material';
 
 const BasicModal = () => {
   const { modalItem, setModalItem } = useArticle();
@@ -33,12 +15,12 @@ const BasicModal = () => {
 
     return `Còn ${d} ngày ${h} giờ ${min} phút`;
   };
-
   return (
     <Dialog open={!!modalItem} onClose={() => setModalItem(null)} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ pb: 1 }}>Chi tiết bài viết</DialogTitle>
       <DialogContent dividers sx={{ px: 4, py: 2 }}>
         {modalItem && (
+          console.log('🪵 modalItem:', modalItem),
           <Box display="flex" flexDirection="column" gap={2}>
             {/* Tiêu đề + link */}
             <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap">
@@ -124,18 +106,13 @@ const BasicModal = () => {
 
                   <Grid item xs={6}>
                     <Box display="flex" alignItems="center" gap={1}>
-                      <ChatBubble fontSize="small" color="action" />
+                      <Info fontSize="small" color="action" />
                       <Typography fontSize={14} fontWeight={500}>Trạng thái:</Typography>
                       <Chip
-                        label={modalItem.status}
+                        label={
+                          modalItem.status === 1 ? 'Đã xuất bản': modalItem.status === 2 ? 'Hẹn giờ đăng' : 'Bản nháp'}
                         size="small"
-                        color={
-                          modalItem.status === 'scheduled'
-                            ? 'info'
-                            : modalItem.status === 'published'
-                              ? 'success'
-                              : 'warning'
-                        }
+                        color={ modalItem.status === 2 ? 'info' : modalItem.status === 1 ? 'success': 'warning' }
                       />
 
                     </Box>
@@ -144,10 +121,10 @@ const BasicModal = () => {
                   {modalItem.publishAt && (
                     <Grid item xs={12}>
                       <Box display="flex" alignItems="center" gap={1}>
-                        <ChatBubble fontSize="small" color="action" />
+                        <AccessTime fontSize="small" color="action" />
                         <Typography fontSize={14} fontWeight={500}>Thời gian đăng:</Typography>
                         <Typography fontSize={14} color={'red'}>
-                          {modalItem.status === 'scheduled'
+                          {modalItem.status === 2
                             ? timeLeftText(modalItem.publishAt)
                             : modalItem.publishAt}
                         </Typography>
@@ -165,8 +142,6 @@ const BasicModal = () => {
                   </Grid>
 
                   {/* Nội dung */}
-
-
                 </Grid>
               </Box>
             </Box>

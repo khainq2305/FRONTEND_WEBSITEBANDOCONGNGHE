@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 
 const statuses = [
   { label: 'Hoạt động', value: 1 },
-  { label: 'Khóa', value: 0 }
+  { label: 'Ngưng hoạt động', value: 0 }
 ];
 
 const UserFormDialog = ({ open, onClose, onSubmit, initialData = {}, asPage = false, errors = {} }) => {

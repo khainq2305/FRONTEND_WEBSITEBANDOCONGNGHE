@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import FormPost from '@/pages/Admin/News/components/form/FormPost';
 import { newsService } from '@/services/admin/postService';
+import { toast } from 'react-toastify';
 
 const Edit = () => {
-  const { id } = useParams();
+  const { slug } = useParams();
   const [postData, setPostData] = useState(null);
-
+  const navigate = useNavigate();
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const res = await newsService.getById(id);
+        const res = await newsService.getBySlug(slug);
         setPostData(res.data.data); // ✅ Lưu res.data
         console.log(res.data.data)
       } catch (err) {
@@ -19,12 +20,22 @@ const Edit = () => {
     };
 
     fetchPost();
-  }, [id]);
+  }, [slug]);
 
   const handleSubmit = async (data) => {
-    console.log('📦 Submit cập nhật:', data);
-    await newsService.update(id, data); // ✅ gọi update ở đây
-  };
+  console.log('📦 Submit cập nhật:', data);
+  try {
+    const res = await newsService.update(slug, data);
+    console.log('📨 Phản hồi:', res);
+    toast.success(res.data.message || 'Cập nhật thành công');
+    navigate('/admin/quan-ly-bai-viet');
+  } catch (err) {
+  const message = err?.response?.data?.message || 'Có lỗi xảy ra';
+  console.log('lỗi đây',message)
+  toast.error(message);
+}
+};
+
 
   if (!postData) return <div>Đang tải dữ liệu...</div>;
 

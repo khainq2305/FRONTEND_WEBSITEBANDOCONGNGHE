@@ -10,192 +10,8 @@ import NotificationDropdown from './NotificationDropdown';
 import PopupModal from './PopupModal';
 import { authService } from 'services/client/authService';
 import logoSrc from '../../../assets/Client/images/Logo/logo.svg'; 
+import { categoryService } from '../../../services/client/categoryService';
 
-const flatCategoriesFromAPI = [
-  // ===== DANH MỤC CẤP 1 (L1) =====
-  {
-    id: 'dien-gia-dung',
-    name: 'Điện gia dụng',
-    parent_id: null,
-    slug: 'dien-gia-dung'
-  },
-  {
-    id: 'phu-kien',
-    name: 'Phụ kiện',
-    parent_id: null,
-    slug: 'phu-kien'
-  },
-  {
-    id: 'do-gia-dung',
-    name: 'Đồ gia dụng',
-    parent_id: null,
-    slug: 'do-gia-dung'
-  },
-  {
-    id: 'may-cu', 
-    name: 'Máy cũ, trưng bày',
-    parent_id: null,
-    slug: 'may-cu'
-  },
-
-
-  
-  {
-    id: 'quat-dieu-hoa-1', 
-    name: 'Quạt điều hòa',
-    parent_id: 'dien-gia-dung',
-    slug: 'quat-dieu-hoa-1', 
-    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
-  },
-  {
-    id: 'may-xay-sinh-to-1', 
-    name: 'Máy xay sinh tố',
-    parent_id: 'dien-gia-dung',
-    slug: 'may-xay-sinh-to-1', 
-    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
-  },
-  {
-    id: 'may-ep-trai-cay-1', 
-    name: 'Máy ép trái cây',
-    parent_id: 'dien-gia-dung',
-    slug: 'may-ep-trai-cay-1', 
-    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
-  },
-  {
-    id: 'quat-dieu-hoa-2', 
-    name: 'Quạt điều hòa',
-    parent_id: 'dien-gia-dung',
-    slug: 'quat-dieu-hoa-2', 
-    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
-  },
-  {
-    id: 'may-xay-sinh-to-2', 
-    name: 'Máy xay sinh tố',
-    parent_id: 'dien-gia-dung',
-    slug: 'may-xay-sinh-to-2',
-    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
-  },
-  {
-    id: 'may-ep-trai-cay-2', 
-    name: 'Máy ép trái cây',
-    parent_id: 'dien-gia-dung',
-    slug: 'may-ep-trai-cay-2', 
-    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
-  },
-  {
-    id: 'quat-dieu-hoa-3', 
-    name: 'Quạt điều hòa',
-    parent_id: 'dien-gia-dung',
-    slug: 'quat-dieu-hoa-3', 
-    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
-  },
-  {
-    id: 'may-xay-sinh-to-3', 
-    name: 'Máy xay sinh tố',
-    parent_id: 'dien-gia-dung',
-    slug: 'may-xay-sinh-to-3', 
-    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
-  },
-  {
-    id: 'may-ep-trai-cay-3', 
-    name: 'Máy ép trái cây',
-    parent_id: 'dien-gia-dung',
-    slug: 'may-ep-trai-cay-3',
-    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
-  },
-  {
-    id: 'quat-dieu-hoa-4',
-    name: 'Quạt điều hòa',
-    parent_id: 'dien-gia-dung',
-    slug: 'quat-dieu-hoa-4',
-    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
-  },
-  {
-    id: 'may-xay-sinh-to-4', 
-    name: 'Máy xay sinh tố',
-    parent_id: 'dien-gia-dung',
-    slug: 'may-xay-sinh-to-4', 
-    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
-  },
-  {
-    id: 'may-ep-trai-cay-4',
-    name: 'Máy ép trái cây',
-    parent_id: 'dien-gia-dung',
-    slug: 'may-ep-trai-cay-4', 
-    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
-  },
-  {
-    id: 'may-loc-nuoc', 
-    name: 'Máy lọc nước',
-    parent_id: 'dien-gia-dung',
-    slug: 'may-loc-nuoc',
-    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
-  },
-  {
-    id: 'noi-com-dien', 
-    name: 'Nồi cơm điện',
-    parent_id: 'dien-gia-dung',
-    slug: 'noi-com-dien',
-    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
-  },
-  {
-    id: 'bep-dien',
-    name: 'Bếp điện các loại',
-    parent_id: 'dien-gia-dung',
-    slug: 'bep-dien',
-    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
-  },
-  {
-    id: 'may-hut-bui-01',
-    name: 'Máy hút bụi A',
-    parent_id: 'dien-gia-dung',
-    slug: 'may-hut-bui-a', 
-    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
-  },
-  {
-    id: 'may-hut-bui-02', 
-    name: 'Máy hút bụi B',
-    parent_id: 'dien-gia-dung',
-    slug: 'may-hut-bui-b',
-    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
-  },
-  {
-    id: 'may-hut-bui-03', 
-    name: 'Máy hút bụi C',
-    parent_id: 'dien-gia-dung',
-    slug: 'may-hut-bui-c',
-    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
-  }
-,
-  {
-    id: 'may-cu-item-1',
-    name: 'Máy cũ loại X',
-    parent_id: 'may-cu', 
-    slug: 'may-cu-loai-x',
-    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
-  },
-  {
-    id: 'may-cu-item-2',
-    name: 'Máy cũ loại Y',
-    parent_id: 'may-cu',
-    slug: 'may-cu-loai-y',
-    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
-  },
-  {
-    id: 'sac-du-phong-pk', 
-    name: 'Sạc dự phòng',
-    parent_id: 'phu-kien',
-    slug: 'sac-du-phong',
-    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
-  },
-  {
-    id: 'tai-nghe-pk',
-    name: 'Tai nghe',
-    parent_id: 'phu-kien',
-    slug: 'tai-nghe',
-    imageUrl: 'https://cdn.tgdd.vn/Products/Images/1992/265390/265390-600x600.jpg'
-  }
-];
 
 const sampleNotifications = [
   { id: 'notif1', type: 'order_shipped', title: 'Đơn hàng WN0301700710 vừa được giao thành công.', message: 'Cảm ơn bạn đã đặt hàng tại CellphoneS.', timestamp: '1 năm trước', link: '#order-detail-1', isRead: false },
@@ -209,6 +25,8 @@ const Header = () => {
  const [userInfo, setUserInfo] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const [flatCategoriesFromAPI, setFlatCategoriesFromAPI] = useState([]);
+
  const accountDropdownTimerRef = useRef(null);
  const handleAccountDropdownEnter = () => {
   clearTimeout(accountDropdownTimerRef.current);
@@ -219,6 +37,34 @@ const handleAccountDropdownLeave = () => {
     setIsDropdownOpen(false);
   }, 300);
 };
+
+  useEffect(() => {
+const fetchCategories = async () => {
+  try {
+    const response = await categoryService.getAll();
+    const nested = response.data || [];
+
+    const flatList = nested.flatMap(parent => [
+      { ...parent, parent_id: null },
+      ...(parent.children || []).map(child => ({
+        ...child,
+        parent_id: parent.id
+      }))
+    ]);
+
+    // ❗️ THÊM DÒNG NÀY:
+    setFlatCategoriesFromAPI(flatList);
+
+    setTopLevelDesktopCategories(flatList.filter(c => c.parent_id === null));
+    setMobileCategoryTree(buildCategoryTree(flatList));
+  } catch (err) {
+    console.error('❌ Lỗi lấy danh mục:', err);
+  }
+};
+
+
+    fetchCategories();
+  }, []);
  
 useEffect(() => {
   const fetchUserInfo = async () => {
@@ -367,10 +213,6 @@ useEffect(() => {
     }, 300);
   };
 
-  useEffect(() => {
-    setTopLevelDesktopCategories(flatCategoriesFromAPI.filter((cat) => cat.parent_id === null));
-    setMobileCategoryTree(buildCategoryTree(flatCategoriesFromAPI));
-  }, []);
 
   const handleMenuEnter = () => {
     clearTimeout(categoryMenuTimerRef.current);

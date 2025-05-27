@@ -1,20 +1,50 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Box, Button, Paper, TextField, Typography,
   Divider, Avatar, FormControlLabel, Switch
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from 'react-router-dom';
-import Toastify from 'components/common/Toastify';
-import axios from 'axios';
+import { toast } from 'react-toastify';
+import { brandService } from '@/services/admin/brandService';
+import slugify from 'slugify';
+
+const LOCAL_KEY = 'brand-create-form';
 
 const BrandCreatePage = () => {
   const navigate = useNavigate();
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
+  const nameRef = useRef(null);
+
+  const saved = JSON.parse(localStorage.getItem(LOCAL_KEY)) || {};
+  const [name, setName] = useState(saved.name || '');
+  const [slug, setSlug] = useState(slugify(saved.name || '', { lower: true, strict: true }));
+  const [description, setDescription] = useState(saved.description || '');
+  const [isActive, setIsActive] = useState(saved.isActive ?? true);
+  const [orderIndex, setOrderIndex] = useState(saved.orderIndex || 0);
   const [imageFile, setImageFile] = useState(null);
-  const [isActive, setIsActive] = useState(true);
+  const [imagePreview, setImagePreview] = useState(saved.imagePreview || '');
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    nameRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    const formData = { name, description, isActive, orderIndex, imagePreview };
+    localStorage.setItem(LOCAL_KEY, JSON.stringify(formData));
+  }, [name, description, isActive, orderIndex, imagePreview]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (name || description || imageFile) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [name, description, imageFile]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -24,40 +54,71 @@ const BrandCreatePage = () => {
     const maxSize = 2 * 1024 * 1024;
 
     if (!validTypes.includes(file.type)) {
-      Toastify.error('Chỉ chấp nhận JPG, PNG, WEBP, SVG, ICO');
+      toast.error('Chỉ chấp nhận JPG, PNG, WEBP, SVG, ICO');
       return;
     }
 
     if (file.size > maxSize) {
-      Toastify.error('Dung lượng ảnh tối đa là 2MB');
+      toast.error('Dung lượng ảnh tối đa là 2MB');
       return;
     }
 
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+
     setImageFile(file);
+    setErrors(prev => ({ ...prev, logoUrl: undefined }));
+  };
+
+  const handleNameChange = (e) => {
+    const value = e.target.value;
+    setName(value);
+    setSlug(slugify(value, { lower: true, strict: true }));
+    setErrors(prev => ({ ...prev, name: undefined }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrors({});
 
-    if (!name.trim()) return Toastify.error('Tên thương hiệu là bắt buộc');
-    if (!imageFile) return Toastify.error('Vui lòng chọn logo thương hiệu');
+    if (!name.trim()) {
+      setErrors(prev => ({ ...prev, name: 'Tên thương hiệu là bắt buộc' }));
+      return;
+    }
+
+    if (!imageFile) {
+      setErrors(prev => ({ ...prev, logoUrl: 'Vui lòng chọn logoUrl thương hiệu' }));
+      return;
+    }
 
     try {
       setLoading(true);
-      const formData = new FormData();
-      formData.append('name', name);
-      formData.append('description', description);
-      formData.append('isActive', isActive);
-      formData.append('logo', imageFile);
+      const payload = {
+        name,
+        slug,
+        description,
+        isActive,
+        orderIndex,
+        logoUrl: imageFile
+      };
 
-      const res = await axios.post('http://localhost:5000/admin/brands', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const res = await brandService.create(payload);
+      toast.success(res.data?.message || '✅ Đã tạo thương hiệu thành công');
 
-      Toastify.success(res.data?.message || `✅ Đã tạo thương hiệu "${res.data?.brand?.name}"`);
+      localStorage.removeItem(LOCAL_KEY);
       navigate('/admin/brands');
     } catch (err) {
-      Toastify.error(err?.response?.data?.message || 'Tạo thương hiệu thất bại');
+      const msg = err?.response?.data?.message;
+      const field = err?.response?.data?.field;
+
+      if (field) {
+        setErrors({ [field]: msg });
+      }
+
+      toast.error(msg || 'Tạo thương hiệu thất bại');
     } finally {
       setLoading(false);
     }
@@ -82,18 +143,14 @@ const BrandCreatePage = () => {
         <Divider sx={{ mb: 3 }} />
 
         <form onSubmit={handleSubmit}>
+          {/* logoUrl */}
           <Box sx={{ mb: 3 }}>
             <Typography fontWeight={500} gutterBottom>
               Logo thương hiệu <span style={{ color: 'red' }}>*</span>
             </Typography>
+
             <Box
               onClick={() => document.getElementById('brand-image-input')?.click()}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => {
-                e.preventDefault();
-                const file = e.dataTransfer.files[0];
-                if (file) handleImageChange({ target: { files: [file] } });
-              }}
               sx={{
                 border: '2px dashed #ccc',
                 borderRadius: 2,
@@ -103,12 +160,13 @@ const BrandCreatePage = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                bgcolor: '#f9f9f9'
+                bgcolor: '#f9f9f9',
+                overflow: 'hidden'
               }}
             >
               <Avatar
-                src={imageFile ? URL.createObjectURL(imageFile) : ''}
-                alt="Logo"
+                src={imagePreview}
+                alt="logo"
                 variant="rounded"
                 sx={{ width: '100%', height: '100%' }}
               />
@@ -120,20 +178,44 @@ const BrandCreatePage = () => {
                 onChange={handleImageChange}
               />
             </Box>
+
+            {errors.logoUrl && (
+              <Typography variant="caption" color="error">
+                {errors.logoUrl}
+              </Typography>
+            )}
+
             <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-              Kéo ảnh vào hoặc click để chọn. Chấp nhận JPG, PNG, SVG, WEBP. Tối đa 2MB.
+              Click để chọn ảnh. Hỗ trợ JPG, PNG, SVG, WEBP, ICO. Tối đa 2MB.
             </Typography>
           </Box>
 
+
+          {/* Name */}
           <TextField
+            inputRef={nameRef}
             label="Tên thương hiệu"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={handleNameChange}
             fullWidth
-            required
             margin="normal"
+            error={Boolean(errors.name)}
+            helperText={errors.name}
           />
 
+          {/* OrderIndex */}
+          <TextField
+            label="Thứ tự (STT)"
+            type="number"
+            value={orderIndex}
+            onChange={(e) => setOrderIndex(Number(e.target.value))}
+            fullWidth
+            margin="normal"
+            inputProps={{ min: 0 }}
+            helperText="STT càng nhỏ sẽ hiển thị trước"
+          />
+
+          {/* Description */}
           <TextField
             label="Mô tả"
             value={description}
@@ -144,6 +226,7 @@ const BrandCreatePage = () => {
             margin="normal"
           />
 
+          {/* Status */}
           <FormControlLabel
             control={
               <Switch
@@ -152,14 +235,18 @@ const BrandCreatePage = () => {
                 color="primary"
               />
             }
-            label={isActive ? 'Trạng thái: Đã xuất bản' : 'Trạng thái: Bản nháp'}
+            label={isActive ? 'Trạng thái: Hiển thị' : 'Trạng thái: Ẩn'}
             sx={{ mt: 2 }}
           />
 
           <Divider sx={{ my: 4 }} />
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button variant="contained" type="submit" disabled={loading}>
+            <Button
+              variant="contained"
+              type="submit"
+              disabled={loading || !name.trim() || !imageFile}
+            >
               {loading ? 'Đang lưu...' : 'Lưu thương hiệu'}
             </Button>
           </Box>

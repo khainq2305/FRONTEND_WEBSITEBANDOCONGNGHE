@@ -55,7 +55,8 @@ const ClientRoutes = {
       path: 'category/:id',
       element: <ProductListByCategory />
     },
-    { path: 'product/:id', element: <ProductDetail /> },
+   { path: 'product/:slug', element: <ProductDetail /> },
+
     { path: 'cart', element: <CartPage /> },
     { path: 'checkout', element: <CheckoutPage /> },
     { path: 'order-confirmation', element: <OrderConfirmation /> },

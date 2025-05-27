@@ -8,6 +8,10 @@ import TechnicalSpec from "./TechnicalSpec";
 import ProductQA from "./ProductQA";
 import ProductInfoBox from "./ProductInfoBox";
 import ProductHighlights from "./ProductHighlights";
+import { useParams } from 'react-router-dom';
+import { productService } from '../../../services/client/productService';
+import { cartService } from '../../../services/client/cartService';
+import { toast } from 'react-toastify'; // hoặc dùng toast custom của bạn
 
 // --- Các component nhỏ ---
 const HomeIcon = (props) => (
@@ -111,16 +115,199 @@ const ProductTitleHeader = ({ productName, rating, reviewCount }) => (
 
 // --- Component ProductDetail chính ---
 export default function ProductDetail() {
+   const { slug } = useParams(); // ✅ LẤY slug từ route /product/:slug
   const [selectedColor, setSelectedColor] = useState("Kem");
   const [selectedOption, setSelectedOption] = useState("WIFI 12GB 256GB");
   const [showSpecModal, setShowSpecModal] = useState(false);
+const [productOptionsData, setProductOptionsData] = useState([]);
+const [productColorsData, setProductColorsData] = useState([]);
+const [allProductImagesData, setAllProductImagesData] = useState([]); // ⬅️ chuyển lên đây
+const [mainImage, setMainImage] = useState(""); // ⬅️ chuyển lên đây luôn
+const [product, setProduct] = useState(null);
+// lấy dynamic từ API
+const productName = product?.name || "";
+const productRating = product?.rating || 0;               // hoặc product.averageRating tuỳ API
+const productReviewCount = product?.reviews?.length || 0; // giả sử API trả về mảng reviews
 
-  const allProductImagesData = [
-    { imageThumb: "https://cdn2.cellphones.com.vn/insecure/rs:fill:58:58/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/p/iphone-16-pro-max-3_1.png", imageFull: "https://cdn2.cellphones.com.vn/insecure/rs:fill:400:400/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/p/iphone-16-pro-max-3_1.png", label: "Màu Kem (Пример)" },
-    { imageThumb: "https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/d/i/dien-thoai-tecno-camon-40-pro_6_.png", imageFull: "https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/d/i/dien-thoai-tecno-camon-40-pro_6_.png", label: "Màu Hồng (Пример)"},
-    { imageThumb: "https://cdn2.cellphones.com.vn/insecure/rs:fill:58:58/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/p/iphone-16-pro-max-gold.png", imageFull: "https://cdn2.cellphones.com.vn/insecure/rs:fill:400:400/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/p/iphone-16-pro-max-gold.png", label: "Màu Vàng (Пример)" },
-    { imageThumb: "https://cdn2.cellphones.com.vn/insecure/rs:fill:58:58/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/p/iphone-16-pro-max-blue-titanium.png", imageFull: "https://cdn2.cellphones.com.vn/insecure/rs:fill:400:400/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/p/iphone-16-pro-max-blue-titanium.png", label: "Xanh Titan (Пример)" }
-  ];
+useEffect(() => {
+  const fetchProduct = async () => {
+    if (!slug) { // Added a check for slug presence
+        console.log("Slug is missing, aborting fetch.");
+        return;
+    }
+    try {
+      console.log(`Workspaceing product with slug: ${slug}`);
+      const response = await productService.getBySlug(slug);
+      const fetchedProduct = response.data.product;
+
+      // --- DEBUG LOG 1: Check the raw fetched product ---
+      console.log("Fetched Product Data:", JSON.parse(JSON.stringify(fetchedProduct))); // Deep copy for logging
+
+      if (!fetchedProduct) { // Added a check if fetchedProduct is null/undefined
+          console.error("API returned no product for slug:", slug);
+          setProduct(null); // Clear product state
+          setProductOptionsData([]); // Clear options
+          setAllProductImagesData([]); // Clear images
+          // Potentially set an error message state to show to the user
+          return;
+      }
+
+      setProduct(fetchedProduct);
+
+      const skus = fetchedProduct?.skus || [];
+
+      // --- DEBUG LOG 2: Check the SKUs array ---
+      console.log("SKUs from Fetched Product:", JSON.parse(JSON.stringify(skus)));
+
+      if (skus.length === 0) {
+        console.warn("Không có SKU nào trong fetchedProduct.");
+        setProductOptionsData([]); // Ensure options are cleared
+        // Handle image fallback if no SKUs but product has a thumbnail
+        if (fetchedProduct.thumbnail) {
+            setAllProductImagesData([{
+                imageThumb: fetchedProduct.thumbnail,
+                imageFull: fetchedProduct.thumbnail,
+                label: "Ảnh đại diện"
+            }]);
+            setMainImage(fetchedProduct.thumbnail);
+        } else {
+            setAllProductImagesData([]);
+            setMainImage("");
+        }
+        return; // Exit if no SKUs, as options can't be generated
+      }
+
+      // ✅ Tạo dữ liệu biến thể
+      const options = skus
+        .filter(sku => {
+          // --- DEBUG LOG 3: Check individual SKU before filtering ---
+          // console.log("Filtering SKU:", sku.skuCode, "Has skuCode:", !!sku.skuCode, "Has price:", !!sku.price);
+          return sku.skuCode && sku.price;
+        })
+        .map((sku) => ({
+          label: sku.skuCode,
+          price: parseFloat(sku.price).toLocaleString('vi-VN') + "₫",
+          originalPrice: sku.originalPrice ? parseFloat(sku.originalPrice).toLocaleString('vi-VN') + "₫" : "", // Added check for originalPrice
+          tradeInPrice: ""
+        }));
+
+      // --- DEBUG LOG 4: Check the generated options array ---
+      console.log("Generated Options (Biến thể):", options);
+      setProductOptionsData(options); // This should now correctly update
+
+      if (options.length > 0) {
+        setSelectedOption(options[0].label); // Set selected option based on fetched data
+      } else {
+        console.warn("Không có options (biến thể) nào được tạo sau khi filter. Kiểm tra skuCode và price trong SKUs.");
+        setSelectedOption(""); // Clear selected option if no options generated
+      }
+
+
+      // ✅ Lấy ảnh sản phẩm từ media
+      const allImages = [];
+      skus.forEach((sku) => {
+        if (sku.media && sku.media.length > 0) {
+          sku.media.forEach((m) => {
+            allImages.push({
+              imageThumb: m.mediaUrl,
+              imageFull: m.mediaUrl,
+              label: sku.skuCode || "Ảnh sản phẩm"
+            });
+          });
+        }
+      });
+
+      // Nếu không có ảnh nào từ SKUs VÀ sản phẩm có thumbnail, thì fallback
+      if (allImages.length === 0 && fetchedProduct.thumbnail) { // CORRECTED: Use fetchedProduct.thumbnail
+        allImages.push({
+          imageThumb: fetchedProduct.thumbnail,
+          imageFull: fetchedProduct.thumbnail,
+          label: "Ảnh đại diện"
+        });
+      }
+      setAllProductImagesData(allImages);
+      if (allImages.length > 0 && !selectedOption) { // If options didn't determine an image yet
+        setMainImage(allImages[0].imageFull);
+      } else if (allImages.length === 0 && fetchedProduct.thumbnail) {
+        setMainImage(fetchedProduct.thumbnail);
+      } else if (allImages.length === 0) {
+        setMainImage(""); // No images available
+      }
+      // The useEffect for selectedOption changing will handle mainImage update if options exist
+
+      // ✅ Lấy màu từ variantValues nếu có
+      const colors = new Set();
+      skus.forEach((sku) => {
+        sku?.variantValues?.forEach((v) => {
+          if (v?.variantValue?.variant?.name?.toLowerCase().includes("màu")) {
+            colors.add(v.variantValue.value);
+          }
+        });
+      });
+
+      const colorArray = Array.from(colors);
+      setProductColorsData(colorArray);
+      if (colorArray.length > 0) {
+        setSelectedColor(colorArray[0]); // Set selected color based on fetched data
+      } else {
+        setSelectedColor(""); // Or keep your default "Kem" if no colors found
+      }
+
+    } catch (error) {
+      console.error("Lỗi khi lấy chi tiết sản phẩm:", error);
+      toast.error("Không thể tải thông tin sản phẩm.");
+      // Reset states to prevent displaying stale data from a previous successful fetch
+      setProduct(null);
+      setProductOptionsData([]);
+      setAllProductImagesData([]);
+      setProductColorsData([]);
+      setMainImage("");
+      setSelectedOption("");
+      setSelectedColor("");
+    }
+  };
+
+  fetchProduct();
+}, [slug]); // Dependency array is correct
+
+// This useEffect correctly updates the main image when selectedOption changes,
+// AFTER productOptionsData and allProductImagesData have been populated.
+useEffect(() => {
+  if (!selectedOption || allProductImagesData.length === 0) {
+    // If there's no selected option, or no images loaded yet,
+    // we might not want to change the mainImage, or set a default.
+    // If productOptionsData is empty, selectedOption might be a stale default.
+    // Check if options are actually loaded for this selectedOption to be valid.
+    if (productOptionsData.length === 0 && allProductImagesData.length > 0 && !mainImage) {
+        // If no options, but images exist, maybe show the first image by default
+        setMainImage(allProductImagesData[0].imageFull);
+    }
+    return;
+  }
+
+  const foundImage = allProductImagesData.find(img => img.label === selectedOption);
+  if (foundImage) {
+    setMainImage(foundImage.imageFull);
+  } else {
+    // Fallback if the selected option doesn't have a uniquely labeled image
+    // but other images exist. (e.g. show first image of the product)
+    if(allProductImagesData.length > 0){
+        // console.log(`No specific image for option ${selectedOption}, using first available image.`);
+        // setMainImage(allProductImagesData[0].imageFull); // Potentially confusing if options are distinct
+    }
+  }
+}, [selectedOption, allProductImagesData, productOptionsData, mainImage]); // Added productOptionsData and mainImage to dependencies for more careful updates
+
+
+  useEffect(() => {
+  if (!selectedOption || allProductImagesData.length === 0) return;
+
+  const foundImage = allProductImagesData.find(img => img.label === selectedOption);
+  if (foundImage) {
+    setMainImage(foundImage.imageFull);
+  }
+}, [selectedOption, allProductImagesData]);
+
 
   // Dữ liệu mẫu cho RelatedProductsSlider (bạn nên lấy dữ liệu này từ API hoặc props trong thực tế)
   const relatedProductsDataSample = [ 
@@ -131,20 +318,9 @@ export default function ProductDetail() {
   ];
 
 
-  const [mainImage, setMainImage] = useState(allProductImagesData[0].imageFull);
+
   const [showAll, setShowAll] = useState(false); // State cho ProductQA
 
-  const productName = "iPhone 16 Pro Max";
-  const productRating = 5;
-  const productReviewCount = 2;
-
-  const productOptionsData = [
-    { label: "5G 12GB 256GB", price: "19.990.000₫", originalPrice: "21.990.000₫", tradeInPrice: "17.990.000₫" },
-    { label: "5G 8GB 128GB", price: "18.590.000₫", originalPrice: "20.990.000₫", tradeInPrice: "16.590.000₫" },
-    { label: "WIFI 12GB 256GB", price: "15.490.000₫", originalPrice: "17.990.000₫", tradeInPrice: "13.490.000₫" },
-    { label: "WIFI 8GB 128GB", price: "14.990.000₫", originalPrice: "16.990.000₫", tradeInPrice: "12.990.000₫" },
-  ];
-  const productColorsData = ["Kem", "Xám", "Xanh Dương", "Đen Titan"];
 
   const questions = [
     { user: "Nguyen Lam", time: "6 ngày trước", question: "nếu không lấy bao da thì có được giảm giá thêm không ạ?", adminReply: "CellphoneS xin chào anh Lam. Dạ hiện tại ưu đãi tặng kèm bao da bàn phím chỉ áp dụng cho học sinh sinh viên và sản phẩm quà tặng chưa hỗ trợ quy đổi." },
@@ -174,16 +350,35 @@ export default function ProductDetail() {
             productName={productName}
             stickyTopOffset={stickyBreadcrumbHeightClass}
           />
-          <ProductOptions
-            selectedOption={selectedOption}
-            setSelectedOption={setSelectedOption}
-            selectedColor={selectedColor}
-            setSelectedColor={setSelectedColor}
-            productName={productName}
-            productOptionsData={productOptionsData}
-            productColorsData={productColorsData}
-            stickyTopOffset={stickyBreadcrumbHeightClass}
-          />
+      
+  <ProductOptions
+    selectedOption={selectedOption}
+    setSelectedOption={setSelectedOption}
+    selectedColor={selectedColor}
+    setSelectedColor={setSelectedColor}
+    productName={productName}
+    productOptionsData={productOptionsData}
+    productColorsData={productColorsData}
+    stickyTopOffset={stickyBreadcrumbHeightClass}
+      onAddToCart={(skuLabel) => {
+    const matchedSku = product?.skus?.find(s => s.skuCode === skuLabel);
+    if (!matchedSku) {
+      toast.error("❌ Không tìm thấy SKU tương ứng");
+      return;
+    }
+
+    cartService.addToCart({ skuId: matchedSku.id, quantity: 1 })
+      .then(() => {
+        toast.success("✅ Đã thêm vào giỏ hàng!");
+      })
+      .catch((err) => {
+        toast.error("❌ Thêm vào giỏ hàng thất bại!");
+        console.error("Lỗi addToCart:", err);
+      });
+  }}
+  />
+
+
         </div>
 
         {/* Khối 2: Thông tin sản phẩm (toàn bộ chiều rộng) */}
@@ -210,19 +405,34 @@ export default function ProductDetail() {
         
         
         {/* Khối 4: Đánh giá (trái) và Hỏi & Đáp (phải) */}
-        <div className="px-4 md:px-0 mt-4 md:mt-6 grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-8 items-start">
-          <div> 
-            {ProductReviewSection && <ProductReviewSection productName={productName} rating={productRating} reviewCount={productReviewCount} />}
-          </div>
-          <div> 
-            {ProductQA && <ProductQA 
-              questions={visibleQuestions} 
-              totalQuestions={questions.length}
-              showAll={showAll}
-              setShowAll={setShowAll}
-            />}
-          </div>
-        </div>
+     {/* Khối 4: Cột trái chứa Review và QA, cột phải trống */}
+<div className="px-4 md:px-0 grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-6 items-start mb-6">
+  {/* Cột trái */}
+  <div>
+    {/* Đánh giá */}
+    {ProductReviewSection && (
+      <ProductReviewSection
+        productName={productName}
+        rating={productRating}
+        reviewCount={productReviewCount}
+      />
+    )}
+    {/* Hỏi & Đáp */}
+    {ProductQA && (
+      <div className="mt-6">
+        <ProductQA 
+          questions={visibleQuestions} 
+          totalQuestions={questions.length}
+          showAll={showAll}
+          setShowAll={setShowAll}
+        />
+      </div>
+    )}
+  </div>
+  {/* Cột phải để trống */}
+  <div />
+</div>
+
       </div>
     </div>
   );

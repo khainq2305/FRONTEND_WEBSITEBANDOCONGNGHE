@@ -1,7 +1,21 @@
 import { useEffect, useState } from 'react';
 import {
-  Table, TableHead, TableBody, TableRow, TableCell, TableContainer, Paper, Checkbox,
-  Tabs, Tab, Button, Box, Stack, Chip, Typography
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  TableContainer,
+  Paper,
+  Checkbox,
+  Tabs,
+  Tab,
+  Button,
+  Box,
+  Stack,
+  Chip,
+  Typography,
+  Avatar
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
@@ -9,18 +23,15 @@ import { useMediaQuery } from '@mui/material';
 
 import SearchInput from 'components/common/SearchInput';
 import MoreActionsMenu from '../MoreActionsMenu';
-import BlockReasonDialog from '../BlockReasonDialog';
 import MUIPagination from 'components/common/Pagination';
-import Loader from '../../../../components/common/Loader';
-import { getAllUsers, updateUserStatus, resetUserPassword, cancelUserScheduledBlock } from '../../../../services/admin/userService';
+import Loader from 'components/common/Loader';
+import { getAllUsers, updateUserStatus, resetUserPassword } from 'services/admin/userService';
 import { toast } from 'react-toastify';
 
 const TABS = [
   { label: 'Tất cả', value: '', key: 'all' },
   { label: 'Hoạt động', value: '1', key: 'active' },
-  { label: 'Đã lên lịch khóa', value: '2', key: 'scheduled' },
-  { label: 'Đang bị khóa', value: '0', key: 'locked' },
-  { label: 'Khóa vĩnh viễn', value: '-1', key: 'permanent' }
+  { label: 'Ngưng hoạt động', value: '0', key: 'inactive' }
 ];
 
 const roleColors = {
@@ -45,14 +56,6 @@ const convertRoleIdToLabel = (roleId) => {
   return map[roleId] || 'Không rõ';
 };
 
-const formatCountdown = (endTime) => {
-  const diff = new Date(endTime) - new Date();
-  if (diff <= 0) return 'Đang bị khóa';
-  const minutes = Math.floor(diff / 60000);
-  const seconds = Math.floor((diff % 60000) / 1000);
-  return `Sẽ bị khóa sau ${minutes} phút ${seconds} giây`;
-};
-
 const UserList = () => {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -66,15 +69,7 @@ const UserList = () => {
   const [selectedIds, setSelectedIds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
-  const [openBlockDialog, setOpenBlockDialog] = useState(false);
-  const [targetUser, setTargetUser] = useState(null);
-  const [statusCounts, setStatusCounts] = useState({
-    all: 0,
-    active: 0,
-    scheduled: 0,
-    locked: 0,
-    permanent: 0
-  });
+  const [statusCounts, setStatusCounts] = useState({ all: 0, active: 0, inactive: 0 });
 
   const itemsPerPage = 10;
 
@@ -82,30 +77,25 @@ const UserList = () => {
     try {
       setLoading(true);
       const statusQuery = TABS[tab].value;
+      const data = await getAllUsers({ page, limit: itemsPerPage, search, status: statusQuery });
+      setUsers(
+        data.data.map((user) => ({
+          ...user,
+          status: parseInt(user.status, 10)
+        }))
+      );
 
-      const data = await getAllUsers({
-        page,
-        limit: itemsPerPage,
-        search,
-        status: statusQuery
-      });
-      setUsers(data.data);
       setTotalPages(data.totalPages);
 
-      const [all, active, scheduled, locked, permanent] = await Promise.all([
+      const [all, active, inactive] = await Promise.all([
         getAllUsers({ page: 1, limit: 1, status: '' }),
         getAllUsers({ page: 1, limit: 1, status: '1' }),
-        getAllUsers({ page: 1, limit: 1, status: '2' }),
-        getAllUsers({ page: 1, limit: 1, status: '0' }),
-        getAllUsers({ page: 1, limit: 1, status: '-1' }),
+        getAllUsers({ page: 1, limit: 1, status: '0' })
       ]);
-
       setStatusCounts({
         all: all.total,
         active: active.total,
-        scheduled: scheduled.total,
-        locked: locked.total,
-        permanent: permanent.total
+        inactive: inactive.total
       });
     } catch {
       toast.error('Không thể tải danh sách người dùng!');
@@ -118,13 +108,6 @@ const UserList = () => {
     fetchUsers();
   }, [search, tab, page]);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setUsers((prev) => [...prev]);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
   const handleTabChange = (_, newValue) => {
     setTab(newValue);
     setPage(1);
@@ -132,16 +115,16 @@ const UserList = () => {
   };
 
   const toggleSelect = (id) => {
-    setSelectedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
 
   const toggleSelectAll = () => {
-    const currentPageIds = users.map((x) => x.id);
-    if (selectedIds.length === currentPageIds.length) {
-      setSelectedIds((prev) => prev.filter((id) => !currentPageIds.includes(id)));
-    } else {
-      setSelectedIds((prev) => [...new Set([...prev, ...currentPageIds])]);
-    }
+    const currentPageIds = users.map((u) => u.id);
+    setSelectedIds(
+      selectedIds.length === currentPageIds.length
+        ? selectedIds.filter((id) => !currentPageIds.includes(id))
+        : [...new Set([...selectedIds, ...currentPageIds])]
+    );
   };
 
   const handleResetPassword = async (user) => {
@@ -156,73 +139,63 @@ const UserList = () => {
     }
   };
 
- const handleStatusChange = (user, newStatus) => {
-  if (newStatus === 'inactive') {
-    setTargetUser(user);
-    setOpenBlockDialog(true);
-  } else if (newStatus === 'permanent') {
+  const handleStatusChange = (user, newStatus) => {
     setActionLoading(true);
-    updateUserStatus(user.id, -1)
+    const targetStatus = newStatus === 'inactive' ? 0 : 1;
+    updateUserStatus(user.id, targetStatus)
       .then(() => {
-        toast.success(`Tài khoản ${user.fullName} đã bị khóa vĩnh viễn`);
+        toast.success(
+          targetStatus === 0 ? `Tài khoản ${user.fullName} đã ngưng hoạt động` : `Tài khoản ${user.fullName} đã được kích hoạt lại`
+        );
         fetchUsers();
       })
-      .catch(() => toast.error('Lỗi khi khóa vĩnh viễn tài khoản'))
+      .catch(() => toast.error('Lỗi khi cập nhật trạng thái tài khoản'))
       .finally(() => setActionLoading(false));
-  } else {
-    setActionLoading(true);
-    updateUserStatus(user.id, 1)
-      .then(() => {
-        toast.success(`Đã mở khóa tài khoản ${user.fullName}`);
-        fetchUsers();
-      })
-      .catch(() => toast.error('Lỗi khi mở khóa tài khoản'))
-      .finally(() => setActionLoading(false));
-  }
-};
-
-
-  const handleCancelScheduledBlock = async (user) => {
-    try {
-      setActionLoading(true);
-      await cancelUserScheduledBlock(user.id);
-      toast.success(`Đã huỷ lịch khóa tài khoản ${user.fullName}`);
-      fetchUsers();
-    } catch {
-      toast.error('Lỗi khi huỷ lịch khóa');
-    } finally {
-      setActionLoading(false);
-    }
   };
 
-  const handleForcePasswordChange = (user) => {
-    toast.info(`Đã đặt ${user.fullName} phải đổi mật khẩu khi đăng nhập`);
-  };
-
-  const handleViewLogs = (user) => {
-    toast.info(`Xem nhật ký hành vi của ${user.fullName} (giả lập)`);
+  const handleViewDetail = (user) => {
+    navigate(`/admin/users/${user.id}`);
   };
 
   return (
     <Box p={isMobile ? 2 : 3}>
-      <Typography variant="h5" fontWeight="bold" mb={2}>Danh sách người dùng</Typography>
+      <Typography variant="h5" fontWeight="bold" mb={2}>
+        Danh sách người dùng
+      </Typography>
 
       <Tabs value={tab} onChange={handleTabChange} sx={{ mb: 2 }} variant="scrollable">
         {TABS.map((tabItem, index) => (
-          <Tab
-            key={index}
-            label={`${tabItem.label} (${statusCounts[tabItem.key] || 0})`}
-          />
+          <Tab key={index} label={`${tabItem.label} (${statusCounts[tabItem.key] || 0})`} />
         ))}
       </Tabs>
 
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} mb={2} justifyContent="space-between">
-        <SearchInput value={search} onChange={setSearch} />
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} mb={2} alignItems="center" justifyContent="space-between">
+        <Box sx={{ flex: 1, width: '100%' }}>
+          <SearchInput
+            value={search}
+            onChange={setSearch}
+            placeholder="Tìm kiếm theo tên, email..."
+            sx={{
+              width: '100%',
+              height: 40,
+              backgroundColor: 'white',
+              borderRadius: 1,
+              border: '1px solid #ccc',
+              px: 2
+            }}
+          />
+        </Box>
         <Button
           variant="contained"
-          size="medium"
-          sx={{ height: 40, minWidth: 160 }}
           onClick={() => navigate('/admin/users/create')}
+          sx={{
+            height: 40,
+            whiteSpace: 'nowrap',
+            fontWeight: 600,
+            px: 3,
+            backgroundColor: '#2979ff',
+            '&:hover': { backgroundColor: '#1565c0' }
+          }}
         >
           + Thêm Tài khoản
         </Button>
@@ -239,12 +212,27 @@ const UserList = () => {
                   <TableCell padding="checkbox">
                     <Checkbox checked={users.length > 0 && users.every((u) => selectedIds.includes(u.id))} onChange={toggleSelectAll} />
                   </TableCell>
-                  <TableCell><strong>STT</strong></TableCell>
-                  <TableCell><strong>Họ tên</strong></TableCell>
-                  <TableCell><strong>Email</strong></TableCell>
-                  <TableCell><strong>Vai trò</strong></TableCell>
-                  <TableCell><strong>Trạng thái</strong></TableCell>
-                  <TableCell align="right"><strong>Hành động</strong></TableCell>
+                  <TableCell>
+                    <strong>STT</strong>
+                  </TableCell>
+                  <TableCell>
+                    <strong>Avatar</strong>
+                  </TableCell>
+                  <TableCell>
+                    <strong>Họ tên</strong>
+                  </TableCell>
+                  <TableCell>
+                    <strong>Email</strong>
+                  </TableCell>
+                  <TableCell>
+                    <strong>Vai trò</strong>
+                  </TableCell>
+                  <TableCell>
+                    <strong>Trạng thái</strong>
+                  </TableCell>
+                  <TableCell align="right">
+                    <strong>Hành động</strong>
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -254,6 +242,9 @@ const UserList = () => {
                       <Checkbox checked={selectedIds.includes(row.id)} onChange={() => toggleSelect(row.id)} />
                     </TableCell>
                     <TableCell>{(page - 1) * itemsPerPage + index + 1}</TableCell>
+                    <TableCell>
+                      <Avatar src={row.avatarUrl} alt={row.fullName} sx={{ width: 36, height: 36 }} />
+                    </TableCell>
                     <TableCell>{row.fullName}</TableCell>
                     <TableCell>
                       <Box sx={{ maxWidth: 180, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={row.email}>
@@ -268,59 +259,44 @@ const UserList = () => {
                       />
                     </TableCell>
                     <TableCell>
-                      {row.status === -1 ? (
-                        <Chip label="Khóa vĩnh viễn" color="default" size="small" />
-                      ) : row.scheduledBlockAt ? (
-                        <Chip label={formatCountdown(row.scheduledBlockAt)} color="warning" size="small" />
-                      ) : row.status === 0 ? (
-                        <Chip label="Đang bị khóa" color="error" size="small" />
-                      ) : (
+                      {parseInt(row.status) === 1 ? (
                         <Chip label="Hoạt động" color="success" size="small" />
+                      ) : (
+                        <Chip label="Ngưng hoạt động" color="default" size="small" />
                       )}
                     </TableCell>
+
                     <TableCell align="right">
                       <MoreActionsMenu
                         user={row}
-                        currentStatus={row.status === 1 ? 'active' : 'inactive'}
                         onChangeStatus={(newStatus) => handleStatusChange(row, newStatus)}
                         onResetPassword={handleResetPassword}
-                        onForceChangePassword={() => handleForcePasswordChange(row)}
-                        onViewLogs={() => handleViewLogs(row)}
-                        onCancelBlock={handleCancelScheduledBlock}
+                        onViewDetail={handleViewDetail}
                       />
                     </TableCell>
                   </TableRow>
                 ))}
                 {users.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} align="center">Không có kết quả</TableCell>
+                    <TableCell colSpan={8} align="center">
+                      Không có kết quả
+                    </TableCell>
                   </TableRow>
                 )}
               </TableBody>
             </Table>
           </TableContainer>
 
-          <MUIPagination currentPage={page} totalPages={totalPages} onPageChange={(p) => setPage(p)} />
+          {totalPages > 1 && (
+            <MUIPagination
+              currentPage={page}
+              totalItems={statusCounts[TABS[tab].key] || 0}
+              itemsPerPage={itemsPerPage}
+              onPageChange={(p) => setPage(p)}
+            />
+          )}
         </>
       )}
-
-      <BlockReasonDialog
-        open={openBlockDialog}
-        onClose={() => setOpenBlockDialog(false)}
-        onConfirm={(reason) => {
-          setActionLoading(true);
-          updateUserStatus(targetUser.id, 0, reason)
-            .then(() => {
-              toast.success(`Tài khoản ${targetUser?.fullName} đã được lên lịch khóa`);
-              fetchUsers();
-            })
-            .catch(() => toast.error('Lỗi khi khóa tài khoản'))
-            .finally(() => {
-              setOpenBlockDialog(false);
-              setActionLoading(false);
-            });
-        }}
-      />
     </Box>
   );
 };

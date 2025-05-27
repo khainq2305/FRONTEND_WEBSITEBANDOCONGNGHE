@@ -4,8 +4,8 @@ import { Link } from "react-router-dom";
 import { FaPercentage, FaQuestionCircle } from "react-icons/fa";
 import { FiChevronUp, FiChevronRight } from "react-icons/fi";
 import PromoModal from "../PromoModal"; // Import component Modal (sẽ tạo ở bước 2)
+const CartSummary = ({ hasSelectedItems, orderTotals, onCheckout }) => {
 
-const CartSummary = ({ hasSelectedItems, orderTotals }) => {
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false); // State cho modal ưu đãi
 
   const navigateToCheckout = (event) => {
@@ -104,18 +104,18 @@ const CartSummary = ({ hasSelectedItems, orderTotals }) => {
         </div>
 
         {/* Nút xác nhận đơn */}
-        <Link
-          to="/Checkout"
-          onClick={navigateToCheckout}
-          className={`block text-center w-full font-semibold py-3 rounded-md transition-colors text-base ${
-            hasSelectedItems
-              ? "bg-primary text-white hover:bg-primary-dark"
-              : "bg-gray-300 text-gray-500 cursor-not-allowed"
-          }`}
-          aria-disabled={!hasSelectedItems}
-        >
-          Xác nhận đơn
-        </Link>
+        <button
+  onClick={onCheckout}
+  disabled={!hasSelectedItems}
+  className={`block text-center w-full font-semibold py-3 rounded-md transition-colors text-base ${
+    hasSelectedItems
+      ? "bg-primary text-white hover:bg-primary-dark"
+      : "bg-gray-300 text-gray-500 cursor-not-allowed"
+  }`}
+>
+  Xác nhận đơn
+</button>
+
       </aside>
 
       {/* Modal chọn/nhập ưu đãi */}

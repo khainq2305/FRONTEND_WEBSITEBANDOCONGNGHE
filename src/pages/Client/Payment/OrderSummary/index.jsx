@@ -1,14 +1,57 @@
 // src/components/Client/OrderSummary.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
+ import { orderService } from "../../../../services/client/orderService";
 
-const OrderSummary = ({ totalAmount, discount, shippingFee }) => {
+import { userAddressService } from "../../../../services/client/userAddressService";
+
+
+const OrderSummary = ({ totalAmount, discount, shippingFee, selectedPaymentMethod }) => {
+
   const navigate = useNavigate();
   const finalAmount = totalAmount - discount + shippingFee;
 
-  const handlePlaceOrder = () => {
-    navigate("/order-confirmation");
-  };
+
+const handlePlaceOrder = async () => {
+  try {
+    const selectedItems = JSON.parse(localStorage.getItem("selectedCartItems") || "[]");
+
+    if (selectedItems.length === 0) {
+      toast.error("Không có sản phẩm được chọn!");
+      return;
+    }
+
+const { data: address } = await userAddressService.getDefault(); // ✅ ĐÚNG
+
+    if (!address?.id) {
+      toast.error("Chưa có địa chỉ giao hàng mặc định!");
+      return;
+    }
+
+    const payload = {
+      addressId: address.id,
+      paymentMethodId, // ✅ lấy từ props
+ // bạn có thể truyền động từ component cha
+      note: "", // hoặc cho nhập trong form
+      items: selectedItems.map(item => ({
+        skuId: item.skuId,
+        quantity: item.quantity,
+        price: item.finalPrice
+      }))
+    };
+
+    const res = await orderService.createOrder(payload);
+    toast.success("Đặt hàng thành công!");
+
+    localStorage.removeItem("selectedCartItems");
+
+    navigate(`/order-confirmation?id=${res.data.orderId}`);
+  } catch (err) {
+    console.error(err);
+    toast.error(err?.response?.data?.message || "Lỗi đặt hàng!");
+  }
+};
+
 
   return (
     <div className="relative">
@@ -56,9 +99,12 @@ const OrderSummary = ({ totalAmount, discount, shippingFee }) => {
 
           <div className="flex justify-between mb-2">
             <span>Phí vận chuyển</span>
-            <span className="text-green-600 font-semibold">
-              {shippingFee === 0 ? "Miễn phí" : `${shippingFee.toLocaleString("vi-VN")} đ`}
-            </span>
+          <span>
+  {typeof shippingFee === "number" && shippingFee > 0
+    ? `${shippingFee.toLocaleString("vi-VN")} đ`
+    : "Miễn phí"}
+</span>
+
           </div>
 
           {/* Gạch ngăn cách */}

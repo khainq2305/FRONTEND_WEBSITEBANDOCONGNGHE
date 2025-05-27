@@ -3,10 +3,11 @@ import ArticleTable from '@/pages/Admin/News/components/table/ArticleTable';
 import Pagination from 'components/common/Pagination';
 import Toastify from 'components/common/Toastify';
 import BasicModal from '@/pages/Admin/News/components/modal/Modal';
-import { useArticle } from '@/pages/Admin/News/News';
+import { useArticle } from '../Context/ArticleContext';
 
 const ArticlePage = () => {
-  const { currentPage, setCurrentPage, filteredArticles } = useArticle();
+  const { currentPage, setCurrentPage, articles, total,
+    pageSize } = useArticle();
 
   return (
     <div style={{ padding: 20 }}>
@@ -14,8 +15,8 @@ const ArticlePage = () => {
       <ArticleTable />
       <Pagination
         currentPage={currentPage}
-        totalItems={filteredArticles.length}
-        itemsPerPage={5}
+        totalItems={total}
+        itemsPerPage={pageSize}
         onPageChange={setCurrentPage}
       />
       <Toastify />

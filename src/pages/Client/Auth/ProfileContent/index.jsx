@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { authService } from '../../../../services/client/authService';
 import { API_BASE_URL } from '../../../../constants/environment';
 import Loader from '../../../../components/common/Loader'; // Ensure this path is correct
+ import GradientButton from '../../../../components/Client/GradientButton';
 
 // Component SuccessModal (có thể tách ra file riêng nếu muốn)
 const SuccessModal = ({ isOpen, message, onClose }) => {
@@ -42,7 +43,7 @@ const SuccessModal = ({ isOpen, message, onClose }) => {
       >
         <svg 
             className="w-14 h-14 sm:w-16 sm:h-16 text-green-500 mx-auto mb-3 sm:mb-4" 
-            fill="none" 
+            fill="none"
             stroke="currentColor" 
             viewBox="0 0 24 24" 
             xmlns="http://www.w3.org/2000/svg"
@@ -159,16 +160,17 @@ const ProfileContent = () => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
       const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-      const maxSize = 1 * 1024 * 1024; 
+      const maxSize = 5 * 1024 * 1024;
+
 
       if (!allowedTypes.includes(file.type)) {
-        setAvatarError("❌ Định dạng không hợp lệ. Chỉ chấp nhận .JPEG, .PNG, .JPG.");
+        setAvatarError("Định dạng không hợp lệ. Chỉ chấp nhận .JPEG, .PNG, .JPG.");
         setSelectedAvatarFile(null); 
         event.target.value = null; 
         return;
       }
       if (file.size > maxSize) {
-        setAvatarError(`❌ Dung lượng ảnh vượt quá ${maxSize / (1024*1024)}MB.`);
+        setAvatarError(`Dung lượng ảnh vượt quá ${maxSize / (1024*1024)}MB.`);
         setSelectedAvatarFile(null);
         event.target.value = null;
         return;
@@ -189,6 +191,7 @@ const ProfileContent = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+      if (avatarError) return; 
     setIsSubmitting(true);
     setFormErrors({});
 
@@ -455,13 +458,15 @@ const ProfileContent = () => {
             </div>
             <div className="grid grid-cols-[110px_1fr] items-center gap-4">
                 <div className="lg:col-start-2">
-                <button
-                    type="submit"
-                    className={`bg-primary hover:opacity-90 text-white font-medium py-2.5 px-7 rounded text-sm transition-colors shadow-sm ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    disabled={isSubmitting}
-                >
-                    {isSubmitting ? "Đang lưu..." : "Lưu Thay Đổi"}
-                </button>
+<GradientButton
+  type="submit"
+  disabled={isSubmitting}
+  
+                     
+  size="compact"    
+>
+  Lưu Thay Đổi 
+</GradientButton>
                 </div>
             </div>
             {formErrors.general && <p className="text-sm text-red-500 mt-2 lg:col-start-2">{formErrors.general}</p>}
@@ -483,7 +488,7 @@ const ProfileContent = () => {
                 Chọn Ảnh
             </label>
             <div className="text-xs text-gray-500 text-center leading-snug">
-                <p>Dung lượng file tối đa 1 MB</p>
+                <p>Dung lượng file tối đa 5 MB</p>
                 <p>Định dạng: .JPEG, .PNG, .JPG</p>
             </div>
             {avatarError && <p className="text-xs text-red-500 mt-2 text-center">{avatarError}</p>}

@@ -6,6 +6,8 @@ import Footer from './Footer';
 import AuthHeader from './AuthHeader';
 import Topbar from './Topbar';
 import BottomNavigationBar from './BottomNavigationBar';
+import FloatingContact from '../../pages/Client/FloatingContact'; // Đúng đường dẫn tới file bạn tạo
+
 const ClientLayout = () => {
   const location = useLocation();
 
@@ -35,6 +37,7 @@ const ClientLayout = () => {
       </main>
 
       <Footer />
+      <FloatingContact />
       <BottomNavigationBar />
 
       <div className="pb-[56px] lg:pb-0"></div>

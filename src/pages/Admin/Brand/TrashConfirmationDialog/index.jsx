@@ -3,8 +3,8 @@ import {
   DialogActions, Button
 } from '@mui/material';
 import { useState } from 'react';
-import axios from 'axios';
-import Toastify from 'components/common/Toastify';
+import { toast } from 'react-toastify';
+import { brandService } from '@/services/admin/brandService';
 
 const TrashConfirmationDialog = ({
   open,
@@ -17,33 +17,49 @@ const TrashConfirmationDialog = ({
   const [loading, setLoading] = useState(false);
 
   const handleTrash = async () => {
+    if (!brandId) return;
     try {
       setLoading(true);
-      await axios.delete(`http://localhost:5000/admin/brands/${brandId}`);
-      Toastify.success(`✅ Đã chuyển ${itemType} "${itemName}" vào thùng rác`);
-
-      // Gọi thành công xong thì reload trước, đóng sau
-      onSuccess();     // 👉 Gọi fetchBrands + reset trang
-      onClose();       // 👉 Đóng dialog sau khi cập nhật UI xong
+      await brandService.softDelete([brandId]);
+      toast.success(`Đã chuyển ${itemType} "${itemName}" vào thùng rác`);
+      onSuccess();
+      onClose();
     } catch (err) {
-      Toastify.error('❌ Chuyển vào thùng rác thất bại');
+      console.error('Lỗi soft-delete:', err);
+      toast.error(err?.response?.data?.message || 'Chuyển vào thùng rác thất bại');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Xác nhận chuyển vào thùng rác</DialogTitle>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      aria-labelledby="trash-confirm-dialog-title"
+      aria-describedby="trash-confirm-dialog-description"
+    >
+      <DialogTitle id="trash-confirm-dialog-title">
+        Xác nhận chuyển vào thùng rác
+      </DialogTitle>
       <DialogContent>
-        <DialogContentText>
-          Bạn có chắc chắn muốn chuyển {itemType} <strong>{itemName}</strong> vào thùng rác không?
+        <DialogContentText id="trash-confirm-dialog-description">
+          Bạn có chắc chắn muốn chuyển {itemType}{' '}
+          <strong>{itemName}</strong> vào thùng rác không?
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={loading}>Hủy</Button>
-        <Button onClick={handleTrash} color="warning" variant="contained" disabled={loading}>
-          {loading ? '...Đang xử lý' : 'Chuyển vào thùng rác'}
+        <Button onClick={onClose} disabled={loading}>
+          Hủy
+        </Button>
+        <Button
+          onClick={handleTrash}
+          color="warning"
+          variant="contained"
+          disabled={loading}
+          autoFocus
+        >
+          {loading ? 'Đang xử lý...' : 'Chuyển vào thùng rác'}
         </Button>
       </DialogActions>
     </Dialog>

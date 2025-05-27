@@ -5,7 +5,7 @@ const paymentOptions = [
     id: 1,
     label: 'Thanh toán khi nhận hàng',
     icon: 'https://s3-sgn09.fptcloud.com/ict-payment-icon/payment/cod.png',
-    disabled: true,
+
   },
   {
     id: 2,

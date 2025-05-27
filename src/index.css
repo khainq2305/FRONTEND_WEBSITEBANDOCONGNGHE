@@ -18,3 +18,7 @@ li {
 .bg-opacity-50 {
     --tw-bg-opacity: 0.5;
 }
+body.swal2-shown {
+  overflow: hidden !important;
+  touch-action: none; 
+}

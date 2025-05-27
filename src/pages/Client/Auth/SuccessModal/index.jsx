@@ -4,7 +4,7 @@ import { CheckCircle, X } from 'lucide-react';
 const SuccessModal = ({ message, onClose, duration = 3000 }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
-      onClose(); // Tự động đóng sau duration ms
+      onClose(); 
     }, duration);
 
     return () => clearTimeout(timer);
@@ -16,7 +16,7 @@ const SuccessModal = ({ message, onClose, duration = 3000 }) => {
         className="bg-white p-6 sm:p-8 rounded-xl shadow-xl text-center w-full max-w-xs sm:max-w-sm relative"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Nút đóng */}
+       
         <button
           onClick={onClose}
           className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
