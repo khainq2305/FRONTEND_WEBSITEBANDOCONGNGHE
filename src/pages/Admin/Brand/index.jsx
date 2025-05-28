@@ -174,6 +174,13 @@ const BrandList = () => {
         <Button variant="contained" onClick={() => navigate('/admin/brands/create')}>
           + Thêm Thương Hiệu
         </Button>
+        <FormControl size="small" sx={{ minWidth: 100 }}>
+          <Select value={limit} onChange={(e) => setLimit(Number(e.target.value))}>
+            {[10, 20, 50].map(val => (
+              <MenuItem key={val} value={val}>{val} / trang</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </Box>
 
       <Box display="flex" gap={2} mb={2}>
