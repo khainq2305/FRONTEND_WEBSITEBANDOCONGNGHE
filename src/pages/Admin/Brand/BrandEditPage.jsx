@@ -8,6 +8,8 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { toast } from 'react-toastify';
 import { brandService } from '@/services/admin/brandService';
 import slugify from 'slugify';
+import { useForm, Controller } from 'react-hook-form';
+import TinyEditor from '@/components/Admin/TinyEditor';
 
 const BrandEditPage = () => {
     const { id } = useParams();
@@ -15,13 +17,18 @@ const BrandEditPage = () => {
 
     const [name, setName] = useState('');
     const [slug, setSlug] = useState('');
-    const [description, setDescription] = useState('');
     const [isActive, setIsActive] = useState(true);
     const [imageFile, setImageFile] = useState(null);
-    const [currentImage, setCurrentImage] = useState('');
+    const [imagePreview, setImagePreview] = useState('');
     const [orderIndex, setOrderIndex] = useState(0);
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
+
+    const { control, setValue, handleSubmit } = useForm({
+        defaultValues: {
+            description: ''
+        }
+    });
 
     useEffect(() => {
         const fetchBrand = async () => {
@@ -30,10 +37,10 @@ const BrandEditPage = () => {
                 const brand = res.data.data;
                 setName(brand.name);
                 setSlug(brand.slug || '');
-                setDescription(brand.description || '');
                 setIsActive(brand.isActive);
-                setCurrentImage(brand.logoUrl);
+                setImagePreview(brand.logoUrl);
                 setOrderIndex(brand.orderIndex || 0);
+                setValue('description', brand.description || '');
             } catch (err) {
                 toast.error('Không tìm thấy thương hiệu');
                 navigate('/admin/brands');
@@ -41,24 +48,28 @@ const BrandEditPage = () => {
         };
 
         fetchBrand();
-    }, [id]);
+    }, [id, navigate, setValue]);
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml', 'image/x-icon'];
-        const maxSize = 2 * 1024 * 1024;
+        const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+        const maxSize = 5 * 1024 * 1024;
 
         if (!validTypes.includes(file.type)) {
-            toast.error('Chỉ chấp nhận JPG, PNG, WEBP, SVG, ICO');
+            toast.error('Chỉ chấp nhận ảnh JPG, JPEG, PNG');
             return;
         }
 
         if (file.size > maxSize) {
-            toast.error('Dung lượng tối đa là 2MB');
+            toast.error('Dung lượng ảnh tối đa là 5MB');
             return;
         }
+
+        const reader = new FileReader();
+        reader.onloadend = () => setImagePreview(reader.result);
+        reader.readAsDataURL(file);
 
         setImageFile(file);
         setErrors(prev => ({ ...prev, logoUrl: undefined }));
@@ -71,8 +82,7 @@ const BrandEditPage = () => {
         setErrors(prev => ({ ...prev, name: undefined }));
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const onSubmit = async (data) => {
         setErrors({});
 
         if (!name.trim()) {
@@ -82,10 +92,11 @@ const BrandEditPage = () => {
 
         try {
             setLoading(true);
+
             const payload = {
                 name,
                 slug,
-                description,
+                description: data.description,
                 isActive,
                 orderIndex
             };
@@ -129,11 +140,11 @@ const BrandEditPage = () => {
 
                 <Divider sx={{ mb: 3 }} />
 
-                <form onSubmit={handleSubmit}>
-                    {/* logoUrl */}
+                <form onSubmit={handleSubmit(onSubmit)}>
+                    {/* Logo */}
                     <Box sx={{ mb: 3 }}>
                         <Typography fontWeight={500} gutterBottom>
-                            Logo thương hiệu
+                            Logo thương hiệu <span style={{ color: 'red' }}>*</span>
                         </Typography>
 
                         <Box
@@ -152,7 +163,7 @@ const BrandEditPage = () => {
                             }}
                         >
                             <Avatar
-                                src={imageFile ? URL.createObjectURL(imageFile) : currentImage}
+                                src={imageFile ? URL.createObjectURL(imageFile) : imagePreview}
                                 alt="logo"
                                 variant="rounded"
                                 sx={{ width: '100%', height: '100%' }}
@@ -161,7 +172,7 @@ const BrandEditPage = () => {
                                 id="brand-image-input"
                                 type="file"
                                 hidden
-                                accept=".jpg,.jpeg,.png,.webp,.svg,.ico"
+                                accept=".jpg,.jpeg,.png"
                                 onChange={handleImageChange}
                             />
                         </Box>
@@ -173,10 +184,11 @@ const BrandEditPage = () => {
                         )}
 
                         <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                            Click để chọn ảnh. Chấp nhận JPG, PNG, SVG, WEBP. Tối đa 2MB.
+                            Click để chọn ảnh. Chỉ hỗ trợ JPG, JPEG, PNG. Tối đa 5MB.
                         </Typography>
                     </Box>
 
+                    {/* Name */}
                     <TextField
                         label="Tên thương hiệu"
                         value={name}
@@ -187,7 +199,7 @@ const BrandEditPage = () => {
                         helperText={errors.name}
                     />
 
-
+                    {/* Order Index */}
                     <TextField
                         label="Thứ tự (STT)"
                         type="number"
@@ -199,16 +211,16 @@ const BrandEditPage = () => {
                         helperText="STT càng nhỏ sẽ hiển thị trước"
                     />
 
-                    <TextField
-                        label="Mô tả"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        fullWidth
-                        multiline
-                        minRows={4}
-                        margin="normal"
+                    {/* Description */}
+                    <Controller
+                        name="description"
+                        control={control}
+                        render={({ field }) => (
+                            <TinyEditor value={field.value} onChange={field.onChange} height={300} />
+                        )}
                     />
 
+                    {/* Status */}
                     <FormControlLabel
                         control={
                             <Switch
@@ -217,12 +229,13 @@ const BrandEditPage = () => {
                                 color="primary"
                             />
                         }
-                        label={isActive ? 'Trạng thái: Hiển thị' : 'Trạng thái: Ẩn'}
+                        label={isActive ? 'Trạng thái: Hoạt động' : 'Trạng thái: Tạm tắt'}
                         sx={{ mt: 2 }}
                     />
 
                     <Divider sx={{ my: 4 }} />
 
+                    {/* Submit */}
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                         <Button variant="contained" type="submit" disabled={loading}>
                             {loading ? 'Đang lưu...' : 'Cập nhật'}
