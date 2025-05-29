@@ -113,6 +113,7 @@ const BrandList = () => {
   const [selectedIds, setSelectedIds] = useState([]);
   const [bulkAction, setBulkAction] = useState('');
   const sensors = useSensors(useSensor(PointerSensor));
+  const [counts, setCounts] = useState({ all: 0, published: 0, draft: 0, trash: 0 });
 
   const fetchBrands = async () => {
     try {
@@ -124,10 +125,15 @@ const BrandList = () => {
       }));
       setBrands(transformed);
       setTotal(res.data?.total || 0);
-    } catch (err) {
+
+      if (res.data?.counts) {
+        setCounts(res.data.counts);
+      }
+    } catch {
       toast.error('Không thể tải danh sách thương hiệu');
     }
   };
+
 
   useEffect(() => {
     fetchBrands();
@@ -187,49 +193,28 @@ const BrandList = () => {
         >
           Thêm thương hiệu
         </Button>
-        <FormControl size="small" sx={{ minWidth: 100 }}>
-          <Select value={limit} onChange={(e) => setLimit(Number(e.target.value))}>
-            {[10, 20, 50].map(val => (
-              <MenuItem key={val} value={val}>{val} / trang</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+
       </Box>
 
-      <Box sx={{ display: 'flex', gap: 4, borderBottom: '1px solid #eee', mb: 2, py: 1 }}>
-        {statusTabs.map(tab => {
-          const isActive = status === tab.value;
-          return (
-            <Box
-              key={tab.value}
-              onClick={() => {
-                setStatus(tab.value);
-                setSelectedIds([]);
-                setBulkAction('');
-              }}
-              sx={{
-                position: 'relative',
-                cursor: 'pointer',
-                fontWeight: isActive ? 700 : 400,
-                color: isActive ? 'red' : 'black',
-                '&::after': {
-                  content: '""',
-                  position: 'absolute',
-                  left: 0,
-                  right: 0,
-                  bottom: -2,
-                  height: '2px',
-                  backgroundColor: isActive ? 'red' : 'transparent'
-                }
-              }}
-            >
-              {tab.label}
-            </Box>
-          );
-        })}
+      <Box display="flex" gap={2} mb={2}>
+        {statusTabs.map(tab => (
+          <Button
+            key={tab.value}
+            variant={status === tab.value ? 'contained' : 'text'}
+            onClick={() => {
+              setStatus(tab.value);
+              setSelectedIds([]);
+              setBulkAction('');
+            }}
+            sx={{ borderRadius: 2, fontWeight: status === tab.value ? 600 : 400 }}
+          >
+            {tab.label} ({counts[tab.value] || 0})
+          </Button>
+        ))}
       </Box>
 
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, mb: 2 }}>
+
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 2 }}>
         <Box sx={{ display: 'flex', gap: 1 }}>
           <FormControl size="small" sx={{ minWidth: 180 }}>
             <Select
