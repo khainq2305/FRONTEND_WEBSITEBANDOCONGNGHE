@@ -96,6 +96,7 @@ const BrandList = () => {
   const [loading, setLoading] = useState(false);
 
   const sensors = useSensors(useSensor(PointerSensor));
+  const [counts, setCounts] = useState({ all: 0, published: 0, draft: 0, trash: 0 });
 
   const fetchBrands = async () => {
     setLoading(true);
@@ -108,12 +109,17 @@ const BrandList = () => {
       }));
       setBrands(transformed);
       setTotal(res.data?.total || 0);
+
+      if (res.data?.counts) {
+        setCounts(res.data.counts);
+      }
     } catch {
       toast.error('Không thể tải danh sách thương hiệu');
     } finally {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     fetchBrands();
@@ -174,13 +180,7 @@ const BrandList = () => {
         <Button variant="contained" onClick={() => navigate('/admin/brands/create')}>
           + Thêm Thương Hiệu
         </Button>
-        <FormControl size="small" sx={{ minWidth: 100 }}>
-          <Select value={limit} onChange={(e) => setLimit(Number(e.target.value))}>
-            {[10, 20, 50].map(val => (
-              <MenuItem key={val} value={val}>{val} / trang</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+
       </Box>
 
       <Box display="flex" gap={2} mb={2}>
@@ -195,10 +195,11 @@ const BrandList = () => {
             }}
             sx={{ borderRadius: 2, fontWeight: status === tab.value ? 600 : 400 }}
           >
-            {tab.label}
+            {tab.label} ({counts[tab.value] || 0})
           </Button>
         ))}
       </Box>
+
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 2 }}>
         <Box sx={{ display: 'flex', gap: 1 }}>
