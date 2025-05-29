@@ -1,25 +1,21 @@
-import { useState } from 'react';
-import { Menu, MenuItem, IconButton } from '@mui/material';
+import { IconButton, Menu, MenuItem } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import Swal from 'sweetalert2';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import LockIcon from '@mui/icons-material/Lock';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import { useState } from 'react';
 
-const MoreActionsMenu = ({ user, onChangeStatus, onResetPassword, onViewDetail }) => {
+const MoreActionsMenu = ({ user, isDeleted = false, onChangeStatus, onResetPassword, onViewDetail, onForceDelete }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 
   const handleClick = (e) => setAnchorEl(e.currentTarget);
   const handleClose = () => setAnchorEl(null);
-
-  const confirmAction = async (title, callback) => {
+  const handleAction = (action) => {
     handleClose();
-    const res = await Swal.fire({
-      title,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Xác nhận',
-      cancelButtonText: 'Hủy'
-    });
-    if (res.isConfirmed) callback();
+    action && action();
   };
 
   return (
@@ -28,36 +24,34 @@ const MoreActionsMenu = ({ user, onChangeStatus, onResetPassword, onViewDetail }
         <MoreVertIcon />
       </IconButton>
       <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
-        <MenuItem onClick={() => {
-          handleClose();
-          onViewDetail(user);
-        }}>
-          Xem chi tiết
-        </MenuItem>
-        {user.status === 1 ? (
-          <MenuItem onClick={() =>
-            confirmAction(`Ngưng hoạt động tài khoản "${user.fullName}"?`, () =>
-              onChangeStatus('inactive')
-            )
-          }>
-            Ngưng hoạt động
+        {isDeleted ? (
+          <MenuItem onClick={() => handleAction(onForceDelete)}>
+            <DeleteForeverIcon fontSize="small" sx={{ mr: 1 }} />
+            Xoá vĩnh viễn
           </MenuItem>
         ) : (
-          <MenuItem onClick={() =>
-            confirmAction(`Kích hoạt lại tài khoản "${user.fullName}"?`, () =>
-              onChangeStatus('active')
-            )
-          }>
-            Kích hoạt lại
-          </MenuItem>
+          <>
+            <MenuItem onClick={() => handleAction(() => onViewDetail(user))}>
+              <VisibilityIcon fontSize="small" sx={{ mr: 1 }} />
+              Xem chi tiết
+            </MenuItem>
+            <MenuItem onClick={() => handleAction(() => onResetPassword(user))}>
+              <RestartAltIcon fontSize="small" sx={{ mr: 1 }} />
+              Cấp lại mật khẩu
+            </MenuItem>
+            {user.status === 1 ? (
+              <MenuItem onClick={() => handleAction(() => onChangeStatus('inactive'))}>
+                <LockIcon fontSize="small" sx={{ mr: 1 }} />
+                Ngưng hoạt động
+              </MenuItem>
+            ) : (
+              <MenuItem onClick={() => handleAction(() => onChangeStatus('active'))}>
+                <LockOpenIcon fontSize="small" sx={{ mr: 1 }} />
+                Kích hoạt lại
+              </MenuItem>
+            )}
+          </>
         )}
-        <MenuItem onClick={() =>
-          confirmAction(`Cấp lại mật khẩu cho "${user.fullName}"?`, () =>
-            onResetPassword(user)
-          )
-        }>
-          Cấp lại mật khẩu
-        </MenuItem>
       </Menu>
     </>
   );

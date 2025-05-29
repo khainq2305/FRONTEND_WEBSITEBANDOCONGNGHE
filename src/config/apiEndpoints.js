@@ -31,37 +31,39 @@ export const API_ENDPOINT = {
       base: `${API_BASE_URL}/user-address`,
       list: '/',
       create: '/',
-      getDefault: '/default' // 👈 thêm dòng này
+      getDefault: '/default' 
     },
-     category: {
+    category: {
       base: `${API_BASE_URL}/api/client/categories`
     },
     product: {
       base: `${API_BASE_URL}/product`,
-      getBySlug: (slug) => `/${slug}` // ✅ dùng slug như "iphone-15"
+      baseList: `${API_BASE_URL}/api/client/products`,
+      getBySlug: (slug) => `/${slug}`
+    },
+    brand: {
+      base: '/api/client/brands'
     },
     highlightedCategory: {
-  base: `${API_BASE_URL}`,
-  list: '/highlighted-categories' // 👈 route BE trả về danh mục nổi bật (public)
-},
-search: {
-  base: `${API_BASE_URL}`,
-  search: '/search',
-  history: '/search/history'
-}
-,
+      base: `${API_BASE_URL}`,
+      list: '/highlighted-categories'
+    },
+    search: {
+      base: `${API_BASE_URL}`,
+      search: '/search',
+      history: '/search/history'
+    },
     cart: {
       base: `${API_BASE_URL}/cart`,
       add: '/add',
-      list: '/my-cart', // ✅ Sửa lại cho đúng route backend
-      updateQuantity: '/update-quantity', // ✔ Đúng với route backend
+      list: '/my-cart',
+      updateQuantity: '/update-quantity',
       deleteItem: (id) => `/item/${id}`
     },
-    // Thêm vào `client` trong API_ENDPOINT:
     order: {
       base: `${API_BASE_URL}/orders`,
       create: '/create',
-      calculateFee: '/calculate-fee' // 👈 thêm dòng này
+      calculateFee: '/calculate-fee'
     }
   },
   admin: {
@@ -76,9 +78,9 @@ search: {
       restore: (id) => `/product/restore/${id}`,
       restoreMany: '/product/restore-many',
       forceDelete: (id) => `/product/force/${id}`,
-      updateOrderIndexBulk: '/product/update-order' // ✅ thêm dòng này
+      updateOrderIndexBulk: '/product/update-order' 
     },
-     notification: {
+    notification: {
       base: `${API_BASE_URL}/admin/notifications`,
       getAll: '', // GET /admin/notifications?page=...
       create: '', // POST /admin/notifications
@@ -89,14 +91,14 @@ search: {
       updateOrder: '/update-order', // POST /admin/notifications/update-order
       forceDelete: '/force-delete/:id' // (tuỳ, nếu bạn dùng xoá cứng riêng lẻ)
     },
-category: {
+    category: {
       base: `${API_BASE_URL}/admin/categories`,
       getAll: '',
       getById: '/:id',
       create: '',
       update: '/:id',
       delete: '/:id',
-      restore: '/restore/:id',
+      restore: '/restore/:id'
     },
     coupon: {
       base: `${API_BASE_URL}/admin`,
@@ -131,32 +133,30 @@ category: {
       delete: (id) => `/sections/${id}`,
 
       getAllSkus: '/sections/skus' // ✅ thêm dòng này
-
     },
-    
+
     slider: {
-  banner: {
-    base: `${API_BASE_URL}/admin`,
-    list: '/banners',
-    create: '/banners',
-    update: (id) => `/banners/${id}`,
-    delete: (id) => `/banners/${id}`
-  },
-  placement: {
-    base: `${API_BASE_URL}/admin`,
-    list: '/placements',
-    create: '/placements',
-    update: (id) => `/placements/${id}`,
-    delete: (id) => `/placements/${id}`
-  },
-  assignment: {
-    base: `${API_BASE_URL}/admin`,
-    assign: '/assignments',
-    getByPlacement: (placementId) => `/placements/${placementId}/banners`,
-    delete: (id) => `/assignments/${id}`
-  }
-}
-,
+      banner: {
+        base: `${API_BASE_URL}/admin`,
+        list: '/banners',
+        create: '/banners',
+        update: (id) => `/banners/${id}`,
+        delete: (id) => `/banners/${id}`
+      },
+      placement: {
+        base: `${API_BASE_URL}/admin`,
+        list: '/placements',
+        create: '/placements',
+        update: (id) => `/placements/${id}`,
+        delete: (id) => `/placements/${id}`
+      },
+      assignment: {
+        base: `${API_BASE_URL}/admin`,
+        assign: '/assignments',
+        getByPlacement: (placementId) => `/placements/${placementId}/banners`,
+        delete: (id) => `/assignments/${id}`
+      }
+    },
     variantValue: {
       base: `${API_BASE_URL}/admin`,
       getByVariantId: (id) => `/variant-values/${id}`,
@@ -184,23 +184,23 @@ category: {
     },
 
     flashSale: {
-  base: `${API_BASE_URL}/admin`,
-  list: '/flash-sales',
+      base: `${API_BASE_URL}/admin`,
+      list: '/flash-sales',
 
-  create: '/flash-sales',
+      create: '/flash-sales',
 
-  update: (id) => `/flash-sale/${id}`,
-  delete: (id) => `/flash-sale/${id}`,
-  deleteMany: '/flash-sale/delete-many',
-  restore: (id) => `/flash-sale/restore/${id}`,
-  restoreMany: '/flash-sale/restore-many',
-  forceDelete: (id) => `/flash-sale/force/${id}`,
-  forceDeleteMany: '/flash-sale/force-delete-many',
+      update: (id) => `/flash-sale/${id}`,
+      delete: (id) => `/flash-sale/${id}`,
+      deleteMany: '/flash-sale/delete-many',
+      restore: (id) => `/flash-sale/restore/${id}`,
+      restoreMany: '/flash-sale/restore-many',
+      forceDelete: (id) => `/flash-sale/force/${id}`,
+      forceDeleteMany: '/flash-sale/force-delete-many',
 
-  // ✅ Đúng route
-  getSkus: '/flash-sales/skus/available',
-  getCategories: '/flash-sales/categories/available-tree'
-},
+      // ✅ Đúng route
+      getSkus: '/flash-sales/skus/available',
+      getCategories: '/flash-sales/categories/available-tree'
+    },
 
     user: {
       base: `${API_BASE_URL}/admin`,
@@ -228,7 +228,7 @@ category: {
       restorePost: '/khoi-phuc',
       postCount: '/tong-so-bai-viet'
     },
- brand: {
+    brand: {
       base: `${API_BASE_URL}/admin/brands`,
       getAll: '/',
       getById: (id) => `/detail/${id}`,
@@ -238,6 +238,6 @@ category: {
       forceDelete: '/force-delete',
       restore: '/restore',
       updateOrder: '/update-order'
-    },
+    }
   }
 };

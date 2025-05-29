@@ -6,7 +6,7 @@ import Footer from './Footer';
 import AuthHeader from './AuthHeader';
 import Topbar from './Topbar';
 import BottomNavigationBar from './BottomNavigationBar';
-import FloatingContact from '../../pages/Client/FloatingContact'; // Đúng đường dẫn tới file bạn tạo
+import { CategoryProvider } from '../../contexts/CategoryContext'; // ✅ Import context
 
 const ClientLayout = () => {
   const location = useLocation();
@@ -21,7 +21,7 @@ const ClientLayout = () => {
     '/register-email-sent'
   ].includes(location.pathname);
 
-  return (
+  const Layout = (
     <>
       {isAuthPage ? (
         <AuthHeader />
@@ -37,12 +37,13 @@ const ClientLayout = () => {
       </main>
 
       <Footer />
-      <FloatingContact />
       <BottomNavigationBar />
 
       <div className="pb-[56px] lg:pb-0"></div>
     </>
   );
+
+  return isAuthPage ? Layout : <CategoryProvider>{Layout}</CategoryProvider>;
 };
 
 export default ClientLayout;

@@ -256,15 +256,7 @@ const pages = [
         icon: icons.FileTextOutlined,
         exact: true
       },
-      {
-        id: 'user-deleted',
-        title: 'Thùng rác',
-        type: 'item',
-        url: '/admin/users/deleted',
-        icon: icons.FileTextOutlined,
-        exact: true,
-        activeMenu: '/admin/users/deleted'
-      }
+
     ]
   },
   {

@@ -63,7 +63,6 @@ const CategoryAddd = Loadable(lazy(() => import('pages/Admin/CaterogyProduct/Cat
 const CategoryEdit = Loadable(lazy(() => import('pages/Admin/CaterogyProduct/CategoryEdit/CategoryEdit')));
 const NotificationPage = Loadable(lazy(() => import('pages/Admin/Notification')));
 const NotificationDetail = Loadable(lazy(() => import('pages/Admin/Notification/NotificationDetail')));
-const DeletedUserList = Loadable(lazy(() => import('pages/Admin/User/DeletedUserList')));
 const UserDetailPage = Loadable(lazy(() => import('pages/Admin/User/UserDetailDialog')));
 
 const AdminRoutes = {
@@ -174,10 +173,7 @@ const AdminRoutes = {
       path: '/admin/users/:id',
       element: <UserDetailPage />
     },
-    {
-      path: 'users/deleted',
-      element: <DeletedUserList />
-    },
+
     { path: 'users/create', element: <UserAdd /> },
   
 

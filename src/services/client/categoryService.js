@@ -8,7 +8,8 @@ export const categoryService = {
   getAll() {
     return get(base);
   },
-  getByCategory(slug, page = 1, limit = 20) {
-    return get(base, { slug, page, limit });
+  getBySlug(slug) {
+    if (!slug) throw new Error('❌ Missing category slug');
+    return get(`${base}/${slug}`);
   }
 };

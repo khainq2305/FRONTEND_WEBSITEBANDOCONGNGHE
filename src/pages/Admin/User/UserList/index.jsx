@@ -25,13 +25,14 @@ import SearchInput from 'components/common/SearchInput';
 import MoreActionsMenu from '../MoreActionsMenu';
 import MUIPagination from 'components/common/Pagination';
 import Loader from 'components/common/Loader';
-import { getAllUsers, updateUserStatus, resetUserPassword } from 'services/admin/userService';
+import { getAllUsers, updateUserStatus, resetUserPassword, getDeletedUsers, forceDeleteManyUsers } from 'services/admin/userService';
 import { toast } from 'react-toastify';
 
 const TABS = [
   { label: 'Tất cả', value: '', key: 'all' },
   { label: 'Hoạt động', value: '1', key: 'active' },
-  { label: 'Ngưng hoạt động', value: '0', key: 'inactive' }
+  { label: 'Ngưng hoạt động', value: '0', key: 'inactive' },
+  { label: 'Thùng rác', value: 'trash', key: 'deleted' }
 ];
 
 const roleColors = {
@@ -69,7 +70,7 @@ const UserList = () => {
   const [selectedIds, setSelectedIds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
-  const [statusCounts, setStatusCounts] = useState({ all: 0, active: 0, inactive: 0 });
+  const [statusCounts, setStatusCounts] = useState({ all: 0, active: 0, inactive: 0, deleted: 0 });
 
   const itemsPerPage = 10;
 
@@ -77,25 +78,33 @@ const UserList = () => {
     try {
       setLoading(true);
       const statusQuery = TABS[tab].value;
-      const data = await getAllUsers({ page, limit: itemsPerPage, search, status: statusQuery });
+
+      const data =
+        statusQuery === 'trash'
+          ? await getDeletedUsers({ page, limit: itemsPerPage, search })
+          : await getAllUsers({ page, limit: itemsPerPage, search, status: statusQuery });
+
       setUsers(
-        data.data.map((user) => ({
+        (data.data || []).map((user) => ({
           ...user,
-          status: parseInt(user.status, 10)
+          status: parseInt(user.status || 0, 10)
         }))
       );
 
-      setTotalPages(data.totalPages);
+      setTotalPages(data.totalPages || 1);
 
-      const [all, active, inactive] = await Promise.all([
+      const [all, active, inactive, deleted] = await Promise.all([
         getAllUsers({ page: 1, limit: 1, status: '' }),
         getAllUsers({ page: 1, limit: 1, status: '1' }),
-        getAllUsers({ page: 1, limit: 1, status: '0' })
+        getAllUsers({ page: 1, limit: 1, status: '0' }),
+        getDeletedUsers({ page: 1, limit: 1, search: '' })
       ]);
+
       setStatusCounts({
         all: all.total,
         active: active.total,
-        inactive: inactive.total
+        inactive: inactive.total,
+        deleted: deleted.total
       });
     } catch {
       toast.error('Không thể tải danh sách người dùng!');
@@ -127,6 +136,23 @@ const UserList = () => {
     );
   };
 
+  const handleForceDelete = async (id) => {
+    const confirm = window.confirm('Bạn chắc chắn muốn xoá vĩnh viễn tài khoản này?');
+    if (!confirm) return;
+
+    try {
+      setActionLoading(true);
+      await forceDeleteManyUsers([id]);
+      toast.success('Đã xoá vĩnh viễn tài khoản');
+      fetchUsers();
+      setSelectedIds((prev) => prev.filter((x) => x !== id));
+    } catch {
+      toast.error('Lỗi khi xoá tài khoản');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleResetPassword = async (user) => {
     try {
       setActionLoading(true);
@@ -134,6 +160,25 @@ const UserList = () => {
       toast.success(`Đã gửi mật khẩu mới đến email ${user.email}`);
     } catch {
       toast.error('Lỗi khi cấp lại mật khẩu');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleForceDeleteMany = async () => {
+    if (selectedIds.length === 0) return;
+
+    const confirmDelete = window.confirm(`Xoá vĩnh viễn ${selectedIds.length} tài khoản?`);
+    if (!confirmDelete) return;
+
+    try {
+      setActionLoading(true);
+      await forceDeleteManyUsers(selectedIds);
+      toast.success('Đã xoá vĩnh viễn các tài khoản');
+      fetchUsers();
+      setSelectedIds([]);
+    } catch (err) {
+      toast.error('Lỗi khi xoá vĩnh viễn');
     } finally {
       setActionLoading(false);
     }
@@ -163,7 +208,32 @@ const UserList = () => {
         Danh sách người dùng
       </Typography>
 
-      <Tabs value={tab} onChange={handleTabChange} sx={{ mb: 2 }} variant="scrollable">
+      <Tabs
+        value={tab}
+        onChange={handleTabChange}
+        variant="scrollable"
+        sx={{
+          mb: 2,
+          '& .MuiTabs-indicator': {
+            backgroundColor: '#000'
+          },
+          '& .MuiTab-root': {
+            color: '#000',
+            fontWeight: 500,
+            textTransform: 'none',
+            minHeight: 40
+          },
+          '& .MuiTab-root.Mui-selected': {
+            color: '#fff',
+            backgroundColor: '#000', 
+            borderRadius: 4
+          },
+          '& .MuiTab-root:hover': {
+            backgroundColor: 'rgba(0, 0, 0, 0.05)', 
+            color: '#000'
+          }
+        }}
+      >
         {TABS.map((tabItem, index) => (
           <Tab key={index} label={`${tabItem.label} (${statusCounts[tabItem.key] || 0})`} />
         ))}
@@ -193,12 +263,34 @@ const UserList = () => {
             whiteSpace: 'nowrap',
             fontWeight: 600,
             px: 3,
-            backgroundColor: '#2979ff',
-            '&:hover': { backgroundColor: '#1565c0' }
+            backgroundColor: '#000',
+            color: '#fff',
+            '&:hover': {
+              backgroundColor: '#222'
+            }
           }}
         >
           + Thêm Tài khoản
         </Button>
+        {tab === 3 && selectedIds.length > 0 && (
+          <Button
+            variant="contained"
+            onClick={handleForceDeleteMany}
+            sx={{
+              height: 40,
+              fontWeight: 600,
+              px: 3,
+              ml: 2,
+              backgroundColor: '#000',
+              color: '#fff',
+              '&:hover': {
+                backgroundColor: '#222'
+              }
+            }}
+          >
+            Xoá vĩnh viễn ({selectedIds.length})
+          </Button>
+        )}
       </Stack>
 
       {loading || actionLoading ? (
@@ -225,13 +317,13 @@ const UserList = () => {
                     <strong>Email</strong>
                   </TableCell>
                   <TableCell>
-                    <strong>Vai trò</strong>
+                    <strong>{tab === 3 ? 'Ngày xoá' : 'Vai trò'}</strong>
                   </TableCell>
                   <TableCell>
                     <strong>Trạng thái</strong>
                   </TableCell>
                   <TableCell align="right">
-                    <strong>Hành động</strong>
+                    <strong>{tab === 3 ? 'Xoá' : 'Hành động'}</strong>
                   </TableCell>
                 </TableRow>
               </TableHead>
@@ -243,7 +335,7 @@ const UserList = () => {
                     </TableCell>
                     <TableCell>{(page - 1) * itemsPerPage + index + 1}</TableCell>
                     <TableCell>
-                      <Avatar src={row.avatarUrl} alt={row.fullName} sx={{ width: 36, height: 36 }} />
+                      {tab === 3 ? row.fullName : <Avatar src={row.avatarUrl} alt={row.fullName} sx={{ width: 36, height: 36 }} />}
                     </TableCell>
                     <TableCell>{row.fullName}</TableCell>
                     <TableCell>
@@ -252,26 +344,33 @@ const UserList = () => {
                       </Box>
                     </TableCell>
                     <TableCell>
-                      <Chip
-                        label={convertRoleIdToLabel(row.roleId)}
-                        color={roleColors[convertRoleIdToLabel(row.roleId)] || 'default'}
-                        size="small"
-                      />
+                      {tab === 3 ? (
+                        new Date(row.deletedAt).toLocaleString()
+                      ) : (
+                        <Chip
+                          label={convertRoleIdToLabel(row.roleId)}
+                          color={roleColors[convertRoleIdToLabel(row.roleId)] || 'default'}
+                          size="small"
+                        />
+                      )}
                     </TableCell>
                     <TableCell>
-                      {parseInt(row.status) === 1 ? (
+                      {tab === 3 ? (
+                        <Chip label="Đã xoá" size="small" color="default" />
+                      ) : parseInt(row.status) === 1 ? (
                         <Chip label="Hoạt động" color="success" size="small" />
                       ) : (
                         <Chip label="Ngưng hoạt động" color="default" size="small" />
                       )}
                     </TableCell>
-
                     <TableCell align="right">
                       <MoreActionsMenu
                         user={row}
+                        isDeleted={tab === 3}
                         onChangeStatus={(newStatus) => handleStatusChange(row, newStatus)}
                         onResetPassword={handleResetPassword}
                         onViewDetail={handleViewDetail}
+                        onForceDelete={() => handleForceDelete(row.id)}
                       />
                     </TableCell>
                   </TableRow>

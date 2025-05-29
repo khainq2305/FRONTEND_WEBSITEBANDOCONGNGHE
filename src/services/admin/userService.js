@@ -1,66 +1,48 @@
-import axios from 'axios';
-import { API_ENDPOINT } from '../../config/apiEndpoints';
+import { get, post, put, del } from '../common/crud'; // ✅ Import CRUD
 
-const getToken = () => localStorage.getItem('token');
-
-const API = axios.create({
-  baseURL: API_ENDPOINT.admin.user.base,
-  withCredentials: true
-});
-
-API.interceptors.request.use(
-  (config) => {
-    const token = getToken();
-    if (token) config.headers.Authorization = `Bearer ${token}`;
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+const base = '/admin/users'; 
 
 export const getAllUsers = async ({ page = 1, limit = 10, search = '', status = '' }) => {
-  const res = await API.get(API_ENDPOINT.admin.user.users, {
-    params: { page, limit, search, status }
-  });
-  return res.data;
-};
-
-export const updateUserStatus = async (userId, status, reason = '') => {
-  const res = await API.put(`${API_ENDPOINT.admin.user.users}/${userId}/status`, { status, reason });
-  return res.data;
-};
-
-export const resetUserPassword = async (userId) => {
-  const res = await API.post(`${API_ENDPOINT.admin.user.users}/${userId}/reset-password`);
-  return res.data;
-};
-
-export const deleteInactiveUsers = async () => {
-  const res = await API.delete(`${API_ENDPOINT.admin.user.users}/inactive`);
+  const res = await get(base, { page, limit, search, status });
   return res.data;
 };
 
 export const getDeletedUsers = async ({ page = 1, limit = 10, search = '' }) => {
-  const res = await API.get('/users/deleted', {
-    params: { page, limit, search }
-  });
+  const res = await get(`${base}/deleted`, { page, limit, search });
   return res.data;
 };
+
 export const getAllRoles = async () => {
-  const res = await API.get('/roles');
+  const res = await get('/admin/roles'); 
   return res.data;
 };
-export const createUser = async (data) => {
-  const res = await API.post(API_ENDPOINT.admin.user.users, data);
-  return res.data;
-};
+
 export const getUserById = async (id) => {
-  const res = await API.get(`/users/${id}`);
+  const res = await get(`${base}/${id}`);
   return res.data;
 };
+
+export const createUser = async (data) => {
+  const res = await post(base, data);
+  return res.data;
+};
+
+export const updateUserStatus = async (userId, status, reason = '') => {
+  const res = await put(`${base}/${userId}/status`, { status, reason });
+  return res.data;
+};
+
+export const resetUserPassword = async (userId) => {
+  const res = await post(`${base}/${userId}/reset-password`);
+  return res.data;
+};
+
+export const deleteInactiveUsers = async () => {
+  const res = await del(`${base}/inactive`);
+  return res.data;
+};
+
 export const forceDeleteManyUsers = async (ids) => {
-  const res = await API.post('/users/force-delete-many', { ids });
+  const res = await post(`${base}/force-delete-many`, { ids });
   return res.data;
 };
-
-
-

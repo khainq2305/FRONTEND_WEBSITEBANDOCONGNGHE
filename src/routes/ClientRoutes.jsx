@@ -51,11 +51,9 @@ const ClientRoutes = {
     },
     { path: 'verify-email', element: <VerifyEmailPage /> },
     { path: 'user-profile', element: <UserProfilePage /> },
-    {
-      path: 'category/:id',
-      element: <ProductListByCategory />
-    },
-   { path: 'product/:slug', element: <ProductDetail /> },
+    { path: 'category/:slug', element: <ProductListByCategory /> },
+
+    { path: 'product/:slug', element: <ProductDetail /> },
 
     { path: 'cart', element: <CartPage /> },
     { path: 'checkout', element: <CheckoutPage /> },
@@ -64,7 +62,7 @@ const ClientRoutes = {
     { path: 'news', element: <News /> },
     { path: 'news/:id', element: <NewsDetails /> },
     { path: 'orderlookup', element: <OrderLookup /> },
-      { path: 'compare-products', element: <ProductComparison /> },
+    { path: 'compare-products', element: <ProductComparison /> }
   ]
 };
 

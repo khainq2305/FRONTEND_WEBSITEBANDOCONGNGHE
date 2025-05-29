@@ -22,7 +22,7 @@ const UserAddPage = () => {
     try {
       setFieldErrors({});
       await createUser(payload);
-      toast.success('✅ Tạo tài khoản thành công!');
+      toast.success(' Tạo tài khoản thành công!');
       navigate('/admin/users');
     } catch (err) {
       const backendErrors = err?.errors || err?.response?.data?.errors;
@@ -31,7 +31,7 @@ const UserAddPage = () => {
         backendErrors.forEach(e => {
           errors[e.field] = e.message;
         });
-        setFieldErrors(errors); // ✅ Gửi xuống Form
+        setFieldErrors(errors); 
       } else {
         toast.error('❌ Tạo tài khoản thất bại!');
       }

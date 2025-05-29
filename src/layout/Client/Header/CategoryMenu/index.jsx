@@ -47,7 +47,6 @@ const CategoryMenu = ({ topLevelCategories = [], allCategories = [], isOpen = fa
       className="absolute top-full left-0 z-200 bg-white shadow-lg text-black flex border border-gray-200 border-t-0 rounded-b-lg min-w-[780px] overflow-hidden"
       style={{ height: '460px' }}
     >
-      {/* Cột trái - danh mục cha */}
       <div className="w-[250px] bg-[#F0F0F0] border-r border-gray-200 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 rounded-bl-lg">
         <ul>
           {topLevelCategories.map((cat) => (
@@ -71,14 +70,13 @@ const CategoryMenu = ({ topLevelCategories = [], allCategories = [], isOpen = fa
         </ul>
       </div>
 
-      {/* Cột phải - danh mục con */}
       <div className="flex-1 pl-6 pr-5 py-3 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-gray-100 rounded-br-lg">
         {activeL1Category && (
           <div className="mb-3 pb-2 border-b border-gray-200 flex justify-between items-center">
             <h3 className="text-lg font-semibold text-primary uppercase">{activeL1Category.name}</h3>
             {activeL1Category.id && (
               <Link
-                to={`/category/${activeL1Category.id}`}
+                to={`/category/${activeL1Category.slug}`}
                 className="text-xs text-blue-600 hover:text-orange-500 hover:underline font-medium flex items-center"
               >
                 Xem tất cả <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
