@@ -86,8 +86,6 @@ search: {
       update: '/:id', // PUT /admin/notifications/:id
       delete: '/:id', // DELETE /admin/notifications/:id
       deleteMany: '/delete-many', // POST /admin/notifications/delete-many
-      updateOrder: '/update-order', // POST /admin/notifications/update-order
-      forceDelete: '/force-delete/:id' // (tuỳ, nếu bạn dùng xoá cứng riêng lẻ)
     },
 category: {
       base: `${API_BASE_URL}/admin/categories`,

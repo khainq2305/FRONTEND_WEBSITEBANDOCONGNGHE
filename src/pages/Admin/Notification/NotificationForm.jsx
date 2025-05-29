@@ -15,6 +15,7 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
     isGlobal: true,
     type: 'system',
     isActive: true,
+    startAt: '',
     imageFile: null
   });
   const [preview, setPreview] = useState('');
@@ -33,6 +34,7 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
     if (!form.type) newErrors.type = 'Vui lòng chọn loại thông báo';
     if (!form.targetId || isNaN(Number(form.targetId)) || Number(form.targetId) <= 0)
       newErrors.targetId = 'ID mục tiêu phải là số nguyên dương';
+    if (!form.startAt) newErrors.startAt = 'Vui lòng chọn ngày bắt đầu hiển thị';
     if (!editing && !form.imageFile && !preview) newErrors.image = 'Vui lòng chọn ảnh';
     return newErrors;
   };
@@ -115,7 +117,6 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
         }
       });
 
-      // ❗ Không truyền headers vì crud.js không hỗ trợ config
       if (editing) {
         await notificationService.update(editing.id, formData);
       } else {
@@ -125,7 +126,6 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
       localStorage.removeItem(LOCAL_STORAGE_KEY);
       onSuccess();
     } catch (error) {
-      console.error('❌ Lỗi khi gửi form:', error);
       alert(error.message || 'Đã xảy ra lỗi. Vui lòng thử lại.');
     } finally {
       setLoading(false);
@@ -140,7 +140,7 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
         encType="multipart/form-data"
       >
         <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-          {editing ? '✏️ Sửa thông báo' : 'Thêm thông báo mới'}
+          {editing ? 'Sửa thông báo' : 'Thêm thông báo mới'}
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -222,6 +222,18 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
             {errors.targetId && <p className="text-red-500 text-sm mt-1">{errors.targetId}</p>}
           </div>
 
+          <div>
+            <label className="block text-sm font-medium mb-1">Ngày bắt đầu hiển thị</label>
+            <input
+              type="datetime-local"
+              name="startAt"
+              value={form.startAt}
+              onChange={handleChange}
+              className="w-full border border-gray-300 px-3 py-2 focus:outline-none"
+            />
+            {errors.startAt && <p className="text-red-500 text-sm mt-1">{errors.startAt}</p>}
+          </div>
+
           <div className="flex items-center gap-2">
             <input type="checkbox" name="isGlobal" checked={form.isGlobal} onChange={handleChange} />
             <label className="text-sm">Gửi toàn bộ user</label>
@@ -233,7 +245,7 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
           </div>
 
           <div className="col-span-2">
-            <label className="block text-sm font-medium mb-1">Ảnh thông báo (Kéo & thả hoặc click)</label>
+            <label className="block text-sm font-medium mb-1">Ảnh thông báo</label>
             <div
               {...getRootProps()}
               className={`w-[200px] h-[200px] border border-dashed border-gray-300 flex items-center justify-center cursor-pointer ${
@@ -259,7 +271,6 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
           >
             {loading ? 'Đang gửi...' : editing ? 'Cập nhật' : 'Tạo mới'}
           </button>
-
           <button type="button" onClick={onCancel} className="px-6 py-2 bg-gray-200 text-gray-800 hover:bg-gray-300">
             Trở về
           </button>

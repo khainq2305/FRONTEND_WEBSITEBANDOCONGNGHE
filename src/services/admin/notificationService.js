@@ -25,6 +25,4 @@ export const notificationService = {
   deleteMany: (ids) =>
     post(`${base}${API_ENDPOINT.admin.notification.deleteMany}`, { ids }),
 
-  updateOrderIndex: (data) =>
-    post(`${base}${API_ENDPOINT.admin.notification.updateOrder}`, data)
 };

@@ -1,18 +1,14 @@
 import { useEffect, useState } from 'react';
+import { Box, Button, Typography } from '@mui/material';
+import { toast } from 'react-toastify';
 import NotificationTable from './NotificationTable';
 import NotificationForm from './NotificationForm';
-import DeleteAllDialog from './DeleteAllDialog';
-import {
-  Box,
-  Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  TextField
-} from '@mui/material';
-import Pagination from 'components/common/Pagination';
+import MUIPagination from '../../../components/common/Pagination';
 import { notificationService } from '../../../services/admin/notificationService';
+import SearchInput from '../../../components/common/SearchInput';
+import Loader from '../../../components/common/Loader';
+import FilterSelect from '../../../components/common/FilterSelect';
+import { confirmDelete } from '../../../components/common/ConfirmDeleteDialog';
 
 const NotificationPage = () => {
   const [data, setData] = useState({ list: [], total: 0 });
@@ -25,10 +21,15 @@ const NotificationPage = () => {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [bulkAction, setBulkAction] = useState('');
-  const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false);
+  const [counts, setCounts] = useState({ all: 0, active: 0, hidden: 0 });
 
-  const itemsPerPage = 10;
+  const statusTabs = [
+    { value: '', label: `Tất cả (${counts.all})` },
+    { value: 'active', label: `Hoạt động (${counts.active})` },
+    { value: 'hidden', label: `Tạm tắt (${counts.hidden})` }
+  ];
 
   const fetchData = async () => {
     setLoading(true);
@@ -42,14 +43,13 @@ const NotificationPage = () => {
         ...(typeFilter && { type: typeFilter })
       });
 
-      console.log('📦 Res from getAll:', res);
-
       setData({
-        list: Array.isArray(res.data?.data) ? res.data.data : [],
+        list: Array.isArray(res.data?.data) ? res.data.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) : [],
         total: typeof res.data?.total === 'number' ? res.data.total : 0
       });
+      setCounts(res.data?.counts || { all: 0, active: 0, hidden: 0 });
     } catch (err) {
-      console.error('❌ Lỗi fetch:', err);
+      toast.error('Không thể tải danh sách');
       setData({ list: [], total: 0 });
     } finally {
       setLoading(false);
@@ -58,7 +58,7 @@ const NotificationPage = () => {
 
   useEffect(() => {
     fetchData();
-  }, [reload, page, status, search, typeFilter]);
+  }, [reload, page, status, search, typeFilter, itemsPerPage]);
 
   const handleEdit = (item) => {
     setEditing(item);
@@ -66,20 +66,27 @@ const NotificationPage = () => {
   };
 
   const handleDelete = async (item) => {
-    await notificationService.delete(item.id);
-    setReload(!reload);
+    const confirmed = await confirmDelete('xoá', `thông báo "${item.title}"`);
+    if (!confirmed) return;
+
+    try {
+      await notificationService.delete(item.id);
+      toast.success('Đã xoá thông báo');
+      setReload(!reload);
+    } catch (err) {
+      toast.error('Không thể xoá thông báo');
+    }
   };
 
   const handleFormSuccess = () => {
     setEditing(null);
     setShowForm(false);
+    toast.success('Lưu thông báo thành công');
     setReload(!reload);
   };
 
   const handleSelect = (id) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
   };
 
   const handleSelectAll = () => {
@@ -90,117 +97,128 @@ const NotificationPage = () => {
     }
   };
 
-  const handleBulkAction = () => {
+  const handleBulkAction = async () => {
     if (bulkAction === 'trash' && selectedIds.length > 0) {
-      setShowDeleteAllDialog(true);
+      const confirmed = await confirmDelete('xoá', `${selectedIds.length} thông báo đã chọn`);
+      if (!confirmed) return;
+
+      try {
+        await notificationService.deleteMany(selectedIds);
+        toast.success('Đã xoá nhiều thông báo');
+        setSelectedIds([]);
+        setReload(!reload);
+      } catch (err) {
+        toast.error('Xoá nhiều thất bại');
+      }
     }
   };
-
-  const handleConfirmDeleteAll = async () => {
-    try {
-      await notificationService.deleteMany(selectedIds);
-      setSelectedIds([]);
-      setReload(!reload);
-    } catch (err) {
-      console.error('❌ Lỗi xoá nhiều:', err);
-    } finally {
-      setShowDeleteAllDialog(false);
-    }
-  };
-
-  const statusTabs = [
-    { value: '', label: 'Tất cả' },
-    { value: 'active', label: 'Hiển thị' },
-    { value: 'hidden', label: 'Ẩn' }
-  ];
 
   return (
     <Box sx={{ p: 4 }}>
-      <div className="flex justify-between items-center mb-4">
+      {loading && <Loader fullscreen />}
+
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Typography variant="h6" fontWeight={600}>
+          Danh sách thông báo
+        </Typography>
+
         {!showForm && (
-          <Button variant="contained" onClick={() => {
-            setEditing(null);
-            setShowForm(true);
-          }}>
+          <Button
+            variant="contained"
+            onClick={() => {
+              setEditing(null);
+              setShowForm(true);
+            }}
+          >
             + Thêm thông báo
           </Button>
         )}
-      </div>
+      </Box>
 
       {!showForm && (
         <>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, mb: 3 }}>
-            <Box sx={{ display: 'flex', gap: 3 }}>
-              {statusTabs.map((tab) => (
-                <Box
-                  key={tab.value}
-                  onClick={() => {
-                    setStatus(tab.value);
-                    setPage(1);
-                  }}
-                  sx={{
-                    pb: 1,
-                    px: 1,
-                    cursor: 'pointer',
-                    borderBottom: status === tab.value ? '2px solid blue' : '2px solid transparent',
-                    color: status === tab.value ? 'blue' : 'black',
-                    fontWeight: status === tab.value ? 600 : 400,
-                    fontSize: 15
-                  }}
-                >
-                  {tab.label}
-                </Box>
-              ))}
-            </Box>
-
-            <TextField
-              size="small"
-              placeholder="Tìm kiếm..."
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-            />
-          </Box>
-
-          <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap', alignItems: 'center' }}>
-            <FormControl sx={{ minWidth: 160 }} size="small">
-              <InputLabel>Loại</InputLabel>
-              <Select
-                value={typeFilter}
-                label="Loại"
-                onChange={(e) => {
-                  setTypeFilter(e.target.value);
+          <Box sx={{ display: 'flex', gap: 3, mb: 3 }}>
+            {statusTabs.map((tab) => (
+              <Box
+                key={tab.value}
+                onClick={() => {
+                  setStatus(tab.value);
                   setPage(1);
                 }}
+                sx={{
+                  pb: 1,
+                  px: 1,
+                  cursor: 'pointer',
+                  borderBottom: status === tab.value ? '2px solid blue' : '2px solid transparent',
+                  color: status === tab.value ? 'blue' : 'black',
+                  fontWeight: status === tab.value ? 600 : 400,
+                  fontSize: 15
+                }}
               >
-                <MenuItem value="">Tất cả</MenuItem>
-                <MenuItem value="system">System</MenuItem>
-                <MenuItem value="promotion">Promotion</MenuItem>
-                <MenuItem value="order">Order</MenuItem>
-                <MenuItem value="news">News</MenuItem>
-              </Select>
-            </FormControl>
+                {tab.label}
+              </Box>
+            ))}
+          </Box>
 
-            <FormControl sx={{ minWidth: 160 }} size="small">
-              <InputLabel>Hành động</InputLabel>
-              <Select
-                value={bulkAction}
-                label="Hành động"
-                onChange={(e) => setBulkAction(e.target.value)}
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: 3,
+              gap: 2,
+              flexWrap: 'wrap'
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'nowrap' }}>
+              <Box sx={{ minWidth: 180 }}>
+                <FilterSelect
+                  value={bulkAction}
+                  onChange={setBulkAction}
+                  label="Áp dụng hàng loạt"
+                  placeholder="Chọn hành động"
+                  options={[{ value: 'trash', label: 'Xoá' }]}
+                />
+              </Box>
+
+              <Button
+                variant="contained"
+                onClick={handleBulkAction}
+                disabled={selectedIds.length === 0 || !bulkAction}
+                sx={{ whiteSpace: 'nowrap', height: 40 }}
               >
-                <MenuItem value="trash">Xoá</MenuItem>
-              </Select>
-            </FormControl>
+                Áp dụng
+              </Button>
 
-            <Button
-              variant="contained"
-              onClick={handleBulkAction}
-              disabled={selectedIds.length === 0 || !bulkAction}
-            >
-              Thực hiện
-            </Button>
+              <Box sx={{ minWidth: 140 }}>
+                <FilterSelect
+                  value={typeFilter}
+                  onChange={(val) => {
+                    setTypeFilter(val);
+                    setPage(1);
+                  }}
+                  label="Loại"
+                  placeholder="Tất cả"
+                  options={[
+                    { value: 'system', label: 'System' },
+                    { value: 'promotion', label: 'Promotion' },
+                    { value: 'order', label: 'Order' },
+                    { value: 'news', label: 'News' }
+                  ]}
+                />
+              </Box>
+            </Box>
+
+            <Box sx={{ minWidth: 260 }}>
+              <SearchInput
+                value={search}
+                onChange={(val) => {
+                  setSearch(val);
+                  setPage(1);
+                }}
+                placeholder="Tìm kiếm thông báo..."
+              />
+            </Box>
           </Box>
 
           <NotificationTable
@@ -214,14 +232,18 @@ const NotificationPage = () => {
             loading={loading}
           />
 
-          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
-            <Pagination
+          {data.total > 10 && (
+            <MUIPagination
               currentPage={page}
               totalItems={data.total}
               itemsPerPage={itemsPerPage}
               onPageChange={setPage}
+              onPageSizeChange={(value) => {
+                setPage(1);
+                setItemsPerPage(value);
+              }}
             />
-          </Box>
+          )}
         </>
       )}
 
@@ -235,12 +257,6 @@ const NotificationPage = () => {
           }}
         />
       )}
-
-      <DeleteAllDialog
-        open={showDeleteAllDialog}
-        onClose={() => setShowDeleteAllDialog(false)}
-        onConfirm={handleConfirmDeleteAll}
-      />
     </Box>
   );
 };

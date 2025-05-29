@@ -9,9 +9,11 @@ const NotificationDetail = () => {
 
   useEffect(() => {
     notificationService.getById(id)
-      .then((res) => setData(res))
+      .then((res) => {
+        setData(res.data);
+      })
       .catch((err) => {
-        console.error('❌ Lỗi lấy chi tiết:', err);
+        console.error(' Lỗi lấy chi tiết:', err);
         navigate('/admin/notifications');
       });
   }, [id, navigate]);
@@ -39,6 +41,7 @@ const NotificationDetail = () => {
           <p><strong>Hiển thị:</strong> {data.isActive ? 'Có' : 'Không'}</p>
           <p><strong>Loại:</strong> {data.type}</p>
           <p><strong>Target:</strong> {data.targetType} #{data.targetId}</p>
+          <p><strong>Ngày bắt đầu hiển thị:</strong> {data.startAt ? new Date(data.startAt).toLocaleString() : '—'}</p>
           <p><strong>Ngày tạo:</strong> {new Date(data.createdAt).toLocaleString()}</p>
         </div>
 
