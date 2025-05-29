@@ -9,6 +9,7 @@ import {
   Chip,
   IconButton
 } from '@mui/material';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MoreActionsMenu from '../../../components/common/MoreActionsMenu';
 import { DndContext, closestCenter } from '@dnd-kit/core';
@@ -24,6 +25,7 @@ import { toast } from 'react-toastify';
 import { notificationService } from '../../../services/admin/notificationService';
 import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers';
 import { confirmDelete } from '../../../components/common/ConfirmDeleteDialog';
+import NotificationDetailDialog from './NotificationDetailDialog';
 
 const getStatusChip = (isActive) => (
   <Chip
@@ -33,8 +35,7 @@ const getStatusChip = (isActive) => (
   />
 );
 
-function RowSortable({ item, index, selectedIds, onSelect, onEdit, onDelete }) {
-  const navigate = useNavigate();
+function RowSortable({ item, index, selectedIds, onSelect, onEdit, onDelete, onView }) {
   const { setNodeRef, transform, transition, listeners, attributes } = useSortable({
     id: item.id,
     handle: true
@@ -68,13 +69,18 @@ function RowSortable({ item, index, selectedIds, onSelect, onEdit, onDelete }) {
           '—'
         )}
       </TableCell>
-      <TableCell>{item.title}</TableCell>
+      <TableCell
+        className="max-w-[300px] whitespace-nowrap overflow-hidden text-ellipsis"
+        title={item.title}
+      >
+        {item.title}
+      </TableCell>
       <TableCell>{item.type}</TableCell>
       <TableCell>{getStatusChip(item.isActive)}</TableCell>
       <TableCell align="right">
         <div className="flex justify-end items-center gap-2">
           <MoreActionsMenu
-            onView={() => navigate(`/admin/notifications/${item.id}`)}
+            onView={() => onView(item)}
             onEdit={() => onEdit(item)}
             onDelete={() => onDelete(item)}
           />
@@ -94,6 +100,14 @@ const NotificationTable = ({
   loading = false,
   setNotifications = () => {}
 }) => {
+  const [detailData, setDetailData] = useState(null);
+  const [openDetail, setOpenDetail] = useState(false);
+
+  const handleViewDetail = (item) => {
+    setDetailData(item);
+    setOpenDetail(true);
+  };
+
   const handleDragEnd = async ({ active, over }) => {
     if (active.id !== over?.id) {
       const oldIndex = notifications.findIndex((n) => n.id === active.id);
@@ -112,65 +126,74 @@ const NotificationTable = ({
   };
 
   return (
-    <TableContainer component={Paper} sx={{ overflowX: 'auto', overflowY: 'visible' }}>
-      <DndContext
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-        modifiers={[restrictToVerticalAxis, restrictToParentElement]}
-      >
-        <SortableContext
-          items={Array.isArray(notifications) ? notifications.map((item) => item.id) : []}
-          strategy={verticalListSortingStrategy}
+    <>
+      <TableContainer component={Paper} sx={{ overflowX: 'auto', overflowY: 'visible' }}>
+        <DndContext
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+          modifiers={[restrictToVerticalAxis, restrictToParentElement]}
         >
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell padding="checkbox">
-                  <input
-                    type="checkbox"
-                    checked={notifications.length > 0 && selectedIds.length === notifications.length}
-                    onChange={onSelectAll}
-                  />
-                </TableCell>
-                <TableCell>STT</TableCell>
-                <TableCell>Ảnh</TableCell>
-                <TableCell>Tiêu đề</TableCell>
-                <TableCell>Loại</TableCell>
-                <TableCell>Trạng thái</TableCell>
-                <TableCell align="right">Hành động</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {loading ? (
+          <SortableContext
+            items={Array.isArray(notifications) ? notifications.map((item) => item.id) : []}
+            strategy={verticalListSortingStrategy}
+          >
+            <Table>
+              <TableHead>
                 <TableRow>
-                  <TableCell colSpan={7} align="center">
-                    Đang tải dữ liệu...
+                  <TableCell padding="checkbox">
+                    <input
+                      type="checkbox"
+                      checked={notifications.length > 0 && selectedIds.length === notifications.length}
+                      onChange={onSelectAll}
+                    />
                   </TableCell>
+                  <TableCell>STT</TableCell>
+                  <TableCell>Ảnh</TableCell>
+                  <TableCell>Tiêu đề</TableCell>
+                  <TableCell>Loại</TableCell>
+                  <TableCell>Trạng thái</TableCell>
+                  <TableCell align="right">Hành động</TableCell>
                 </TableRow>
-              ) : Array.isArray(notifications) && notifications.length > 0 ? (
-                notifications.map((item, index) => (
-                  <RowSortable
-                    key={item.id}
-                    item={item}
-                    index={index}
-                    selectedIds={selectedIds}
-                    onSelect={onSelect}
-                    onEdit={onEdit}
-                    onDelete={onDelete}
-                  />
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={7} align="center">
-                    Không có dữ liệu.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </SortableContext>
-      </DndContext>
-    </TableContainer>
+              </TableHead>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} align="center">
+                      Đang tải dữ liệu...
+                    </TableCell>
+                  </TableRow>
+                ) : Array.isArray(notifications) && notifications.length > 0 ? (
+                  notifications.map((item, index) => (
+                    <RowSortable
+                      key={item.id}
+                      item={item}
+                      index={index}
+                      selectedIds={selectedIds}
+                      onSelect={onSelect}
+                      onEdit={onEdit}
+                      onDelete={onDelete}
+                      onView={handleViewDetail}
+                    />
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={7} align="center">
+                      Không có dữ liệu.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </SortableContext>
+        </DndContext>
+      </TableContainer>
+
+      <NotificationDetailDialog
+        open={openDetail}
+        onClose={() => setOpenDetail(false)}
+        data={detailData}
+      />
+    </>
   );
 };
 

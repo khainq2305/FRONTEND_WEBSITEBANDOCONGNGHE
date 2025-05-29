@@ -24,7 +24,6 @@ const NotificationPage = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [bulkAction, setBulkAction] = useState('');
   const [counts, setCounts] = useState({ all: 0, active: 0, hidden: 0 });
-
   const statusTabs = [
     { value: '', label: `Tất cả (${counts.all})` },
     { value: 'active', label: `Hoạt động (${counts.active})` },

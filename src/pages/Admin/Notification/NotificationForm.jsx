@@ -1,5 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
+import {
+  TextField,
+  Checkbox,
+  FormControlLabel,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
+} from '@mui/material';
 import { notificationService } from '../../../services/admin/notificationService';
 
 const LOCAL_STORAGE_KEY = 'notificationFormDraft';
@@ -18,6 +27,7 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
     startAt: '',
     imageFile: null
   });
+
   const [preview, setPreview] = useState('');
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -49,7 +59,10 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
         setPreview(reader.result);
         if (!editing) {
           const currentDraft = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '{}');
-          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ ...currentDraft, preview: reader.result }));
+          localStorage.setItem(
+            LOCAL_STORAGE_KEY,
+            JSON.stringify({ ...currentDraft, preview: reader.result })
+          );
         }
       };
       reader.readAsDataURL(file);
@@ -64,7 +77,10 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
 
   useEffect(() => {
     if (editing) {
-      setForm({ ...editing, imageFile: null });
+      const formattedStartAt = editing.startAt
+        ? new Date(editing.startAt).toISOString().slice(0, 16)
+        : '';
+      setForm({ ...editing, startAt: formattedStartAt, imageFile: null });
       setPreview(editing.imageUrl || '');
     } else {
       const draft = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -144,105 +160,110 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium mb-1">Tiêu đề</label>
-            <input
-              name="title"
-              value={form.title}
-              onChange={handleChange}
-              className="w-full border border-gray-300 px-3 py-2 focus:outline-none"
-            />
-            {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
-          </div>
+          <TextField
+            label="Tiêu đề"
+            name="title"
+            value={form.title}
+            onChange={handleChange}
+            fullWidth
+            
+            error={!!errors.title}
+            helperText={errors.title}
+          />
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Link điều hướng</label>
-            <input
-              name="link"
-              value={form.link}
-              onChange={handleChange}
-              placeholder="https://example.com"
-              className="w-full border border-gray-300 px-3 py-2 focus:outline-none"
-            />
-            {errors.link && <p className="text-red-500 text-sm mt-1">{errors.link}</p>}
-          </div>
+          <TextField
+            label="Link điều hướng"
+            name="link"
+            value={form.link}
+            onChange={handleChange}
+            fullWidth
+            
+            error={!!errors.link}
+            helperText={errors.link}
+          />
 
-          <div className="col-span-2">
-            <label className="block text-sm font-medium mb-1">Nội dung</label>
-            <textarea
-              name="message"
-              value={form.message}
-              onChange={handleChange}
-              rows={4}
-              className="w-full border border-gray-300 px-3 py-2 focus:outline-none"
-            />
-            {errors.message && <p className="text-red-500 text-sm mt-1">{errors.message}</p>}
-          </div>
+          <TextField
+            label="Nội dung"
+            name="message"
+            value={form.message}
+            onChange={handleChange}
+            fullWidth
+            multiline
+            rows={4}
+            error={!!errors.message}
+            helperText={errors.message}
+            className="md:col-span-2"
+          />
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Loại thông báo</label>
-            <select
-              name="type"
-              value={form.type}
-              onChange={handleChange}
-              className="w-full border border-gray-300 px-3 py-2 focus:outline-none"
-            >
-              <option value="system">System</option>
-              <option value="promotion">Promotion</option>
-              <option value="order">Order</option>
-              <option value="news">News</option>
-            </select>
-            {errors.type && <p className="text-red-500 text-sm mt-1">{errors.type}</p>}
-          </div>
+          <FormControl fullWidth error={!!errors.type}>
+            <InputLabel>Loại thông báo</InputLabel>
+            <Select name="type" value={form.type} onChange={handleChange} label="Loại thông báo">
+              <MenuItem value="system">System</MenuItem>
+              <MenuItem value="promotion">Promotion</MenuItem>
+              <MenuItem value="order">Order</MenuItem>
+              <MenuItem value="news">News</MenuItem>
+            </Select>
+          </FormControl>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Target Type</label>
-            <select
+          <FormControl fullWidth>
+            <InputLabel>Target Type</InputLabel>
+            <Select
               name="targetType"
               value={form.targetType}
               onChange={handleChange}
-              className="w-full border border-gray-300 px-3 py-2 focus:outline-none"
+              label="Target Type"
             >
-              <option value="system">System</option>
-              <option value="promotion">Promotion</option>
-              <option value="order">Order</option>
-              <option value="news">News</option>
-            </select>
-          </div>
+              <MenuItem value="system">System</MenuItem>
+              <MenuItem value="promotion">Promotion</MenuItem>
+              <MenuItem value="order">Order</MenuItem>
+              <MenuItem value="news">News</MenuItem>
+            </Select>
+          </FormControl>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Target ID</label>
-            <input
-              type="number"
-              name="targetId"
-              value={form.targetId}
-              onChange={handleChange}
-              className="w-full border border-gray-300 px-3 py-2 focus:outline-none"
-            />
-            {errors.targetId && <p className="text-red-500 text-sm mt-1">{errors.targetId}</p>}
-          </div>
+          <TextField
+            label="Target ID"
+            name="targetId"
+            type="number"
+            value={form.targetId}
+            onChange={handleChange}
+            fullWidth
+            error={!!errors.targetId}
+            helperText={errors.targetId}
+          />
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Ngày bắt đầu hiển thị</label>
-            <input
-              type="datetime-local"
-              name="startAt"
-              value={form.startAt}
-              onChange={handleChange}
-              className="w-full border border-gray-300 px-3 py-2 focus:outline-none"
-            />
-            {errors.startAt && <p className="text-red-500 text-sm mt-1">{errors.startAt}</p>}
-          </div>
+          <TextField
+            label="Ngày bắt đầu hiển thị"
+            name="startAt"
+            type="datetime-local"
+            value={form.startAt}
+            onChange={handleChange}
+            fullWidth
+            InputLabelProps={{ shrink: true }}
+            error={!!errors.startAt}
+            helperText={errors.startAt}
+          />
 
-          <div className="flex items-center gap-2">
-            <input type="checkbox" name="isGlobal" checked={form.isGlobal} onChange={handleChange} />
-            <label className="text-sm">Gửi toàn bộ user</label>
-          </div>
+          <FormControlLabel
+            control={
+              <Checkbox
+                name="isGlobal"
+                checked={form.isGlobal}
+                onChange={handleChange}
+              />
+            }
+            label="Gửi toàn bộ user"
+          />
 
-          <div className="flex items-center gap-2">
-            <input type="checkbox" name="isActive" checked={form.isActive} onChange={handleChange} />
-            <label className="text-sm">Hiển thị thông báo</label>
-          </div>
+          <FormControlLabel
+            control={
+              <Checkbox
+                name="isActive"
+                checked={form.isActive}
+                onChange={handleChange}
+              />
+            }
+            label="Hiển thị thông báo"
+          />
 
           <div className="col-span-2">
             <label className="block text-sm font-medium mb-1">Ảnh thông báo</label>
@@ -271,7 +292,11 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
           >
             {loading ? 'Đang gửi...' : editing ? 'Cập nhật' : 'Tạo mới'}
           </button>
-          <button type="button" onClick={onCancel} className="px-6 py-2 bg-gray-200 text-gray-800 hover:bg-gray-300">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-6 py-2 bg-gray-200 text-gray-800 hover:bg-gray-300"
+          >
             Trở về
           </button>
         </div>
