@@ -1,37 +1,28 @@
 import React from 'react';
 import {
-  TableContainer,
-  Paper,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  Button
+  TableContainer, Paper, Table, TableHead, TableRow,
+  TableCell, TableBody, Button
 } from '@mui/material';
+import { ImportExport } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import MoreActionsMenu from '@/pages/Admin/News/components/MoreActionsMenu/MoreActionsMenu';
-import { useCategory } from '../Context/CategoryContext';
-
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
-const CategoryTable = () => {
-  const {
-    filters,
-    selectedRows,
-    handleSelectRow,
-    handleSelectAll,
-    setModalItem,
-    handleDelete,
-    categories,
-    setCategories,
-    handleSoftDelete,
-    handleRestore,
-    handleForceDelete
-  } = useCategory();
-
-  const rows = categories; // giữ nguyên lọc nếu có
-
+const CategoryTable = ({
+  filters,
+  selectedRows,
+  handleSelectRow,
+  handleSelectAll,
+  setModalItem,
+  handleSoftDelete,
+  handleRestore,
+  handleForceDelete,
+  categories,
+  setCategories,
+  currentPage,
+  pageSize
+}) => {
+  const rows = categories;
   const navigate = useNavigate();
 
   const handleDragEnd = (result) => {
@@ -40,13 +31,10 @@ const CategoryTable = () => {
     const newRows = [...rows];
     const [movedRow] = newRows.splice(result.source.index, 1);
     newRows.splice(result.destination.index, 0, movedRow);
-
     setCategories(newRows);
-
-    // TODO: Gửi API cập nhật lại thứ tự nếu cần (dựa vào orderIndex mới)
-    // Ví dụ: updateCategoryOrder(newRows.map((r, i) => ({ slug: r.slug, orderIndex: i })))
   };
-
+  console.log('currentPage:', currentPage, typeof currentPage);
+console.log('pageSize:', pageSize, typeof pageSize);
   return (
     <TableContainer component={Paper}>
       <DragDropContext onDragEnd={handleDragEnd}>
@@ -62,6 +50,7 @@ const CategoryTable = () => {
                       onChange={handleSelectAll}
                     />
                   </TableCell>
+                  <TableCell>STT</TableCell>
                   <TableCell>Tên danh mục</TableCell>
                   <TableCell>Bài viết</TableCell>
                   <TableCell>Trạng thái</TableCell>
@@ -75,7 +64,6 @@ const CategoryTable = () => {
                       <TableRow
                         ref={provided.innerRef}
                         {...provided.draggableProps}
-                        {...provided.dragHandleProps}
                         style={{
                           ...provided.draggableProps.style,
                           background: snapshot.isDragging ? '#f0f0f0' : 'inherit'
@@ -88,10 +76,9 @@ const CategoryTable = () => {
                             onChange={() => handleSelectRow(row.slug)}
                           />
                         </TableCell>
-                        <TableCell>
-                          {'— '.repeat(row.level) + row.name}
-                        </TableCell>
-                        <TableCell>{row.postCount}</TableCell>
+                        <TableCell>{(currentPage - 1) * pageSize + index + 1}</TableCell>
+                        <TableCell>{'— '.repeat(row.level) + row.name}</TableCell>
+                        <TableCell>{row.postCount > 0 ? row.postCount : 'Chưa có bài viết'}</TableCell>
                         <TableCell>
                           <Button
                             variant="contained"
@@ -102,15 +89,32 @@ const CategoryTable = () => {
                           </Button>
                         </TableCell>
                         <TableCell align="right">
-                          <MoreActionsMenu
-                            tabStatus={filters.status}
-                            onDelete={() => handleSoftDelete(row)}
-                            onEdit={() =>
-                              navigate(`/admin/danh-muc-bai-viet/chinh-sua-danh-muc/${row.slug}`)
-                            }
-                            onRestore={() => handleRestore(row.slug)}
-                            onForceDelete={() => handleForceDelete(row.slug)}
-                          />
+                          <div className="flex items-center justify-end">
+                            <MoreActionsMenu
+                              tabStatus={filters.status}
+                              onDelete={() => handleSoftDelete(row)}
+                              onEdit={() =>
+                                navigate(`/admin/danh-muc-bai-viet/chinh-sua-danh-muc/${row.slug}`)
+                              }
+                              onRestore={() => handleRestore(row.slug)}
+                              onForceDelete={() => handleForceDelete(row.slug)}
+                            />
+                            <div
+                              {...provided.dragHandleProps}
+                              style={{
+                                cursor: 'grab',
+                                display: 'flex',
+                                alignItems: 'center',
+                                padding: '4px',
+                                borderRadius: '4px',
+                                transition: 'background-color 0.2s'
+                              }}
+                              onMouseEnter={(e) => e.target.style.backgroundColor = '#f0f0f0'}
+                              onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                            >
+                              <ImportExport fontSize="small" />
+                            </div>
+                          </div>
                         </TableCell>
                       </TableRow>
                     )}

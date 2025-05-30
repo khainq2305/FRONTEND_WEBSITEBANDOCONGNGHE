@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { Box, Chip, InputBase } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { useArticle } from '../form/FormPost';
 
-const Tag = () => {
+const Tag = ({ tags, setTags }) => {
   const theme = useTheme();
-  const { tags, setTags } = useArticle();
   const [inputValue, setInputValue] = useState('');
 
   const handleAddTag = () => {
@@ -56,10 +54,7 @@ const Tag = () => {
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={handleKeyDown}
-        sx={{
-          minWidth: 80,
-          flex: 1
-        }}
+        sx={{ minWidth: 80, flex: 1 }}
       />
     </Box>
   );

@@ -1,34 +1,29 @@
 import {
-  Table, TableHead, TableBody, TableRow, TableCell, TableContainer, Paper, Button
+  Table, TableHead, TableBody, TableRow, TableCell,
+  TableContainer, Paper, Button
 } from '@mui/material';
 import MoreActionsMenu from '../MoreActionsMenu/MoreActionsMenu';
-import { useArticle } from '../Context/ArticleContext';
 import { useNavigate } from 'react-router-dom';
 
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { useState } from 'react';
+import { ImportExport } from '@mui/icons-material';
 
-const ArticleTable = () => {
+const ArticleTable = ({
+  articles = [],
+  selectedRows,
+  handleSelectRow,
+  handleSelectAll,
+  setModalItem,
+  handleSoftDelete,
+  filters,
+  handleRestore,
+  handleForceDelete,
+  setArticles,
+  currentPage,
+  pageSize
+}) => {
   const navigate = useNavigate();
-  const {
-    articles,
-    selectedRows,
-    handleSelectRow,
-    handleSelectAll,
-    setModalItem,
-    handleSoftDelete,
-    filters,
-    handleRestore,
-    handleForceDelete,
-    setArticles
-  } = useArticle();
-
-  const rows = articles.filter((a) => {
-    if (filters.status === 'trash') return a.deletedAt;
-    if (filters.status === '0') return a.status === 0 && !a.deletedAt;
-    if (filters.status === '1') return a.status === 1 && !a.deletedAt;
-    return !a.deletedAt;
-  });
+  const rows = articles;
 
   const handleDragEnd = (result) => {
     if (!result.destination) return;
@@ -37,20 +32,14 @@ const ArticleTable = () => {
     const [movedRow] = newRows.splice(result.source.index, 1);
     newRows.splice(result.destination.index, 0, movedRow);
 
-    // Cập nhật lại thứ tự hiển thị
-    const updatedArticles = [...articles];
     const reorderSlugs = newRows.map(r => r.slug);
-
-    // Giữ nguyên articles khác filter
-    const reordered = updatedArticles
+    const reordered = articles
       .filter(a => reorderSlugs.includes(a.slug))
       .sort((a, b) => reorderSlugs.indexOf(a.slug) - reorderSlugs.indexOf(b.slug));
-
-    const remaining = updatedArticles.filter(a => !reorderSlugs.includes(a.slug));
+    const remaining = articles.filter(a => !reorderSlugs.includes(a.slug));
 
     setArticles([...reordered, ...remaining]);
-
-    // TODO: Gửi API nếu cần update thứ tự (orderIndex)
+    // TODO: gọi API cập nhật thứ tự nếu cần
   };
 
   return (
@@ -68,6 +57,7 @@ const ArticleTable = () => {
                       onChange={handleSelectAll}
                     />
                   </TableCell>
+                  <TableCell>STT</TableCell>
                   <TableCell>Tiêu đề</TableCell>
                   <TableCell>Tác giả</TableCell>
                   <TableCell>Danh mục</TableCell>
@@ -82,7 +72,6 @@ const ArticleTable = () => {
                       <TableRow
                         ref={provided.innerRef}
                         {...provided.draggableProps}
-                        {...provided.dragHandleProps}
                         style={{
                           ...provided.draggableProps.style,
                           background: snapshot.isDragging ? '#f5f5f5' : 'inherit'
@@ -95,13 +84,10 @@ const ArticleTable = () => {
                             onChange={() => handleSelectRow(row.slug)}
                           />
                         </TableCell>
+                        <TableCell>{(currentPage - 1) * pageSize + index + 1}</TableCell>
                         <TableCell>{row.title}</TableCell>
-                        <TableCell>
-                          {!row.User ? 'không có' : row.User.fullName || 'Lỗi r'}
-                        </TableCell>
-                        <TableCell>
-                          {!row.Category ? 'không có' : row.Category.name || `#${row.categoryId}`}
-                        </TableCell>
+                        <TableCell>{row.User?.fullName || 'không có'}</TableCell>
+                        <TableCell>{row.category?.name || `#${row.categoryId}` || 'không có'}</TableCell>
                         <TableCell>
                           <Button
                             variant="contained"
@@ -122,28 +108,45 @@ const ArticleTable = () => {
                           </Button>
                         </TableCell>
                         <TableCell align="right">
-                          <MoreActionsMenu
-                            tabStatus={filters.status}
-                            onDelete={() => handleSoftDelete(row)}
-                            onEdit={() =>
-                              navigate(`/admin/quan-ly-bai-viet/chinh-sua-bai-viet/${row.slug}`)
-                            }
-                            onView={() =>
-                              setModalItem({
-                                ...row,
-                                name: row.title,
-                                author: `${row.authorId}`,
-                                category: row.Category?.name || `#${row.categoryId}`,
-                                date: new Date(row.createdAt).toLocaleDateString('vi-VN'),
-                                tag: row.status,
-                                comment: 0,
-                                status: row.status,
-                                publishAt: row.publishAt
-                              })
-                            }
-                            onRestore={() => handleRestore(row.slug)}
-                            onForceDelete={() => handleForceDelete(row.slug)}
-                          />
+                          <div style={{ display: 'flex', justifyContent: 'end', alignItems: 'center' }}>
+                            <MoreActionsMenu
+                              tabStatus={filters.status}
+                              onDelete={() => handleSoftDelete(row)}
+                              onEdit={() =>
+                                navigate(`/admin/quan-ly-bai-viet/chinh-sua-bai-viet/${row.slug}`)
+                              }
+                              onView={() =>
+                                setModalItem({
+                                  ...row,
+                                  name: row.title,
+                                  author: `${row.authorId}`,
+                                  category: row.category?.name || `#${row.categoryId}`,
+                                  date: new Date(row.createdAt).toLocaleDateString('vi-VN'),
+                                  tag: row.status,
+                                  comment: 0,
+                                  status: row.status,
+                                  publishAt: row.publishAt
+                                })
+                              }
+                              onRestore={() => handleRestore(row.slug)}
+                              onForceDelete={() => handleForceDelete(row.slug)}
+                            />
+                            <div
+                              {...provided.dragHandleProps}
+                              style={{
+                                cursor: 'grab',
+                                display: 'flex',
+                                alignItems: 'center',
+                                padding: '4px',
+                                borderRadius: '4px',
+                                transition: 'background-color 0.2s'
+                              }}
+                              onMouseEnter={(e) => e.target.style.backgroundColor = '#f0f0f0'}
+                              onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                            >
+                              <ImportExport fontSize="small" />
+                            </div>
+                          </div>
                         </TableCell>
                       </TableRow>
                     )}

@@ -1,14 +1,10 @@
-// src/pages/Admin/News/components/form/FormPost.jsx
-
-import { createContext, useContext, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Grid, FormControlLabel, Switch } from "@mui/material";
 import { validatePostForm } from "@/utils/News/validatePostForm";
 import Content from "@/pages/Admin/News/components/form/Content";
 import Sidebar from "@/pages/Admin/News/components/sidebar/Sidebar";
 import { newsCategoryService } from "@/services/admin/newCategoryService";
-
-const AddContext = createContext();
-export const useArticle = () => useContext(AddContext);
+import { normalizeCategoryList } from "@/utils";
 
 const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
   const [title, setTitle] = useState("");
@@ -20,10 +16,9 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
   const [tags, setTags] = useState([]);
   const [isScheduled, setIsScheduled] = useState(false);
   const [publishAt, setPublishAt] = useState("");
-  const [isFeature, setIsFeature] = useState(false); // ✅ NEW
+  const [isFeature, setIsFeature] = useState(false);
   const [errors, setErrors] = useState({});
 
-  // 1️⃣ useEffect: khi có `initialData` → set form values
   useEffect(() => {
     if (initialData) {
       setTitle(initialData.title || "");
@@ -32,33 +27,22 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
       setContent(initialData.content || "");
       setAvatar(initialData.avatar || null);
       setTags(initialData.tags || []);
-      setIsFeature(initialData.isFeature || false); // ✅ NEW
-      setIsScheduled(initialData.isScheduled || false);
+      setIsFeature(initialData.isFeature || false);
+      setIsScheduled(Boolean(initialData.publishAt));
       setPublishAt(initialData.publishAt || "");
-
-      if (initialData.publishAt) {
-        setIsScheduled(true);
-        setPublishAt(initialData.publishAt);
-      } else {
-        setIsScheduled(false);
-        setPublishAt("");
-      }
     }
   }, [initialData]);
 
-  // 2️⃣ useEffect: gọi API lấy danh sách danh mục
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const res = await newsCategoryService.getAll();
-        const allCategories = res.data.data;
-        const activeCategories = allCategories.filter((c) => c.deletedAt === null);
-        setCategories(activeCategories);
+        const activeCategories = res.data.data.filter((c) => c.deletedAt === null);
+        setCategories(normalizeCategoryList(activeCategories));
       } catch (error) {
         console.error("Lỗi lấy danh mục:", error);
       }
     };
-
     fetchCategories();
   }, []);
 
@@ -71,7 +55,7 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
       tags,
       avatar,
       publishAt: isScheduled ? publishAt : null,
-      isFeature // ✅ NEW
+      isFeature
     };
 
     const result = validatePostForm(formData);
@@ -80,62 +64,48 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
       return;
     }
 
-    if (onSubmit) {
-      onSubmit(formData);
-    }
+    onSubmit?.(formData);
   };
 
   return (
-    <AddContext.Provider
-      value={{
-        title,
-        setTitle,
-        category,
-        setCategory,
-        status,
-        setStatus,
-        content,
-        setContent,
-        avatar,
-        setAvatar,
-        tags,
-        setTags,
-        isScheduled,
-        setIsScheduled,
-        publishAt,
-        setPublishAt,
-        isFeature, // ✅ NEW
-        setIsFeature, // ✅ NEW
-        errors,
-        setErrors,
-        handleSubmit,
-        categories,
-        setCategories,
-        mode
-      }}
-    >
-      <div title="Thêm bài viết mới">
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={9}>
-            <Content />
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <Sidebar />
-            {/* ✅ NÊU MUỐN THÊM NGAY Ở ĐÂY */}
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={isFeature}
-                  onChange={(e) => setIsFeature(e.target.checked)}
-                />
-              }
-              label="Đánh dấu là bài viết nổi bật"
-              sx={{ mt: 2 }}
-            />
-          </Grid>
+    <div title="Thêm bài viết mới">
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={9}>
+          <Content
+            title={title}
+            setTitle={setTitle}
+            content={content}
+            setContent={setContent}
+            avatar={avatar}
+            setAvatar={setAvatar}
+            
+            errors={errors}
+          />
         </Grid>
-      </div>
-    </AddContext.Provider>
+        <Grid item xs={12} md={3}>
+          <Sidebar
+            category={category}
+            setCategory={setCategory}
+            categories={categories}
+            status={status}
+            setStatus={setStatus}
+            isScheduled={isScheduled}
+            setIsScheduled={setIsScheduled}
+            publishAt={publishAt}
+            setPublishAt={setPublishAt}
+            errors={errors}
+            onSubmit={handleSubmit}
+            avatar={avatar}
+            setAvatar={setAvatar}
+            tags={tags}
+            setTags={setTags}
+            isFeature={isFeature}
+            setIsFeature={setIsFeature}
+            mode={mode}
+          />
+        </Grid>
+      </Grid>
+    </div>
   );
 };
 

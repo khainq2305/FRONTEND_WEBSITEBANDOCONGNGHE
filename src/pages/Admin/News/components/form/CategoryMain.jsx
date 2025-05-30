@@ -15,7 +15,24 @@ import {
   Box
 } from "@mui/material";
 import { newsCategoryService } from "@/services/admin/newCategoryService";
+import { normalizeCategoryList } from "@/utils";
+import { Editor } from '@tinymce/tinymce-react';
+import { validateCategoryForm } from '@/utils/News/validateCategoryForm'; // hoặc đúng path bạn đang để
 
+// TinyMCE core
+import 'tinymce/tinymce';
+import 'tinymce/icons/default';
+import 'tinymce/themes/silver';
+import 'tinymce/models/dom';
+
+// Plugins
+import 'tinymce/plugins/image';
+import 'tinymce/plugins/link';
+import 'tinymce/plugins/code';
+import 'tinymce/plugins/lists';
+import 'tinymce/plugins/media';
+import 'tinymce/plugins/preview';
+// import 'tinymce/plugins/fontfamily'; // nếu dùng custom
 const CategoryMain = ({ initialData = null, onSubmit }) => {
   const [category, setCategory] = useState({
     name: "",
@@ -25,9 +42,10 @@ const CategoryMain = ({ initialData = null, onSubmit }) => {
   });
 
   const [categories, setCategories] = useState([]);
-
+  const [errors, setErrors] = useState({});
   useEffect(() => {
     if (initialData) {
+      console.log('🧾 initialData.description:', initialData.description);
       setCategory({
         name: initialData.name || "",
         parentId: initialData.parentId || "",
@@ -41,7 +59,8 @@ const CategoryMain = ({ initialData = null, onSubmit }) => {
     const fetchCategories = async () => {
       try {
         const res = await newsCategoryService.getAll();
-        setCategories(res.data.data);
+        const levelCategory = normalizeCategoryList(res.data.data)
+        setCategories(levelCategory);
       } catch (error) {
         console.error("Lỗi lấy danh mục:", error);
       }
@@ -56,6 +75,23 @@ const CategoryMain = ({ initialData = null, onSubmit }) => {
       [field]: value
     }));
   };
+  const handleSubmit = () => {
+  const { valid, errors } = validateCategoryForm({ name: category.name });
+
+  if (!valid) {
+    setErrors(errors);
+    return;
+  }
+
+  setErrors({}); // clear lỗi cũ
+
+  onSubmit({
+    name: category.name,
+    description: category.description,
+    parentId: category.parentId === "" ? null : parseInt(category.parentId),
+    isActive: category.isActive
+  });
+};
 
   return (
     <Box maxWidth="full" py={4}>
@@ -66,12 +102,15 @@ const CategoryMain = ({ initialData = null, onSubmit }) => {
         />
         <CardContent sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
           <TextField
-            label="Tên danh mục"
-            value={category.name}
-            onChange={(e) => handleChange("name", e.target.value)}
-            required
-            fullWidth
-          />
+  label="Tên danh mục"
+  value={category.name}
+  onChange={(e) => handleChange("name", e.target.value)}
+  required
+  fullWidth
+  error={Boolean(errors.name)}
+  helperText={errors.name}
+/>
+
 
           <FormControl fullWidth>
             <InputLabel>Danh mục cha</InputLabel>
@@ -83,7 +122,7 @@ const CategoryMain = ({ initialData = null, onSubmit }) => {
               {Array.isArray(categories) && categories.length > 0 ? (
                 categories.map((cat) => (
                   <MenuItem key={cat.id} value={cat.id.toString()}>
-                    {cat.name}
+                    {'— '.repeat(cat.level) + cat.name}
                   </MenuItem>
                 ))
               ) : (
@@ -102,33 +141,64 @@ const CategoryMain = ({ initialData = null, onSubmit }) => {
             label={category.isActive ? "Hoạt động" : "Không hoạt động"}
           />
 
-          <TextField
-            label="Mô tả"
-            multiline
-            rows={4}
+
+          <Editor
             value={category.description}
-            onChange={(e) => handleChange("description", e.target.value)}
-            fullWidth
+            onEditorChange={(newValue) => handleChange("description", newValue)}
+            init={{
+              height: 400,
+              menubar: false,
+              statusbar: false,
+              branding: false,
+              plugins: [
+                'image', 'code', 'link', 'lists', 'media', 'preview', 'fontfamily'
+              ],
+              toolbar:
+                'undo redo | fontfamily | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist | image media link | code',
+              font_family_formats: `
+      Arial=arial,helvetica,sans-serif;
+      Times New Roman=times new roman,times;
+      Courier New=courier new,courier;
+      Roboto=Roboto,sans-serif;
+      Open Sans='Open Sans',sans-serif;
+      Be Vietnam Pro='Be Vietnam Pro',sans-serif;
+      Montserrat=Montserrat,sans-serif;
+      Lato=Lato,sans-serif;
+      Georgia=georgia,serif;
+      Tahoma=tahoma,sans-serif;
+      Verdana=verdana,sans-serif;
+    `,
+              automatic_uploads: true,
+              file_picker_types: 'image',
+              file_picker_callback: (cb, value, meta) => {
+                if (meta.filetype === 'image') {
+                  const input = document.createElement('input');
+                  input.setAttribute('type', 'file');
+                  input.setAttribute('accept', 'image/*');
+                  input.onchange = function () {
+                    const file = this.files[0];
+                    const reader = new FileReader();
+                    reader.onload = function () {
+                      cb(reader.result, { title: file.name });
+                    };
+                    reader.readAsDataURL(file);
+                  };
+                  input.click();
+                }
+              },
+              language: 'vi',
+              language_url: 'https://cdn.jsdelivr.net/npm/tinymce-i18n/langs/vi.js'
+            }}
           />
+
+
         </CardContent>
 
         <CardActions sx={{ justifyContent: "flex-end", px: 2, pb: 2 }}>
           <Button variant="outlined" type="button">
             Huỷ
           </Button>
-          <Button
-            variant="contained"
-            onClick={() =>
-              onSubmit({
-                name: category.name,
-                description: category.description,
-                parentId: category.parentId === "" ? null : parseInt(category.parentId),
-                isActive: category.isActive // ✅ RÕ RÀNG
-              })
-            }
-          >
-            {initialData ? "Cập nhật" : "Thêm mới"}
-          </Button>
+           <Button variant="contained" onClick={handleSubmit}>{initialData ? "Cập nhật" : "Thêm mới"}</Button>
 
         </CardActions>
       </Card>

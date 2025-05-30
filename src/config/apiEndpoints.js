@@ -60,7 +60,13 @@ export const API_ENDPOINT = {
     order: {
       base: `${API_BASE_URL}/orders`,
       create: '/create',
-      calculateFee: '/calculate-fee' // 👈 thêm dòng này
+      calculateFee: '/calculate-fee', // 👈 thêm dòng này
+      create: '/'
+    },
+    news: {
+      base: `${API_BASE_URL}/tin-noi-bat`,
+      featurePost: '',
+      byCategory: '/theo-danh-muc'
     }
   },
   admin: {

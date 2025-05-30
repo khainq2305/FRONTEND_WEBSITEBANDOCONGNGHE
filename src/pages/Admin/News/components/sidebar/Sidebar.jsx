@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import {
   TextField,
   Button,
@@ -12,21 +12,31 @@ import {
   Switch,
   FormHelperText
 } from '@mui/material';
+
 import Tag from './Tag';
 import UploadImage from '@/pages/Admin/News/components/form/UploadImage';
-import { useArticle } from '@/pages/Admin/News/components/form/FormPost'; // lấy từ context nội bộ
 
-const Sidebar = () => {
-  const {
-    category, setCategory,
-    categories, setCategories,
-    status, setStatus,
-    isScheduled, setIsScheduled,
-    publishAt, setPublishAt,
-    errors, setErrors, // 👈 thêm
-    handleSubmit, // đổi tên onSubmit thành handleSubmit để đồng bộ context
-    mode
-  } = useArticle();
+const Sidebar = ({
+  category,
+  setCategory,
+  categories,
+  status,
+  setStatus,
+  isScheduled,
+  setIsScheduled,
+  publishAt,
+  setPublishAt,
+  errors,
+  setErrors,
+  handleSubmit,
+  avatar,
+  setAvatar,
+  tags,
+  setTags,
+  isFeature,
+  setIsFeature,
+  mode
+}) => {
   useEffect(() => {
     if (isScheduled && publishAt) {
       const now = new Date();
@@ -44,44 +54,37 @@ const Sidebar = () => {
         setErrors(prev => ({ ...prev, publishAt: null }));
       }
     }
-  }, [publishAt, isScheduled]);
+  }, [publishAt, isScheduled, setErrors]);
 
   const timeText = (targetTimeStr) => {
     if (!targetTimeStr) return '';
-
     const now = new Date();
     const target = new Date(targetTimeStr);
-
-    const diff = target.getTime() - now.getTime(); // milliseconds
+    const diff = target.getTime() - now.getTime();
     const minutes = Math.floor(diff / (1000 * 60)) % 60;
     const hours = Math.floor(diff / (1000 * 60 * 60)) % 24;
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
     return `Sẽ đăng sau ${days} ngày ${hours} giờ ${minutes} phút`;
   };
-
 
   return (
     <div style={{ width: '100%' }}>
       <Stack spacing={2}>
-        
-
         <FormControl fullWidth error={!!errors.category}>
           <InputLabel>Danh mục</InputLabel>
           <Select
-  value={category}
-  onChange={(e) => {
-    setCategory(e.target.value);
-    setErrors(prev => ({ ...prev, category: null }));
-  }}
->
-  {categories.map((c) => (
-    <MenuItem key={c.id} value={c.id}>
-      {c.name}
-    </MenuItem>
-  ))}
-</Select>
-
+            value={category}
+            onChange={(e) => {
+              setCategory(e.target.value);
+              setErrors(prev => ({ ...prev, category: null }));
+            }}
+          >
+            {categories.map((c) => (
+              <MenuItem key={c.id} value={c.id}>
+                {'— '.repeat(c.level) + c.name}
+              </MenuItem>
+            ))}
+          </Select>
           <FormHelperText>{errors.category || ''}</FormHelperText>
         </FormControl>
 
@@ -97,8 +100,7 @@ const Sidebar = () => {
           </Select>
         </FormControl>
 
-        {/* Bật / tắt lên lịch */}
-        <FormControl fullWidth error={!!errors.category}>
+        <FormControl fullWidth>
           <Box className="mb-2 border rounded border-gray-300 px-3 py-0.5">
             <FormControlLabel
               sx={{ ml: 0 }}
@@ -115,7 +117,6 @@ const Sidebar = () => {
           </Box>
         </FormControl>
 
-        {/* Nếu có lên lịch, thì hiện input ngày + helperText */}
         {isScheduled && (
           <Box mt={1}>
             <TextField
@@ -128,33 +129,34 @@ const Sidebar = () => {
               error={!!errors.publishAt}
               helperText={errors.publishAt || ''}
             />
-
-
             {publishAt && !errors.publishAt && (
-              <FormHelperText>
-                {timeText(publishAt)}
-              </FormHelperText>
+              <FormHelperText>{timeText(publishAt)}</FormHelperText>
             )}
           </Box>
         )}
-
-
+        <FormControlLabel className="mb-2 border rounded border-gray-300 px-3 py-0.5"
+            control={
+              <Switch
+                checked={isFeature}
+                onChange={(e) => setIsFeature(e.target.checked)}
+              />
+            }
+            label="Đánh dấu là bài viết nổi bật"
+            sx={{ mt: 2 }}
+          />
         <Box>
-
-          <UploadImage />
-
+          <UploadImage avatar={avatar} setAvatar={setAvatar} />
           {errors.avatar && (
             <FormHelperText error>{errors.avatar}</FormHelperText>
           )}
         </Box>
 
+        <Tag tags={tags} setTags={setTags} />
 
-
-        <Tag />
 
         <Button variant="contained" fullWidth onClick={handleSubmit}>
-  {mode === 'edit' ? 'Cập Nhật Bài Viết' : 'Đăng Bài Viết'}
-</Button>
+          {mode === 'edit' ? 'Cập Nhật Bài Viết' : 'Đăng Bài Viết'}
+        </Button>
       </Stack>
     </div>
   );
