@@ -6,10 +6,8 @@ import {
   Box, Slider, Button, Dialog, DialogActions,
   DialogContent, DialogTitle, Typography
 } from '@mui/material';
-import { useArticle } from '@/pages/Admin/News/components/form/FormPost';
 
-const UploadImage = () => {
-  const { avatar, setAvatar } = useArticle();
+const UploadImage = ({ avatar, setAvatar }) => {
   const [imageSrc, setImageSrc] = useState(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);

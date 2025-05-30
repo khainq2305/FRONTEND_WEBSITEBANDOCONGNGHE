@@ -7,10 +7,11 @@ export const newsCategoryService = {
   register: (data) =>
     post(`${base}${API_ENDPOINT.client.auth.register}`, data),
 
-  getAll: () => {
-    console.log('danh mục url đây:', `${base}${API_ENDPOINT.admin.newsCategory.getAll}`)
-    return get(`${base}${API_ENDPOINT.admin.newsCategory.getAll}`);
-  },
+  getAll: (params) => {
+  console.log('danh mục url đây:', `${base}${API_ENDPOINT.admin.newsCategory.getAll}`, params );
+  return get(`${base}${API_ENDPOINT.admin.newsCategory.getAll}`, params ); // ✅ Gửi query đúng chuẩn
+},
+
   create: (data) => {
     return post(`${base}${API_ENDPOINT.admin.newsCategory.create}`, data)
   },
@@ -21,7 +22,12 @@ export const newsCategoryService = {
     return post(`${base}${API_ENDPOINT.admin.newsCategory.update}/${slug}`, data)
   },
   trashPost: (slugs) => {
+    console.log('danh mục url đây:', `${base}${API_ENDPOINT.admin.newsCategory.trashPost}`)
     return post(`${base}${API_ENDPOINT.admin.newsCategory.trashPost}`, {slugs})
+  },
+  restorePost: (slugs) => {
+    console.log('danh mục url đây:', `${base}${API_ENDPOINT.admin.newsCategory.restorePost}`)
+    return post(`${base}${API_ENDPOINT.admin.newsCategory.restorePost}`, {slugs})
   },
   postCount: () => {
     return get(`${base}${API_ENDPOINT.admin.newsCategory.postCount}`)

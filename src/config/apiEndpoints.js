@@ -31,6 +31,11 @@ export const API_ENDPOINT = {
       base: `${API_BASE_URL}/user-address`,
       list: '/',
       create: '/'
+    },
+    news: {
+      base: `${API_BASE_URL}/tin-noi-bat`,
+      featurePost: '',
+      byCategory: '/theo-danh-muc'
     }
   },
   admin: {

@@ -9,6 +9,7 @@ export const newsService = {
     post(`${base}${API_ENDPOINT.client.auth.register}`, data),
 
   getAll: (params) => {
+     console.log( `${base}${API_ENDPOINT.admin.news.getAll}`, params)
     return get(`${base}${API_ENDPOINT.admin.news.getAll}`, params);
   },
   create: (data) => {

@@ -15,6 +15,7 @@ const CategoryEdit = () => {
       try {
         const res = await newsCategoryService.getBySlug(slug);
         setInitialData(res.data.data);
+        console.log(res.data.data)
       } catch (error) {
         toast.error('Không tìm thấy danh mục');
         // navigate('/admin/quan-ly-danh-muc');

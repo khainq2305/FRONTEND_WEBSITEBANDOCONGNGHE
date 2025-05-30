@@ -3,7 +3,10 @@ import imgItem from '../../../../assets/Client/images/News/qua-tang-thieu-nhi-12
 import imgList from '../../../../assets/Client/images/News/google-map-quet-anh-chup-man-hinh-1-600x338.jpg';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClock, faComment } from '@fortawesome/free-regular-svg-icons';
+import { useNews } from '../newsContext';
+
 const TopNews = () => {
+    const { stripHTML, featuredNews } = useNews();
     return (
         <div className="bg-white h-fit">
             {/* Thanh tiêu đề hot */}
@@ -41,55 +44,54 @@ const TopNews = () => {
 
             {/* Nội dung nổi bật */}
             <div className="flex flex-col lg:flex-row gap-5">
+  {/* Bài viết lớn bên trái */}
+  {featuredNews.length > 0 && (
+    <div className="mb-6 lg:mb-0">
+      <img src={imgItem} alt="Bài viết nổi bật" className="w-full rounded mb-3" />
+      <h3 className="text-xl font-bold mb-2 text-justify pr-4">{featuredNews[0].title}</h3>
+      <div className="text-sm text-gray-500 flex gap-4 mb-2">
+        <span className="flex items-center gap-1 text-xs">
+          <FontAwesomeIcon icon={faClock} style={{ color: "#000" }} />
+          {new Date(featuredNews[0].createdAt).toLocaleDateString('vi-VN')}
+        </span>
+        <span className="flex items-center gap-1 text-xs">
+          <FontAwesomeIcon icon={faComment} flip="horizontal" style={{ color: "#000" }} />
+          0
+        </span>
+      </div>
+      <p className="text-sm mb-3 text-gray-700 text-justify pr-4 max-w-md line-clamp-2">
+        {stripHTML(featuredNews[0].content) || 'Không có mô tả.'}
+      </p>
+      <div className="text-left">
+        <button className="border border-gray-300 px-4 py-1 text-sm uppercase">READ MORE</button>
+      </div>
+    </div>
+  )}
 
-                {/* Bài viết lớn bên trái */}
+  {/* Danh sách bài viết nhỏ */}
+  <div className="w-full bg-white flex flex-col space-y-2">
+    {featuredNews.slice(1, 5).map((post, idx) => (
+      <div key={idx} className="flex gap-3 pb-3 items-start">
+        <img
+          src={imgList}
+          alt="thumb"
+          style={{ width: '120px', height: '70px', objectFit: 'cover' }}
+          className="rounded flex-shrink-0"
+        />
+        <div className="flex-1 min-w-0">
+          <h4 className="text-sm font-medium mb-1 text-left line-clamp-2">
+            {post.title}
+          </h4>
+          <span className="text-xs text-gray-500 flex items-center gap-1">
+            <FontAwesomeIcon icon={faClock} style={{ color: "#000" }} />
+            {new Date(post.createdAt).toLocaleDateString('vi-VN')}
+          </span>
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
 
-                <div className=" mb-6 lg:mb-0" >
-                    <img src={imgItem} alt="Bài viết nổi bật" className="w-full rounded mb-3" />
-                    <h3 className="text-xl font-bold mb-2 text-justify pr-4">Top 10+ quà tặng thiếu nhi ngày 1/6 ý nghĩa cho bé trai bé gái</h3>
-                    <div className="text-sm text-gray-500 flex gap-4 mb-2">
-                        <span className="flex items-center gap-1"><FontAwesomeIcon icon={faClock} style={{ color: "#000" }} />09/05/2025</span>
-                        <span><FontAwesomeIcon icon={faComment} flip="horizontal" style={{ color: "#000" }} /> 0</span>
-                    </div>
-                    <p className="text-sm mb-3 text-gray-700 text-justify pr-4">
-                        Ngày Quốc tế Thiếu nhi 1/6 là dịp đặc biệt để các bậc phụ huynh thể hiện tình yêu thương...
-                    </p>
-                    <div className="text-left">
-                        <button className="border border-gray-300 px-4 py-1 text-sm uppercase">READ MORE</button>
-                    </div>
-
-                </div>
-
-                {/* Danh sách bài viết nhỏ */}
-                <div className="w-full bg-white flex flex-col space-y-2 ">
-                    {[1, 2, 3, 4].map((_, idx) => (
-                        <div key={idx} className="flex gap-3 pb-3 items-start">
-                            <img
-                                src={imgList}
-                                alt="thumb"
-                                style={{ width: '120px', height: '70px', objectFit: 'cover' }}
-                                className="rounded flex-shrink-0"
-                            />
-                            <div className="flex-1 min-w-0">
-                                <h4 className="text-sm font-medium mb-1 text-left line-clamp-2">
-                                    {idx === 0
-                                        ? 'Google Map ra mắt tính năng quét ảnh chụp màn hình, lưu vị trí tự động'
-                                        : idx === 1
-                                            ? 'Lộ poster quảng cáo Galaxy S25 Edge, thông số gây bất ngờ về pin'
-                                            : idx === 2
-                                                ? 'Lộ video thực tế của iPhone 17 Air mỏng hơn cả khi gắn ốp lưng'
-                                                : 'Vision Board là gì? Cách làm bảng tầm nhìn chi tiết, dễ dàng'}
-                                </h4>
-                                <span className="text-xs text-gray-500 flex items-center gap-1">
-                                    <FontAwesomeIcon icon={faClock} style={{ color: "#000" }} />
-                                    09/05/2025
-                                </span>
-                            </div>
-                        </div>
-
-                    ))}
-                </div>
-            </div>
         </div>
     );
 };

@@ -1,9 +1,6 @@
-// src/pages/Admin/News/Content.jsx
 import { useRef } from 'react';
 import { Editor } from '@tinymce/tinymce-react';
 import { TextField } from '@mui/material';
-
-import { useArticle } from '@/pages/Admin/News/components/form/FormPost'; // dùng context nội bộ
 
 // TinyMCE core
 import 'tinymce/tinymce';
@@ -18,30 +15,34 @@ import 'tinymce/plugins/code';
 import 'tinymce/plugins/lists';
 import 'tinymce/plugins/media';
 import 'tinymce/plugins/preview';
-// import 'tinymce/plugins/fontfamily'; // nếu dùng custom
 
 // Style
 import 'tinymce/skins/ui/oxide/skin.min.css';
 
-const Content = () => {
+const Content = ({
+  title,
+  setTitle,
+  content,
+  setContent,
+  errors,
+  setErrors
+}) => {
   const editorRef = useRef(null);
-  const { title, setTitle, content, setContent, errors, setErrors } = useArticle(); // lấy từ context
 
   return (
     <>
       <TextField
-          label="Tiêu đề"
-          value={title}
-          // onChange={(e) => setTitle(e.target.value)}
-          onChange={(e) => {
-            setTitle(e.target.value);
-            setErrors(prev => ({ ...prev, title: null })); // xoá lỗi khi sửa
-          }}
-          error={!!errors.title}
-          helperText={errors.title || ''}
-          fullWidth
-          sx={{mb: 2}}
-        />
+        label="Tiêu đề"
+        value={title}
+        onChange={(e) => {
+          setTitle(e.target.value);
+          setErrors(prev => ({ ...prev, title: null }));
+        }}
+        error={!!errors.title}
+        helperText={errors.title || ''}
+        fullWidth
+        sx={{ mb: 2 }}
+      />
 
       <Editor
         apiKey="no-api-key"
