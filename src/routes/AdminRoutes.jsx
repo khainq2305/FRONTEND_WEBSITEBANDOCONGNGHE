@@ -10,22 +10,15 @@ const OrderDetail = Loadable(lazy(() => import('pages/Admin/OrderDetail')));
 const UserList = Loadable(lazy(() => import('pages/Admin/User/UserList')));
 const UserAdd = Loadable(lazy(() => import('pages/Admin/User/UserAdd')));
 
-// //Banner
-// const BannerList = Loadable(lazy(() => import('pages/Admin/BannerList')));
-// // const BannerDetail = Loadable(lazy(() => import('pages/Admin/BannerDetail')));
-// const AddBanner = Loadable(lazy(() => import('pages/Admin/BannerList/AddBanner')));
-// const EditBanner = Loadable(lazy(() => import('pages/Admin/BannerList/EditBanner')));
 
-//Coupon
 const CouponList = Loadable(lazy(() => import('pages/Admin/Coupon')));
-// const CouponDetail = Loadable(lazy(() => import('pages/Admin/CouponList/CouponDetail')));
-// const AddCoupon = Loadable(lazy(() => import('pages/Admin/CouponList/AddCoupon')));
-// const EditCoupon = Loadable(lazy(() => import('pages/Admin/CouponList/EditCoupon')));
+
 const Brand = Loadable(lazy(() => import('pages/Admin/Brand')));
 const BrandCreatePage = Loadable(lazy(() => import('pages/Admin/Brand/BrandCreatePage')));
 const BrandEditPage = Loadable(lazy(() => import('pages/Admin/Brand/BrandEditPage')));
 
 const ProductQuestion = Loadable(lazy(() => import('pages/Admin/ProductQuestion')));
+const ProductEditPage = Loadable(lazy(() => import('pages/Admin/Product/ProductEditPage')));
 
 const HisLog = Loadable(lazy(() => import('pages/Admin/HisLog')));
 const News = Loadable(lazy(() => import('pages/Admin/News/News')));
@@ -65,6 +58,7 @@ const NotificationPage = Loadable(lazy(() => import('pages/Admin/Notification'))
 const NotificationDetail = Loadable(lazy(() => import('pages/Admin/Notification/NotificationDetail')));
 const DeletedUserList = Loadable(lazy(() => import('pages/Admin/User/DeletedUserList')));
 const UserDetailPage = Loadable(lazy(() => import('pages/Admin/User/UserDetailDialog')));
+const HomeSectionDetailPage = Loadable(lazy(() => import('pages/Admin/HomeSection/HomeSectionDetail')));
 
 const AdminRoutes = {
   path: '/admin',
@@ -145,7 +139,9 @@ const AdminRoutes = {
       path: 'home-sections',
       children: [
         { index: true, element: <HomeSectionList /> },
-        { path: 'create', element: <HomeSectionFormPage /> }
+        { path: 'create', element: <HomeSectionFormPage /> },
+         { path: 'detail/:id', element: <HomeSectionDetailPage /> }, // ✅ Thêm dòng này
+         { path: 'edit/:id',   element: <HomeSectionFormPage /> },
       ]
     },
 
@@ -216,6 +212,10 @@ const AdminRoutes = {
       path: 'products/create',
       element: <ProductAddPage />
     },
+{
+  path: 'products/edit/:id',
+  element: <ProductEditPage />
+},
 
     {
       path: 'brands',

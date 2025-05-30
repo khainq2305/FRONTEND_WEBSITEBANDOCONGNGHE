@@ -161,15 +161,51 @@ const handleApplyBulkAction = async () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>Danh sách mã giảm giá</Typography>
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+  <Typography variant="h4">Danh sách mã giảm giá</Typography>
+  <Button variant="contained" color="primary" onClick={() => navigate('/admin/coupons/add')}>
+    Thêm Mới
+  </Button>
+</Box>
 
       <Box sx={{ borderRadius: 2, p: 2, bgcolor: 'white', mb: 2 }}>
-        <Tabs value={statusFilter} onChange={handleTabChange} sx={{ mb: 2 }}>
-          <Tab label="Tất Cả" value="all" />
-          <Tab label="Hoạt Động" value="active" />
-          <Tab label="Tạm Tắt" value="inactive" />
-          <Tab label="Thùng Rác" value="deleted" />
-        </Tabs>
+       <Tabs
+  value={statusFilter}
+  onChange={handleTabChange}
+  sx={{
+    mb: 2,
+    minHeight: 'unset',
+    '& .MuiTabs-flexContainer': {
+      gap: 1,
+    },
+    '& .MuiTab-root': {
+      textTransform: 'none',
+      borderRadius: '6px',
+      px: 2,
+      py: 0.5,
+      minHeight: '32px',
+      minWidth: 'auto',
+      fontWeight: 500,
+      backgroundColor: '#fff',
+      color: '#007bff',
+      border: '1px solid #007bff',
+      '&.Mui-selected': {
+        backgroundColor: '#007bff',
+        color: '#fff',
+      },
+      '&:hover': {
+        backgroundColor: '#e6f0ff',
+      }
+    },
+  }}
+  TabIndicatorProps={{ style: { display: 'none' } }} // Ẩn thanh gạch dưới
+>
+  <Tab label="Tất Cả" value="all" />
+  <Tab label="Hoạt Động" value="active" />
+  <Tab label="Tạm Tắt" value="inactive" />
+  <Tab label="Thùng Rác" value="deleted" />
+</Tabs>
+
 
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
           <FormControl size="small" sx={{ minWidth: 200 }}>
@@ -202,9 +238,7 @@ const handleApplyBulkAction = async () => {
             sx={{ flexGrow: 1, minWidth: 250 }}
           />
 
-          <Button variant="contained" color="primary" onClick={() => navigate('/admin/coupons/add')}>
-            Thêm Mới
-          </Button>
+       
         </Box>
       </Box>
 

@@ -5,9 +5,12 @@ import {
 import { useForm, Controller } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { highlightedCategoryItemService } from '../../../../services/admin/highlightedCategoryItemService';
-import toast from 'react-hot-toast';
 import { Select } from '@mui/material';
-
+import ThumbnailUpload from '../../../../components/admin/ThumbnailUpload';
+import Toastify from '../../../../components/common/Toastify';
+import { toast } from 'react-toastify';
+import LoaderAdmin from '../../../../components/Admin/LoaderVip/';
+import { API_BASE_URL } from '../../../../constants/environment';
 const HighlightedCategoryItemForm = () => {
   const { id } = useParams();
   const isEdit = !!id;
@@ -15,6 +18,7 @@ const HighlightedCategoryItemForm = () => {
 
   const [categories, setCategories] = useState([]);
   const [thumbnail, setThumbnail] = useState(null);
+  const [isLoading, setIsLoading] = useState(false); 
 
   const {
     control,
@@ -27,7 +31,6 @@ const HighlightedCategoryItemForm = () => {
     defaultValues: {
       imageUrl: '',
       customTitle: '',
-      customLink: '',
       categoryId: '',
       sortOrder: 0,
       isActive: true
@@ -45,28 +48,19 @@ const HighlightedCategoryItemForm = () => {
       const tree = buildCategoryTree(res.data || []);
       const flat = flattenCategories(tree);
       setCategories(flat);
-      console.log('✅ Categories hiển thị:', flat.map(c => c.name));
     } catch (err) {
-      console.error('❌ Lỗi lấy danh mục:', err);
+      console.error('Lỗi lấy danh mục:', err);
     }
   };
 
   const buildCategoryTree = (list) => {
     const map = {};
     const roots = [];
-
+    list.forEach((item) => { map[item.id] = { ...item, children: [] }; });
     list.forEach((item) => {
-      map[item.id] = { ...item, children: [] };
+      if (item.parentId) map[item.parentId]?.children.push(map[item.id]);
+      else roots.push(map[item.id]);
     });
-
-    list.forEach((item) => {
-      if (item.parentId) {
-        map[item.parentId]?.children.push(map[item.id]);
-      } else {
-        roots.push(map[item.id]);
-      }
-    });
-
     return roots;
   };
 
@@ -74,240 +68,230 @@ const HighlightedCategoryItemForm = () => {
     return list.flatMap((item, index) => {
       const isLastChild = index === list.length - 1;
       const newPrefix = prefix + (level > 0 ? (isLast ? '    ' : '│   ') : '');
-
-      const label =
-        level === 0
-          ? item.name
-          : `${prefix}${isLastChild ? '└── ' : '├── '}${item.name}`;
-
+      const label = level === 0
+        ? item.name
+        : `${prefix}${isLastChild ? '└── ' : '├── '}${item.name}`;
       const current = { id: item.id, name: label };
       const children = item.children?.length
         ? flattenCategories(item.children, level + 1, isLastChild, newPrefix)
         : [];
-
       return [current, ...children];
     });
   };
 
-  const fetchData = async () => {
-    try {
-      const res = await highlightedCategoryItemService.getById(id);
-      const item = res.data;
-      reset(item);
-      if (item.imageUrl) {
-        setThumbnail({ file: null, url: item.imageUrl });
-      }
-    } catch (err) {
-      console.error('❌ Lỗi load dữ liệu:', err);
-    }
-  };
+ const fetchData = async () => {
+  try {
+    const res = await highlightedCategoryItemService.getById(id);
+    const item = res.data;
+
+    reset({
+      imageUrl: item.imageUrl || '',
+      customTitle: item.customTitle || '',
+      categoryId: item.categoryId || '',
+      sortOrder: item.sortOrder || 0,
+      isActive: item.isActive ?? true
+    });
+
+    if (item.imageUrl) {
+  const url = item.imageUrl.startsWith('http')
+    ? item.imageUrl
+    : `${API_BASE_URL}/uploads/${item.imageUrl}`;
+  setThumbnail({ file: null, url });
+}
+
+
+  } catch (err) {
+    console.error('Lỗi load dữ liệu:', err);
+  }
+};
 
   const onSubmit = async (data) => {
-    try {
-      const formData = new FormData();
-      formData.append('customTitle', data.customTitle);
-      formData.append('customLink', data.customLink);
-      formData.append('categoryId', data.categoryId);
-      formData.append('sortOrder', data.sortOrder);
-      formData.append('isActive', data.isActive);
-      if (data.imageUrl instanceof File) {
-        formData.append('image', data.imageUrl);
-      }
-
-      if (!isEdit && !thumbnail?.file) {
-        setError('imageUrl', {
-          type: 'manual',
-          message: 'Ảnh đại diện là bắt buộc!'
-        });
-        return;
-      }
-
-      if (isEdit) {
-        await highlightedCategoryItemService.update(id, formData);
-        toast.success('✅ Cập nhật thành công');
-      } else {
-        await highlightedCategoryItemService.create(formData);
-        toast.success('✅ Thêm mới thành công');
-      }
-      navigate('/admin/highlighted-category-items');
-    } catch (err) {
-      console.log('TOÀN BỘ err.response TỪ SERVER:', err.response);
-      const backendErrors = err?.response?.data?.errors;
-
-      if (Array.isArray(backendErrors)) {
-        backendErrors.forEach((error) => {
-          setError(error.field, { type: 'manual', message: error.message });
-        });
-      } else {
-        toast.error('❌ Lỗi lưu dữ liệu!');
-      }
-      console.error('❌ Submit error:', err);
+  setIsLoading(true);
+  try {
+    const formData = new FormData();
+    formData.append('customTitle', data.customTitle);
+    formData.append('categoryId', data.categoryId);
+    formData.append('sortOrder', data.sortOrder);
+    formData.append('isActive', data.isActive);
+    if (data.imageUrl instanceof File) {
+      formData.append('image', data.imageUrl);
     }
-  };
+
+    if (!isEdit && !thumbnail?.file) {
+      setError('imageUrl', {
+        type: 'manual',
+        message: 'Ảnh đại diện là bắt buộc!'
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    if (isEdit) {
+      await highlightedCategoryItemService.update(id, formData);
+      toast.success('Cập nhật thành công', {
+        onClose: () => navigate('/admin/highlighted-category-items'),
+        autoClose: 1000
+      });
+    } else {
+      await highlightedCategoryItemService.create(formData);
+      toast.success('Thêm mới thành công', {
+        onClose: () => navigate('/admin/highlighted-category-items'),
+        autoClose: 1000
+      });
+    }
+  } catch (err) {
+    const backendErrors = err?.response?.data?.errors;
+    if (Array.isArray(backendErrors)) {
+      backendErrors.forEach((error) => {
+        setError(error.field, { type: 'manual', message: error.message });
+      });
+    } else {
+      toast.error('Lỗi lưu dữ liệu!');
+    }
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   return (
-    <Box p={2}>
-      <Paper elevation={3} sx={{ p: 3 }}>
-        <Typography variant="h5" mb={3}>
-          {isEdit ? 'Cập nhật danh mục nổi bật' : 'Thêm danh mục nổi bật'}
-        </Typography>
+    <>
+      <Toastify />
+      {isLoading && <LoaderAdmin fullscreen />} 
+      <Box p={2}>
+        <Paper elevation={3} sx={{ p: 3 }}>
+          <Typography variant="h5" mb={3}>
+            {isEdit ? 'Cập nhật danh mục nổi bật' : 'Thêm danh mục nổi bật'}
+          </Typography>
 
-        <form onSubmit={handleSubmit(onSubmit)} noValidate>
-          <Grid container spacing={2}>
-            {/* Upload ảnh */}
-            <Grid item xs={12}>
-              <Typography fontWeight={500} mb={1}>
-                Ảnh đại diện <span style={{ color: 'red' }}>*</span>
-              </Typography>
-              <Button variant="outlined" component="label">
-                Chọn ảnh
-                <input
-                  type="file"
-                  accept="image/*"
-                  hidden
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                      setThumbnail({ file, url: URL.createObjectURL(file) });
-                      setValue('imageUrl', file, { shouldValidate: true });
-                    }
+          <form onSubmit={handleSubmit(onSubmit)} noValidate>
+            <Grid container spacing={2}>
+              {/* Upload ảnh */}
+              <Grid item xs={12}>
+                
+                <ThumbnailUpload
+                  value={thumbnail}
+                  onChange={(val) => {
+                    setThumbnail(val);
+                    setValue('imageUrl', val?.file || '', { shouldValidate: true });
                   }}
                 />
-              </Button>
-              {thumbnail?.url && (
-                <Box mt={1}>
-                  <img src={thumbnail.url} alt="preview" width={150} />
-                </Box>
-              )}
-              <Controller
-                name="imageUrl"
-                control={control}
-                rules={{ required: 'Ảnh đại diện là bắt buộc!' }}
-                render={() => null}
-              />
-              {errors.imageUrl && (
-                <Typography color="error" fontSize={13}>
-                  {errors.imageUrl.message}
-                </Typography>
-              )}
-            </Grid>
-
-            {/* Tiêu đề */}
-            <Grid item xs={12}>
-              <Controller
-                name="customTitle"
-                control={control}
-                rules={{ required: 'Tiêu đề là bắt buộc' }}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Tiêu đề"
-                    fullWidth
-                    error={!!errors.customTitle}
-                    helperText={errors.customTitle?.message}
-                  />
+                <Controller
+                  name="imageUrl"
+                  control={control}
+                  rules={{ required: 'Ảnh đại diện là bắt buộc!' }}
+                  render={() => null}
+                />
+                {errors.imageUrl && (
+                  <Typography color="error" fontSize={13} mt={1}>
+                    {errors.imageUrl.message}
+                  </Typography>
                 )}
-              />
-            </Grid>
+              </Grid>
 
-            {/* Link tuỳ chỉnh */}
-            <Grid item xs={12}>
-              <Controller
-                name="customLink"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Link tuỳ chỉnh (nếu có)"
-                    fullWidth
-                  />
-                )}
-              />
-            </Grid>
-
-            {/* Danh mục liên kết */}
-            <Grid item xs={12}>
-              <Controller
-                name="categoryId"
-                control={control}
-                rules={{ required: 'Danh mục là bắt buộc' }}
-                render={({ field }) => (
-                  <Box>
-                    <Typography fontWeight={500} mb={1}>
-                      Danh mục liên kết <span style={{ color: 'red' }}>*</span>
-                    </Typography>
-                    <Select
+              {/* Tiêu đề */}
+              <Grid item xs={12}>
+                <Controller
+                  name="customTitle"
+                  control={control}
+                  rules={{ required: 'Tiêu đề là bắt buộc' }}
+                  render={({ field }) => (
+                    <TextField
                       {...field}
+                      label="Tiêu đề"
                       fullWidth
-                      displayEmpty
-                      error={!!errors.categoryId}
-                    >
-                      <MenuItem value="">
-                        <em>Chọn danh mục</em>
-                      </MenuItem>
-                      {categories.map((cat) => (
-                        <MenuItem key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                    {errors.categoryId && (
-                      <Typography color="error" fontSize={13}>
-                        {errors.categoryId.message}
+                      error={!!errors.customTitle}
+                      helperText={errors.customTitle?.message}
+                    />
+                  )}
+                />
+              </Grid>
+
+              {/* Danh mục */}
+              <Grid item xs={12}>
+                <Controller
+                  name="categoryId"
+                  control={control}
+                  rules={{ required: 'Danh mục là bắt buộc' }}
+                  render={({ field }) => (
+                    <Box>
+                      <Typography fontWeight={500} mb={1}>
+                        Danh mục liên kết <span style={{ color: 'red' }}>*</span>
                       </Typography>
-                    )}
-                  </Box>
-                )}
-              />
-            </Grid>
+                      <Select
+                        {...field}
+                        fullWidth
+                        displayEmpty
+                        error={!!errors.categoryId}
+                      >
+                        <MenuItem value="">
+                          <em>Chọn danh mục</em>
+                        </MenuItem>
+                        {categories.map((cat) => (
+                          <MenuItem key={cat.id} value={cat.id}>
+                            {cat.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                      {errors.categoryId && (
+                        <Typography color="error" fontSize={13}>
+                          {errors.categoryId.message}
+                        </Typography>
+                      )}
+                    </Box>
+                  )}
+                />
+              </Grid>
 
-            {/* Thứ tự hiển thị */}
-            <Grid item xs={12}>
-              <Controller
-                name="sortOrder"
-                control={control}
-                rules={{ required: 'Thứ tự hiển thị là bắt buộc' }}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    type="number"
-                    label="Thứ tự hiển thị"
-                    fullWidth
-                    error={!!errors.sortOrder}
-                    helperText={errors.sortOrder?.message}
-                  />
-                )}
-              />
-            </Grid>
+              {/* Thứ tự */}
+              <Grid item xs={12}>
+                <Controller
+                  name="sortOrder"
+                  control={control}
+                  rules={{ required: 'Thứ tự hiển thị là bắt buộc' }}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      type="number"
+                      label="Thứ tự hiển thị"
+                      fullWidth
+                      error={!!errors.sortOrder}
+                      helperText={errors.sortOrder?.message}
+                    />
+                  )}
+                />
+              </Grid>
 
-            {/* Trạng thái hiển thị */}
-            <Grid item xs={12}>
-              <Controller
-                name="isActive"
-                control={control}
-                render={({ field }) => (
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={field.value}
-                        onChange={(e) => field.onChange(e.target.checked)}
-                      />
-                    }
-                    label="Kích hoạt hiển thị"
-                  />
-                )}
-              />
-            </Grid>
+              {/* Trạng thái */}
+              <Grid item xs={12}>
+                <Controller
+                  name="isActive"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={field.value}
+                          onChange={(e) => field.onChange(e.target.checked)}
+                        />
+                      }
+                      label="Kích hoạt hiển thị"
+                    />
+                  )}
+                />
+              </Grid>
 
-            <Grid item xs={12}>
-              <Button type="submit" variant="contained" disabled={isSubmitting}>
-                {isEdit ? 'Cập nhật' : 'Lưu'}
-              </Button>
+              {/* Submit */}
+              <Grid item xs={12}>
+                <Button type="submit" variant="contained" disabled={isSubmitting}>
+                  {isEdit ? 'Cập nhật' : 'Lưu'}
+                </Button>
+              </Grid>
             </Grid>
-          </Grid>
-        </form>
-      </Paper>
-    </Box>
+          </form>
+        </Paper>
+      </Box>
+    </>
   );
 };
 

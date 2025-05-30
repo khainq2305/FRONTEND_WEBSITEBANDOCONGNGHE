@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, Container, Typography } from '@mui/material';
 import { toast } from 'react-toastify';
-import ProductForm from '../ProductForm'; // Form riêng dùng lại cho Add/Edit
+import ProductForm from '../ProductForm'; 
 import { productService } from '../../../../services/admin/productService';
 
 const ProductAddPage = () => {
@@ -10,12 +10,12 @@ const ProductAddPage = () => {
 const handleSubmit = async (formData) => {
   try {
     await productService.create(formData);
-    toast.success('✅ Đã thêm sản phẩm thành công');
+    toast.success('Đã thêm sản phẩm thành công');
     navigate('/admin/products');
   } catch (error) {
-    toast.error('❌ Lỗi khi thêm sản phẩm');
+    toast.error('Lỗi khi thêm sản phẩm');
     console.error('Lỗi thêm sản phẩm:', error);
-    throw error; // ✅ THÊM DÒNG NÀY
+    throw error; 
   }
 };
 

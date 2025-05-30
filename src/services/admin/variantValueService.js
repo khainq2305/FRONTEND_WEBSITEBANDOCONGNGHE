@@ -16,7 +16,7 @@ export const variantValueService = {
   forceDelete: (id) => del(`${base}${API_ENDPOINT.admin.variantValue.forceDelete(id)}`),
   restore: (id) => patch(`${base}${API_ENDPOINT.admin.variantValue.restore(id)}`),
 reorder: (data) => post(`${base}${API_ENDPOINT.admin.variantValue.reorder}`, data),
-createQuick: (data) => post(`${base}${API_ENDPOINT.admin.variantValue.quickCreate}`, data),
+createQuick: (data) => post(`${base}${API_ENDPOINT.admin.variantValue.createQuick}`, data),
 
   softDeleteMany: (ids) => post(`${base}${API_ENDPOINT.admin.variantValue.softDeleteMany}`, { ids }),
   forceDeleteMany: (ids) => post(`${base}${API_ENDPOINT.admin.variantValue.forceDeleteMany}`, { ids }),

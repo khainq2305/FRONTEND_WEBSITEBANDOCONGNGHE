@@ -1,8 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Box, Button, TextField, Typography, Switch,
-  FormControlLabel, Paper
-} from '@mui/material';
+import { Box, Button, TextField, Typography, Switch, FormControlLabel, Paper } from '@mui/material';
 import { useForm, Controller } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -22,9 +19,9 @@ const VariantValueForm = () => {
     control,
     handleSubmit,
     reset,
-     setError, // 👈 thêm cái này
+    setError, // 👈 thêm cái này
     setValue,
-     trigger, // ✅ thêm dòng này
+    trigger, // thêm dòng này
     watch,
     formState: { errors }
   } = useForm({
@@ -47,17 +44,12 @@ const VariantValueForm = () => {
   const fetchDetail = async () => {
     try {
       const data = await fetchVariantType();
-      const found = data.find(v => v.id.toString() === valueId);
+      const found = data.find((v) => v.id.toString() === valueId);
       if (!found) throw new Error();
       reset({ ...found, imageFile: null });
-   if (found.imageUrl) {
-  setPreviewUrl(
-    found.imageUrl.startsWith('http')
-      ? found.imageUrl
-      : `${API_BASE_URL}${found.imageUrl}`
-  );
-}
-
+      if (found.imageUrl) {
+        setPreviewUrl(found.imageUrl.startsWith('http') ? found.imageUrl : `${API_BASE_URL}${found.imageUrl}`);
+      }
     } catch {
       toast.error('Không tìm thấy giá trị');
       navigate(`/admin/product-variants/${variantId}/values`);
@@ -72,44 +64,43 @@ const VariantValueForm = () => {
     }
   }, [valueId]);
 
-const onSubmit = async (data) => {
-  try {
-    const validImage = variantType === 'image' ? await trigger('imageFile') : true;
-    if (!validImage) return;
+  const onSubmit = async (data) => {
+    try {
+      const validImage = variantType === 'image' ? await trigger('imageFile') : true;
+      if (!validImage) return;
 
-    const formData = new FormData();
-    formData.append('variantId', data.variantId);
-    formData.append('value', data.value);
-    formData.append('sortOrder', data.sortOrder);
-    formData.append('isActive', data.isActive ? 'true' : 'false'); // ✅ ép string
-    if (variantType === 'color') {
-      formData.append('colorCode', data.colorCode);
-    }
-    if (data.imageFile instanceof File) {
-      formData.append('image', data.imageFile);
-    }
+      const formData = new FormData();
+      formData.append('variantId', data.variantId);
+      formData.append('value', data.value);
+      formData.append('sortOrder', data.sortOrder);
+      formData.append('isActive', data.isActive ? 'true' : 'false'); // ép string
+      if (variantType === 'color') {
+        formData.append('colorCode', data.colorCode);
+      }
+      if (data.imageFile instanceof File) {
+        formData.append('image', data.imageFile);
+      }
 
-    if (isEditMode) {
-      await variantValueService.update(valueId, formData);
-      toast.success('✅ Cập nhật thành công');
-    } else {
-      await variantValueService.create(formData);
-      toast.success('✅ Thêm mới thành công');
-    }
+      if (isEditMode) {
+        await variantValueService.update(valueId, formData);
+        toast.success('Cập nhật thành công');
+      } else {
+        await variantValueService.create(formData);
+        toast.success('Thêm mới thành công');
+      }
 
-    navigate(`/admin/product-variants/${variantId}/values`);
-  } catch (err) {
-    if (err.response?.data?.errors) {
-      err.response.data.errors.forEach(({ field, message }) => {
-        setError(field, { type: 'manual', message });
-      });
-    } else {
-      toast.error('❌ Lỗi khi lưu');
-      console.error('❌ VariantValueForm Error:', err);
+      navigate(`/admin/product-variants/${variantId}/values`);
+    } catch (err) {
+      if (err.response?.data?.errors) {
+        err.response.data.errors.forEach(({ field, message }) => {
+          setError(field, { type: 'manual', message });
+        });
+      } else {
+        toast.error('Lỗi khi lưu');
+        console.error('VariantValueForm Error:', err);
+      }
     }
-  }
-};
-
+  };
 
   const watchImage = watch('imageFile');
   useEffect(() => {
@@ -140,8 +131,23 @@ const onSubmit = async (data) => {
           <Controller
             name="sortOrder"
             control={control}
-            render={({ field }) => (
-              <TextField label="Thứ tự" type="number" fullWidth {...field} />
+            rules={{
+              required: 'Thứ tự không được để trống',
+              validate: (value) => {
+                if (isNaN(value)) return 'Thứ tự phải là số';
+                if (Number(value) < 0) return 'Thứ tự phải phải hơn hoặc bằng 0';
+                return true;
+              }
+            }}
+            render={({ field, fieldState }) => (
+              <TextField
+                label="Thứ tự"
+                type="number"
+                fullWidth
+                {...field}
+                error={!!fieldState.error}
+                helperText={fieldState.error?.message}
+              />
             )}
           />
 
@@ -158,91 +164,86 @@ const onSubmit = async (data) => {
             />
           )}
 
-      
-{variantType === 'image' && (
- <Controller
-  name="imageFile"
-  control={control}
-  rules={{
-    validate: (file) => {
-      if (variantType === 'image' && !file && !isEditMode) {
-        return 'Ảnh là bắt buộc';
-      }
-      if (file && file.size > 5 * 1024 * 1024) {
-        return 'Ảnh phải nhỏ hơn 5MB';
-      }
-      return true;
-    }
-  }}
-  render={({ field }) => (
-    <>
-      <Box
-        component="label"
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={(e) => {
-          e.preventDefault();
-          const file = e.dataTransfer.files?.[0];
-          if (file && file.type.startsWith('image/')) {
-            field.onChange(file);
-          }
-        }}
-        sx={{
-          width: '100%',
-          height: 200,
-          border: '2px dashed #aaa',
-          borderRadius: 2,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          color: '#555',
-          backgroundColor: '#fafafa',
-          fontWeight: 500,
-          textAlign: 'center'
-        }}
-      >
-        Kéo thả hoặc bấm để chọn ảnh từ máy
-        <input
-          type="file"
-          hidden
-          accept="image/*"
-          onChange={(e) => field.onChange(e.target.files[0])}
-        />
-      </Box>
+          {variantType === 'image' && (
+            <Controller
+              name="imageFile"
+              control={control}
+              rules={{
+                validate: (file) => {
+                  if (variantType === 'image' && !file && !isEditMode) {
+                    return 'Ảnh là bắt buộc';
+                  }
+                  if (file && file.size > 5 * 1024 * 1024) {
+                    return 'Ảnh phải nhỏ hơn 5MB';
+                  }
+                  return true;
+                }
+              }}
+              render={({ field }) => (
+                <>
+                  <Box
+                    component="label"
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const file = e.dataTransfer.files?.[0];
+                      if (file && file.type.startsWith('image/')) {
+                        field.onChange(file);
+                      }
+                    }}
+                    sx={{
+                      width: '100%',
+                      height: 200,
+                      border: '2px dashed #aaa',
+                      borderRadius: 2,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      color: '#555',
+                      backgroundColor: '#fafafa',
+                      fontWeight: 500,
+                      textAlign: 'center'
+                    }}
+                  >
+                    Kéo thả hoặc bấm để chọn ảnh từ máy
+                    <input type="file" hidden accept="image/*" onChange={(e) => field.onChange(e.target.files[0])} />
+                  </Box>
 
-      {previewUrl && (
-        <Box mt={2}>
-          <img
-            src={previewUrl}
-            alt="Preview"
-            style={{
-              width: 100,
-              height: 100,
-              objectFit: 'cover',
-              borderRadius: 6,
-              border: '1px solid #ccc'
-            }}
-          />
-        </Box>
-      )}
+                  {previewUrl && (
+                    <Box mt={2}>
+                      <img
+                        src={previewUrl}
+                        alt="Preview"
+                        style={{
+                          width: 100,
+                          height: 100,
+                          objectFit: 'cover',
+                          borderRadius: 6,
+                          border: '1px solid #ccc'
+                        }}
+                      />
+                    </Box>
+                  )}
 
-      {errors.imageFile?.message && (
-        <Typography color="error" fontSize={13} mt={1}>
-          {errors.imageFile.message}
-        </Typography>
-      )}
-    </>
-  )}
-/>
-
-)}
-
+                  {errors.imageFile?.message && (
+                    <Typography color="error" fontSize={13} mt={1}>
+                      {errors.imageFile.message}
+                    </Typography>
+                  )}
+                </>
+              )}
+            />
+          )}
 
           <Controller
             name="isActive"
             control={control}
             render={({ field }) => (
-              <FormControlLabel control={<Switch checked={field.value} onChange={(e) => field.onChange(e.target.checked)} />} label="Kích hoạt" />
+              <FormControlLabel
+                control={<Switch checked={field.value} onChange={(e) => field.onChange(e.target.checked)} />}
+                label="Kích hoạt"
+              />
             )}
           />
 

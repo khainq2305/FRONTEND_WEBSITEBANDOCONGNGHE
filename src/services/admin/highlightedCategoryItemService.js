@@ -12,6 +12,8 @@ export const highlightedCategoryItemService = {
 
   update: (id, data) =>
     put(`${base}${API_ENDPOINT.admin.highlightedCategoryItem.update(id)}`, data),
+getById: (id) =>
+  get(`${base}${API_ENDPOINT.admin.highlightedCategoryItem.update(id)}`),
 
   delete: (id) =>
     del(`${base}${API_ENDPOINT.admin.highlightedCategoryItem.delete(id)}`),

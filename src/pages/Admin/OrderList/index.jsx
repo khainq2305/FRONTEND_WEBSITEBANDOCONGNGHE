@@ -184,12 +184,17 @@ const OrderList = () => {
                 </Table>
             </TableContainer>
 
-            <Pagination
-                currentPage={page}
-                totalItems={filteredOrders.length}
-                itemsPerPage={itemsPerPage}
-                onPageChange={setPage}
-            />
+      <Pagination
+  currentPage={page}
+  totalItems={filteredOrders.length}
+  itemsPerPage={itemsPerPage}
+  onPageChange={setPage}
+  onPageSizeChange={(size) => {
+    setItemsPerPage(size);
+    setPage(1); 
+  }}
+/>
+
 
             <CancelOrderDialog
                 open={cancelDialogOpen}

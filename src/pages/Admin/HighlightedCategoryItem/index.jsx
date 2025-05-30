@@ -18,7 +18,7 @@ import {
   Checkbox,
   Select,
   InputAdornment,
-  MenuItem as MuiMenuItem
+  FormControl
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -32,6 +32,8 @@ import { toast } from 'react-toastify';
 import LoaderAdmin from '../../../components/common/Loader';
 import Toastify from '../../../components/common/Toastify';
 import { API_BASE_URL } from '../../../constants/environment';
+import HighlightText from '../../../components/Admin/HighlightText';
+import NoImage from '../../../assets/Admin/images/no-image.jpg';
 
 export default function HighlightedCategoryItemList() {
   const [items, setItems] = useState([]);
@@ -46,50 +48,52 @@ export default function HighlightedCategoryItemList() {
   const [menuItemId, setMenuItemId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+const [stats, setStats] = useState({ totalAll: 0, totalActive: 0, totalInactive: 0, totalTrash: 0 });
 
-  // Debounce search
   useEffect(() => {
     const tid = setTimeout(() => setDebouncedSearch(search.trim()), 300);
     return () => clearTimeout(tid);
   }, [search]);
 
-  // Fetch on filters/search/page
   useEffect(() => {
     fetchData();
   }, [debouncedSearch, page, statusFilter]);
 
   const fetchData = async () => {
-    setIsLoading(true);
-    try {
-      const query = { search: debouncedSearch, page, limit: itemsPerPage };
-      if (statusFilter === 'active') query.isActive = true;
-      else if (statusFilter === 'inactive') query.isActive = false;
-      const res = await highlightedCategoryItemService.list(query);
-      setItems(res.data.data || []);
-      setTotalItems(res.data.pagination.totalItems || 0);
-    } catch (err) {
-      console.error(err);
-      toast.error('Lỗi khi tải dữ liệu');
-    } finally {
-      setIsLoading(false);
+  setIsLoading(true);
+  try {
+    const query = { search: debouncedSearch, page, limit: itemsPerPage };
+    if (statusFilter === 'active') query.isActive = true;
+    else if (statusFilter === 'inactive') query.isActive = false;
+    else if (statusFilter === 'deleted') query.deleted = true;
+
+    const res = await highlightedCategoryItemService.list(query);
+    setItems(res.data.data || []);
+    setTotalItems(res.data.pagination.totalItems || 0);
+
+    // Lấy thống kê tổng quan
+    if (res.data.stats) {
+      setStats(res.data.stats);
     }
-  };
-const getImageUrl = (fileName) =>
-  !fileName
-    ? ''
-    : fileName.startsWith('http')
-    ? fileName
-    : `${API_BASE_URL}/uploads/${fileName}`;
+  } catch (err) {
+    console.error(err);
+    toast.error('Lỗi khi tải dữ liệu');
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+
+  const getImageUrl = (fileName) =>
+    !fileName ? '' : fileName.startsWith('http') ? fileName : `${API_BASE_URL}/uploads/${fileName}`;
 
   const toggleSelectAll = (e) => {
-    if (e.target.checked) setSelectedIds(items.map((i) => i.id));
-    else setSelectedIds([]);
+    setSelectedIds(e.target.checked ? items.map((i) => i.id) : []);
   };
+
   const toggleSelectOne = (id) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
 
   const handleApplyBulkAction = async () => {
@@ -121,7 +125,7 @@ const getImageUrl = (fileName) =>
     const updates = reordered.map((it, idx) => ({ id: it.id, sortOrder: idx + 1 }));
     setIsLoading(true);
     try {
-await highlightedCategoryItemService.reorder(updates);
+      await highlightedCategoryItemService.reorder(updates);
       fetchData();
     } catch (err) {
       console.error(err);
@@ -135,67 +139,80 @@ await highlightedCategoryItemService.reorder(updates);
     <Box>
       <Toastify />
       {isLoading && <LoaderAdmin fullscreen />}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 2 }}>
+          <Typography variant="h5" fontWeight={600}>Danh mục nổi bật</Typography>
+          <Button variant="contained" onClick={() => navigate('/admin/highlighted-category-items/create')}>Thêm Mới</Button>
+        </Box>
+      <Box sx={{ mb: 2, p: 2, backgroundColor: 'white', boxShadow: 1, borderRadius: 1 }}>
+      
 
-      <Typography variant="h4" gutterBottom>
-        Danh mục nổi bật
-      </Typography>
+       {/* Tabs lọc trạng thái */}
+<Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+  {[
+    { value: 'all', label: 'Tất Cả', count: stats.totalAll },
+    { value: 'active', label: 'Hoạt Động', count: stats.totalActive },
+    { value: 'inactive', label: 'Tạm Tắt', count: stats.totalInactive },
 
-      {/* status filter */}
-      <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-        {['all', 'active', 'inactive'].map((st) => (
-          <Button
-            key={st}
-            variant={statusFilter === st ? 'contained' : 'text'}
-            onClick={() => { setStatusFilter(st); setPage(1); }}
-          >
-            {st === 'all' ? 'Tất Cả' : st === 'active' ? 'Hoạt Động' : 'Tạm Tắt'}
-          </Button>
-        ))}
-      </Box>
+  ].map(({ value, label, count }) => (
+    <Button
+      key={value}
+      variant={statusFilter === value ? 'contained' : 'text'}
+      onClick={() => {
+        setStatusFilter(value);
+        setPage(1);
+      }}
+    >
+      {label} ({count ?? 0})
+    </Button>
+  ))}
+</Box>
 
-      {/* bulk + search */}
-      <Box sx={{ display: 'flex', gap: 1, mb: 2, alignItems: 'center' }}>
-        <Select
-          size="small"
-          value={bulkAction}
-          onChange={(e) => setBulkAction(e.target.value)}
-          displayEmpty
-          sx={{ minWidth: 180 }}
-        >
-          <MuiMenuItem value="">
-            <em>Hành động hàng loạt</em>
-          </MuiMenuItem>
-          <MuiMenuItem value="delete">Xóa</MuiMenuItem>
-        </Select>
-        <Button
-          variant="outlined"
-          disabled={bulkAction !== 'delete' || selectedIds.length === 0}
-          onClick={handleApplyBulkAction}
-        >
-          Áp Dụng
-        </Button>
-        <TextField
-          size="small"
-          placeholder="Tìm kiếm theo tiêu đề"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          sx={{ width: 250 }}
-          InputProps={{
-            endAdornment: search && (
-              <InputAdornment position="end">
-                <IconButton size="small" onClick={() => setSearch('')}>
-                  <CloseIcon fontSize="small" />
-                </IconButton>
-              </InputAdornment>
-            )
-          }}
-        />
-        <Button
-          variant="contained"
-          onClick={() => navigate('/admin/highlighted-category-items/create')}
-        >
-          Thêm mới
-        </Button>
+
+{/* Bulk action và tìm kiếm tách hàng riêng biệt, nằm 2 bên */}
+<Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+  {/* Bên trái: Áp dụng hàng loạt */}
+  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+    <FormControl size="small">
+      <Select
+        displayEmpty
+        value={bulkAction}
+        onChange={(e) => setBulkAction(e.target.value)}
+        sx={{ minWidth: 180 }}
+      >
+        <MenuItem value=""><em>Hành động hàng loạt</em></MenuItem>
+        <MenuItem value="delete">Xoá</MenuItem>
+      </Select>
+    </FormControl>
+    <Button
+      variant="outlined"
+      onClick={handleApplyBulkAction}
+      disabled={!bulkAction || selectedIds.length === 0}
+    >
+      Áp Dụng
+    </Button>
+  </Box>
+
+  {/* Bên phải: ô tìm kiếm */}
+  <TextField
+    size="small"
+    variant="outlined"
+    placeholder="Tìm kiếm theo tiêu đề"
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+    onKeyDown={(e) => e.key === 'Enter' && fetchData()}
+    sx={{ width: 280 }}
+    InputProps={{
+      endAdornment: search && (
+        <InputAdornment position="end">
+          <IconButton size="small" onClick={() => setSearch('')}>
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </InputAdornment>
+      )
+    }}
+  />
+</Box>
+
       </Box>
 
       <Paper>
@@ -204,16 +221,15 @@ await highlightedCategoryItemService.reorder(updates);
             <TableRow>
               <TableCell padding="checkbox">
                 <Checkbox
-                  checked={items.length>0 && selectedIds.length===items.length}
-                  indeterminate={selectedIds.length>0 && selectedIds.length<items.length}
+                  checked={items.length > 0 && selectedIds.length === items.length}
+                  indeterminate={selectedIds.length > 0 && selectedIds.length < items.length}
                   onChange={toggleSelectAll}
                 />
               </TableCell>
-              <TableCell>Thứ tự</TableCell>
+              <TableCell align="center">Thứ tự</TableCell>
               <TableCell>Ảnh</TableCell>
               <TableCell>Tiêu đề</TableCell>
               <TableCell>Danh mục</TableCell>
-              <TableCell>Link</TableCell>
               <TableCell>Trạng thái</TableCell>
               <TableCell align="right">Hành động</TableCell>
             </TableRow>
@@ -222,98 +238,92 @@ await highlightedCategoryItemService.reorder(updates);
             <Droppable droppableId="list">
               {(provided) => (
                 <TableBody ref={provided.innerRef} {...provided.droppableProps}>
-                  {items.map((item, idx) => (
-                    <Draggable key={item.id} draggableId={item.id.toString()} index={idx}>
-                      {(prov, snap) => (
-                        <TableRow
-                          ref={prov.innerRef}
-                          {...prov.draggableProps}
-                          sx={{ background: snap.isDragging ? '#f0f0f0' : 'inherit' }}
-                        >
-                          <TableCell padding="checkbox">
-                            <Checkbox
-                              checked={selectedIds.includes(item.id)}
-                              onChange={() => toggleSelectOne(item.id)}
-                            />
-                          </TableCell>
-                          <TableCell>{item.sortOrder}</TableCell>
-<TableCell>
-  {item.imageUrl ? (
-    <img
-      src={getImageUrl(item.imageUrl)}
-      alt=""
-      style={{ width: 60, height: 40, objectFit: 'cover' }}
-      onError={(e) => {
-        e.target.onerror = null;
-        e.target.src = 'https://via.placeholder.com/60x40?text=No+Image';
-      }}
-    />
-  ) : (
-    <span style={{ fontSize: 12, color: '#aaa' }}>Không có ảnh</span>
-  )}
-</TableCell>
-
-
-                          <TableCell>{item.customTitle}</TableCell>
-                          <TableCell>
-                            <Chip label={item.category?.name || '---'} size="small" />
-                          </TableCell>
-                          <TableCell>{item.customLink || '---'}</TableCell>
-                          <TableCell>
-                            <Chip
-                              label={item.isActive ? 'Hoạt động' : 'Tạm tắt'}
-                              color={item.isActive ? 'success' : 'default'}
-                              size="small"
-                            />
-                          </TableCell>
-                          <TableCell align="right">
-                            <IconButton
-                              onClick={(e) => {
-                                setAnchorEl(e.currentTarget);
-                                setMenuItemId(item.id);
-                              }}
-                            >
-                              <MoreVertIcon />
-                            </IconButton>
-                            <IconButton {...prov.dragHandleProps}>
-                              <SwapVertIcon />
-                            </IconButton>
-                            <Menu
-                              anchorEl={anchorEl}
-                              open={Boolean(anchorEl) && menuItemId===item.id}
-                              onClose={() => setAnchorEl(null)}
-                            >
-                              <MenuItem
-                                onClick={() => navigate(`/admin/highlighted-category-items/edit/${item.id}`)}
-                              >
-                                Chỉnh sửa
-                              </MenuItem>
-                              <MenuItem
-                                onClick={async () => {
-                                  setAnchorEl(null);
-                                  const ok=await confirmDelete('xoá','mục này');
-                                  if(!ok) return;
-                                  setIsLoading(true);
-                                  try {
-                                    await highlightedCategoryItemService.delete(item.id);
-                                    toast.success('Đã xoá thành công');
-                                    fetchData();
-                                  } catch(err){
-                                    console.error(err);
-                                    toast.error('Lỗi khi xoá');
-                                  } finally {
-                                    setIsLoading(false);
-                                  }
+                  {items.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={8} align="center">Không có dữ liệu phù hợp</TableCell>
+                    </TableRow>
+                  ) : (
+                    items.map((item, idx) => (
+                      <Draggable key={item.id} draggableId={item.id.toString()} index={idx}>
+                        {(prov, snap) => (
+                          <TableRow
+                            ref={prov.innerRef}
+                            {...prov.draggableProps}
+                            sx={{ background: snap.isDragging ? '#f0f0f0' : 'inherit' }}
+                          >
+                            <TableCell padding="checkbox">
+                              <Checkbox checked={selectedIds.includes(item.id)} onChange={() => toggleSelectOne(item.id)} />
+                            </TableCell>
+                            <TableCell align="center">{item.sortOrder}</TableCell>
+                            <TableCell>
+                              <img
+                                src={item.imageUrl ? getImageUrl(item.imageUrl) : NoImage}
+                                alt=""
+                                style={{ width: 100, height: 100, objectFit: 'cover' }}
+                                onError={(e) => {
+                                  e.target.onerror = null;
+                                  e.target.src = NoImage;
+                                }}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <HighlightText text={item.customTitle} highlight={debouncedSearch} />
+                            </TableCell>
+                            <TableCell>
+                              <Chip label={item.category?.name || '---'} size="small" />
+                            </TableCell>
+                            <TableCell>
+                              <Chip
+                                label={item.isActive ? 'Hoạt động' : 'Tạm tắt'}
+                                color={item.isActive ? 'success' : 'default'}
+                                size="small"
+                              />
+                            </TableCell>
+                            <TableCell align="right">
+                              <IconButton
+                                onClick={(e) => {
+                                  setAnchorEl(e.currentTarget);
+                                  setMenuItemId(item.id);
                                 }}
                               >
-                                Xoá
-                              </MenuItem>
-                            </Menu>
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </Draggable>
-                  ))}
+                                <MoreVertIcon />
+                              </IconButton>
+                              <IconButton {...prov.dragHandleProps}>
+                                <SwapVertIcon />
+                              </IconButton>
+                              <Menu
+                                anchorEl={anchorEl}
+                                open={Boolean(anchorEl) && menuItemId === item.id}
+                                onClose={() => setAnchorEl(null)}
+                              >
+                                <MenuItem onClick={() => navigate(`/admin/highlighted-category-items/edit/${item.id}`)}>Chỉnh sửa</MenuItem>
+                                <MenuItem
+                                  onClick={async () => {
+                                    setAnchorEl(null);
+                                    const ok = await confirmDelete('xoá', 'mục này');
+                                    if (!ok) return;
+                                    setIsLoading(true);
+                                    try {
+                                      await highlightedCategoryItemService.delete(item.id);
+                                      toast.success('Đã xoá thành công');
+                                      fetchData();
+                                    } catch (err) {
+                                      console.error(err);
+                                      toast.error('Lỗi khi xoá');
+                                    } finally {
+                                      setIsLoading(false);
+                                    }
+                                  }}
+                                >
+                                  Xoá
+                                </MenuItem>
+                              </Menu>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </Draggable>
+                    ))
+                  )}
                   {provided.placeholder}
                 </TableBody>
               )}
@@ -328,6 +338,10 @@ await highlightedCategoryItemService.reorder(updates);
           totalItems={totalItems}
           itemsPerPage={itemsPerPage}
           onPageChange={setPage}
+          onPageSizeChange={(size) => {
+            setItemsPerPage(size);
+            setPage(1);
+          }}
         />
       )}
     </Box>
