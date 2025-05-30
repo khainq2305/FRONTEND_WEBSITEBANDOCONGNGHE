@@ -4,11 +4,12 @@ import { categoryService } from '../../../services/admin/categoryService';
 import {
     Card, CardContent, CardActions, CardHeader, TextField, Select, MenuItem,
     InputLabel, FormControl, Switch, FormControlLabel, Button, Box, Typography,
-    FormHelperText
+    FormHelperText, Grid
 } from "@mui/material";
 import { Trash2 } from 'lucide-react';
+import TinyEditor from '../../../components/Admin/TinyEditor';
 
-const CategoryMain = ({ initialData = null, onSubmit, errors = {} }) => {
+const CategoryMain = ({ initialData = null, onSubmit }) => {
     const [parentCategories, setParentCategories] = useState([]);
     const [category, setCategory] = useState({
         name: '',
@@ -27,6 +28,7 @@ const CategoryMain = ({ initialData = null, onSubmit, errors = {} }) => {
     const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
     const [showCrop, setShowCrop] = useState(false);
     const [cropSrc, setCropSrc] = useState(null);
+    const [errors, setErrors] = useState({});
 
     useEffect(() => {
         const fetchParentCategories = async () => {
@@ -58,6 +60,21 @@ const CategoryMain = ({ initialData = null, onSubmit, errors = {} }) => {
 
     const handleChange = (field, value) => {
         setCategory((prev) => ({ ...prev, [field]: value }));
+        setErrors((prev) => {
+            const updated = { ...prev };
+            if (value?.toString().trim()) delete updated[field];
+            return updated;
+        });
+
+
+    };
+    const validateAllFields = () => {
+        const newErrors = {};
+        if (!category.name.trim()) newErrors.name = 'Tên danh mục không được để trống!';
+        if (category.orderIndex < 0 || isNaN(category.orderIndex)) newErrors.orderIndex = 'Thứ tự phải là số nguyên không âm!';
+        if (!initialData && !category.thumbnail) newErrors.thumbnail = 'Vui lòng chọn ảnh đại diện!';
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
     };
 
     const handleFileChange = (e) => {
@@ -116,6 +133,12 @@ const CategoryMain = ({ initialData = null, onSubmit, errors = {} }) => {
         setPreview(preview);
         setShowCrop(false);
         setCropSrc(null);
+        setErrors((prev) => {
+            const updated = { ...prev };
+            delete updated.thumbnail;
+            return updated;
+        });
+
     };
 
     const handleRemoveImage = () => {
@@ -136,9 +159,9 @@ const CategoryMain = ({ initialData = null, onSubmit, errors = {} }) => {
                     subheader="Điền thông tin danh mục sản phẩm"
                 />
                 <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
-                        {/* Left Column */}
-                        <div className="flex flex-col gap-6">
+                    <div className="flex flex-col gap-8">
+                        {/* Dòng 1: Tên danh mục + Danh mục cha */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <TextField
                                 label="Tên danh mục"
                                 value={category.name}
@@ -149,22 +172,42 @@ const CategoryMain = ({ initialData = null, onSubmit, errors = {} }) => {
                                 helperText={errors.name}
                             />
 
-                            <TextField
-                                label="Mô tả"
-                                multiline
-                                rows={3}
-                                value={category.description}
-                                onChange={(e) => handleChange("description", e.target.value)}
-                                fullWidth
-                            />
+                            <FormControl fullWidth error={!!errors.parentId}>
+                                <InputLabel>Danh mục cha</InputLabel>
+                                <Select
+                                    value={category.parentId}
+                                    label="Danh mục cha"
+                                    onChange={(e) => handleChange("parentId", e.target.value ? parseInt(e.target.value) : null)}
+                                >
+                                    <MenuItem value="">Không có</MenuItem>
+                                    {parentCategories.map((parent) => (
+                                        <MenuItem key={parent.id} value={parent.id}>
+                                            {parent.name}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                                {errors.parentId && <FormHelperText>{errors.parentId}</FormHelperText>}
+                            </FormControl>
+                        </div>
+
+                        {/* Dòng 2: Mô tả + Thumbnail */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <Typography fontWeight={500} mb={1}>Mô tả</Typography>
+                                <TinyEditor
+                                    value={category.description}
+                                    onChange={(val) => handleChange("description", val)}
+                                    height={300}
+                                />
+                            </div>
 
                             <div>
-                                <label className="block font-semibold mb-2">Thumbnail</label>
+                                <Typography fontWeight={500} mb={1}>Thumbnail</Typography>
                                 <div
                                     onDrop={handleDrop}
                                     onDragOver={(e) => e.preventDefault()}
                                     className={`
-            flex items-center justify-center w-full h-40 px-4 transition bg-gray-50 border-2 border-dashed 
+            flex items-center justify-center w-full h-72 px-4 transition bg-gray-50 border-2 border-dashed 
             rounded-md cursor-pointer hover:border-blue-400 hover:bg-blue-50
             ${errors.thumbnail ? 'border-red-500' : 'border-gray-300'}
           `}
@@ -201,32 +244,8 @@ const CategoryMain = ({ initialData = null, onSubmit, errors = {} }) => {
                             </div>
                         </div>
 
-                        {/* Right Column */}
-                        <div className="flex flex-col gap-6">
-                            <TextField
-                                label="Slug (tự tạo nếu bỏ trống)"
-                                value={category.slug}
-                                fullWidth
-                                disabled
-                            />
-
-                            <FormControl fullWidth error={!!errors.parentId}>
-                                <InputLabel>Danh mục cha</InputLabel>
-                                <Select
-                                    value={category.parentId}
-                                    label="Danh mục cha"
-                                    onChange={(e) => handleChange("parentId", e.target.value ? parseInt(e.target.value) : null)}
-                                >
-                                    <MenuItem value="">Không có</MenuItem>
-                                    {parentCategories.map((parent) => (
-                                        <MenuItem key={parent.id} value={parent.id}>
-                                            {parent.name}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                                {errors.parentId && <FormHelperText>{errors.parentId}</FormHelperText>}
-                            </FormControl>
-
+                        {/* Dòng 3: Thứ tự + switch */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <TextField
                                 label="Thứ tự hiển thị"
                                 type="number"
@@ -237,7 +256,7 @@ const CategoryMain = ({ initialData = null, onSubmit, errors = {} }) => {
                                 helperText={errors.orderIndex}
                             />
 
-                            <Box display="flex" gap={4}>
+                            <div className="flex items-center gap-6 mt-2">
                                 <FormControlLabel
                                     control={
                                         <Switch
@@ -246,9 +265,7 @@ const CategoryMain = ({ initialData = null, onSubmit, errors = {} }) => {
                                         />
                                     }
                                     label={category.isDefault ? "Mặc định" : "Không mặc định"}
-                                    sx={{ m: 0 }}
                                 />
-
                                 <FormControlLabel
                                     control={
                                         <Switch
@@ -257,9 +274,8 @@ const CategoryMain = ({ initialData = null, onSubmit, errors = {} }) => {
                                         />
                                     }
                                     label={category.isActive ? "Hiển thị" : "Ẩn"}
-                                    sx={{ m: 0 }}
                                 />
-                            </Box>
+                            </div>
                         </div>
                     </div>
                 </CardContent>
@@ -268,13 +284,16 @@ const CategoryMain = ({ initialData = null, onSubmit, errors = {} }) => {
                     <Button variant="outlined" onClick={() => window.history.back()}>
                         Hủy
                     </Button>
-                    <Button variant="contained" onClick={() => onSubmit(category)}>
+                    <Button variant="contained" onClick={() => {
+                        if (validateAllFields()) {
+                            onSubmit(category);
+                        }
+                    }}>
                         {initialData ? "Cập nhật" : "Thêm mới"}
                     </Button>
                 </CardActions>
             </Card>
 
-            {/* Crop modal */}
             {showCrop && cropSrc && (
                 <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center">
                     <div className="bg-white p-4 rounded-md shadow-md w-[90vw] max-w-md">

@@ -3,6 +3,8 @@ import {
   Box, Button, Paper, TextField, Typography,
   Divider, Avatar, FormControlLabel, Switch
 } from '@mui/material';
+import { useForm, Controller } from 'react-hook-form';
+import TinyEditor from '@/components/Admin/TinyEditor';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -16,9 +18,9 @@ const BrandCreatePage = () => {
   const nameRef = useRef(null);
 
   const saved = JSON.parse(localStorage.getItem(LOCAL_KEY)) || {};
+
   const [name, setName] = useState(saved.name || '');
   const [slug, setSlug] = useState(slugify(saved.name || '', { lower: true, strict: true }));
-  const [description, setDescription] = useState(saved.description || '');
   const [isActive, setIsActive] = useState(saved.isActive ?? true);
   const [orderIndex, setOrderIndex] = useState(saved.orderIndex || 0);
   const [imageFile, setImageFile] = useState(null);
@@ -26,14 +28,22 @@ const BrandCreatePage = () => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
+  const { control, handleSubmit, watch } = useForm({
+    defaultValues: {
+      description: saved.description || ''
+    }
+  });
+
+  const description = watch('description');
+
   useEffect(() => {
     nameRef.current?.focus();
   }, []);
 
   useEffect(() => {
-    const formData = { name, description, isActive, orderIndex, imagePreview };
+    const formData = { name, isActive, orderIndex, imagePreview, description };
     localStorage.setItem(LOCAL_KEY, JSON.stringify(formData));
-  }, [name, description, isActive, orderIndex, imagePreview]);
+  }, [name, isActive, orderIndex, imagePreview, description]);
 
   useEffect(() => {
     const handleBeforeUnload = (e) => {
@@ -50,23 +60,21 @@ const BrandCreatePage = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml', 'image/x-icon'];
-    const maxSize = 2 * 1024 * 1024;
+    const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+    const maxSize = 5 * 1024 * 1024;
 
     if (!validTypes.includes(file.type)) {
-      toast.error('Chỉ chấp nhận JPG, PNG, WEBP, SVG, ICO');
+      toast.error('Chỉ chấp nhận ảnh JPG, JPEG, PNG');
       return;
     }
 
     if (file.size > maxSize) {
-      toast.error('Dung lượng ảnh tối đa là 2MB');
+      toast.error('Dung lượng ảnh tối đa là 5MB');
       return;
     }
 
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result);
-    };
+    reader.onloadend = () => setImagePreview(reader.result);
     reader.readAsDataURL(file);
 
     setImageFile(file);
@@ -80,8 +88,7 @@ const BrandCreatePage = () => {
     setErrors(prev => ({ ...prev, name: undefined }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (data) => {
     setErrors({});
 
     if (!name.trim()) {
@@ -99,7 +106,7 @@ const BrandCreatePage = () => {
       const payload = {
         name,
         slug,
-        description,
+        description: data.description,
         isActive,
         orderIndex,
         logoUrl: imageFile
@@ -142,8 +149,8 @@ const BrandCreatePage = () => {
 
         <Divider sx={{ mb: 3 }} />
 
-        <form onSubmit={handleSubmit}>
-          {/* logoUrl */}
+        <form onSubmit={handleSubmit(onSubmit)}>
+          {/* Logo */}
           <Box sx={{ mb: 3 }}>
             <Typography fontWeight={500} gutterBottom>
               Logo thương hiệu <span style={{ color: 'red' }}>*</span>
@@ -174,7 +181,7 @@ const BrandCreatePage = () => {
                 id="brand-image-input"
                 type="file"
                 hidden
-                accept=".jpg,.jpeg,.png,.webp,.svg,.ico"
+                accept=".jpg,.jpeg,.png"
                 onChange={handleImageChange}
               />
             </Box>
@@ -186,12 +193,11 @@ const BrandCreatePage = () => {
             )}
 
             <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-              Click để chọn ảnh. Hỗ trợ JPG, PNG, SVG, WEBP, ICO. Tối đa 2MB.
+              Click để chọn ảnh. Chỉ hỗ trợ JPG, JPEG, PNG. Tối đa 5MB.
             </Typography>
           </Box>
 
-
-          {/* Name */}
+          {/* Tên thương hiệu */}
           <TextField
             inputRef={nameRef}
             label="Tên thương hiệu"
@@ -203,7 +209,7 @@ const BrandCreatePage = () => {
             helperText={errors.name}
           />
 
-          {/* OrderIndex */}
+          {/* STT */}
           <TextField
             label="Thứ tự (STT)"
             type="number"
@@ -215,18 +221,16 @@ const BrandCreatePage = () => {
             helperText="STT càng nhỏ sẽ hiển thị trước"
           />
 
-          {/* Description */}
-          <TextField
-            label="Mô tả"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            fullWidth
-            multiline
-            minRows={4}
-            margin="normal"
+          {/* Mô tả */}
+          <Controller
+            name="description"
+            control={control}
+            render={({ field }) => (
+              <TinyEditor value={field.value} onChange={field.onChange} height={300} />
+            )}
           />
 
-          {/* Status */}
+          {/* Trạng thái */}
           <FormControlLabel
             control={
               <Switch
@@ -235,12 +239,13 @@ const BrandCreatePage = () => {
                 color="primary"
               />
             }
-            label={isActive ? 'Trạng thái: Hiển thị' : 'Trạng thái: Ẩn'}
+            label={isActive ? 'Trạng thái: Hoạt dộng' : 'Trạng thái: Tạm tắt'}
             sx={{ mt: 2 }}
           />
 
           <Divider sx={{ my: 4 }} />
 
+          {/* Submit */}
           <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button
               variant="contained"

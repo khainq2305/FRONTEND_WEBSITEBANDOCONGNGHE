@@ -20,6 +20,10 @@ import CategoryActionsMenu from '../CategoryActionsMenu.jsx';
 import { confirmDelete } from 'components/common/ConfirmDeleteDialog';
 import Checkbox from '@mui/material/Checkbox';
 import BulkActions from '../BulkActions';
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
+import { DragOverlay } from '@dnd-kit/core';
+
+
 
 const CategoryList = () => {
   const navigate = useNavigate();
@@ -31,7 +35,8 @@ const CategoryList = () => {
   const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedIds, setSelectedIds] = useState([]);
-  const limit = 10;
+  const [activeDragItem, setActiveDragItem] = useState(null);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const statusTabs = [
     { label: 'Tất cả', value: 'all', count: counts.all },
@@ -56,34 +61,9 @@ const CategoryList = () => {
     );
   };
 
-  const handleRestoreAll = async () => {
-    try {
-      const confirmed = window.confirm('Bạn có chắc muốn khôi phục tất cả danh mục?');
-      if (!confirmed) return;
-      const res = await categoryService.restoreAll();
-      toast.success(res.message || 'Đã khôi phục tất cả danh mục');
-      await fetchData();
-    } catch (error) {
-      console.error('❌ Khôi phục tất cả lỗi:', error);
-      toast.error('Khôi phục tất cả thất bại');
-    }
-  };
-
-  const handleForceDeleteAll = async () => {
-    try {
-      const confirmed = await confirmDelete('tất cả danh mục trong thùng rác');
-      if (!confirmed) return;
-      const res = await categoryService.forceDeleteAll();
-      toast.success(res.message || 'Đã xoá vĩnh viễn tất cả danh mục');
-      await fetchData();
-    } catch (error) {
-      console.error('❌ Xoá vĩnh viễn tất cả lỗi:', error);
-      toast.error('Xoá vĩnh viễn tất cả thất bại');
-    }
-  };
-
   useEffect(() => {
     const handler = debounce(() => setDebouncedSearch(search), 300);
+
     handler();
     return () => handler.cancel();
   }, [search]);
@@ -93,7 +73,7 @@ const CategoryList = () => {
     try {
       const res = await categoryService.getAll({
         page,
-        limit,
+        limit: itemsPerPage, // 👈 dùng state thay vì biến cố định
         ...(debouncedSearch && { search: debouncedSearch }),
         ...(statusFilter === 'active' && { isActive: true }),
         ...(statusFilter === 'inactive' && { isActive: false }),
@@ -113,54 +93,64 @@ const CategoryList = () => {
     }
   };
 
+
   useEffect(() => {
     fetchData();
-  }, [page, debouncedSearch, statusFilter]);
+  }, [page, debouncedSearch, statusFilter, itemsPerPage]);
+
 
   const sensors = useSensors(useSensor(PointerSensor));
 
   return (
     <Box sx={{ p: 2 }}>
-      <Box sx={{ mb: 2 }}>
+      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="h4" fontWeight="bold">
+          Danh sách danh mục
+        </Typography>
+
         <Button variant="contained" onClick={() => navigate('/admin/categories/addd')}>
           Thêm danh mục
         </Button>
       </Box>
 
-      <Box sx={{ display: 'flex', gap: 2, borderBottom: '1px solid #eee', mb: 1, px: 1 }}>
+
+
+      <Box sx={{ display: 'flex', gap: 1.5, mb: 2 }}>
         {statusTabs.map((tab) => (
-          <Box
+          <Button
             key={tab.value}
+            variant={statusFilter === tab.value ? 'contained' : 'outlined'}
             onClick={() => {
               setStatusFilter(tab.value);
               setPage(1);
               setSelectedIds([]);
             }}
             sx={{
-              pb: 1,
-              px: 1.5,
-              cursor: 'pointer',
-              borderBottom: statusFilter === tab.value ? '2px solid red' : '2px solid transparent',
-              color: statusFilter === tab.value ? 'red' : 'black',
-              fontWeight: statusFilter === tab.value ? 600 : 400,
-              fontSize: 15
+              textTransform: 'none',
+              fontWeight: 500,
+              border: statusFilter === tab.value ? undefined : 'none',
+              backgroundColor: statusFilter === tab.value ? '#1976d2' : 'transparent',
+              color: statusFilter === tab.value ? '#fff' : '#1976d2',
+              '&:hover': {
+                backgroundColor: statusFilter === tab.value ? '#1565c0' : '#e3f2fd',
+                border: 'none'
+              }
             }}
           >
-            {tab.label} ({tab.count ?? 0})
-          </Box>
+            {tab.label}
+            {typeof tab.count === 'number' && ` (${tab.count})`}
+          </Button>
         ))}
-
       </Box>
+
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <BulkActions
-
           showRestoreDelete={true}
           status={statusFilter}
           onSubmit={async (action) => {
             try {
               if (selectedIds.length === 0) {
-                // Không chọn gì → chỉ xử lý trong tab thùng rác
                 if (statusFilter === 'trashed') {
                   if (action === 'restore') {
                     const confirmed = await confirmDelete('khôi phục tất cả danh mục');
@@ -181,11 +171,14 @@ const CategoryList = () => {
                   return;
                 }
               } else {
-                // Có mục được chọn
                 if (action === 'trash') {
+                  const confirmed = await confirmDelete('chuyển các danh mục đã chọn vào thùng rác');
+                  if (!confirmed) return;
                   await categoryService.softDeleteMany(selectedIds);
                   toast.success('Đã chuyển vào thùng rác!');
                 } else if (action === 'restore') {
+                  const confirmed = await confirmDelete('khôi phục các danh mục đã chọn');
+                  if (!confirmed) return;
                   await categoryService.restoreMany(selectedIds);
                   toast.success('Đã khôi phục danh mục đã chọn!');
                 } else if (action === 'forceDelete') {
@@ -203,14 +196,13 @@ const CategoryList = () => {
               console.error(err);
             }
           }}
-
         />
 
         <TextField
           size="small"
           placeholder="Tìm kiếm tên danh mục..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => setSearch(e.target.value.trimStart())}  // ✅ Đã thêm trimStart()
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -220,88 +212,131 @@ const CategoryList = () => {
           }}
           sx={{ width: 300 }}
         />
+
       </Box>
 
 
       <TableContainer component={Paper} sx={{ mt: 2 }}>
-        <Table>
+        <Table sx={{ tableLayout: 'fixed' }}>
           <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
             <TableRow>
-              <TableCell padding="checkbox">
+              <TableCell padding="checkbox" align="center">
                 <Checkbox
                   checked={data.list.length > 0 && data.list.every((item) => selectedIds.includes(item.id))}
                   onChange={toggleSelectAll}
                 />
               </TableCell>
-              <TableCell>STT</TableCell> {/* Đổi vị trí STT */}
-              <TableCell>Ảnh</TableCell>
-              <TableCell>Tên</TableCell>
-              <TableCell>Slug</TableCell>
-              <TableCell>Trạng thái</TableCell>
-              <TableCell align="right">Hành động</TableCell> {/* Gộp icon kéo vào đây */}
+              <TableCell align="center">STT</TableCell>
+              <TableCell align="center">Ảnh</TableCell>
+              <TableCell align="center">Tên</TableCell>
+              <TableCell align="center">Slug</TableCell>
+              <TableCell align="center">Trạng thái</TableCell>
+              <TableCell align="center" sx={{ width: 120 }}>Hành động</TableCell>
             </TableRow>
           </TableHead>
+
 
           <TableBody>
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
+              modifiers={[restrictToVerticalAxis]}
+              onDragStart={({ active }) => {
+                const draggedItem = data.list.find(item => item.id === active.id);
+                setActiveDragItem(draggedItem);
+              }}
               onDragEnd={async ({ active, over }) => {
+                setActiveDragItem(null);
                 if (!over || active.id === over.id) return;
+
                 const oldIndex = data.list.findIndex((i) => i.id === active.id);
                 const newIndex = data.list.findIndex((i) => i.id === over.id);
+
                 const newList = arrayMove(data.list, oldIndex, newIndex);
+
                 setData((prev) => ({ ...prev, list: newList }));
 
                 const ordered = newList.map((item, index) => ({
                   id: item.id,
-                  orderIndex: index
+                  sortOrder: index
                 }));
-                await categoryService.updateOrderIndex(ordered);
+
+                try {
+                  await categoryService.updateOrderIndex(ordered);
+                  toast.success('Đã lưu thứ tự hiển thị mới');
+                } catch (err) {
+                  toast.error('Không thể lưu thứ tự hiển thị');
+                  console.error(err);
+                }
               }}
+
             >
+
               <SortableContext items={data.list.map((item) => item.id)} strategy={verticalListSortingStrategy}>
                 {loading ? (
                   <TableRow>
                     <TableCell colSpan={8} align="center">Đang tải...</TableCell>
                   </TableRow>
                 ) : data.list.length > 0 ? (
-                  data.list.map((item) => (
+                  data.list.map((item, index) => (
                     <SortableRow key={item.id} id={item.id}>
                       {(attributes, listeners) => (
                         <>
-                          <TableCell padding="checkbox">
+                          <TableCell padding="checkbox" align="center">
                             <Checkbox
                               checked={selectedIds.includes(item.id)}
                               onChange={() => toggleSelectRow(item.id)}
                             />
                           </TableCell>
 
-                          {/* STT */}
-                          <TableCell>{item.orderIndex}</TableCell>
+                          <TableCell align="center">{(page - 1) * itemsPerPage + index + 1}</TableCell>
 
-                          <TableCell>
-                            {item.thumbnail ? (
-                              <img
-                                src={item.thumbnail}
-                                alt={item.name}
-                                style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 4 }}
-                              />
-                            ) : (
-                              <Typography variant="caption">Không có</Typography>
-                            )}
+                          <TableCell align="center">
+                            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                              {item.thumbnail ? (
+                                <img
+                                  src={item.thumbnail}
+                                  alt={item.name}
+                                  style={{
+                                    width: 60,
+                                    height: 60,
+                                    objectFit: 'cover',
+                                    borderRadius: 4,
+                                    backgroundColor: '#ccc'
+                                  }}
+                                />
+                              ) : (
+                                <Box
+                                  sx={{
+                                    width: 60,
+                                    height: 60,
+                                    borderRadius: 1,
+                                    bgcolor: '#ccc',
+                                    color: '#fff',
+                                    fontSize: 20,
+                                    fontWeight: 500,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    textTransform: 'uppercase'
+                                  }}
+                                >
+                                  {item.name?.[0] || '–'}
+                                </Box>
+                              )}
+                            </Box>
                           </TableCell>
 
-                          <TableCell>
+                          <TableCell align="center">
                             {item.name}
                             {item.isDefault && (
                               <Chip label="Mặc định" color="warning" size="small" sx={{ ml: 1 }} />
                             )}
                           </TableCell>
 
-                          <TableCell>{item.slug}</TableCell>
+                          <TableCell align="center">{item.slug}</TableCell>
 
-                          <TableCell>
+                          <TableCell align="center">
                             <Chip
                               label={item.isActive ? 'Hiển thị' : 'Ẩn'}
                               color={item.isActive ? 'success' : 'default'}
@@ -309,17 +344,30 @@ const CategoryList = () => {
                             />
                           </TableCell>
 
-                          {/* Gộp icon kéo + menu hành động */}
-                          <TableCell align="right">
-                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1 }}>
-                              <IconButton size="small" sx={{ cursor: 'grab' }} {...attributes} {...listeners}>
+                          <TableCell align="center">
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                gap: 1,
+                                overflow: 'hidden',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              <IconButton
+                                size="small"
+                                sx={{ cursor: 'grab', p: 0.5 }}
+                                {...attributes}
+                                {...listeners}
+                              >
                                 <ImportExport fontSize="small" />
                               </IconButton>
                               <CategoryActionsMenu
                                 isTrashed={statusFilter === 'trashed'}
                                 onEdit={() => navigate(`/admin/categories/edit/${item.id}`)}
                                 onDelete={async () => {
-                                  const confirmed = await confirmDelete(item.name);
+                                  const confirmed = await confirmDelete('chuyển vào thùng rác', item.name); // ✅ fix
                                   if (!confirmed) return;
 
                                   if (statusFilter === 'trashed') {
@@ -332,6 +380,7 @@ const CategoryList = () => {
 
                                   fetchData();
                                 }}
+
                                 onRestore={async () => {
                                   await categoryService.restore(item.id);
                                   toast.success('Đã khôi phục danh mục');
@@ -340,10 +389,10 @@ const CategoryList = () => {
                               />
                             </Box>
                           </TableCell>
+
                         </>
                       )}
                     </SortableRow>
-
                   ))
                 ) : (
                   <TableRow>
@@ -351,6 +400,46 @@ const CategoryList = () => {
                   </TableRow>
                 )}
               </SortableContext>
+              <DragOverlay>
+                {activeDragItem ? (
+                  <Box
+                    sx={{
+                      p: 1,
+                      bgcolor: '#fff',
+                      boxShadow: 6,
+                      borderRadius: 1,
+                      minWidth: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2
+                    }}
+                  >
+                    <Checkbox disabled />
+
+                    <img
+                      src={activeDragItem.thumbnail}
+                      alt={activeDragItem.name}
+                      style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 4 }}
+                    />
+
+                    <Box sx={{ flexGrow: 1 }}>
+                      <Typography fontWeight={600}>{activeDragItem.name}</Typography>
+                      <Typography variant="body2" color="text.secondary">{activeDragItem.slug}</Typography>
+                    </Box>
+
+                    <Chip
+                      label={activeDragItem.isActive ? 'Hiển thị' : 'Ẩn'}
+                      color={activeDragItem.isActive ? 'success' : 'default'}
+                      size="small"
+                    />
+
+                    <IconButton disabled>
+                      <ImportExport fontSize="small" />
+                    </IconButton>
+                  </Box>
+                ) : null}
+              </DragOverlay>
+
             </DndContext>
           </TableBody>
         </Table>
@@ -361,8 +450,12 @@ const CategoryList = () => {
           <Pagination
             currentPage={page}
             totalItems={data.total}
-            itemsPerPage={limit}
+            itemsPerPage={itemsPerPage}
             onPageChange={setPage}
+            onPageSizeChange={(size) => {
+              setItemsPerPage(size);
+              setPage(1);
+            }}
             disabled={loading}
           />
         </Box>
@@ -379,16 +472,29 @@ const SortableRow = ({ id, children }) => {
     listeners,
     setNodeRef,
     transform,
-    transition
+    transition,
+    isDragging
   } = useSortable({ id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition
+    transition: transition || 'transform 200ms ease',
+    boxSizing: 'border-box',
+    display: 'table-row',
+    width: '100%',
+    backgroundColor: isDragging ? '#e3f2fd' : 'inherit', // nền xanh nhạt khi kéo
+    opacity: isDragging ? 0.8 : 1,
+    borderRadius: isDragging ? 8 : 0,
+    outline: isDragging ? '2px dashed #42a5f5' : 'none', // viền dashed xanh
+    outlineOffset: isDragging ? '-2px' : 0
   };
 
   return (
-    <TableRow ref={setNodeRef} style={style} hover>
+    <TableRow
+      ref={setNodeRef}
+      style={style}
+      hover
+    >
       {children(attributes, listeners)}
     </TableRow>
   );
