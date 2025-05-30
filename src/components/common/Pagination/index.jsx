@@ -11,9 +11,9 @@ const MUIPagination = ({ currentPage, totalItems, itemsPerPage, onPageChange, on
   const currentItemsPerPage = itemsPerPage && validPageSizes.includes(itemsPerPage) ? itemsPerPage : 10;
 
   const handleChange = (event, page) => {
-    if (page !== currentPage && page >= 1 && page <= totalPages) {
-      onPageChange(page);
-    }
+    if (page === currentPage) return;
+    if (page < 1 || page > totalPages) return;
+    onPageChange(page);
   };
 
   return (
