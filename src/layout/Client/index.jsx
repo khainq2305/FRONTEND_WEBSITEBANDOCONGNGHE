@@ -1,4 +1,3 @@
-// src/layout/Client/ClientLayout.jsx
 import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Header from './Header';
@@ -7,6 +6,8 @@ import AuthHeader from './AuthHeader';
 import Topbar from './Topbar';
 import BottomNavigationBar from './BottomNavigationBar';
 import FloatingContact from '../../pages/Client/FloatingContact'; // Đúng đường dẫn tới file bạn tạo
+import { CategoryProvider } from '../../contexts/CategoryContext';
+import Toastify from '../../components/common/Toastify';
 
 const ClientLayout = () => {
   const location = useLocation();
@@ -39,7 +40,7 @@ const ClientLayout = () => {
       <Footer />
       <FloatingContact />
       <BottomNavigationBar />
-
+      <Toastify />
       <div className="pb-[56px] lg:pb-0"></div>
     </>
   );
