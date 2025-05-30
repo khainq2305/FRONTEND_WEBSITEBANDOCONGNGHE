@@ -1,4 +1,3 @@
-// src/layout/Client/ClientLayout.jsx
 import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Header from './Header';
@@ -6,7 +5,8 @@ import Footer from './Footer';
 import AuthHeader from './AuthHeader';
 import Topbar from './Topbar';
 import BottomNavigationBar from './BottomNavigationBar';
-import { CategoryProvider } from '../../contexts/CategoryContext'; // ✅ Import context
+import { CategoryProvider } from '../../contexts/CategoryContext';
+import Toastify from '../../components/common/Toastify';
 
 const ClientLayout = () => {
   const location = useLocation();
@@ -38,7 +38,7 @@ const ClientLayout = () => {
 
       <Footer />
       <BottomNavigationBar />
-
+      <Toastify />
       <div className="pb-[56px] lg:pb-0"></div>
     </>
   );

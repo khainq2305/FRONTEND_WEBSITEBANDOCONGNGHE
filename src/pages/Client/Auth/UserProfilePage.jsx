@@ -1,11 +1,13 @@
 // src/pages/UserProfilePage.jsx
 import React, { useState, useEffect } from 'react';
-import { User, Edit3, Bell, Ticket, FileText } from 'lucide-react';
+import { User, Edit3, Bell, Ticket, FileText, Heart  } from 'lucide-react';
 
 import ProfileContent from './ProfileContent';
 import RenderDonMuaContentTuyChinh from './PurchaseHistoryPage';
 import AddressPageContent from './RenderDiaChiContent';
 import { authService } from '../../../services/client/authService';
+import FavoriteProductsPage from './FavoriteProductsPage';
+
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'; 
 
@@ -124,6 +126,8 @@ const UserProfilePage = () => {
     },
     { id: 'don-mua', label: 'Đơn Mua', icon: FileText, href: '#don-mua' },
     { id: 'kho-voucher', label: 'Kho Voucher', icon: Ticket, href: '#kho-voucher', iconColor: 'text-red-500'}, // Giữ màu đỏ cho voucher
+    { id: 'san-pham-yeu-thich', label: 'Sản Phẩm Yêu Thích', icon: Heart, href: '#san-pham-yeu-thich' },
+
   ];
 
   const renderSidebarContent = () => {
@@ -240,6 +244,8 @@ const UserProfilePage = () => {
             {activeTab === 'thong-bao' && <div className="bg-white dark:bg-gray-800 p-6 shadow-md rounded-md border border-gray-200 dark:border-gray-700"><h2 className="text-xl font-semibold dark:text-gray-100">Thông Báo</h2><p className="text-sm dark:text-gray-300">Nội dung trang Thông Báo...</p></div>}
             {activeTab === 'don-mua' && <RenderDonMuaContentTuyChinh />}
             {activeTab === 'kho-voucher' && <div className="bg-white dark:bg-gray-800 p-6 shadow-md rounded-md border border-gray-200 dark:border-gray-700"><h2 className="text-xl font-semibold dark:text-gray-100">Kho Voucher</h2><p className="text-sm dark:text-gray-300">Nội dung trang Kho Voucher...</p></div>}
+            {activeTab === 'san-pham-yeu-thich' && <FavoriteProductsPage />}
+
           </div>
         </div>
       </div>

@@ -31,7 +31,7 @@ export const API_ENDPOINT = {
       base: `${API_BASE_URL}/user-address`,
       list: '/',
       create: '/',
-      getDefault: '/default' 
+      getDefault: '/default'
     },
     category: {
       base: `${API_BASE_URL}/api/client/categories`
@@ -64,6 +64,12 @@ export const API_ENDPOINT = {
       base: `${API_BASE_URL}/orders`,
       create: '/create',
       calculateFee: '/calculate-fee'
+    },
+    wishlist: {
+      base: `${API_BASE_URL}/wishlist`,
+      list: '/',
+      add: (productId) => `/${productId}`,
+      remove: (productId) => `/${productId}`
     }
   },
   admin: {
@@ -78,7 +84,7 @@ export const API_ENDPOINT = {
       restore: (id) => `/product/restore/${id}`,
       restoreMany: '/product/restore-many',
       forceDelete: (id) => `/product/force/${id}`,
-      updateOrderIndexBulk: '/product/update-order' 
+      updateOrderIndexBulk: '/product/update-order'
     },
     notification: {
       base: `${API_BASE_URL}/admin/notifications`,
