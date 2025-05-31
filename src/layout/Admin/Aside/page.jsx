@@ -291,14 +291,14 @@ const pages = [
       }
     ]
   },
-  {
-    id: 'comments',
-    title: 'Bình luận',
-    type: 'item',
-    url: '/admin/comments',
-    icon: icons.MessageOutlined,
-    breadcrumbs: false
-  },
+ {
+  id: 'reviews',
+  title: 'Bình luận',
+  type: 'item',
+  url: '/admin/reviews',
+  icon: icons.MessageOutlined,
+  breadcrumbs: false
+},
 
   {
     id: 'productqna',

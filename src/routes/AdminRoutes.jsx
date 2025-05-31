@@ -29,8 +29,11 @@ const CategoryAdd = Loadable(lazy(() => import('pages/Admin/News/CategoryAdd')))
 const ProductAddPage = Loadable(lazy(() => import('pages/Admin/Product/ProductAddPage')));
 const VariantValueList = Loadable(lazy(() => import('pages/Admin/VariantValue/index.jsx')));
 
-const CommentList = Loadable(lazy(() => import('pages/Admin/Comment/CommentList/index.jsx')));
-const CommentDetail = Loadable(lazy(() => import('pages/Admin/Comment/CommentDetail/index.jsx')));
+const ReviewList = Loadable(lazy(() => import("pages/Admin/Review/ReviewList/index.jsx")));
+const ReviewDetail = Loadable(lazy(() => import("pages/Admin/Review/ReviewDetail/index.jsx")));
+const ReviewAll = Loadable(lazy(() => import("pages/Admin/Review/ReviewAll/index.jsx")));
+const ReviewAllDetail = Loadable(lazy(() => import('pages/Admin/Review/ReviewAllDetail')));
+
 const VariantList = Loadable(lazy(() => import('pages/Admin/ProductVariants')));
 const VariantForm = Loadable(lazy(() => import('pages/Admin/ProductVariants/VariantForm')));
 const ProductListPage = Loadable(lazy(() => import('pages/Admin/Product')));
@@ -254,13 +257,22 @@ const AdminRoutes = {
       path: 'them-danh-muc-bai-viet',
       element: <CategoryAdd />
     },
-    {
-      path: 'comments',
-      element: <CommentList />
+      {
+      path: "reviews",
+      element: <ReviewList />,
     },
     {
-      path: 'comments/:id',
-      element: <CommentDetail />
+      path: "reviews/all",
+      element: <ReviewAll />,
+    },
+    {
+      path: "reviews/all/:id",
+      element: <ReviewAllDetail />
+    },
+
+    {
+      path: "reviews/:skuId",
+      element: <ReviewDetail />,
     },
 
     {

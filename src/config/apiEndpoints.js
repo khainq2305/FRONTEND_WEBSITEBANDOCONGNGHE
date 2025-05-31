@@ -252,6 +252,14 @@ updateOrder: '/sections/update-order' , // ✅ bổ sung dòng này
       forceDelete: '/force-delete',
       restore: '/restore',
       updateOrder: '/update-order'
+    },
+     review: {
+      base: `${API_BASE_URL}/admin/reviews`,
+      getGroupedByProduct: '',               
+      getBySku: (skuId) => `/${skuId}`,      
+      reply: (id) => `/reply/${id}`,         
+      getAll: '/all',
+      getById: (id) => `/detail/${id}`                         
     }
   }
 };
