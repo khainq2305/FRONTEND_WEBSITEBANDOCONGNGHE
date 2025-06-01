@@ -22,7 +22,7 @@ const CategoryEdit = () => {
                 }
                 setInitialData(res.data);
             } catch (error) {
-                toast.error('❌ Không tìm thấy danh mục!');
+                toast.error('Không tìm thấy danh mục!');
                 navigate('/admin/categories/list');
             } finally {
                 setLoading(false);
@@ -47,14 +47,14 @@ const CategoryEdit = () => {
             });
 
             await categoryService.update(id, form);
-            toast.success('✅ Cập nhật danh mục thành công');
+            toast.success('Cập nhật danh mục thành công');
             navigate('/admin/categories/list');
         } catch (error) {
             const res = error.response;
             if (res?.status === 400 && res.data?.field && res.data?.message) {
                 setErrors({ [res.data.field]: res.data.message });
             } else {
-                toast.error('❌ Lỗi khi cập nhật danh mục');
+                toast.error('Lỗi khi cập nhật danh mục');
                 console.error(error);
             }
         }

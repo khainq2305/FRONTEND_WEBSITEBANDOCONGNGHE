@@ -44,7 +44,7 @@ const CategoryMain = ({ initialData = null, onSubmit, errors = {}, setErrors }) 
                 const levelcategories = normalizeCategoryList(res.data.data);
                 setParentCategories(levelcategories);
             } catch (err) {
-                console.error("❌ Lỗi lấy danh mục cha:", err);
+                console.error("Lỗi lấy danh mục cha:", err);
             }
         };
 
@@ -290,7 +290,7 @@ const CategoryMain = ({ initialData = null, onSubmit, errors = {}, setErrors }) 
                             try {
                                 await onSubmit(category);
                             } catch (err) {
-                                console.error('❌ Submit thất bại:', err);
+                                console.error('Submit thất bại:', err);
                             }
                         }}
                     >
