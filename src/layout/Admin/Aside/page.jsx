@@ -44,7 +44,7 @@ const pages = [
         title: 'Sản phẩm nổi bật',
         type: 'item',
         url: '/admin/home-sections',
-        icon: icons.AppstoreOutlined, 
+        icon: icons.AppstoreOutlined,
         breadcrumbs: false
       },
       {
@@ -52,25 +52,34 @@ const pages = [
         title: 'Danh mục nổi bật',
         type: 'item',
         url: '/admin/highlighted-category-items',
-        icon: icons.AppstoreOutlined, 
+        icon: icons.AppstoreOutlined,
         breadcrumbs: false
       },
       {
         id: 'product-category',
-        title: 'Danh mục sản phẩm',
-        type: 'item',
-        url: '/admin/categories/list',
+        title: 'Danh mục',
+        type: 'collapse',
         icon: icons.TagsOutlined,
-        breadcrumbs: false
-      },
-      {
-        id: 'product-attribute',
-        title: 'Thuộc tính sản phẩm',
-        type: 'item',
-        url: '/admin/product-variants',
-        icon: icons.CommentOutlined,
-        breadcrumbs: false
+        children: [
+          {
+            id: 'category-add',
+            title: 'Thêm danh mục sản phẩm',
+            type: 'item',
+            url: '/admin/categories/addd',
+            icon: icons.FileTextOutlined,
+            breadcrumbs: false
+          },
+          {
+            id: 'category-list',
+            title: 'Danh sách danh mục',
+            type: 'item',
+            url: '/admin/categories/list',
+            icon: icons.TableOutlined,
+            breadcrumbs: false
+          }
+        ]
       }
+
     ]
   },
   {
@@ -182,7 +191,7 @@ const pages = [
         id: 'coupon-add',
         title: 'Thêm mã giảm giá',
         type: 'item',
-        url: '/admin/coupons/create', 
+        url: '/admin/coupons/create',
         icon: icons.FileTextOutlined,
         breadcrumbs: false
       }

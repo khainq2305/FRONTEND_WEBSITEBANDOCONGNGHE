@@ -4,13 +4,15 @@ import { categoryService } from '../../../services/admin/categoryService';
 import {
     Card, CardContent, CardActions, CardHeader, TextField, Select, MenuItem,
     InputLabel, FormControl, Switch, FormControlLabel, Button, Box, Typography,
-    FormHelperText, Grid
+    FormHelperText
 } from "@mui/material";
 import { Trash2 } from 'lucide-react';
 import TinyEditor from '../../../components/Admin/TinyEditor';
+import { normalizeCategoryList } from '@/utils';
 
-const CategoryMain = ({ initialData = null, onSubmit }) => {
+const CategoryMain = ({ initialData = null, onSubmit, errors = {}, setErrors }) => {
     const [parentCategories, setParentCategories] = useState([]);
+
     const [category, setCategory] = useState({
         name: '',
         slug: '',
@@ -19,8 +21,14 @@ const CategoryMain = ({ initialData = null, onSubmit }) => {
         parentId: '',
         isActive: true,
         isDefault: false,
-        orderIndex: 0
+        sortOrder: 0
     });
+
+    const isValidForm = () => {
+        return category.name.trim() !== ''
+            && (initialData || category.thumbnail)
+            && !isNaN(category.sortOrder) && category.sortOrder >= 0;
+    };
 
     const [preview, setPreview] = useState(null);
     const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -28,19 +36,18 @@ const CategoryMain = ({ initialData = null, onSubmit }) => {
     const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
     const [showCrop, setShowCrop] = useState(false);
     const [cropSrc, setCropSrc] = useState(null);
-    const [errors, setErrors] = useState({});
 
     useEffect(() => {
         const fetchParentCategories = async () => {
             try {
                 const res = await categoryService.getAll();
-                const list = res?.data?.data || [];
-                const filtered = initialData ? list.filter(c => c.id !== initialData.id) : list;
-                setParentCategories(filtered);
+                const levelcategories = normalizeCategoryList(res.data.data);
+                setParentCategories(levelcategories);
             } catch (err) {
                 console.error("❌ Lỗi lấy danh mục cha:", err);
             }
         };
+
         fetchParentCategories();
 
         if (initialData) {
@@ -52,7 +59,7 @@ const CategoryMain = ({ initialData = null, onSubmit }) => {
                 parentId: initialData.parentId || '',
                 isActive: initialData.isActive ?? true,
                 isDefault: initialData.isDefault ?? false,
-                orderIndex: initialData.orderIndex ?? 0
+                sortOrder: Number.isInteger(initialData.sortOrder) ? initialData.sortOrder : 0
             });
             if (initialData.thumbnail) setPreview(initialData.thumbnail);
         }
@@ -60,21 +67,21 @@ const CategoryMain = ({ initialData = null, onSubmit }) => {
 
     const handleChange = (field, value) => {
         setCategory((prev) => ({ ...prev, [field]: value }));
-        setErrors((prev) => {
-            const updated = { ...prev };
-            if (value?.toString().trim()) delete updated[field];
-            return updated;
-        });
 
+        if (setErrors && errors[field]) {
+            const isValid =
+                (field === 'name' && value.trim() !== '') ||
+                (field === 'sortOrder' && !isNaN(value) && Number(value) >= 0) ||
+                (field === 'thumbnail' && value);
 
-    };
-    const validateAllFields = () => {
-        const newErrors = {};
-        if (!category.name.trim()) newErrors.name = 'Tên danh mục không được để trống!';
-        if (category.orderIndex < 0 || isNaN(category.orderIndex)) newErrors.orderIndex = 'Thứ tự phải là số nguyên không âm!';
-        if (!initialData && !category.thumbnail) newErrors.thumbnail = 'Vui lòng chọn ảnh đại diện!';
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+            if (isValid) {
+                setErrors((prev) => {
+                    const clone = { ...prev };
+                    delete clone[field];
+                    return clone;
+                });
+            }
+        }
     };
 
     const handleFileChange = (e) => {
@@ -133,12 +140,14 @@ const CategoryMain = ({ initialData = null, onSubmit }) => {
         setPreview(preview);
         setShowCrop(false);
         setCropSrc(null);
-        setErrors((prev) => {
-            const updated = { ...prev };
-            delete updated.thumbnail;
-            return updated;
-        });
 
+        if (setErrors && errors.thumbnail) {
+            setErrors((prev) => {
+                const clone = { ...prev };
+                delete clone.thumbnail;
+                return clone;
+            });
+        }
     };
 
     const handleRemoveImage = () => {
@@ -160,7 +169,6 @@ const CategoryMain = ({ initialData = null, onSubmit }) => {
                 />
                 <CardContent>
                     <div className="flex flex-col gap-8">
-                        {/* Dòng 1: Tên danh mục + Danh mục cha */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <TextField
                                 label="Tên danh mục"
@@ -182,7 +190,7 @@ const CategoryMain = ({ initialData = null, onSubmit }) => {
                                     <MenuItem value="">Không có</MenuItem>
                                     {parentCategories.map((parent) => (
                                         <MenuItem key={parent.id} value={parent.id}>
-                                            {parent.name}
+                                            {'— '.repeat(parent.level) + parent.name}
                                         </MenuItem>
                                     ))}
                                 </Select>
@@ -190,7 +198,6 @@ const CategoryMain = ({ initialData = null, onSubmit }) => {
                             </FormControl>
                         </div>
 
-                        {/* Dòng 2: Mô tả + Thumbnail */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <Typography fontWeight={500} mb={1}>Mô tả</Typography>
@@ -203,14 +210,15 @@ const CategoryMain = ({ initialData = null, onSubmit }) => {
 
                             <div>
                                 <Typography fontWeight={500} mb={1}>Thumbnail</Typography>
-                                <div
+                                <label
+                                    htmlFor="thumbnail"
                                     onDrop={handleDrop}
                                     onDragOver={(e) => e.preventDefault()}
                                     className={`
-            flex items-center justify-center w-full h-72 px-4 transition bg-gray-50 border-2 border-dashed 
-            rounded-md cursor-pointer hover:border-blue-400 hover:bg-blue-50
-            ${errors.thumbnail ? 'border-red-500' : 'border-gray-300'}
-          `}
+    flex items-center justify-center w-full h-72 px-4 transition bg-gray-50 border-2 border-dashed 
+    rounded-md cursor-pointer hover:border-blue-400 hover:bg-blue-50
+    ${errors.thumbnail ? 'border-red-500' : 'border-gray-300'}
+  `}
                                 >
                                     <input
                                         type="file"
@@ -219,10 +227,11 @@ const CategoryMain = ({ initialData = null, onSubmit }) => {
                                         className="hidden"
                                         id="thumbnail"
                                     />
-                                    <label htmlFor="thumbnail" className="cursor-pointer text-gray-500 text-sm">
+                                    <span className="text-gray-500 text-sm">
                                         Kéo thả hoặc bấm để chọn ảnh từ máy
-                                    </label>
-                                </div>
+                                    </span>
+                                </label>
+
 
                                 {preview && (
                                     <div className="relative mt-3 w-32 h-32 rounded-lg border border-gray-300 overflow-hidden shadow-sm">
@@ -244,28 +253,18 @@ const CategoryMain = ({ initialData = null, onSubmit }) => {
                             </div>
                         </div>
 
-                        {/* Dòng 3: Thứ tự + switch */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <TextField
                                 label="Thứ tự hiển thị"
                                 type="number"
-                                value={category.orderIndex}
-                                onChange={(e) => handleChange("orderIndex", parseInt(e.target.value))}
+                                value={category.sortOrder}
+                                onChange={(e) => handleChange("sortOrder", parseInt(e.target.value))}
                                 fullWidth
-                                error={!!errors.orderIndex}
-                                helperText={errors.orderIndex}
+                                error={!!errors.sortOrder}
+                                helperText={errors.sortOrder}
                             />
 
                             <div className="flex items-center gap-6 mt-2">
-                                <FormControlLabel
-                                    control={
-                                        <Switch
-                                            checked={category.isDefault}
-                                            onChange={(e) => handleChange("isDefault", e.target.checked)}
-                                        />
-                                    }
-                                    label={category.isDefault ? "Mặc định" : "Không mặc định"}
-                                />
                                 <FormControlLabel
                                     control={
                                         <Switch
@@ -284,11 +283,17 @@ const CategoryMain = ({ initialData = null, onSubmit }) => {
                     <Button variant="outlined" onClick={() => window.history.back()}>
                         Hủy
                     </Button>
-                    <Button variant="contained" onClick={() => {
-                        if (validateAllFields()) {
-                            onSubmit(category);
-                        }
-                    }}>
+                    <Button
+                        variant="contained"
+                        disabled={!isValidForm()}
+                        onClick={async () => {
+                            try {
+                                await onSubmit(category);
+                            } catch (err) {
+                                console.error('❌ Submit thất bại:', err);
+                            }
+                        }}
+                    >
                         {initialData ? "Cập nhật" : "Thêm mới"}
                     </Button>
                 </CardActions>

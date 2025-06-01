@@ -28,11 +28,11 @@ export const categoryService = {
 
   restore: (id) => post(`${base}/restore/${id}`, null, { withCredentials: true }),
 
-  updateOrderIndex: (ordered) => post(`${base}/update-order-index`, { ordered }, { withCredentials: true }),
-
   restoreAll: () => post(`${base}/restore-all`, null, { withCredentials: true }),
 
   restoreMany: (ids) => post(`${base}/restore-many`, { ids }, { withCredentials: true }),
 
-  forceDeleteAll: () => del(`${base}/force-delete-all`, null, { withCredentials: true })
+  forceDeleteAll: () => del(`${base}/force-delete-all`, null, { withCredentials: true }),
+
+  updateOrderIndex: (ordered) => post(`${base}/update-order-index`, ordered, { headers: { 'Content-Type': 'application/json' }, withCredentials: true})
 };

@@ -35,9 +35,13 @@ const CategoryEdit = () => {
     const handleSubmit = async (data) => {
         try {
             const form = new FormData();
+
             Object.entries(data).forEach(([key, value]) => {
                 if (key === 'thumbnail' && typeof value === 'string') return;
-                if (value !== null && value !== '') {
+
+                if (key === 'orderIndex') {
+                    form.append("sortOrder", Number(data.sortOrder));
+                } else if (value !== null && value !== '') {
                     form.append(key, value);
                 }
             });
@@ -55,7 +59,6 @@ const CategoryEdit = () => {
             }
         }
     };
-
 
     if (loading) return <Typography p={4}>Đang tải...</Typography>;
 

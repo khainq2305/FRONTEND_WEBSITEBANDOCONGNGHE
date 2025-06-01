@@ -15,7 +15,7 @@ const Top = ({
   activeTab,
   onTabChange,
   to, label,
-  counts
+  counts = {} 
 }) => {
   console.log('Go to:', counts);
   const navigate = useNavigate();
