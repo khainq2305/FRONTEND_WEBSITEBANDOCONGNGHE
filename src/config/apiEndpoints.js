@@ -259,7 +259,7 @@ updateOrder: '/sections/update-order' , // ✅ bổ sung dòng này
       getBySku: (skuId) => `/${skuId}`,      
       reply: (id) => `/reply/${id}`,         
       getAll: '/all',
-      getById: (id) => `/detail/${id}`                         
+      getBySlug: (slug) => `/detail/slug/${slug}`                         
     }
   }
 };

@@ -66,7 +66,7 @@ const ReviewDetail = () => {
     try {
       await reviewService.replyToReview(selectedReview.id, {
         replyContent: dialogReplyText,
-        responderId: 1 // hoặc lấy từ context admin
+        responderId: 1
       });
 
       const updated = reviews.map(r =>
@@ -81,7 +81,7 @@ const ReviewDetail = () => {
       setReviews(updated);
       setOpenDialog(false);
     } catch (err) {
-      console.error('❌ Lỗi khi gửi phản hồi:', err);
+      console.error('Lỗi khi gửi phản hồi:', err);
     }
   };
 
@@ -95,7 +95,7 @@ const ReviewDetail = () => {
       <CardHeader
         title={
           <Typography variant="h6" fontWeight="bold">
-            💬 Chi tiết đánh giá - <span style={{ color: '#1976d2' }}>{productName || '...'}</span>
+            Chi tiết đánh giá - <span style={{ color: '#1976d2' }}>{productName || '...'}</span>
           </Typography>
         }
       />

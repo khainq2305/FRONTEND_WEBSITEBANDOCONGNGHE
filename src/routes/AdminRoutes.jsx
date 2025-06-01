@@ -266,7 +266,7 @@ const AdminRoutes = {
       element: <ReviewAll />,
     },
     {
-      path: "reviews/all/:id",
+      path: "reviews/all/:slug",
       element: <ReviewAllDetail />
     },
 

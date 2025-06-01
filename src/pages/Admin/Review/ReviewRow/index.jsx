@@ -47,14 +47,14 @@ const ReviewRow = ({ item, index, page, onMenuOpen }) => {
           }}
         >
           <Link
-            to={`/admin/reviews/all/${item.id}`}
+            to={`/admin/reviews/all/${item.slug}`}
             style={{
               color: '#1976d2',
               textDecoration: 'none',
               display: 'inline-block',
               maxWidth: '100%'
             }}
-            title={item.content} // Tooltip khi hover
+            title={item.content}
           >
             {item.content}
           </Link>

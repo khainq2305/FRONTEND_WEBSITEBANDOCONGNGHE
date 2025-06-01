@@ -9,12 +9,14 @@ export const reviewService = {
     return get(`${base}/${skuId}`, params)
   },
   getAll: () => get(`${base}/all`),
-  getById: (id) => get(`${base}/detail/${id}`),
+
+  getBySlug: (slug) => get(`${base}/detail/slug/${slug}`),
+
 
   getGroupedByProduct: (params) => {
     // console.log(`url ${base}`, params)
     return get(`${base}`, params)
   },
   replyToReview: (id, data) => patch(`${base}/reply/${id}`, data),
-  
+
 };

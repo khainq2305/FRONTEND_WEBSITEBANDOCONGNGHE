@@ -14,6 +14,8 @@ import {
 import { useEffect, useState } from 'react';
 import { reviewService } from '@/services/admin/reviewService';
 import { useNavigate } from 'react-router-dom';
+import { Rating } from '@mui/material';
+
 
 const ReviewAll = () => {
   const [reviews, setReviews] = useState([]);
@@ -40,7 +42,7 @@ const ReviewAll = () => {
         <Table>
           <TableHead sx={{ backgroundColor: '#f9f9f9' }}>
             <TableRow>
-              <TableCell>#</TableCell>
+              <TableCell>STT</TableCell>
               <TableCell>Sản phẩm</TableCell>
               <TableCell>Người dùng</TableCell>
               <TableCell>Đánh giá</TableCell>
@@ -61,10 +63,14 @@ const ReviewAll = () => {
                     {c.user?.fullName || '---'}
                   </Box>
                 </TableCell>
-                <TableCell>{'★'.repeat(c.rating)}</TableCell>
+                <TableCell>
+                  <Rating value={c.rating} precision={0.5} readOnly />
+                </TableCell>
+
+
                 <TableCell
                   sx={{ cursor: 'pointer', color: 'primary.main' }}
-                  onClick={() => navigate(`/admin/reviews/all/${c.id}`)}
+                  onClick={() => navigate(`/admin/reviews/all/${c.slug}`)}
                 >
                   {c.content.length > 20 ? c.content.slice(0, 20) + '...' : c.content}
                 </TableCell>

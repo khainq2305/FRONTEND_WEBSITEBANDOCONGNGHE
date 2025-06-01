@@ -50,30 +50,30 @@ const ReviewList = () => {
       <CardHeader
         title={
           <Typography variant="h6" fontWeight="bold">
-            💬 Quản lý đánh giá sản phẩm
+            Quản lý đánh giá sản phẩm
           </Typography>
         }
         action={
           <Box display="flex" alignItems="center" gap={1}>
             <SortSelect value={sort} onChange={(e) => setSort(e.target.value)} />
             <Button
-  variant="contained"
-  onClick={() => navigate('/admin/reviews/all')}
-  startIcon={<VisibilityIcon />}
-  sx={{
-    whiteSpace: 'normal',
-    textTransform: 'none',
-    padding: '4px 20px',
-    lineHeight: '1.2',
-    minHeight: 'unset',
-    height: 'auto',
-    width: '250px',
-    textAlign: 'center',
-    
-  }}
->
-  Các bình luận<br />mới nhất
-</Button>
+              variant="contained"
+              onClick={() => navigate('/admin/reviews/all')}
+              startIcon={<VisibilityIcon />}
+              sx={{
+                whiteSpace: 'normal',
+                textTransform: 'none',
+                padding: '4px 10px',
+                lineHeight: '1.5',
+                minHeight: 'unset',
+                height: 'auto',
+                width: '300px',
+                textAlign: 'center',
+
+              }}
+            >
+              Các bình luận<br />mới nhất
+            </Button>
 
           </Box>
         }
@@ -165,7 +165,7 @@ const ReviewList = () => {
               onPageChange={(newPage) => setPage(newPage)}
               onPageSizeChange={(newLimit) => {
                 setLimit(newLimit);
-                setPage(1); // reset về trang đầu khi đổi pageSize
+                setPage(1);
               }}
             />
 
