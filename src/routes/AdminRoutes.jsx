@@ -32,7 +32,6 @@ const VariantValueList = Loadable(lazy(() => import('pages/Admin/VariantValue/in
 const ReviewList = Loadable(lazy(() => import("pages/Admin/Review/ReviewList/index.jsx")));
 const ReviewDetail = Loadable(lazy(() => import("pages/Admin/Review/ReviewDetail/index.jsx")));
 const ReviewAll = Loadable(lazy(() => import("pages/Admin/Review/ReviewAll/index.jsx")));
-const ReviewAllDetail = Loadable(lazy(() => import('pages/Admin/Review/ReviewAllDetail')));
 
 const VariantList = Loadable(lazy(() => import('pages/Admin/ProductVariants')));
 const VariantForm = Loadable(lazy(() => import('pages/Admin/ProductVariants/VariantForm')));
@@ -264,10 +263,6 @@ const AdminRoutes = {
     {
       path: "reviews/all",
       element: <ReviewAll />,
-    },
-    {
-      path: "reviews/all/:slug",
-      element: <ReviewAllDetail />
     },
 
     {

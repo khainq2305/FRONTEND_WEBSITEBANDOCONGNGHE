@@ -8,6 +8,7 @@ import {
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+
 import { Link } from 'react-router-dom';
 
 const ReviewRow = ({ item, index, page, onMenuOpen }) => {
@@ -46,18 +47,55 @@ const ReviewRow = ({ item, index, page, onMenuOpen }) => {
             textOverflow: 'ellipsis'
           }}
         >
-          <Link
-            to={`/admin/reviews/all/${item.slug}`}
-            style={{
-              color: '#1976d2',
-              textDecoration: 'none',
-              display: 'inline-block',
-              maxWidth: '100%'
+
+          {Array.isArray(item.medias) && item.medias.length > 0 && (
+            <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+              {item.medias.map((media) => (
+                <div key={media.id} style={{ width: 60, height: 60 }}>
+                  {media.type === 'image' ? (
+                    <img
+                      src={media.url}
+                      alt="media"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        borderRadius: 6,
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => window.open(media.url, '_blank')}
+                    />
+                  ) : (
+                    <video
+                      src={media.url}
+                      controls
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        borderRadius: 6
+                      }}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+          <br />
+          <Typography
+            variant="body2"
+            sx={{
+              color: '#333',
+              whiteSpace: 'pre-line',
+              wordBreak: 'break-word',
+              maxWidth: '100%',
+              fontSize: '14px'
             }}
-            title={item.content}
           >
             {item.content}
-          </Link>
+          </Typography>
+
+
+
           <div style={{ fontSize: '12px', color: '#888' }}>
             {new Date(item.createdAt).toLocaleString('vi-VN')}
           </div>

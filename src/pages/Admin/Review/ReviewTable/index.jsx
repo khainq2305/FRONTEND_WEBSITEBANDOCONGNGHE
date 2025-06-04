@@ -7,18 +7,19 @@ import {
 } from "@mui/material";
 import ReviewRow from "../ReviewRow";
 
+
 const ReviewTable = ({ data, page, onMenuOpen }) => {
   return (
     <Table>
       <TableHead>
-        <TableRow>
-          <TableCell>STT</TableCell>
-          <TableCell>Avatar</TableCell>
-          <TableCell>Người dùng</TableCell>
-          <TableCell>Đánh giá</TableCell>
-          <TableCell>Nội dung</TableCell>
-          <TableCell>Trạng thái</TableCell>
-          <TableCell>Phản hồi</TableCell>
+        <TableRow >
+          <TableCell align="center">STT</TableCell>
+          <TableCell align="center">Avatar</TableCell>
+          <TableCell align="center">Người dùng</TableCell>
+          <TableCell align="center">Đánh giá</TableCell>
+          <TableCell align="center">Nội dung</TableCell>
+          <TableCell align="center">Trạng thái</TableCell>
+          <TableCell align="center">Phản hồi</TableCell>
           <TableCell align="right">Hành động</TableCell>
         </TableRow>
       </TableHead>

@@ -72,7 +72,7 @@ const ReviewList = () => {
 
               }}
             >
-              Các bình luận<br />mới nhất
+              Tất cả bình luận<br />mới nhất
             </Button>
 
           </Box>

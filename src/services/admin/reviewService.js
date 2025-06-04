@@ -8,13 +8,12 @@ export const reviewService = {
     // console.log(`urlBY sku ${base}/${skuId}`, params)
     return get(`${base}/${skuId}`, params)
   },
-  getAll: () => get(`${base}/all`),
-
-  getBySlug: (slug) => get(`${base}/detail/slug/${slug}`),
-
+  getAll: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return get(`${base}/all${query ? `?${query}` : ''}`);
+  },
 
   getGroupedByProduct: (params) => {
-    // console.log(`url ${base}`, params)
     return get(`${base}`, params)
   },
   replyToReview: (id, data) => patch(`${base}/reply/${id}`, data),
