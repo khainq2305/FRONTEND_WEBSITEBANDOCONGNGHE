@@ -40,7 +40,7 @@ const NotificationItem = ({ notification, onClick }) => {
         await notificationService.markAsRead(notification.id);
         onClick(notification.id);
       } catch (err) {
-        console.error('❌ Lỗi đánh dấu đã đọc:', err);
+        console.error('Lỗi đánh dấu đã đọc:', err);
       }
     }
   };
@@ -60,7 +60,8 @@ const NotificationItem = ({ notification, onClick }) => {
           <p className={`text-sm leading-snug ${!notification.isRead ? 'font-semibold text-gray-800' : 'text-gray-700'}`}>
             {notification.title}
           </p>
-          {notification.message && <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{notification.message}</p>}
+          <div className="text-xs text-gray-500 mt-0.5 line-clamp-2" dangerouslySetInnerHTML={{ __html: notification.message }}></div>
+
           {notification.startAt && <p className="text-[11px] text-gray-400 mt-0.5">{dayjs(notification.startAt).fromNow()}</p>}
         </div>
         {!notification.isRead && <span className="w-2 h-2 bg-blue-500 rounded-full mt-1.5 ml-auto flex-shrink-0" title="Chưa đọc"></span>}
@@ -80,7 +81,7 @@ const NotificationDropdown = ({ isOpen, notifications = [], onClose, setNotifica
       await notificationService.markAllAsRead();
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
     } catch (err) {
-      console.error('❌ Lỗi markAllAsRead:', err);
+      console.error('Lỗi markAllAsRead:', err);
     }
   };
 
@@ -98,12 +99,21 @@ const NotificationDropdown = ({ isOpen, notifications = [], onClose, setNotifica
       <div className="p-3 border-b border-gray-200 flex-shrink-0">
         <div className="flex justify-between items-center mb-2.5">
           <h3 className="text-sm font-semibold text-gray-800">Thông báo</h3>
-          {notifications.length > 0 && unreadCount > 0 && (
-            <button onClick={handleMarkAllAsRead} className="text-[11px] text-blue-600 hover:underline">
-              Bạn đã đọc tất cả thông báo <CheckCircle size={12} className="inline ml-0.5 text-green-500" />
-            </button>
-          )}
+
+          {notifications.length > 0 &&
+            (unreadCount === 0 ? (
+              <span className="text-[11px] text-gray-500">
+                Bạn đã đọc tất cả thông báo
+                <CheckCircle size={12} className="inline ml-0.5 text-green-500" />
+              </span>
+            ) : (
+              <button onClick={handleMarkAllAsRead} className="text-[11px] text-blue-600 hover:underline">
+                Đánh dấu tất cả là đã đọc
+                <CheckCircle size={12} className="inline ml-0.5 text-green-500" />
+              </button>
+            ))}
         </div>
+
         <div className="flex items-center gap-2 text-xs">
           <button
             onClick={() => setActiveTab('all')}

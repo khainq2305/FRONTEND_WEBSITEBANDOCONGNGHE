@@ -120,7 +120,7 @@ const NotificationTable = ({
         await notificationService.updateOrderIndex(ordered);
         toast.success('Đã lưu thứ tự');
       } catch (err) {
-        toast.error('Lỗi khi cập nhật thứ tự');
+        toast.error('Lỗi khi cập nhật thứ tự !');
       }
     }
   };

@@ -85,7 +85,7 @@ search: {
       getById: '/:id', 
       update: '/:id', 
       delete: '/:id', 
-      deleteMany: '/delete-many',
+      deleteMany: '/delete-many',//
     },
 category: {
       base: `${API_BASE_URL}/admin/categories`,

@@ -61,7 +61,7 @@
   const CategoryList = Loadable(lazy(() => import('pages/Admin/CaterogyProduct/CategoryList/CategoryList')));
   const CategoryAddd = Loadable(lazy(() => import('pages/Admin/CaterogyProduct/CategoryAdd/CategoryAdd')));
   const CategoryEdit = Loadable(lazy(() => import('pages/Admin/CaterogyProduct/CategoryEdit/CategoryEdit')));
-  const NotificationPage = Loadable(lazy(() => import('pages/Admin/Notification')));
+  const NotificationPage = Loadable(lazy(() => import('pages/Admin/Notification')));//
   const DeletedUserList = Loadable(lazy(() => import('pages/Admin/User/DeletedUserList')));
   const UserDetailPage = Loadable(lazy(() => import('pages/Admin/User/UserDetailDialog')));
 

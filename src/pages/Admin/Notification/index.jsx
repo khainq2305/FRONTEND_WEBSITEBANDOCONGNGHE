@@ -70,7 +70,7 @@ const NotificationPage = () => {
 
     try {
       await notificationService.delete(item.id);
-      toast.success('Đã xoá thông báo');
+      toast.success('Đã xoá thông báo !');
       setReload(!reload);
     } catch (err) {
       toast.error('Không thể xoá thông báo');

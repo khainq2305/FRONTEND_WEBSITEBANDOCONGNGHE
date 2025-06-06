@@ -7,6 +7,6 @@ export const notificationService = {
   //Đánh dấu 1 thông báo là đã đọc
   markAsRead: (id) => axiosInstance.patch(`/notifications/${id}/read`),
 
-  //Đánh dấu tất cả là đã đọc
+  //Đánh dấu tất cả là đã đọc/
   markAllAsRead: () => axiosInstance.patch('/notifications/read-all')
 };

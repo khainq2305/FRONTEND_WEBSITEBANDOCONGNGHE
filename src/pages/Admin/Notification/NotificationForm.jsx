@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { TextField, Checkbox, FormControlLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { notificationService } from '../../../services/admin/notificationService';
-
+import TinyEditor from '../../../components/Admin/TinyEditor';
 const LOCAL_STORAGE_KEY = 'notificationFormDraft';
 
 const NotificationForm = ({ editing, onSuccess, onCancel }) => {
@@ -42,7 +42,7 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
         newErrors.link = 'Link điều hướng không được để trống';
       } else if (
         !/^https:\/\/.+/.test(form.link.trim()) && // Không phải link ngoài
-        !/^\/[a-zA-Z0-9]/.test(form.link.trim()) // Và cũng không phải link nội bộ
+        !/^\/[a-zA-Z0-9]/.test(form.link.trim()) // không phải link nội bộ
       ) {
         newErrors.link = 'Link không hợp lệ! Phải bắt đầu bằng https:// hoặc /';
       }
@@ -221,18 +221,11 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
             />
           )}
 
-          <TextField
-            label="Nội dung"
-            name="message"
-            value={form.message}
-            onChange={handleChange}
-            fullWidth
-            multiline
-            rows={4}
-            error={!!errors.message}
-            helperText={errors.message}
-            className="md:col-span-2"
-          />
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium mb-1 text-gray-700">Mô tả</label>
+            <TinyEditor value={form.message} onChange={(val) => setForm((prev) => ({ ...prev, message: val }))} height={300} />
+            {errors.message && <p className="text-red-500 text-sm mt-1">{errors.message}</p>}
+          </div>
 
           <FormControl fullWidth error={!!errors.type}>
             <InputLabel>Loại thông báo</InputLabel>

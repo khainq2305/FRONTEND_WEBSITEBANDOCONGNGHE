@@ -69,14 +69,15 @@ const fetchCategories = async () => {
 
     fetchCategories();
   }, []);
- 
+
+// hiện dữ liệu thông báo
 useEffect(() => {
   const fetchNotifications = async () => {
     try {
       const res = await notificationService.getForUser();
       setNotifications(res.data || []);
     } catch (err) {
-      console.error('❌ Lỗi lấy thông báo:', err);
+      console.error('Lỗi lấy thông báo:', err);
       setNotifications([]);
     }
   };
@@ -370,7 +371,7 @@ useEffect(() => {
                  <NotificationDropdown
   isOpen={isNotificationDropdownOpen}
   notifications={notifications}
-  setNotifications={setNotifications} // ✅ truyền vào đúng
+  setNotifications={setNotifications} // truyền vào đúng
   onClose={() => setIsNotificationDropdownOpen(false)}
 />
 

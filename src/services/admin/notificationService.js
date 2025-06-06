@@ -11,7 +11,7 @@ export const notificationService = {
       const res = await API.get('/admin/users');
       return Array.isArray(res.data?.data) ? res.data.data : [];
     } catch (err) {
-      console.error('Lỗi lấy danh sách user:', err);
+      console.error('Lỗi ! lấy danh sách user:', err);
       return [];
     }
   },

@@ -42,7 +42,6 @@ const NotificationDetailDialog = ({ open, onClose, data }) => {
 
       <DialogContent sx={{ mt: 2 }}>
         <Grid container spacing={3}>
-          {/* Bên trái */}
           <Grid item xs={12} md={6}>
             <Detail label="Tiêu đề" value={data.title} />
             <Detail
@@ -53,7 +52,12 @@ const NotificationDetailDialog = ({ open, onClose, data }) => {
                 </a>
               }
             />
-            <Detail label="Nội dung" value={data.message} />
+            <Box mb={2}>
+              <Typography variant="body2" fontWeight={600} gutterBottom>
+                Nội dung
+              </Typography>
+              <div className="prose prose-sm max-w-full text-gray-800" dangerouslySetInnerHTML={{ __html: data.message }}></div>
+            </Box>
             <Detail label="Loại" value={<Chip size="small" label={data.type} />} />
             <Detail label="Target" value={`${data.targetType} #${data.targetId}`} />
             <Detail label="Gửi toàn bộ" value={data.isGlobal ? 'Có' : 'Không'} />
