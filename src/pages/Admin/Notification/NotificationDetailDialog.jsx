@@ -1,17 +1,23 @@
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  IconButton,
-  Typography,
-  Box,
-  Grid,
-  Divider,
-  Chip
-} from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, IconButton, Typography, Box, Grid, Divider, Chip } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import { useEffect, useState } from 'react';
+import { notificationService } from '@/services/admin/notificationService';
 
 const NotificationDetailDialog = ({ open, onClose, data }) => {
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    if (data?.id && !data?.isGlobal) {
+      notificationService
+        .getUsersByNotification(data.id)
+        .then((res) => {
+          const userList = Array.isArray(res.data) ? res.data : res.data?.data || [];
+          setUsers(userList);
+        })
+        .catch((err) => console.error('Lỗi lấy danh sách user:', err));
+    }
+  }, [data]);
+
   if (!data) return null;
 
   return (
@@ -42,12 +48,7 @@ const NotificationDetailDialog = ({ open, onClose, data }) => {
             <Detail
               label="Link"
               value={
-                <a
-                  href={data.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: '#1e88e5', textDecoration: 'underline' }}
-                >
+                <a href={data.link} target="_blank" rel="noopener noreferrer" style={{ color: '#1e88e5', textDecoration: 'underline' }}>
                   {data.link}
                 </a>
               }
@@ -57,6 +58,27 @@ const NotificationDetailDialog = ({ open, onClose, data }) => {
             <Detail label="Target" value={`${data.targetType} #${data.targetId}`} />
             <Detail label="Gửi toàn bộ" value={data.isGlobal ? 'Có' : 'Không'} />
             <Detail label="Bắt đầu" value={formatDate(data.startAt)} />
+
+            {!data.isGlobal && (
+              <Box mt={2}>
+                <Typography variant="body2" fontWeight={600}>
+                  Người dùng nhận thông báo
+                </Typography>
+                {users.length > 0 ? (
+                  <Box mt={1} pl={1}>
+                    {users.map((u) => (
+                      <Typography key={u.id} variant="body2">
+                        • {u.User?.fullName || 'Không rõ'} ({u.User?.email || '—'})
+                      </Typography>
+                    ))}
+                  </Box>
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    Không có người dùng nào.
+                  </Typography>
+                )}
+              </Box>
+            )}
           </Grid>
 
           {/* Bên phải */}
@@ -96,11 +118,7 @@ const Detail = ({ label, value }) => (
     <Typography variant="body2" fontWeight={600} gutterBottom>
       {label}
     </Typography>
-    <Typography
-      variant="body2"
-      color="text.secondary"
-      sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
-    >
+    <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
       {value || '—'}
     </Typography>
   </Box>

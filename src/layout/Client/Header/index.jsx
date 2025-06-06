@@ -11,14 +11,15 @@ import PopupModal from './PopupModal';
 import { authService } from 'services/client/authService';
 import logoSrc from '../../../assets/Client/images/Logo/logo.svg'; 
 import { categoryService } from '../../../services/client/categoryService';
+import { notificationService } from '../../../services/client/notificationService';
 
 
-const sampleNotifications = [
-  { id: 'notif1', type: 'order_shipped', title: 'Đơn hàng WN0301700710 vừa được giao thành công.', message: 'Cảm ơn bạn đã đặt hàng tại CellphoneS.', timestamp: '1 năm trước', link: '#order-detail-1', isRead: false },
-  { id: 'notif2', type: 'order_confirmed', title: 'Đơn hàng WN0301700710 đã được cửa hàng xác nhận và sẽ giao tới bạn trong thời gian sớm nhất.', timestamp: '1 năm trước', link: '#order-detail-1', isRead: true },
-  { id: 'notif3', type: 'promotion', title: 'Flash Sale cuối tháng! Giảm đến 50%++ cho hàng loạt iPhone, iPad.', timestamp: '2 ngày trước', link: '#promotion-link', isRead: false },
-  // ... (các notifications khác đã được lược bỏ cho ngắn gọn)
-];
+// const sampleNotifications = [
+//   { id: 'notif1', type: 'order_shipped', title: 'Đơn hàng WN0301700710 vừa được giao thành công.', message: 'Cảm ơn bạn đã đặt hàng tại CellphoneS.', timestamp: '1 năm trước', link: '#order-detail-1', isRead: false },
+//   { id: 'notif2', type: 'order_confirmed', title: 'Đơn hàng WN0301700710 đã được cửa hàng xác nhận và sẽ giao tới bạn trong thời gian sớm nhất.', timestamp: '1 năm trước', link: '#order-detail-1', isRead: true },
+//   { id: 'notif3', type: 'promotion', title: 'Flash Sale cuối tháng! Giảm đến 50%++ cho hàng loạt iPhone, iPad.', timestamp: '2 ngày trước', link: '#promotion-link', isRead: false },
+//   // ... (các notifications khác đã được lược bỏ cho ngắn gọn)
+// ];
 
 const Header = () => {
   const navigate = useNavigate();
@@ -26,6 +27,8 @@ const Header = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const [flatCategoriesFromAPI, setFlatCategoriesFromAPI] = useState([]);
+const [notifications, setNotifications] = useState([]);
+const unreadCount = notifications.filter(n => !n.isRead).length;
 
  const accountDropdownTimerRef = useRef(null);
  const handleAccountDropdownEnter = () => {
@@ -52,6 +55,7 @@ const fetchCategories = async () => {
       }))
     ]);
 
+    
     // ❗️ THÊM DÒNG NÀY:
     setFlatCategoriesFromAPI(flatList);
 
@@ -66,6 +70,21 @@ const fetchCategories = async () => {
     fetchCategories();
   }, []);
  
+useEffect(() => {
+  const fetchNotifications = async () => {
+    try {
+      const res = await notificationService.getForUser();
+      setNotifications(res.data || []);
+    } catch (err) {
+      console.error('❌ Lỗi lấy thông báo:', err);
+      setNotifications([]);
+    }
+  };
+
+  fetchNotifications();
+}, []);
+
+  
 useEffect(() => {
   const fetchUserInfo = async () => {
     try {
@@ -328,18 +347,34 @@ useEffect(() => {
                   aria-haspopup="true"
                   aria-expanded={isNotificationDropdownOpen}
                 >
-                  <Bell className="w-6 h-6" strokeWidth={1.5} color="#fff" />
+                  <div className="relative">
+  <Bell className="w-6 h-6" strokeWidth={1.5} color="#fff" />
+  {unreadCount > 0 && (
+    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] px-1.5 rounded-full font-bold min-w-[16px] h-[16px] flex items-center justify-center leading-none">
+      {unreadCount > 9 ? '9+' : unreadCount}
+    </span>
+  )}
+</div>
+
                   <span className="text-white text-[10px] font-medium leading-tight mt-1">Thông báo</span>
                 </button>
                 {isNotificationDropdownOpen && (
                   <div 
                     className="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-lg z-50 transition-transform duration-200 ease-in-out"
                   >
-                    <NotificationDropdown
+{/*                     <NotificationDropdown
                       isOpen={isNotificationDropdownOpen}
                       notifications={sampleNotifications}
                       onClose={() => setIsNotificationDropdownOpen(false)}
-                    />
+                    /> */}
+                 <NotificationDropdown
+  isOpen={isNotificationDropdownOpen}
+  notifications={notifications}
+  setNotifications={setNotifications} // ✅ truyền vào đúng
+  onClose={() => setIsNotificationDropdownOpen(false)}
+/>
+
+
                   </div>
                 )}
               </div>

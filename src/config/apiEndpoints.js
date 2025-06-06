@@ -80,12 +80,12 @@ search: {
     },
      notification: {
       base: `${API_BASE_URL}/admin/notifications`,
-      getAll: '', // GET /admin/notifications?page=...
-      create: '', // POST /admin/notifications
-      getById: '/:id', // GET /admin/notifications/:id
-      update: '/:id', // PUT /admin/notifications/:id
-      delete: '/:id', // DELETE /admin/notifications/:id
-      deleteMany: '/delete-many', // POST /admin/notifications/delete-many
+      getAll: '', 
+      create: '', 
+      getById: '/:id', 
+      update: '/:id', 
+      delete: '/:id', 
+      deleteMany: '/delete-many',
     },
 category: {
       base: `${API_BASE_URL}/admin/categories`,

@@ -200,9 +200,7 @@ const NotificationPage = () => {
                   placeholder="Tất cả"
                   options={[
                     { value: 'system', label: 'System' },
-                    { value: 'promotion', label: 'Promotion' },
                     { value: 'order', label: 'Order' },
-                    { value: 'news', label: 'News' }
                   ]}
                 />
               </Box>

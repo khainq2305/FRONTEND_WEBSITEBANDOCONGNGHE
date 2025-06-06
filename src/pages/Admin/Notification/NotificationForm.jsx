@@ -1,14 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import {
-  TextField,
-  Checkbox,
-  FormControlLabel,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem
-} from '@mui/material';
+import { TextField, Checkbox, FormControlLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { notificationService } from '../../../services/admin/notificationService';
 
 const LOCAL_STORAGE_KEY = 'notificationFormDraft';
@@ -22,30 +14,48 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
     targetType: 'system',
     targetId: '',
     isGlobal: true,
+    userIds: [],
     type: 'system',
     isActive: true,
     startAt: '',
-    imageFile: null
+    imageFile: null,
+    slug: ''
   });
 
   const [preview, setPreview] = useState('');
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [users, setUsers] = useState([]);
 
   const validate = () => {
     const newErrors = {};
     if (!form.title.trim()) newErrors.title = 'Tiêu đề không được để trống';
-    if (!form.message.trim()) newErrors.message = 'Nội dung không được để trống';
-    if (!form.link.trim()) {
-      newErrors.link = 'Link điều hướng không được để trống';
-    } else if (!/^https:\/\/.+\..+/.test(form.link.trim())) {
-      newErrors.link = 'Link không hợp lệ! Phải bắt đầu bằng https://';
-    }
+    // if (!form.message.trim()) newErrors.message = 'Nội dung không được để trống';
     if (!form.type) newErrors.type = 'Vui lòng chọn loại thông báo';
-    if (!form.targetId || isNaN(Number(form.targetId)) || Number(form.targetId) <= 0)
-      newErrors.targetId = 'ID mục tiêu phải là số nguyên dương';
+
+    // Chỉ check targetId & link khi type là order
+    if (form.type === 'order') {
+      if (!form.targetId || isNaN(Number(form.targetId)) || Number(form.targetId) <= 0) {
+        newErrors.targetId = 'ID mục tiêu phải là số nguyên dương';
+      }
+      if (!form.link.trim()) {
+        newErrors.link = 'Link điều hướng không được để trống';
+      } else if (
+        !/^https:\/\/.+/.test(form.link.trim()) && // Không phải link ngoài
+        !/^\/[a-zA-Z0-9]/.test(form.link.trim()) // Và cũng không phải link nội bộ
+      ) {
+        newErrors.link = 'Link không hợp lệ! Phải bắt đầu bằng https:// hoặc /';
+      }
+    }
+
     if (!form.startAt) newErrors.startAt = 'Vui lòng chọn ngày bắt đầu hiển thị';
+
     if (!editing && !form.imageFile && !preview) newErrors.image = 'Vui lòng chọn ảnh';
+
+    if (!form.isGlobal && (!Array.isArray(form.userIds) || form.userIds.length === 0)) {
+      newErrors.userIds = 'Vui lòng chọn ít nhất 1 người dùng';
+    }
+
     return newErrors;
   };
 
@@ -59,10 +69,7 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
         setPreview(reader.result);
         if (!editing) {
           const currentDraft = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '{}');
-          localStorage.setItem(
-            LOCAL_STORAGE_KEY,
-            JSON.stringify({ ...currentDraft, preview: reader.result })
-          );
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ ...currentDraft, preview: reader.result }));
         }
       };
       reader.readAsDataURL(file);
@@ -71,16 +78,36 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { 'image/*': [] },
+    accept: {
+      'image/jpeg': ['.jpeg', '.jpg'],
+      'image/png': ['.png']
+    },
     multiple: false
   });
 
   useEffect(() => {
     if (editing) {
-      const formattedStartAt = editing.startAt
-        ? new Date(editing.startAt).toISOString().slice(0, 16)
-        : '';
-      setForm({ ...editing, startAt: formattedStartAt, imageFile: null });
+      const formattedStartAt = editing.startAt ? new Date(editing.startAt).toISOString().slice(0, 16) : '';
+      const newForm = {
+        ...editing,
+        startAt: formattedStartAt,
+        userIds: [],
+        imageFile: null
+      };
+
+      if (!editing.isGlobal && editing.id) {
+        notificationService
+          .getUsersByNotification(editing.id)
+          .then((res) => {
+            const users = Array.isArray(res.data) ? res.data : [];
+            newForm.userIds = users.map((u) => u.userId || u.User?.id).filter(Boolean);
+            setForm(newForm);
+          })
+          .catch(() => setForm(newForm));
+      } else {
+        setForm(newForm);
+      }
+
       setPreview(editing.imageUrl || '');
     } else {
       const draft = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -98,17 +125,22 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
   }, [editing]);
 
   useEffect(() => {
-    if (!editing) {
-      const { imageFile, ...formToSave } = form;
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ ...formToSave, preview }));
+    if (!form.isGlobal) {
+      notificationService
+        .getUsers()
+        .then((userList) => {
+          setUsers(Array.isArray(userList) ? userList : []);
+        })
+        .catch(() => setUsers([]));
     }
-  }, [form, preview, editing]);
+  }, [form.isGlobal]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : value,
+      ...(name === 'type' ? { targetType: value } : {})
     }));
   };
 
@@ -128,6 +160,8 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
       Object.entries(form).forEach(([key, value]) => {
         if (key === 'imageFile') {
           if (value) formData.append('image', value);
+        } else if (key === 'userIds') {
+          formData.append('userIds', JSON.stringify(value));
         } else {
           formData.append(key, value);
         }
@@ -150,14 +184,8 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full bg-white p-6 sm:p-8 border border-gray-200 space-y-6"
-        encType="multipart/form-data"
-      >
-        <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-          {editing ? 'Sửa thông báo' : 'Thêm thông báo mới'}
-        </h2>
+      <form onSubmit={handleSubmit} className="w-full bg-white p-6 sm:p-8 border border-gray-200 space-y-6" encType="multipart/form-data">
+        <h2 className="text-2xl font-semibold text-gray-800 mb-2">{editing ? 'Sửa thông báo' : 'Thêm thông báo mới'}</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <TextField
@@ -166,21 +194,32 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
             value={form.title}
             onChange={handleChange}
             fullWidth
-            
             error={!!errors.title}
             helperText={errors.title}
           />
 
           <TextField
-            label="Link điều hướng"
-            name="link"
-            value={form.link}
+            label="Ngày bắt đầu hiển thị"
+            name="startAt"
+            type="datetime-local"
+            value={form.startAt}
             onChange={handleChange}
             fullWidth
-            
-            error={!!errors.link}
-            helperText={errors.link}
+            InputLabelProps={{ shrink: true }}
+            error={!!errors.startAt}
+            helperText={errors.startAt}
           />
+
+          {editing && (
+            <TextField
+              label="Slug"
+              name="slug"
+              value={form.slug || ''}
+              fullWidth
+              InputProps={{ readOnly: true }}
+              helperText="Slug được tạo tự động từ tiêu đề"
+            />
+          )}
 
           <TextField
             label="Nội dung"
@@ -199,71 +238,75 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
             <InputLabel>Loại thông báo</InputLabel>
             <Select name="type" value={form.type} onChange={handleChange} label="Loại thông báo">
               <MenuItem value="system">System</MenuItem>
-              <MenuItem value="promotion">Promotion</MenuItem>
               <MenuItem value="order">Order</MenuItem>
-              <MenuItem value="news">News</MenuItem>
             </Select>
           </FormControl>
 
-          <FormControl fullWidth>
-            <InputLabel>Target Type</InputLabel>
-            <Select
-              name="targetType"
-              value={form.targetType}
-              onChange={handleChange}
-              label="Target Type"
-            >
-              <MenuItem value="system">System</MenuItem>
-              <MenuItem value="promotion">Promotion</MenuItem>
-              <MenuItem value="order">Order</MenuItem>
-              <MenuItem value="news">News</MenuItem>
-            </Select>
-          </FormControl>
+          <TextField label="Target Type" name="targetType" value={form.targetType} fullWidth InputProps={{ readOnly: true }} />
 
-          <TextField
-            label="Target ID"
-            name="targetId"
-            type="number"
-            value={form.targetId}
-            onChange={handleChange}
-            fullWidth
-            error={!!errors.targetId}
-            helperText={errors.targetId}
-          />
-
-          <TextField
-            label="Ngày bắt đầu hiển thị"
-            name="startAt"
-            type="datetime-local"
-            value={form.startAt}
-            onChange={handleChange}
-            fullWidth
-            InputLabelProps={{ shrink: true }}
-            error={!!errors.startAt}
-            helperText={errors.startAt}
-          />
+          {form.type === 'order' && (
+            <>
+              <TextField
+                label="Target ID"
+                name="targetId"
+                type="number"
+                value={form.targetId}
+                onChange={handleChange}
+                fullWidth
+                error={!!errors.targetId}
+                helperText={errors.targetId}
+              />
+              <TextField
+                label="Link điều hướng"
+                name="link"
+                value={form.link}
+                onChange={handleChange}
+                fullWidth
+                error={!!errors.link}
+                helperText={errors.link}
+              />
+            </>
+          )}
 
           <FormControlLabel
-            control={
-              <Checkbox
-                name="isGlobal"
-                checked={form.isGlobal}
-                onChange={handleChange}
-              />
-            }
+            control={<Checkbox name="isGlobal" checked={form.isGlobal} onChange={handleChange} />}
             label="Gửi toàn bộ user"
           />
 
           <FormControlLabel
-            control={
-              <Checkbox
-                name="isActive"
-                checked={form.isActive}
-                onChange={handleChange}
-              />
-            }
+            control={<Checkbox name="isActive" checked={form.isActive} onChange={handleChange} />}
             label="Hiển thị thông báo"
           />
+
+          {!form.isGlobal && (
+            <FormControl fullWidth error={!!errors.userIds}>
+              <InputLabel id="user-select-label">Chọn người dùng</InputLabel>
+              <Select
+                labelId="user-select-label"
+                multiple
+                value={Array.isArray(form.userIds) ? form.userIds : []}
+                name="userIds"
+                onChange={(e) => setForm((prev) => ({ ...prev, userIds: e.target.value }))}
+                renderValue={(selected) =>
+                  (users || [])
+                    .filter((u) => selected.includes(u.id))
+                    .map((u) => u.fullName)
+                    .join(', ')
+                }
+              >
+                {Array.isArray(users) && users.length > 0 ? (
+                  users.map((user) => (
+                    <MenuItem key={user.id} value={user.id}>
+                      {user.fullName} ({user.email})
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem disabled>Không có user nào</MenuItem>
+                )}
+              </Select>
+              {errors.userIds && <p className="text-red-500 text-sm mt-1">{errors.userIds}</p>}
+            </FormControl>
+          )}
 
           <div className="col-span-2">
             <label className="block text-sm font-medium mb-1">Ảnh thông báo</label>
@@ -292,11 +335,7 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
           >
             {loading ? 'Đang gửi...' : editing ? 'Cập nhật' : 'Tạo mới'}
           </button>
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-6 py-2 bg-gray-200 text-gray-800 hover:bg-gray-300"
-          >
+          <button type="button" onClick={onCancel} className="px-6 py-2 bg-gray-200 text-gray-800 hover:bg-gray-300">
             Trở về
           </button>
         </div>
