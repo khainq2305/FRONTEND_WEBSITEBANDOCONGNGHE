@@ -113,7 +113,6 @@ const ProductTitleHeader = ({ productName, rating, reviewCount }) => (
   </div>
 );
 
-// --- Component ProductDetail chính ---
 export default function ProductDetail() {
    const { slug } = useParams(); // ✅ LẤY slug từ route /product/:slug
   const [selectedColor, setSelectedColor] = useState("Kem");
@@ -124,6 +123,8 @@ const [productColorsData, setProductColorsData] = useState([]);
 const [allProductImagesData, setAllProductImagesData] = useState([]); // ⬅️ chuyển lên đây
 const [mainImage, setMainImage] = useState(""); // ⬅️ chuyển lên đây luôn
 const [product, setProduct] = useState(null);
+const [skuId, setSkuId] = useState(null);
+
 // lấy dynamic từ API
 const productName = product?.name || "";
 const productRating = product?.rating || 0;               // hoặc product.averageRating tuỳ API
@@ -270,6 +271,17 @@ useEffect(() => {
   fetchProduct();
 }, [slug]); // Dependency array is correct
 
+useEffect(() => {
+  if (!selectedOption || !product?.skus) return;
+
+  const matched = product.skus.find((s) => s.skuCode === selectedOption);
+  if (matched) {
+    setSkuId(matched.id);
+  } else {
+    setSkuId(null);
+  }
+}, [selectedOption, product]);
+
 // This useEffect correctly updates the main image when selectedOption changes,
 // AFTER productOptionsData and allProductImagesData have been populated.
 useEffect(() => {
@@ -411,11 +423,8 @@ useEffect(() => {
   <div>
     {/* Đánh giá */}
     {ProductReviewSection && (
-      <ProductReviewSection
-        productName={productName}
-        rating={productRating}
-        reviewCount={productReviewCount}
-      />
+<ProductReviewSection skuId={skuId} productName={productName} />
+
     )}
     {/* Hỏi & Đáp */}
     {ProductQA && (

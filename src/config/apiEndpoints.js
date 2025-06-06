@@ -38,9 +38,10 @@ export const API_ENDPOINT = {
     },
     product: {
       base: `${API_BASE_URL}/product`,
-      baseList: `${API_BASE_URL}/api/client/products`,
+      baseList: `${API_BASE_URL}/products`, // ✅ Sửa lại để khớp route mới
       getBySlug: (slug) => `/${slug}`
     },
+
     brand: {
       base: '/api/client/brands'
     },
@@ -70,6 +71,12 @@ export const API_ENDPOINT = {
       list: '/',
       add: (productId) => `/${productId}`,
       remove: (productId) => `/${productId}`
+    },
+    review: {
+      base: `${API_BASE_URL}/review`,
+      create: '/create',
+      getBySku: (id) => `/sku/${id}`,
+      check: (skuId) => `/check/${skuId}`
     }
   },
   admin: {
