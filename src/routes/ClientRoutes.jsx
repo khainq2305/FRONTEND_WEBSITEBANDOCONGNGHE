@@ -21,6 +21,7 @@ const News = Loadable(lazy(() => import('pages/Client/Blog/index.jsx')));
 const NewsDetails = Loadable(lazy(() => import('pages/Client/BlogDetail')));
 const OrderLookup = Loadable(lazy(() => import('pages/Client/OrderLookup')));
 const ProductComparison = Loadable(lazy(() => import('pages/Client/CompareProducts')));
+
 const ClientRoutes = {
   path: '/',
   element: <ClientLayout />,
@@ -55,7 +56,7 @@ const ClientRoutes = {
       path: 'category/:id',
       element: <ProductListByCategory />
     },
-   { path: 'product/:slug', element: <ProductDetail /> },
+    { path: 'product/:slug', element: <ProductDetail /> },
 
     { path: 'cart', element: <CartPage /> },
     { path: 'checkout', element: <CheckoutPage /> },
@@ -64,7 +65,7 @@ const ClientRoutes = {
     { path: 'news', element: <News /> },
     { path: 'news/:id', element: <NewsDetails /> },
     { path: 'orderlookup', element: <OrderLookup /> },
-      { path: 'compare-products', element: <ProductComparison /> },
+    { path: 'compare-products', element: <ProductComparison /> },
   ]
 };
 

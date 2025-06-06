@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client';
 import './index.css'; // ⚠️ IMPORT TAILWIND Ở ĐÂY – RẤT QUAN TRỌNG
 // style.scss
 import './assets/Admin/style.css';
-
 // scroll bar
 // import 'simplebar-react/dist/simplebar.min.css';
 
@@ -39,7 +38,6 @@ import reportWebVitals from './reportWebVitals';
 
 const container = document.getElementById('root');
 const root = createRoot(container);
-
 // ==============================|| MAIN - REACT DOM RENDER ||============================== //
 
 root.render(<App />);

@@ -74,7 +74,11 @@ export const API_ENDPOINT = {
       list: '/',
       add: (productId) => `/${productId}`,
       remove: (productId) => `/${productId}`
-    }
+    },
+    systemSetting: {
+      base: `${API_BASE_URL}/public`,
+      get: '/settings',
+    },
   },
   admin: {
     product: {
@@ -143,9 +147,9 @@ export const API_ENDPOINT = {
       create: '/sections',
       update: (id) => `/sections/${id}`,
       delete: (id) => `/sections/${id}`,
-getDetail: (id) => `/sections/${id}`,
-updateOrder: '/sections/update-order' , // ✅ bổ sung dòng này
-      getAllSkus: '/sections/skus' 
+      getDetail: (id) => `/sections/${id}`,
+      updateOrder: '/sections/update-order', // ✅ bổ sung dòng này
+      getAllSkus: '/sections/skus'
     },
 
     slider: {
@@ -174,7 +178,7 @@ updateOrder: '/sections/update-order' , // ✅ bổ sung dòng này
       base: `${API_BASE_URL}/admin`,
       getByVariantId: (id) => `/variant-values/${id}`,
       create: '/variant-values/create',
-      update: (id) => `/variant-values/${id}`, 
+      update: (id) => `/variant-values/${id}`,
       softDelete: (id) => `/variant-values/${id}`,
       forceDelete: (id) => `/variant-values/${id}/force`,
       restore: (id) => `/variant-values/${id}/restore`,
@@ -182,8 +186,7 @@ updateOrder: '/sections/update-order' , // ✅ bổ sung dòng này
       forceDeleteMany: '/variant-values/force-delete-many',
       restoreMany: '/variant-values/restore-many',
       reorder: '/variant-values/reorder',
-    createQuick: '/variant-values/create-quick',
-
+      createQuick: '/variant-values/create-quick'
     },
 
     highlightedCategoryItem: {
@@ -194,7 +197,7 @@ updateOrder: '/sections/update-order' , // ✅ bổ sung dòng này
       delete: (id) => `/highlighted-category-items/${id}`,
       deleteMany: '/highlighted-category-items/delete-many',
       getCategories: '/highlighted-category-items/categories/list',
-      reorder: '/highlighted-category-items/reorder' 
+      reorder: '/highlighted-category-items/reorder'
     },
 
     flashSale: {
@@ -211,7 +214,6 @@ updateOrder: '/sections/update-order' , // ✅ bổ sung dòng này
       forceDelete: (id) => `/flash-sale/force/${id}`,
       forceDeleteMany: '/flash-sale/force-delete-many',
 
-      
       getSkus: '/flash-sales/skus/available',
       getCategories: '/flash-sales/categories/available-tree'
     },
@@ -252,6 +254,19 @@ updateOrder: '/sections/update-order' , // ✅ bổ sung dòng này
       forceDelete: '/force-delete',
       restore: '/restore',
       updateOrder: '/update-order'
+    },
+    paymentMethod: {
+      base: `${API_BASE_URL}/admin/payment-methods-admin`,
+      getAll: '/',
+      getById: (id) => `/detail/${id}`,
+      create: '/create',
+      update: (id) => `/update/${id}`,
+      forceDelete: (id) => `/force-delete/${id}`,
+    },
+    systemSetting: {
+      base: `${API_BASE_URL}/admin/system-settings`,
+      get: '',
+      update: '/update'
     }
   }
 };

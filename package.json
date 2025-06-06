@@ -70,6 +70,7 @@
     "tailwindcss": "^4.1.6",
     "tinymce": "^7.9.0",
     "use-debounce": "^10.0.4",
+    "validator": "^13.15.15",
     "vite": "^5.2.10",
     "vite-jsconfig-paths": "^2.0.1",
     "web-vitals": "^5.0.1",

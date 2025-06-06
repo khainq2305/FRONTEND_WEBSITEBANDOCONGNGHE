@@ -59,6 +59,11 @@ const NotificationDetail = Loadable(lazy(() => import('pages/Admin/Notification/
 const DeletedUserList = Loadable(lazy(() => import('pages/Admin/User/DeletedUserList')));
 const UserDetailPage = Loadable(lazy(() => import('pages/Admin/User/UserDetailDialog')));
 const HomeSectionDetailPage = Loadable(lazy(() => import('pages/Admin/HomeSection/HomeSectionDetail')));
+const PaymentMethodListPage = Loadable(lazy(() => import('pages/Admin/PaymentMethod')));
+const PaymentMethodFormPage = Loadable(lazy(() => import('pages/Admin/PaymentMethod/PaymentForm')));
+const PaymentMethodEdit = Loadable(lazy(() => import('pages/Admin/PaymentMethod/PaymentMethodEdit/PaymentMethodEditPage')));
+const SystemSettingAdmin = Loadable(lazy(() => import('@/pages/Admin/SystemSettingAdmin')));
+
 
 const AdminRoutes = {
   path: '/admin',
@@ -83,7 +88,7 @@ const AdminRoutes = {
       ]
     },
 
-   
+
     {
       path: 'placements',
       children: [
@@ -104,7 +109,7 @@ const AdminRoutes = {
       path: 'categories/edit/:id',
       element: <CategoryEdit />
     },
-    
+
     {
       path: 'placement-banners',
       children: [
@@ -140,8 +145,8 @@ const AdminRoutes = {
       children: [
         { index: true, element: <HomeSectionList /> },
         { path: 'create', element: <HomeSectionFormPage /> },
-         { path: 'detail/:id', element: <HomeSectionDetailPage /> }, // ✅ Thêm dòng này
-         { path: 'edit/:id',   element: <HomeSectionFormPage /> },
+        { path: 'detail/:id', element: <HomeSectionDetailPage /> }, // ✅ Thêm dòng này
+        { path: 'edit/:id', element: <HomeSectionFormPage /> },
       ]
     },
 
@@ -175,16 +180,16 @@ const AdminRoutes = {
       element: <DeletedUserList />
     },
     { path: 'users/create', element: <UserAdd /> },
-  
+
 
     { path: 'coupons', element: <CouponList /> },
     {
       path: 'coupons/create',
-      element: <CouponForm /> 
+      element: <CouponForm />
     },
     {
       path: 'coupons/edit/:id',
-      element: <CouponForm /> 
+      element: <CouponForm />
     },
     {
       path: 'products',
@@ -203,7 +208,7 @@ const AdminRoutes = {
       path: 'product-variants',
       children: [
         { index: true, element: <VariantList /> },
-        { path: 'create', element: <VariantForm /> }, 
+        { path: 'create', element: <VariantForm /> },
         { path: 'edit/:variantId', element: <VariantForm /> }
       ]
     },
@@ -212,10 +217,10 @@ const AdminRoutes = {
       path: 'products/create',
       element: <ProductAddPage />
     },
-{
-  path: 'products/edit/:id',
-  element: <ProductEditPage />
-},
+    {
+      path: 'products/edit/:id',
+      element: <ProductEditPage />
+    },
 
     {
       path: 'brands',
@@ -266,6 +271,19 @@ const AdminRoutes = {
     {
       path: 'product-question',
       element: <ProductQuestion />
+    },
+    {
+      path: 'payment-methods-admin',
+      children: [
+        { index: true, element: <PaymentMethodListPage /> },
+        { path: 'create', element: <PaymentMethodFormPage /> },
+        { path: 'edit/:id', element: <PaymentMethodEdit /> },
+        { path: 'detail/:id', element: <PaymentMethodFormPage isDetail /> } // ✅ thêm dòng này
+      ]
+    },
+    {
+      path: 'settings',
+      element: <SystemSettingAdmin />
     }
   ]
 };

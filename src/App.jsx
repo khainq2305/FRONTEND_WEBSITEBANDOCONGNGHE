@@ -12,10 +12,13 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import './assets/Client/css/global.css';
 import './index.css';
 
+
 // Lấy Client ID từ biến môi trường
 const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 export default function App() {
+
+
   return (
     // GoogleOAuthProvider thường bao bọc các phần liên quan đến xác thực Google
     <GoogleOAuthProvider clientId={clientId}>
