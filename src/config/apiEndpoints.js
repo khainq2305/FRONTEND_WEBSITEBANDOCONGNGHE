@@ -1,4 +1,6 @@
 import { API_BASE_URL } from '../constants/environment';
+export const CLOUDINARY_BASE_URL = 'https://res.cloudinary.com/ddyfb1wen';
+console.log(CLOUDINARY_BASE_URL);
 
 export const API_ENDPOINT = {
   client: {
@@ -67,6 +69,8 @@ export const API_ENDPOINT = {
       base: `${API_BASE_URL}/tin-noi-bat`,
       featurePost: '',
       byCategory: '/theo-danh-muc',
+      getBySlug: '',
+      getRelated: '/bai-viet-lien-quan',
       calculateFee: '/calculate-fee'
     },
     wishlist: {
@@ -230,6 +234,10 @@ updateOrder: '/sections/update-order' , // ✅ bổ sung dòng này
       trashPost: '/chuyen-vao-thung-rac',
       forceDelete: '/xoa-vinh-vien',
       restorePost: '/khoi-phuc'
+    },
+    tags: {
+      base: `${API_BASE_URL}/admin/tags`,
+      getAll: '', 
     },
     newsCategory: {
       base: `${API_BASE_URL}/admin/quan-ly-danh-muc`,

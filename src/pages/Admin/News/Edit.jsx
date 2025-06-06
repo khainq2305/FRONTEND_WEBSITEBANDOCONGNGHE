@@ -30,9 +30,7 @@ const Edit = () => {
     toast.success(res.data.message || 'Cập nhật thành công');
     navigate('/admin/quan-ly-bai-viet');
   } catch (err) {
-  const message = err?.response?.data?.message || 'Có lỗi xảy ra';
-  console.log('lỗi đây',message)
-  toast.error(message);
+   throw err;
 }
 };
 

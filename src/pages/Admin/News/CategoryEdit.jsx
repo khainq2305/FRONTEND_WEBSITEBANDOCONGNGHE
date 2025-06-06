@@ -36,7 +36,7 @@ const CategoryEdit = () => {
       toast.success('Cập nhật danh mục thành công');
       navigate('/admin/danh-muc-bai-viet');
     } catch (err) {
-        toast.error(err.response.data.message || 'Có lỗi xảy ra');
+      throw err
     }
   };
 

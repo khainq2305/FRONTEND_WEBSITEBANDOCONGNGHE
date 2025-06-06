@@ -20,6 +20,17 @@
   background: var(--primary-gradient);
 }
 
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none; /* IE và Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none; /* Chrome, Safari và Opera */
+  }
+}
+
+
 .text-gradient {
   background: var(--primary-gradient);
   -webkit-background-clip: text;
@@ -195,4 +206,16 @@
   border-bottom: 13px solid white;  
 
  
+}
+.prose p > img {
+  display: block;
+  margin: 1.25rem auto;
+  max-width: 100%;
+  height: auto;
+}
+.prose {
+  display: block;
+  margin: 1.25rem auto;
+  max-width: 100%;
+  height: auto;
 }

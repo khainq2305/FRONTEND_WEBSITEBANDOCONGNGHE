@@ -7,7 +7,8 @@ import Pagination from '@/components/common/Pagination';
 import { toast } from 'react-toastify';
 import { normalizeCategoryList } from '@/utils/index';
 import MUIPagination from '@/components/common/Pagination';
-
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { handleCategoryDragEnd } from '@/utils/categoryDragUtils';
 const Category = () => {
   const [filters, setFilters] = useState({
     search: '',
@@ -195,6 +196,7 @@ console.log('🔍 sending filters:', filters);
   setCategories={setCategories}
   currentPage={currentPage}         // ✅ thêm dòng này
   pageSize={pageSize}
+  handleCategoryDragEnd={handleCategoryDragEnd}
 />
 
 

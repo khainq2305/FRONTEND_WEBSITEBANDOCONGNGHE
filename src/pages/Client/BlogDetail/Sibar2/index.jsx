@@ -1,6 +1,6 @@
 import React from 'react'
 
-const Sibar2 = ({title}) => {
+const Sibar2 = ({title, featuredNews}) => {
   const suggestedKeywords = [
     "Galaxy S25 Ultra",
     "Samsung flagship 2025",
@@ -8,10 +8,10 @@ const Sibar2 = ({title}) => {
     "Đánh giá Galaxy S25",
     "Samsung vs iPhone 16"
   ];
-
+  console.log('bai viet moi mat detail', featuredNews)
   return (
     <div className="space-y-4 px-0 md:px-4">
-      <div className="border-2 border-gray-300 rounded-md py-2 px-4">
+      <div className="border-1 border-gray-300 rounded-md py-2 px-4">
         {/* Tiêu đề */}
         <div className="pb-1 relative">
           <div className="font-bold text-justify uppercase">{title}</div>
@@ -20,9 +20,9 @@ const Sibar2 = ({title}) => {
 
         {/* Danh sách từ khóa */}
         <div className="space-y-3 pt-4">
-          {suggestedKeywords.map((keyword, index) => (
-            <div key={index} className="text-sm text-blue-600 cursor-pointer">
-              {keyword}
+          {featuredNews.map((keyword, index) => (
+            <div key={index} className="text-sm text-gray-400 hover:text-yellow-400 cursor-pointer">
+              {keyword.title}
             </div>
           ))}
         </div>

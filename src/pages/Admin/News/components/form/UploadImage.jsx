@@ -1,29 +1,26 @@
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import Cropper from 'react-easy-crop';
-import { getCroppedImg } from '@/utils/cropImage';
-import {
-  Box, Slider, Button, Dialog, DialogActions,
-  DialogContent, DialogTitle, Typography
-} from '@mui/material';
+import { getCroppedImg } from '@/utils/cropImage'; // Đảm bảo file này trả về File, không base64
+import { Box, Slider, Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material';
 
-const UploadImage = ({ avatar, setAvatar }) => {
+const UploadImage = ({ thumbnail, setThumbnail }) => {
   const [imageSrc, setImageSrc] = useState(null);
+  const [originalFile, setOriginalFile] = useState(null); // giữ file gốc
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [openCrop, setOpenCrop] = useState(false);
 
   const onDrop = useCallback((acceptedFiles) => {
-    const file = acceptedFiles[0];
-    if (!file) return;
+    const file = acceptedFiles?.[0];
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      setImageSrc(reader.result);
-      setOpenCrop(true);
-    };
-    reader.readAsDataURL(file);
+    // Không có ảnh thì thôi
+    if (!file || !(file instanceof File)) return;
+
+    setOriginalFile(file); // lưu để xử lý sau (crop, upload, v.v.)
+    setImageSrc(URL.createObjectURL(file)); // ảnh preview để crop
+    setOpenCrop(true); // mở modal crop
   }, []);
 
   const onCropComplete = useCallback((_, croppedPixels) => {
@@ -31,17 +28,27 @@ const UploadImage = ({ avatar, setAvatar }) => {
   }, []);
 
   const handleSaveCrop = async () => {
-    const croppedImage = await getCroppedImg(imageSrc, croppedAreaPixels);
-    setAvatar(croppedImage);
+    if (!imageSrc || !croppedAreaPixels) return;
+
+    try {
+      const croppedFile = await getCroppedImg(imageSrc, croppedAreaPixels);
+      setThumbnail(croppedFile); // ✅ thumbnail là File object
+    } catch (error) {
+      console.error('Lỗi cắt ảnh:', error);
+    }
+
+    // Reset crop UI
     setOpenCrop(false);
     setImageSrc(null);
+    setOriginalFile(null);
     setCrop({ x: 0, y: 0 });
     setZoom(1);
   };
 
   const handleRemove = () => {
-    setAvatar(null);
+    setThumbnail(null);
     setImageSrc(null);
+    setOriginalFile(null);
     setCrop({ x: 0, y: 0 });
     setZoom(1);
     setCroppedAreaPixels(null);
@@ -68,18 +75,18 @@ const UploadImage = ({ avatar, setAvatar }) => {
         }}
       >
         <input {...getInputProps()} />
-        <Typography variant="body2">
-          {isDragActive ? 'Thả ảnh vào đây...' : 'Kéo ảnh vào hoặc nhấp để chọn ảnh'}
-        </Typography>
+        <Typography variant="body2">{isDragActive ? 'Thả ảnh vào đây...' : 'Kéo ảnh vào hoặc nhấp để chọn ảnh'}</Typography>
       </Box>
 
-      {avatar && (
+      {thumbnail && (
         <Box mt={2}>
-          <img
-            src={avatar}
-            alt="preview"
-            style={{ width: 100, height: 100, borderRadius: 8, objectFit: 'cover' }}
-          />
+          {thumbnail instanceof File && (
+            <img
+              src={URL.createObjectURL(thumbnail)}
+              alt="Preview"
+              style={{ width: 100, height: 100, borderRadius: 8, objectFit: 'cover' }}
+            />
+          )}
           <Button onClick={handleRemove} color="error" size="small" sx={{ mt: 1 }}>
             Xóa ảnh
           </Button>
@@ -101,14 +108,7 @@ const UploadImage = ({ avatar, setAvatar }) => {
             />
           </Box>
           <Box mt={2}>
-            <Slider
-              value={zoom}
-              min={1}
-              max={3}
-              step={0.1}
-              onChange={(_, v) => setZoom(v)}
-              valueLabelDisplay="auto"
-            />
+            <Slider value={zoom} min={1} max={3} step={0.1} onChange={(_, v) => setZoom(v)} valueLabelDisplay="auto" />
             {croppedAreaPixels && (
               <Typography variant="body2" color="text.secondary" align="center" mt={1}>
                 W: {Math.round(croppedAreaPixels.width)}px — H: {Math.round(croppedAreaPixels.height)}px
@@ -118,7 +118,9 @@ const UploadImage = ({ avatar, setAvatar }) => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenCrop(false)}>Hủy</Button>
-          <Button onClick={handleSaveCrop} variant="contained">Lưu</Button>
+          <Button onClick={handleSaveCrop} variant="contained">
+            Lưu
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>

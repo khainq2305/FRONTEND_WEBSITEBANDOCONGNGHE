@@ -44,7 +44,7 @@ const Top = ({
                     : 'text-gray-800 hover:text-blue-500'
                   }`}
               >
-                {tab.label} ({counts[tab.value] || 0})
+                {tab.label} {counts[tab.value] || 0}
               </span>
             </span>
           ))}

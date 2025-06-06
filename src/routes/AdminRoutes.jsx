@@ -24,8 +24,10 @@ const HisLog = Loadable(lazy(() => import('pages/Admin/HisLog')));
 const News = Loadable(lazy(() => import('pages/Admin/News/News')));
 const Add = Loadable(lazy(() => import('pages/Admin/News/Add')));
 const Edit = Loadable(lazy(() => import('pages/Admin/News/Edit')));
+const NewsDetails = Loadable(lazy(() => import('pages/Admin/News/NewsDetails')));
 const CategoryNews = Loadable(lazy(() => import('pages/Admin/News/Category')));
 const CategoryAdd = Loadable(lazy(() => import('pages/Admin/News/CategoryAdd')));
+const NewsCategoryEdit = Loadable(lazy(() => import('pages/Admin/News/CategoryEdit')));
 const ProductAddPage = Loadable(lazy(() => import('pages/Admin/Product/ProductAddPage')));
 const VariantValueList = Loadable(lazy(() => import('pages/Admin/VariantValue/index.jsx')));
 
@@ -241,8 +243,12 @@ const AdminRoutes = {
       element: <Add />
     },
     {
-      path: 'bai-viet/chinh-sua/:id',
+      path: 'quan-ly-bai-viet/chinh-sua-bai-viet/:slug',
       element: <Edit />
+    },
+    {
+      path: 'quan-ly-bai-viet/chi-tiet-bai-viet/:slug',
+      element: <NewsDetails />
     },
     ,
     {
@@ -253,6 +259,10 @@ const AdminRoutes = {
     {
       path: 'them-danh-muc-bai-viet',
       element: <CategoryAdd />
+    },
+    {
+      path: 'danh-muc-bai-viet/chinh-sua-danh-muc/:slug',
+      element: <NewsCategoryEdit />
     },
     {
       path: 'comments',

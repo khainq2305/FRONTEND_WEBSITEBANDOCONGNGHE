@@ -1,9 +1,14 @@
+import { Dialog, DialogTitle, DialogContent, Grid, Typography, Link, Chip, Box } from '@mui/material';
 import {
-  Dialog, DialogTitle, DialogContent, Grid, Typography, Link, Chip, Box
-} from '@mui/material';
-import {
-  OpenInNew, Person, Category as CategoryIcon, CalendarToday,
-  Label, ChatBubble, Description, Info, AccessTime
+  OpenInNew,
+  Person,
+  Category as CategoryIcon,
+  CalendarToday,
+  Label,
+  ChatBubble,
+  Description,
+  Info,
+  AccessTime
 } from '@mui/icons-material';
 
 const BasicModal = ({ modalItem, onClose }) => {
@@ -38,7 +43,7 @@ const BasicModal = ({ modalItem, onClose }) => {
                 alignItems="center"
                 gap={0.5}
                 fontSize="14px"
-                sx={{ cursor: "pointer" }}
+                sx={{ cursor: 'pointer' }}
               >
                 <OpenInNew fontSize="small" /> Đi đến bài viết
               </Link>
@@ -49,7 +54,10 @@ const BasicModal = ({ modalItem, onClose }) => {
               <Box flex="0 0 30%">
                 <Box
                   component="img"
-                  src={modalItem.thumbnail || 'https://eki.com.vn/wp-content/uploads/2024/03/tuyen-dung-chuyen-vien-cong-nghe-thong-tin-lam-viec-tai-Duc-EK-GROUP-1024x682.webp'}
+                  src={
+                    `https://res.cloudinary.com/ddyfb1wen/image/upload/${modalItem.thumbnail}` ||
+                    'https://eki.com.vn/wp-content/uploads/2024/03/tuyen-dung-chuyen-vien-cong-nghe-thong-tin-lam-viec-tai-Duc-EK-GROUP-1024x682.webp'
+                  }
                   alt={modalItem.title}
                   sx={{
                     width: '100%',
@@ -80,15 +88,11 @@ const BasicModal = ({ modalItem, onClose }) => {
                   <Grid item xs={6}>
                     <Box display="flex" alignItems="center" gap={1}>
                       <Info fontSize="small" color="action" />
-                      <Typography fontSize={14} fontWeight={500}>Trạng thái:</Typography>
+                      <Typography fontSize={14} fontWeight={500}>
+                        Trạng thái:
+                      </Typography>
                       <Chip
-                        label={
-                          modalItem.status === 1
-                            ? 'Đã xuất bản'
-                            : modalItem.status === 2
-                            ? 'Hẹn giờ đăng'
-                            : 'Bản nháp'
-                        }
+                        label={modalItem.status === 1 ? 'Đã xuất bản' : modalItem.status === 2 ? 'Hẹn giờ đăng' : 'Bản nháp'}
                         size="small"
                         color={modalItem.status === 2 ? 'info' : modalItem.status === 1 ? 'success' : 'warning'}
                       />
@@ -100,11 +104,7 @@ const BasicModal = ({ modalItem, onClose }) => {
                       <InfoRow
                         icon={<AccessTime />}
                         label="Thời gian đăng"
-                        value={
-                          modalItem.status === 2
-                            ? timeLeftText(modalItem.publishAt)
-                            : modalItem.publishAt
-                        }
+                        value={modalItem.status === 2 ? timeLeftText(modalItem.publishAt) : modalItem.publishAt}
                         color={modalItem.status === 2 ? 'red' : undefined}
                       />
                     </Grid>
@@ -113,8 +113,12 @@ const BasicModal = ({ modalItem, onClose }) => {
                   <Grid item xs={12}>
                     <Box display="flex" alignItems="center" gap={1}>
                       <Label fontSize="small" color="action" />
-                      <Typography fontSize={14} fontWeight={500}>Tag:</Typography>
-                      <Chip label={modalItem.tag} size="small" />
+                      <Typography fontSize={14} fontWeight={500}>
+                        Tag:
+                      </Typography>
+                      {modalItem.tags.map((tag) => (
+                        <Chip key={tag.id} label={tag.name} size="small" />
+                      ))}
                     </Box>
                   </Grid>
                 </Grid>
@@ -125,7 +129,9 @@ const BasicModal = ({ modalItem, onClose }) => {
             <Box>
               <Box display="flex" alignItems="center" gap={1} mb={0.5}>
                 <Description fontSize="small" color="action" />
-                <Typography fontSize={14} fontWeight={500}>Nội dung:</Typography>
+                <Typography fontSize={14} fontWeight={500}>
+                  Nội dung:
+                </Typography>
               </Box>
               <Typography fontSize={14} color="text.secondary">
                 {modalItem.content || 'Xem thêm'}
@@ -141,8 +147,12 @@ const BasicModal = ({ modalItem, onClose }) => {
 const InfoRow = ({ icon, label, value, color }) => (
   <Box display="flex" alignItems="center" gap={1}>
     {icon}
-    <Typography fontSize={14} fontWeight={500}>{label}:</Typography>
-    <Typography fontSize={14} color={color}>{value}</Typography>
+    <Typography fontSize={14} fontWeight={500}>
+      {label}:
+    </Typography>
+    <Typography fontSize={14} color={color}>
+      {value}
+    </Typography>
   </Box>
 );
 

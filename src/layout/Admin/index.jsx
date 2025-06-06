@@ -10,7 +10,7 @@ import ThemeCustomization from '../../themes';
 import Drawer from './Drawer';
 import Header from './Header';
 import Footer from './Footer';
-import Loader from 'components/Admin/Loader';
+import LoaderAdmin from 'components/Admin/LoaderVip';
 import Breadcrumbs from 'components/Admin/@extended/Breadcrumbs';
 
 // API and Utility Imports
@@ -27,7 +27,7 @@ export default function DashboardLayout() {
     handlerDrawerOpen(!downXL);
   }, [downXL]);
 
-  if (menuMasterLoading) return <Loader />;
+  if (menuMasterLoading) return <LoaderAdmin />;
 
   return (
     <ThemeCustomization>

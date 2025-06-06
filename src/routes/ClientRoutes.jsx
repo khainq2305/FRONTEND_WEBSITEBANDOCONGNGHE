@@ -61,8 +61,8 @@ const ClientRoutes = {
     { path: 'checkout', element: <CheckoutPage /> },
     { path: 'order-confirmation', element: <OrderConfirmation /> },
 
-    { path: 'news', element: <News /> },
-    { path: 'news/:id', element: <NewsDetails /> },
+    { path: 'tin-noi-bat', element: <News /> },
+    { path: 'tin-noi-bat/:slug', element: <NewsDetails /> },
     { path: 'orderlookup', element: <OrderLookup /> },
       { path: 'compare-products', element: <ProductComparison /> },
   ]

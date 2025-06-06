@@ -17,8 +17,6 @@ import {
 import { newsCategoryService } from "@/services/admin/newCategoryService";
 import { normalizeCategoryList } from "@/utils";
 import { Editor } from '@tinymce/tinymce-react';
-import { validateCategoryForm } from '@/utils/News/validateCategoryForm'; // hoặc đúng path bạn đang để
-
 // TinyMCE core
 import 'tinymce/tinymce';
 import 'tinymce/icons/default';
@@ -75,23 +73,26 @@ const CategoryMain = ({ initialData = null, onSubmit }) => {
       [field]: value
     }));
   };
-  const handleSubmit = () => {
-  const { valid, errors } = validateCategoryForm({ name: category.name });
+   const handleSubmit = async () => {
+  const formData = new FormData();
+  formData.append("name", category.name);
+  formData.append("parentId", category.parentId || "");
+  formData.append("isActive", category.isActive); // boolean
+  formData.append("description", category.description);
 
-  if (!valid) {
-    setErrors(errors);
-    return;
+  try {
+    await onSubmit(formData);
+    setErrors({});
+  } catch (err) {
+    const res = err.response;
+    if (res?.status === 400 && typeof res.data?.errors === "object") {
+      setErrors(res.data.errors);
+    } else {
+      console.error("Lỗi không xác định:", err);
+    }
   }
-
-  setErrors({}); // clear lỗi cũ
-
-  onSubmit({
-    name: category.name,
-    description: category.description,
-    parentId: category.parentId === "" ? null : parseInt(category.parentId),
-    isActive: category.isActive
-  });
 };
+
 
   return (
     <Box maxWidth="full" py={4}>
