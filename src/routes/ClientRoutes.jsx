@@ -17,8 +17,9 @@ const CartPage = Loadable(lazy(() => import('pages/Client/Cart')));
 const CheckoutPage = Loadable(lazy(() => import('pages/Client/Payment')));
 const OrderConfirmation = Loadable(lazy(() => import('pages/Client/Payment/OrderConfirmation')));
 
-const News = Loadable(lazy(() => import('pages/Client/Blog/index.jsx')));
+const News = Loadable(lazy(() => import('pages/Client/Blog')));
 const NewsDetails = Loadable(lazy(() => import('pages/Client/BlogDetail')));
+
 const OrderLookup = Loadable(lazy(() => import('pages/Client/OrderLookup')));
 const ProductComparison = Loadable(lazy(() => import('pages/Client/CompareProducts')));
 const ClientRoutes = {

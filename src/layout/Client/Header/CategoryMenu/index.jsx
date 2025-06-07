@@ -93,8 +93,8 @@ const CategoryMenu = ({ topLevelCategories = [], allCategories = [], isOpen = fa
                 </ul>
             </div>
 
-            {/* Cột phải - danh mục con */}
-            <div className="flex-1 pl-6 pr-5 py-3 rounded-br-lg"> {/* ĐÃ BỎ overflow-y-auto và scrollbar-thin ở đây */}
+            
+            <div className="flex-1 pl-6 pr-5 py-3 rounded-br-lg"> 
                 {activeL1Category && (
                     <div className="mb-3 pb-2 border-b border-gray-200 flex justify-between items-center">
                         <h3 className="text-lg font-semibold text-primary uppercase">{activeL1Category.name}</h3>
@@ -109,7 +109,7 @@ const CategoryMenu = ({ topLevelCategories = [], allCategories = [], isOpen = fa
                     </div>
                 )}
 
-                {/* LOGIC HIỂN THỊ NỘI DUNG CỘT BÊN PHẢI */}
+               
                 {activeL1Category?.type === 'post' ? (
                     <div className="flex flex-col items-center justify-center h-full text-gray-500 text-sm py-10 text-center">
                         <FileSearch className="w-10 h-10 sm:w-12 sm:h-12 text-gray-300 mb-3" />
@@ -120,7 +120,7 @@ const CategoryMenu = ({ topLevelCategories = [], allCategories = [], isOpen = fa
                 ) : (
                     level2Display.length > 0 ? (
                       <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-gray-100 h-full content-start">
-                            {/* Di chuyển overflow và scrollbar vào div này */}
+                         
                             {level2Display.map((cat) => (
                                 <Link
                                     to={getCategoryLink(cat)}

@@ -10,12 +10,12 @@ export default function ProductReviewSection({ productName, skuId }) {
   const [filters, setFilters] = useState({
     hasMedia: false,
     purchased: false,
-    star: null // null = tất cả
+    star: null 
   });
 
   const filteredReviews = reviews.filter((review) => {
     if (filters.hasMedia && (!review.media || review.media.length === 0)) return false;
-    if (filters.purchased && !review.orderItemId) return false; // chỉ đánh giá từ đơn đã mua
+    if (filters.purchased && !review.orderItemId) return false; 
     if (filters.star && review.rating !== filters.star) return false;
     return true;
   });
