@@ -253,13 +253,23 @@ updateOrder: '/sections/update-order' , // ✅ bổ sung dòng này
       restore: '/restore',
       updateOrder: '/update-order'
     },
+
      review: {
-      base: `${API_BASE_URL}/admin/reviews`,
-      getGroupedByProduct: '',               
-      getBySku: (skuId) => `/${skuId}`,      
-      reply: (id) => `/reply/${id}`,         
-      getAll: '/all',
-                        
+       base: `${API_BASE_URL}/admin/reviews`,
+       getGroupedByProduct: '',
+       getBySku: (skuId) => `/${skuId}`,
+       reply: (id) => `/reply/${id}`,
+       getAll: '/all',
+     },
+    orders: {
+      base: `${API_BASE_URL}/admin/orders`,
+      list: '/list',
+      getById: (id) => `/${id}`,
+      updateStatus: (id) => `/${id}/status`,
+      updateShippingInfo: (id) => `/update-shipping-info/${id}`,
+      delete: (id) => `/delete/${id}`,
+      getOrderItems: (orderId) => `/items/${orderId}`
+
     }
   }
 };

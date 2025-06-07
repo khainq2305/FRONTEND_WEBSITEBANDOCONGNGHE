@@ -8,7 +8,7 @@ const statusOptions = [
   { value: 'pending', label: 'Chờ xác nhận' },
   { value: 'confirmed', label: 'Đã xác nhận' },
   { value: 'shipping', label: 'Đang giao' },
-  { value: 'delivered', label: 'Đã giao' },
+  { value: 'completed', label: 'Đã giao' }, // Fix: database dùng 'completed' thay vì 'delivered'
   { value: 'cancelled', label: 'Đã hủy' },
   { value: 'refunded', label: 'Trả hàng/Hoàn tiền' },
 ];
