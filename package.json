@@ -38,6 +38,7 @@
     "lucide-react": "^0.510.0",
     "material-ui-popup-state": "^5.1.0",
     "npm": "^11.4.1",
+    "or": "^0.2.0",
     "postcss": "^8.5.3",
     "react": "^18.3.1",
     "react-apexcharts": "^1.7.0",

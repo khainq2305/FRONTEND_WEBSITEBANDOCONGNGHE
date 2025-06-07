@@ -11,8 +11,8 @@ const MoreActionsMenu = ({ anchorEl, selectedItem, onClose, onReply }) => {
     <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={onClose}>
       <MenuItem onClick={handleReplyDetail}>
         <ExpandMore fontSize="small" sx={{ mr: 1 }} />
-        Phản hồi / Xem chi tiết
-      </MenuItem>
+        Trả lời      
+        </MenuItem>
     </Menu>
   );
 };

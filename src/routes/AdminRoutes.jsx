@@ -65,6 +65,7 @@ const NotificationPage = Loadable(lazy(() => import('pages/Admin/Notification'))
 const NotificationDetail = Loadable(lazy(() => import('pages/Admin/Notification/NotificationDetail')));
 const DeletedUserList = Loadable(lazy(() => import('pages/Admin/User/DeletedUserList')));
 const UserDetailPage = Loadable(lazy(() => import('pages/Admin/User/UserDetailDialog')));
+const QuestionDetailPage = Loadable(lazy(() => import('pages/Admin/ProductQuestion/QuestionDetailPage')));
 
 const AdminRoutes = {
   path: '/admin',
@@ -89,7 +90,7 @@ const AdminRoutes = {
       ]
     },
 
-   
+
     {
       path: 'placements',
       children: [
@@ -110,7 +111,7 @@ const AdminRoutes = {
       path: 'categories/edit/:id',
       element: <CategoryEdit />
     },
-    
+
     {
       path: 'placement-banners',
       children: [
@@ -179,16 +180,16 @@ const AdminRoutes = {
       element: <DeletedUserList />
     },
     { path: 'users/create', element: <UserAdd /> },
-  
+
 
     { path: 'coupons', element: <CouponList /> },
     {
       path: 'coupons/create',
-      element: <CouponForm /> 
+      element: <CouponForm />
     },
     {
       path: 'coupons/edit/:id',
-      element: <CouponForm /> 
+      element: <CouponForm />
     },
     {
       path: 'products',
@@ -207,7 +208,7 @@ const AdminRoutes = {
       path: 'product-variants',
       children: [
         { index: true, element: <VariantList /> },
-        { path: 'create', element: <VariantForm /> }, 
+        { path: 'create', element: <VariantForm /> },
         { path: 'edit/:variantId', element: <VariantForm /> }
       ]
     },
@@ -265,8 +266,12 @@ const AdminRoutes = {
 
     {
       path: 'product-question',
-      element: <ProductQuestion />
+      children: [
+        { index: true, element: <ProductQuestion /> },
+        { path: ':questionId', element: <QuestionDetailPage /> }
+      ]
     }
+
   ]
 };
 

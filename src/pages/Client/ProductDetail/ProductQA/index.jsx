@@ -1,170 +1,472 @@
-import React, { useState } from "react";
+// src/components/ProductQA.jsx
 
-// Icon Gửi (Send) - bạn có thể thay bằng SVG khác nếu muốn
-const SendIcon = ({ className }) => (
-  <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-    <path d="M3.105 3.105a1.5 1.5 0 011.722-.439l12.643 5.057a1.5 1.5 0 010 2.554L4.827 15.333A1.5 1.5 0 013 13.915V4.5a1.5 1.5 0 01.105-1.395zM4.5 5.32v8.146l9.293-3.718L4.5 5.32zm.163-.333a.75.75 0 00-.668.993l.003.006v8.028a.75.75 0 00.993.668l.006-.003 10.667-4.267a.75.75 0 000-1.273L4.663 4.987z" />
-  </svg>
+import React, { useState, useEffect, useRef } from "react";
+import { productQuestionService } from "@/services/client/productQuestionService";
+import { FaPaperPlane, FaCommentAlt } from "react-icons/fa";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+/**
+ * ProductQA component – To, rõ, dễ dùng, có toast thông báo, chống spam và duplicate,
+ * và cho phép client phản hồi bên dưới cả admin replies.
+ */
+
+const PromptImage = () => (
+  <img
+    src="https://storage.googleapis.com/a1aa/image/8ab650f5-37c6-4346-ccaa-8059cf5943c9.jpg"
+    alt="Ant mascot"
+    className="w-24 h-24 object-contain"
+  />
 );
 
-// Icon Đồng hồ (Clock)
-const ClockIcon = ({ className }) => (
-  <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-  </svg>
+const AdminAvatar = () => (
+  <img
+    src="https://storage.googleapis.com/a1aa/image/edc8189b-6597-4563-2add-a6582083d864.jpg"
+    alt="Quản Trị Viên Avatar"
+    className="w-8 h-8 rounded-full object-contain"
+  />
 );
 
-// Icon Trả lời (Chat Bubble)
-const ReplyIcon = ({ className }) => (
-  <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 011.037-.443 48.282 48.282 0 005.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
-  </svg>
-);
+export default function ProductQA({ productId }) {
+  // Cố định userId = 12, fullName = "Người Dùng 12"
+  const FIXED_USER_ID = 12;
+  const FIXED_USER_NAME = "Người Dùng 12";
 
-
-export default function ProductQA({ 
-    questions = [], // Nên truyền questions từ props của ProductDetail
-    totalQuestions = 0, // Nên truyền từ props
-    showAll, // Nên truyền từ props
-    setShowAll // Nên truyền từ props
-}) {
+  const [questions, setQuestions] = useState([]); // danh sách câu hỏi + replies
+  const [loading, setLoading] = useState(false);
   const [newQuestion, setNewQuestion] = useState("");
-  // const [showAll, setShowAll] = useState(false); // Bỏ state này nếu được truyền từ props
 
-  const visibleQuestions = showAll ? questions : questions.slice(0, 2);
+  // Key mở textarea reply: "q_<questionId>" hoặc "r_<replyId>"
+  const [replyingTo, setReplyingTo] = useState(null);
+  // Nội dung reply theo key
+  const [replyContent, setReplyContent] = useState({});
+  // Key nào expand replies
+  const [expandedReplies, setExpandedReplies] = useState({});
 
+  // Timestamp lần cuối user gửi question (chống spam 5s)
+  const lastQuestionTimestampRef = useRef(0);
+  // Timestamp lần cuối user gửi reply cho mỗi questionId (chống spam 5s)
+  const lastReplyTimestampsRef = useRef({});
+
+  useEffect(() => {
+    if (!productId) return;
+    setLoading(true);
+    productQuestionService
+      .getByProduct(productId)
+      .then((res) => {
+        if (res.data && res.data.success && Array.isArray(res.data.data)) {
+          setQuestions(res.data.data);
+        } else {
+          setQuestions([]);
+        }
+      })
+      .catch(() => setQuestions([]))
+      .finally(() => setLoading(false));
+  }, [productId]);
+
+  // Gửi câu hỏi mới
   const handleSendQuestion = () => {
-    if (newQuestion.trim() === "") {
-      alert("Vui lòng nhập câu hỏi của bạn.");
+    const content = newQuestion.trim();
+    if (!content) {
+      toast.error("Vui lòng nhập câu hỏi.");
       return;
     }
-    // TODO: Xử lý logic gửi câu hỏi (ví dụ: gọi API)
-    console.log("Câu hỏi đã gửi:", newQuestion);
-    alert("Câu hỏi của bạn đã được gửi và sẽ được duyệt sớm!");
-    setNewQuestion(""); // Xóa nội dung textarea sau khi gửi
+
+    // Chống duplicate question
+    const isDuplicateQ = questions.some(
+      (q) => q.content.trim().toLowerCase() === content.toLowerCase()
+    );
+    if (isDuplicateQ) {
+      toast.error("Bạn đã gửi câu hỏi này rồi.");
+      return;
+    }
+
+    // Chống spam: phải cách 5 giây
+    const now = Date.now();
+    if (now - lastQuestionTimestampRef.current < 5000) {
+      toast.error("Vui lòng đợi 5 giây trước khi gửi câu hỏi tiếp.");
+      return;
+    }
+
+    productQuestionService
+      .createQuestion({ userId: FIXED_USER_ID, productId, content })
+      .then((res) => {
+        if (res.data && res.data.success && res.data.data) {
+          setQuestions((prev) => [...prev, res.data.data]);
+          setNewQuestion("");
+          toast.success("Gửi câu hỏi thành công!");
+          lastQuestionTimestampRef.current = now;
+        } else {
+          toast.error(res.data?.message || "Gửi câu hỏi thất bại.");
+        }
+      })
+      .catch(() => toast.error("Lỗi mạng khi gửi câu hỏi."));
   };
 
-  // Placeholder cho avatar người dùng hiện tại, bạn có thể thay bằng avatar thật
-  const currentUserAvatarPlaceholder = "U"; 
+  // Khi nhấn "Phản hồi" ở câu hỏi gốc hoặc admin/user reply
+  const handleReplyClick = (key, questionId) => {
+    // Toggle open/close textarea cho key đó
+    setReplyingTo((prev) => (prev === key ? null : key));
+    // Nếu mở textarea cho câu hỏi (key bắt đầu bằng "q_"), thì ẩn phần replies
+    if (key.startsWith("q_")) {
+      setExpandedReplies((prev) => ({ ...prev, [questionId]: false }));
+    }
+  };
+
+  // Mở/đóng phần hiển thị replies cho 1 câu hỏi
+  const toggleExpandedReplies = (questionId) => {
+    setExpandedReplies((prev) => ({
+      ...prev,
+      [questionId]: !prev[questionId],
+    }));
+    // Ẩn textarea nếu có
+    setReplyingTo(null);
+  };
+
+  // Gửi reply (có thể là reply vào question hoặc reply vào admin/user reply)
+  const handleReplySubmit = (questionId, replyToId, key) => {
+    const content = (replyContent[key] || "").trim();
+    if (!content) {
+      toast.error("Vui lòng nhập nội dung phản hồi.");
+      return;
+    }
+
+    // Chống duplicate reply trong cùng question
+    const targetQ = questions.find((q) => q.id === questionId);
+    const isDuplicateR =
+      targetQ?.replies?.some(
+        (r) => r.content.trim().toLowerCase() === content.toLowerCase()
+      ) || false;
+    if (isDuplicateR) {
+      toast.error("Bạn đã gửi phản hồi này rồi.");
+      return;
+    }
+
+    // Chống spam reply: cách 5 giây cho cùng question
+    const now = Date.now();
+    const lastRTime = lastReplyTimestampsRef.current[questionId] || 0;
+    if (now - lastRTime < 5000) {
+      toast.error("Vui lòng đợi 5 giây trước khi gửi phản hồi tiếp.");
+      return;
+    }
+
+    productQuestionService
+      .reply({
+        userId: FIXED_USER_ID,
+        questionId,
+        content,
+        replyToId,
+      })
+      .then((res) => {
+        if (res.data && res.data.success && res.data.data) {
+          const newReplyRaw = res.data.data;
+          const normalizedReply = {
+            id: newReplyRaw.id,
+            questionId: newReplyRaw.questionId,
+            content: newReplyRaw.content,
+            createdAt: newReplyRaw.createdAt,
+            isAdminReply: false,
+            fullName: FIXED_USER_NAME,
+            replyToId: newReplyRaw.replyToId,
+          };
+          setQuestions((prev) =>
+            prev.map((q) => {
+              if (q.id === normalizedReply.questionId) {
+                const oldReplies = Array.isArray(q.replies) ? q.replies : [];
+                return {
+                  ...q,
+                  replies: [...oldReplies, normalizedReply],
+                };
+              }
+              return q;
+            })
+          );
+          setReplyContent((prev) => ({ ...prev, [key]: "" }));
+          setReplyingTo(null);
+          setExpandedReplies((prev) => ({ ...prev, [questionId]: true }));
+          toast.success("Gửi phản hồi thành công!");
+          lastReplyTimestampsRef.current[questionId] = now;
+        } else {
+          toast.error(res.data?.message || "Gửi phản hồi thất bại.");
+        }
+      })
+      .catch(() => toast.error("Lỗi mạng khi gửi phản hồi."));
+  };
+
+  // Format thời gian hiển thị
+  const formatTime = (isoString) => {
+    const now = new Date();
+    const d = new Date(isoString);
+    const diffDays = Math.floor((now - d) / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return "Hôm nay";
+    if (diffDays === 1) return "1 ngày trước";
+    if (diffDays < 7) return `${diffDays} ngày trước`;
+    if (diffDays < 30) {
+      const weeks = Math.floor(diffDays / 7);
+      return `${weeks} tuần trước`;
+    }
+    if (diffDays < 365) {
+      const months = Math.floor(diffDays / 30);
+      return `${months} tháng trước`;
+    }
+    const years = Math.floor(diffDays / 365);
+    return `${years} năm trước`;
+  };
+
+  // Chọn màu background avatar ngẫu nhiên dựa trên ký tự đầu của tên
+  const getRandomColor = (name) => {
+    const colors = [
+      "bg-green-700",
+      "bg-purple-700",
+      "bg-blue-700",
+      "bg-yellow-600",
+      "bg-pink-600",
+      "bg-indigo-600",
+    ];
+    const idx = name?.charCodeAt(0) % colors.length || 0;
+    return colors[idx];
+  };
 
   return (
-    <div className="bg-white p-4 md:p-6 rounded-lg border border-gray-200 shadow-sm text-sm">
-      <h2 className="text-lg font-semibold text-gray-800 mb-4">Hỏi và đáp</h2>
+    <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+      {/* ToastContainer cho React-Toastify */}
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+      />
 
-      {/* Khu vực nhập câu hỏi mới */}
-      <div className="flex items-start gap-3 mb-4 p-3 border border-gray-200 rounded-lg bg-gray-50">
-        <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-semibold text-sm flex-shrink-0">
-          {currentUserAvatarPlaceholder}
-        </div>
-        <div className="flex-1">
-          <textarea
-            className="w-full border border-gray-300 rounded-md p-2.5 text-sm resize-none focus:ring-primary focus:border-primary"
-            rows={3}
-            placeholder="CellphoneS sẽ trả lời trong 1 giờ (sau 22h, phản hồi vào sáng hôm sau). Một số thông tin có thể thay đổi, Quý khách hãy đặt câu hỏi để được cập nhật mới nhất."
-            value={newQuestion}
-            onChange={(e) => setNewQuestion(e.target.value)}
-          />
-          <button 
-            onClick={handleSendQuestion}
-            className="mt-2 bg-primary text-white px-4 py-2 rounded-md font-semibold hover:bg-opacity-80 transition-all text-xs flex items-center gap-1.5"
-            // Nếu có class hover-primary:
-            // className="mt-2 bg-primary text-white px-4 py-2 rounded-md font-semibold hover-primary transition-all text-xs flex items-center gap-1.5"
-          >
-            <SendIcon className="w-4 h-4" />
-            Gửi
-          </button>
+      {/* === Phần “Hãy đặt câu hỏi” === */}
+      <div className="bg-gray-50 rounded-xl p-6 mb-8 shadow-sm">
+        <h2 className="text-lg font-bold text-gray-800">Hỏi và đáp</h2>
+        <div className="flex space-x-6 mt-4">
+          <PromptImage />
+          <div className="flex-1">
+            <h3 className="text-base font-semibold text-gray-900 mb-2">
+              Hãy đặt câu hỏi cho chúng tôi
+            </h3>
+            <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+              CellphoneS sẽ phản hồi trong vòng 1 giờ. Nếu Quý khách gửi câu hỏi
+              sau 22h, chúng tôi sẽ trả lời vào sáng hôm sau. Thông tin có thể
+              thay đổi theo thời gian, vui lòng đặt câu hỏi để nhận được cập
+              nhật mới nhất!
+            </p>
+            <div className="flex space-x-4">
+              <input
+                type="text"
+                className="flex-1 border border-gray-300 rounded-md text-sm px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500"
+                placeholder="Viết câu hỏi của bạn tại đây"
+                value={newQuestion}
+                onChange={(e) => setNewQuestion(e.target.value)}
+              />
+              <button
+                className="bg-red-600 text-white text-sm font-semibold px-6 py-3 rounded-md flex items-center space-x-2 hover:bg-red-700 transition"
+                onClick={handleSendQuestion}
+              >
+                <span>Gửi câu hỏi</span>
+                <FaPaperPlane className="text-base" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Danh sách hỏi đáp */}
-      {visibleQuestions.length > 0 ? (
-        <div className="space-y-4">
-          {visibleQuestions.map((qna, i) => (
+      {/* === Loading state === */}
+      {loading && (
+        <p className="text-center text-gray-500 py-8">Đang tải câu hỏi...</p>
+      )}
+
+      {/* === Danh sách câu hỏi & trả lời === */}
+      {!loading && questions.length > 0 && (
+        <div className="space-y-8">
+          {questions.map((qna) => (
             <div
-              key={i}
-              className="border-t border-gray-200 pt-4" // Thêm border-t cho mỗi câu hỏi trừ câu đầu
+              key={qna.id}
+              className="bg-gray-50 rounded-xl p-6 shadow-sm space-y-4"
             >
-              {/* Câu hỏi */}
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                  {qna.user ? qna.user[0].toUpperCase() : "A"}
+              {/* --- Hiển thị câu hỏi gốc --- */}
+              <div className="flex items-start space-x-6">
+                <div
+                  className={`w-12 h-12 rounded-full ${getRandomColor(
+                    qna.user?.fullName
+                  )} text-white font-semibold text-lg flex items-center justify-center`}
+                >
+                  {qna.user?.fullName?.[0]?.toUpperCase() || "U"}
                 </div>
                 <div className="flex-1">
-                  <div className="flex justify-between items-center mb-0.5">
-                    <p className="font-semibold text-gray-800">{qna.user || "Ẩn danh"}</p>
-                    <div className="flex items-center text-xs text-gray-400">
-                      <ClockIcon className="w-3.5 h-3.5 mr-1" />
-                      <span>{qna.time}</span>
+                  <div className="flex justify-between items-center mb-2">
+                    <div className="flex items-center space-x-4">
+                      <p className="text-lg font-semibold text-gray-800">
+                        {qna.user?.fullName || "Ẩn danh"}
+                      </p>
+                      <p className="text-sm text-gray-400">
+                        {formatTime(qna.createdAt)}
+                      </p>
                     </div>
                   </div>
-                  <p className="mb-2 text-gray-700 leading-relaxed">{qna.question}</p>
-                  <button className="text-xs text-primary hover:underline flex items-center gap-1">
-                    <ReplyIcon className="w-3.5 h-3.5" />
-                    Trả lời
+                  <p className="text-base text-gray-700 mb-4 leading-relaxed">
+                    {qna.content}
+                  </p>
+                  <button
+                    onClick={() => handleReplyClick(`q_${qna.id}`, qna.id)}
+                    className="text-sm text-red-600 font-semibold flex items-center space-x-2 hover:underline"
+                    type="button"
+                  >
+                    <FaCommentAlt className="text-sm" />
+                    <span>Phản hồi</span>
                   </button>
                 </div>
               </div>
 
-              {/* Trả lời của Admin */}
-              {qna.adminReply && (
-                <div className="mt-3 ml-11 pl-3 border-l-2 border-gray-200"> {/* Căn lề và thêm border trái */}
-                  <div className="flex items-start gap-3">
-                     <div className="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center font-semibold text-xs flex-shrink-0">
-                        QTV
-                     </div>
-                     <div className="flex-1">
-                        <div className="flex justify-between items-center mb-0.5">
-                           <p className="font-semibold text-red-600">Quản Trị Viên</p>
-                           {/* <p className="text-xs text-gray-400">{qna.adminReplyTime || qna.time}</p> */}
-                        </div>
-                        <p className="text-gray-700 leading-relaxed">{qna.adminReply}</p>
-                        <button className="text-xs text-primary hover:underline flex items-center gap-1 mt-1">
-                           <ReplyIcon className="w-3.5 h-3.5" />
-                           Trả lời
-                        </button>
-                     </div>
-                  </div>
+              {/* --- Textarea để reply vào câu hỏi gốc --- */}
+              {replyingTo === `q_${qna.id}` && (
+                <div className="ml-20 mb-4">
+                  <textarea
+                    className="w-full border border-gray-300 rounded-md p-4 text-sm resize-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    rows={4}
+                    placeholder="Viết phản hồi của bạn..."
+                    value={replyContent[`q_${qna.id}`] || ""}
+                    onChange={(e) =>
+                      setReplyContent((prev) => ({
+                        ...prev,
+                        [`q_${qna.id}`]: e.target.value,
+                      }))
+                    }
+                  />
+                  <button
+                    onClick={() =>
+                      handleReplySubmit(qna.id, null, `q_${qna.id}`)
+                    }
+                    className="mt-3 bg-red-600 text-white text-sm font-semibold px-6 py-3 rounded-md flex items-center space-x-2 hover:bg-red-700 transition"
+                  >
+                    <span>Gửi phản hồi</span>
+                    <FaPaperPlane className="text-base" />
+                  </button>
                 </div>
               )}
+
+              {/* --- Nút Xem/Thu gọn replies --- */}
+              <button
+                onClick={() => toggleExpandedReplies(qna.id)}
+                className="ml-20 text-sm text-gray-500 hover:text-gray-700"
+                type="button"
+              >
+                {expandedReplies[qna.id]
+                  ? "Thu gọn phản hồi ^"
+                  : `Xem phản hồi (${qna.replies?.length || 0}) ↓`}
+              </button>
+
+              {/* --- Danh sách replies (nếu expandedReplies[qna.id] = true) --- */}
+              {expandedReplies[qna.id] &&
+                Array.isArray(qna.replies) &&
+                qna.replies.length > 0 && (
+                  <div className="ml-20 space-y-6">
+                    {qna.replies.map((r) => (
+                      <div
+                        key={r.id}
+                        className="bg-white rounded-lg p-4 shadow space-y-3"
+                      >
+                        <div className="flex items-start space-x-4">
+                          {r.isAdminReply ? (
+                            // Nếu là admin reply
+                            <AdminAvatar />
+                          ) : (
+                            // Nếu là user reply
+                            <div
+                              className={`w-10 h-10 rounded-full ${getRandomColor(
+                                r.fullName
+                              )} text-white font-semibold text-lg flex items-center justify-center`}
+                            >
+                              {r.fullName?.[0]?.toUpperCase() || "U"}
+                            </div>
+                          )}
+                          <div className="flex-1">
+                            <div className="flex justify-between items-center mb-2">
+                              <div className="flex items-center space-x-4">
+                                <p
+                                  className={`text-lg font-semibold ${
+                                    r.isAdminReply
+                                      ? "text-red-700"
+                                      : "text-gray-800"
+                                  }`}
+                                >
+                                  {r.isAdminReply
+                                    ? "Quản Trị Viên"
+                                    : r.fullName}
+                                </p>
+                                {r.isAdminReply && (
+                                  <span className="bg-red-700 text-white text-xs rounded px-2 py-1 font-bold">
+                                    QTV
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-400">
+                                {formatTime(r.createdAt)}
+                              </p>
+                            </div>
+                            <p className="text-base text-gray-700 leading-relaxed">
+                              {r.content.split("\n").map((line, i) => (
+                                <React.Fragment key={i}>
+                                  {line}
+                                  <br />
+                                </React.Fragment>
+                              ))}
+                            </p>
+
+                            {/* LUÔN HIỂN THỊ nút "Phản hồi" cho cả admin và user replies */}
+                            <button
+                              onClick={() =>
+                                handleReplyClick(`r_${r.id}`, qna.id)
+                              }
+                              className="mt-3 text-sm text-red-600 font-semibold flex items-center space-x-2 hover:underline"
+                              type="button"
+                            >
+                              <FaCommentAlt className="text-sm" />
+                              <span>Phản hồi</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Textarea để reply vào admin/user reply */}
+                        {replyingTo === `r_${r.id}` && (
+                          <div className="ml-14 mt-2">
+                            <textarea
+                              className="w-full border border-gray-300 rounded-md p-4 text-sm resize-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                              rows={4}
+                              placeholder="Viết phản hồi của bạn..."
+                              value={replyContent[`r_${r.id}`] || ""}
+                              onChange={(e) =>
+                                setReplyContent((prev) => ({
+                                  ...prev,
+                                  [`r_${r.id}`]: e.target.value,
+                                }))
+                              }
+                            />
+                            <button
+                              onClick={() =>
+                                handleReplySubmit(
+                                  qna.id,    // questionId
+                                  r.id,      // replyToId
+                                  `r_${r.id}` // key
+                                )
+                              }
+                              className="mt-3 bg-red-600 text-white text-sm font-semibold px-6 py-3 rounded-md flex items-center space-x-2 hover:bg-red-700 transition"
+                            >
+                              <span>Gửi phản hồi</span>
+                              <FaPaperPlane className="text-base" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
             </div>
           ))}
-
-          {/* Nút Xem thêm / Thu gọn */}
-          {questions.length > (visibleQuestions.length > 0 ? visibleQuestions.length : 2) && ( // Điều chỉnh điều kiện hiển thị
-            <div className="flex justify-center mt-6 pt-4 border-t border-gray-200">
-              <button
-                onClick={() => setShowAll(!showAll)}
-                className="flex items-center justify-center gap-1.5 text-xs text-gray-700 bg-gray-100 
-                           border border-gray-200 rounded-full px-5 py-2.5 shadow-sm 
-                           transition-colors duration-200 ease-in-out 
-                           hover:text-primary hover:border-primary hover:bg-blue-50"
-              >
-                <span>
-                  {showAll
-                    ? "Thu gọn câu hỏi"
-                    : `Xem thêm ${questions.length - visibleQuestions.length} câu hỏi`}
-                </span>
-                <svg
-                  className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                    showAll ? "rotate-180" : ""
-                  }`}
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </button>
-            </div>
-          )}
         </div>
-      ) : (
-        <p className="text-gray-500 text-center py-4">Chưa có câu hỏi nào cho sản phẩm này.</p>
       )}
     </div>
   );
