@@ -1,23 +1,59 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClock, faComment } from '@fortawesome/free-regular-svg-icons';
+import { Link } from 'react-router-dom';
+const MidNews = ({ title = "Tin Tức", items = [], visibleCount = 3 }) => {
+  const [startIndex, setStartIndex] = useState(0);
 
-const MidNews = ({ title = "Tin Tức", items = [] }) => {
+  const next = () => {
+    if (startIndex + visibleCount < items.length) {
+      setStartIndex(startIndex + visibleCount);
+    }
+  };
+
+  const prev = () => {
+    if (startIndex - visibleCount >= 0) {
+      setStartIndex(startIndex - visibleCount);
+    }
+  };
+
+  const currentItems = items.slice(startIndex, startIndex + visibleCount);
+
   return (
     <div>
-      <div className="text-left">
-        <div className="inline-block font-bold text-2xl border-b-4 border-yellow-300 rounded-b-md mb-3">
+      {/* Title + Buttons */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="inline-block font-bold text-2xl border-b-4 border-yellow-300 rounded-b-md">
           {title}
+        </div>
+
+        {/* Nút trái phải */}
+        <div className="space-x-2">
+          <button
+            onClick={prev}
+            disabled={startIndex === 0}
+            className="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded disabled:opacity-50"
+          >
+            ←
+          </button>
+          <button
+            onClick={next}
+            disabled={startIndex + visibleCount >= items.length}
+            className="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded disabled:opacity-50"
+          >
+            →
+          </button>
         </div>
       </div>
 
+      {/* List news */}
       <div className="flex flex-col gap-4 pt-2">
-        {items.map((item, index) => (
-          <div className="flex gap-3 items-start flex-nowrap" key={index}>
-            {/* Ảnh */}
+        {currentItems.map((item, index) => (
+          <Link to={`/tin-noi-bat/${item.slug}`} className="flex gap-3 items-start flex-nowrap" key={index}>
+            {/* Image */}
             <div className="w-[120px] h-[68px] md:w-[260px] md:h-[160px] overflow-hidden rounded flex-shrink-0 bg-yellow-200">
               <img
-                src='https://cdn-media.sforum.vn/storage/app/media/ctvseo_12/dien-thoai-iphone-khong-nhan-sac.jpg'
+                src={item.thumbnail}
                 alt={item.title}
                 className="block w-full h-full object-cover"
                 draggable={false}
@@ -26,7 +62,7 @@ const MidNews = ({ title = "Tin Tức", items = [] }) => {
               />
             </div>
 
-            {/* Nội dung */}
+            {/* Content */}
             <div className="flex-1 text-left">
               <h1 className="font-bold text-xs sm:text-xl">{item.title}</h1>
               <div className="hidden sm:flex gap-3 my-2 text-sm text-gray-600 flex-wrap">
@@ -43,7 +79,7 @@ const MidNews = ({ title = "Tin Tức", items = [] }) => {
                 {item.content}
               </p>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>

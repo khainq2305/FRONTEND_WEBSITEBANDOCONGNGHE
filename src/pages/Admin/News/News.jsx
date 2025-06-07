@@ -7,7 +7,9 @@ import { newsService } from '@/services/admin/postService';
 import { toast } from 'react-toastify';
 import MUIPagination from '@/components/common/Pagination';
 import { confirmDelete } from '@/components/common/ConfirmDeleteDialog'; 
+import { useParams } from 'react-router';
 const News = () => {
+  const { slug } = useParams()
   const [filters, setFilters] = useState({
     search: '',
     status: '',
@@ -178,7 +180,8 @@ const News = () => {
   handleForceDelete={handleForceDelete}
   setArticles={setArticles}
   currentPage={currentPage}       // ✅ thêm dòng này
-  pageSize={pageSize}   
+  pageSize={pageSize}
+  slug={slug} 
 />
         {total > pageSize && (
   <MUIPagination

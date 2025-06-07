@@ -29,10 +29,11 @@ const Sidebar = ({
   errors,
   setErrors,
   handleSubmit,
-  avatar,
-  setAvatar,
+  thumbnail,
+  setThumbnail,
   tags,
   setTags,
+  allTags,
   isFeature,
   setIsFeature,
   mode
@@ -85,7 +86,7 @@ const Sidebar = ({
               </MenuItem>
             ))}
           </Select>
-          <FormHelperText>{errors.category || ''}</FormHelperText>
+          {errors.category && <FormHelperText>{errors.category}</FormHelperText>} {/* <-- Đảm bảo dòng này có */}
         </FormControl>
 
         <FormControl fullWidth>
@@ -111,6 +112,7 @@ const Sidebar = ({
                   color="primary"
                 />
               }
+              
               label="Lên lịch đăng bài"
               labelPlacement="start"
             />
@@ -145,14 +147,13 @@ const Sidebar = ({
             sx={{ mt: 2 }}
           />
         <Box>
-          <UploadImage avatar={avatar} setAvatar={setAvatar} />
-          {errors.avatar && (
-            <FormHelperText error>{errors.avatar}</FormHelperText>
+          <UploadImage thumbnail={thumbnail} setThumbnail={setThumbnail} />
+          {errors.thumbnail && (
+            <FormHelperText error>{errors.thumbnail}</FormHelperText>
           )}
         </Box>
 
-        <Tag tags={tags} setTags={setTags} />
-
+        <Tag tags={tags} setTags={setTags} allTags={allTags} />
 
         <Button variant="contained" fullWidth onClick={handleSubmit}>
           {mode === 'edit' ? 'Cập Nhật Bài Viết' : 'Đăng Bài Viết'}

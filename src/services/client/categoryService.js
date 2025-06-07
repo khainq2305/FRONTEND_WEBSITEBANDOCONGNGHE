@@ -11,5 +11,8 @@ export const categoryService = {
   getBySlug(slug) {
     if (!slug) throw new Error('❌ Missing category slug');
     return get(`${base}/${slug}`);
+  },
+    getCombinedMenu() {
+    return get(`${base}${API_ENDPOINT.client.category.combinedMenu}`);
   }
 };

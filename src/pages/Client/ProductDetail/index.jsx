@@ -13,8 +13,6 @@ import { cartService } from "../../../services/client/cartService";
 import { bannerService } from "../../../services/client/bannerService";
 import { toast } from "react-toastify";
 
-// --- Các component nhỏ (giữ nguyên) ---
-
 const HomeIcon = (props) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" {...props}>
     <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
@@ -58,14 +56,12 @@ const Breadcrumb = ({ productName }) => {
   return (
     <div
       ref={breadcrumbRef}
-      className={`md:sticky md:top-0 md:z-20 transition-all duration-200 ease-in-out ${
-        isDocked ? "bg-white md:shadow-md max-w-screen-xl mx-auto" : "bg-transparent"
-      }`}
+      className={`md:sticky md:top-0 md:z-20 transition-all duration-200 ease-in-out ${isDocked ? "bg-white md:shadow-md max-w-screen-xl mx-auto" : "bg-transparent"
+        }`}
     >
       <div
-        className={`flex items-center flex-wrap gap-x-1.5 gap-y-1 px-4 py-2 text-sm text-gray-500 ${
-          isDocked ? "md:py-3" : "max-w-screen-xl mx-auto md:py-3"
-        }`}
+        className={`flex items-center flex-wrap gap-x-1.5 gap-y-1 px-4 py-2 text-sm text-gray-500 ${isDocked ? "md:py-3" : "max-w-screen-xl mx-auto md:py-3"
+          }`}
       >
         <a href="/" className="hover:text-blue-500 flex items-center">
           <HomeIcon className="w-4 h-4 mr-1 flex-shrink-0" />
@@ -96,20 +92,20 @@ const ProductTitleHeader = ({ productName, rating, reviewCount }) => (
   </div>
 );
 
-// ✅ Component mới để hiển thị mô tả, giúp code sạch sẽ hơn
+
 const ProductDescription = ({ description }) => {
-    if (!description) {
-        return null;
-    }
-    return (
-        <div className="bg-white p-4 md:p-6 rounded-lg border border-gray-200 shadow-sm">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Mô tả chi tiết sản phẩm</h2>
-            <div
-                className="prose prose-sm max-w-none text-gray-700 leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: description }}
-            />
-        </div>
-    );
+  if (!description) {
+    return null;
+  }
+  return (
+    <div className="bg-white p-4 md:p-6 rounded-lg border border-gray-200 shadow-sm">
+      <h2 className="text-xl font-bold text-gray-800 mb-4">Mô tả chi tiết sản phẩm</h2>
+      <div
+        className="prose prose-sm max-w-none text-gray-700 leading-relaxed"
+        dangerouslySetInnerHTML={{ __html: description }}
+      />
+    </div>
+  );
 };
 
 export default function ProductDetail() {
@@ -127,6 +123,17 @@ export default function ProductDetail() {
   const productRating = product?.rating || 0;
   const productReviewCount = product?.reviews?.length || 0;
 
+  const [skuId, setSkuId] = useState(null);
+  useEffect(() => {
+    if (!selectedOption || !product?.skus) return;
+
+    const matched = product.skus.find((s) => s.skuCode === selectedOption);
+    if (matched) {
+      setSkuId(matched.id);
+    } else {
+      setSkuId(null);
+    }
+  }, [selectedOption, product]);
   useEffect(() => {
     const fetchProductAndBanners = async () => {
       if (!slug) return;
@@ -139,37 +146,36 @@ export default function ProductDetail() {
           return;
         }
         setProduct(fetchedProduct);
-        
-        // ... (phần code xử lý skus, options, images giữ nguyên)
+
         const skus = fetchedProduct.skus || [];
 
         if (skus.length === 0) {
-            setProductOptionsData([]);
-            if (fetchedProduct.thumbnail) {
+          setProductOptionsData([]);
+          if (fetchedProduct.thumbnail) {
             setAllProductImagesData([
-                {
+              {
                 imageThumb: fetchedProduct.thumbnail,
                 imageFull: fetchedProduct.thumbnail,
                 label: "Ảnh đại diện",
-                },
+              },
             ]);
             setMainImage(fetchedProduct.thumbnail);
-            } else {
+          } else {
             setAllProductImagesData([]);
             setMainImage("");
-            }
-            return;
+          }
+          return;
         }
 
         const options = skus
-            .filter((sku) => sku.skuCode && sku.price)
-            .map((sku) => {
+          .filter((sku) => sku.skuCode && sku.price)
+          .map((sku) => {
             const vals = (sku.variantValues || [])
-                .map((vv) => vv.variantValue?.value)
-                .filter((v) => !!v);
+              .map((vv) => vv.variantValue?.value)
+              .filter((v) => !!v);
             const label = vals.length > 0 ? vals.join(" - ") : sku.skuCode;
             const colorVV = (sku.variantValues || []).find((vv) => {
-                return vv.variantValue?.variant?.name
+              return vv.variantValue?.variant?.name
                 .toLowerCase()
                 .includes("màu");
             });
@@ -179,96 +185,96 @@ export default function ProductDetail() {
             const imageUrl = colorVV ? colorVV.variantValue.imageUrl : null;
 
             return {
-                skuId: sku.id,
-                label,
-                price: parseFloat(sku.price).toLocaleString("vi-VN") + "₫",
-                originalPrice: sku.originalPrice
+              skuId: sku.id,
+              label,
+              price: parseFloat(sku.price).toLocaleString("vi-VN") + "₫",
+              originalPrice: sku.originalPrice
                 ? parseFloat(sku.originalPrice).toLocaleString("vi-VN") + "₫"
                 : "",
-                numericPrice: parseFloat(sku.price),
-                numericOriginalPrice: sku.originalPrice ? parseFloat(sku.originalPrice) : null,
-                tradeInPrice: "",
-                colorId,
-                colorLabel,
-                colorCode,
-                imageUrl,
+              numericPrice: parseFloat(sku.price),
+              numericOriginalPrice: sku.originalPrice ? parseFloat(sku.originalPrice) : null,
+              tradeInPrice: "",
+              colorId,
+              colorLabel,
+              colorCode,
+              imageUrl,
             };
-            });
+          });
 
         setProductOptionsData(options);
 
         if (options.length > 0) {
-            setSelectedOption(options[0].label);
-            setSelectedColor(options[0].colorLabel || "");
+          setSelectedOption(options[0].label);
+          setSelectedColor(options[0].colorLabel || "");
         } else {
-            setSelectedOption("");
-            setSelectedColor("");
+          setSelectedOption("");
+          setSelectedColor("");
         }
 
         const rawColorValues = [];
         skus.forEach((sku) => {
-            (sku.variantValues || []).forEach((vv) => {
+          (sku.variantValues || []).forEach((vv) => {
             const variantName = vv.variantValue?.variant?.name?.toLowerCase() || "";
             if (variantName.includes("màu")) {
-                rawColorValues.push({
+              rawColorValues.push({
                 id: vv.variantValue.id,
                 label: vv.variantValue.value,
                 colorCode: vv.variantValue.colorCode || null,
                 imageUrl: vv.variantValue.imageUrl || null,
-                });
+              });
             }
-            });
+          });
         });
         const uniqColors = Array.from(
-            new Map(rawColorValues.map((item) => [item.id, item])).values()
+          new Map(rawColorValues.map((item) => [item.id, item])).values()
         );
         setProductColorsData(uniqColors);
 
         if (uniqColors.length > 0) {
-            setSelectedColor(uniqColors[0].label);
+          setSelectedColor(uniqColors[0].label);
         } else {
-            setSelectedColor("");
+          setSelectedColor("");
         }
 
         const allImages = [];
         skus.forEach((sku) => {
-            (sku.ProductMedia || []).forEach((m) => {
+          (sku.ProductMedia || []).forEach((m) => {
             const vals = (sku.variantValues || [])
-                .map((vv) => vv.variantValue?.value)
-                .filter((v) => !!v);
+              .map((vv) => vv.variantValue?.value)
+              .filter((v) => !!v);
             const label = vals.length > 0 ? vals.join(" - ") : sku.skuCode;
             allImages.push({
-                imageThumb: m.mediaUrl,
-                imageFull: m.mediaUrl,
-                label,
+              imageThumb: m.mediaUrl,
+              imageFull: m.mediaUrl,
+              label,
             });
-            });
+          });
         });
         if (allImages.length === 0 && fetchedProduct.thumbnail) {
-            allImages.push({
+          allImages.push({
             imageThumb: fetchedProduct.thumbnail,
             imageFull: fetchedProduct.thumbnail,
             label: "Ảnh đại diện",
-            });
+          });
         }
         setAllProductImagesData(allImages);
 
         if (allImages.length > 0) {
-            setMainImage(allImages[0].imageFull);
+          setMainImage(allImages[0].imageFull);
         } else if (fetchedProduct.thumbnail) {
-            setMainImage(fetchedProduct.thumbnail);
+          setMainImage(fetchedProduct.thumbnail);
         } else {
-            setMainImage("");
+          setMainImage("");
         }
 
         if (fetchedProduct.id) {
-            try {
+          try {
             const bannerRes = await bannerService.getByProductId(fetchedProduct.id);
             setProductDetailBanners(bannerRes?.data?.data || []);
-            } catch (bannerError) {
+          } catch (bannerError) {
             console.error("Lỗi khi lấy banner cho sản phẩm:", bannerError);
             setProductDetailBanners([]);
-            }
+          }
         }
 
 
@@ -281,54 +287,54 @@ export default function ProductDetail() {
 
     fetchProductAndBanners();
   }, [slug]);
-  
-const handleAddToCart = (selectedLabel) => {
-  const matchedOption = productOptionsData.find((opt) => opt.label === selectedLabel);
-  if (!matchedOption) {
-    toast.error("❌ Không tìm thấy biến thể tương ứng");
-    return;
-  }
 
-  cartService
-    .addToCart({ skuId: matchedOption.skuId, quantity: 1 })
-    .then(() => {
-      // Nếu có toast cùng ID đang còn tồn tại, đóng nó đi
-      if (toast.isActive("add-to-cart-success-toast")) {
-        toast.dismiss("add-to-cart-success-toast");
-      }
+  const handleAddToCart = (selectedLabel) => {
+    const matchedOption = productOptionsData.find((opt) => opt.label === selectedLabel);
+    if (!matchedOption) {
+      toast.error("Không tìm thấy biến thể tương ứng");
+      return;
+    }
 
-      toast(
-        ({ closeToast }) => (
-          <AddToCartSuccessToast
-            closeToast={closeToast}
-            productName={productName}
-            productImage={matchedOption.imageUrl || mainImage || product?.thumbnail}
-            productPrice={matchedOption.price}
-          />
-        ),
-        {
-          toastId: "add-to-cart-success-toast",
-          autoClose: 3000,
-          hideProgressBar: true,
-          closeOnClick: false,
-          pauseOnHover: true,
-          draggable: true,
-          closeButton: false,
+    cartService
+      .addToCart({ skuId: matchedOption.skuId, quantity: 1 })
+      .then(() => {
+
+        if (toast.isActive("add-to-cart-success-toast")) {
+          toast.dismiss("add-to-cart-success-toast");
         }
-      );
-    })
-    .catch((err) => {
-      // Kiểm tra xem có lỗi cụ thể từ backend không (thường nằm trong err.response.data)
-      if (err.response && err.response.data && err.response.data.message) {
-        // Dùng toast.warn (màu vàng) cho các lỗi do người dùng (như hết hàng)
-        toast.warn(err.response.data.message);
-      } else {
-        // Nếu là lỗi mạng hoặc lỗi server không xác định, hiển thị lỗi chung
-        toast.error("Thêm vào giỏ hàng thất bại!");
-      }
-      console.error("Lỗi addToCart:", err); // Vẫn giữ lại để debug
-    });
-};
+
+        toast(
+          ({ closeToast }) => (
+            <AddToCartSuccessToast
+              closeToast={closeToast}
+              productName={productName}
+              productImage={matchedOption.imageUrl || mainImage || product?.thumbnail}
+              productPrice={matchedOption.price}
+            />
+          ),
+          {
+            toastId: "add-to-cart-success-toast",
+            autoClose: 3000,
+            hideProgressBar: true,
+            closeOnClick: false,
+            pauseOnHover: true,
+            draggable: true,
+            closeButton: false,
+          }
+        );
+      })
+      .catch((err) => {
+
+        if (err.response && err.response.data && err.response.data.message) {
+
+          toast.warn(err.response.data.message);
+        } else {
+
+          toast.error("Thêm vào giỏ hàng thất bại!");
+        }
+        console.error("Lỗi addToCart:", err);
+      });
+  };
 
   return (
     <div>
@@ -359,33 +365,33 @@ const handleAddToCart = (selectedLabel) => {
             banners={productDetailBanners}
           />
         </div>
-   <div className="px-4 md:px-0 grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-6 items-start mb-6">
-          {/* Cột trái: Chứa mô tả và các thông tin khác */}
+        <div className="px-4 md:px-0 grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-6 items-start mb-6">
+
           <div className="space-y-6">
-    <ProductInfoBox productInfo={product?.productInfo} />
-            {/* Nếu cần, bạn có thể thêm lại ProductHighlights với dữ liệu thật ở đây */}
-           
+            <ProductInfoBox productInfo={product?.productInfo} />
+
+
           </div>
-          
-          {/* Cột phải: Chứa thông số kỹ thuật */}
+
+
           <div className="md:sticky md:top-11 h-fit">
-          
+
           </div>
         </div>
-        {/* ✅ KHỐI MÔ TẢ VÀ THÔNG SỐ KỸ THUẬT ĐÃ ĐƯỢC ĐẶT LẠI ĐÚNG VỊ TRÍ */}
+
         <div className="px-4 md:px-0 grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-6 items-start mb-6">
-          {/* Cột trái: Chứa mô tả và các thông tin khác */}
+
           <div className="space-y-6">
             <ProductDescription description={product?.description} />
-           
+
           </div>
-          
-          {/* Cột phải: Chứa thông số kỹ thuật */}
-          
-            {/* ❌ Ở đây có cả `sticky top-20` (trên mọi kích thước) lẫn `md:sticky md:top-11` */}
-  <div className="sticky top-20 md:sticky md:top-11 h-fit">
-    <TechnicalSpec specs={product?.specs} />
-  </div>
+
+
+
+
+          <div className="sticky top-20 md:sticky md:top-11 h-fit">
+            <TechnicalSpec specs={product?.specs} />
+          </div>
         </div>
 
         <div className="px-4 md:px-0 mt-4 md:mt-6">
@@ -394,12 +400,11 @@ const handleAddToCart = (selectedLabel) => {
 
         <div className="px-4 md:px-0 grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-6 items-start my-6">
           <div>
-            <ProductReviewSection
-              productName={productName}
-              rating={productRating}
-              reviewCount={productReviewCount}
-            />
-            <ProductQA questions={[]} totalQuestions={0} showAll={false} setShowAll={() => {}} />
+            {ProductReviewSection && (
+              <ProductReviewSection skuId={skuId} productName={productName} />
+
+            )}
+            <ProductQA questions={[]} totalQuestions={0} showAll={false} setShowAll={() => { }} />
           </div>
           <div />
         </div>

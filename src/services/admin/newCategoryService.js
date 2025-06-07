@@ -16,6 +16,7 @@ export const newsCategoryService = {
     return post(`${base}${API_ENDPOINT.admin.newsCategory.create}`, data)
   },
   getBySlug: (slug) => {
+    console.log(` lấy 1 danh mục ${base}${API_ENDPOINT.admin.newsCategory.getBySlug}/${slug}`)
     return get(`${base}${API_ENDPOINT.admin.newsCategory.getBySlug}/${slug}`)
   },
   update: (slug, data) => {

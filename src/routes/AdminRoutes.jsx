@@ -22,8 +22,10 @@ const HisLog = Loadable(lazy(() => import('pages/Admin/HisLog')));
 const News = Loadable(lazy(() => import('pages/Admin/News/News')));
 const Add = Loadable(lazy(() => import('pages/Admin/News/Add')));
 const Edit = Loadable(lazy(() => import('pages/Admin/News/Edit')));
+const NewsDetails = Loadable(lazy(() => import('pages/Admin/News/NewsDetails')));
 const CategoryNews = Loadable(lazy(() => import('pages/Admin/News/Category')));
 const CategoryAdd = Loadable(lazy(() => import('pages/Admin/News/CategoryAdd')));
+const NewsCategoryEdit = Loadable(lazy(() => import('pages/Admin/News/CategoryEdit')));
 const ProductAddPage = Loadable(lazy(() => import('pages/Admin/Product/ProductAddPage')));
 const VariantValueList = Loadable(lazy(() => import('pages/Admin/VariantValue/index.jsx')));
 
@@ -42,19 +44,14 @@ const HomeSectionFormPage = Loadable(lazy(() => import('pages/Admin/HomeSection/
 const FlashSaleList = Loadable(lazy(() => import('pages/Admin/FlashSale')));
 const FlashSaleForm = Loadable(lazy(() => import('pages/Admin/FlashSale/FlashSaleForm')));
 //
-// Banner 3 bảng mới
 const BannerForm = Loadable(lazy(() => import('pages/Admin/Banner/BannerForm')));
-const BannerList            = Loadable(lazy(() => import('pages/Admin/Banner')));
-// const BannerForm            = Loadable(lazy(() => import('pages/Admin/Banner/BannerForm')));
+const BannerList = Loadable(lazy(() => import('pages/Admin/Banner')));
 const NotFound = Loadable(lazy(() => import('pages/Admin/NotFound')));
-
 
 const CategoryList = Loadable(lazy(() => import('pages/Admin/CaterogyProduct/CategoryList/CategoryList')));
 const CategoryAddd = Loadable(lazy(() => import('pages/Admin/CaterogyProduct/CategoryAdd/CategoryAdd')));
 const CategoryEdit = Loadable(lazy(() => import('pages/Admin/CaterogyProduct/CategoryEdit/CategoryEdit')));
 const NotificationPage = Loadable(lazy(() => import('pages/Admin/Notification')));
-const NotificationDetail = Loadable(lazy(() => import('pages/Admin/Notification/NotificationDetail')));
-const DeletedUserList = Loadable(lazy(() => import('pages/Admin/User/DeletedUserList')));
 const UserDetailPage = Loadable(lazy(() => import('pages/Admin/User/UserDetailDialog')));
 
 const AdminRoutes = {
@@ -70,18 +67,17 @@ const AdminRoutes = {
       element: <DashboardDefault />
     },
 
-     {
+    {
       path: 'banners',
       children: [
-     
         { index: true, element: <BannerList /> },
-      
+
         { path: 'create', element: <BannerForm /> },
-       
+
         { path: 'edit/:id', element: <BannerForm /> }
       ]
     },
-   
+
     {
       path: 'categories/list',
       element: <CategoryList />
@@ -95,14 +91,9 @@ const AdminRoutes = {
       element: <CategoryEdit />
     },
 
-   
     {
       path: 'notifications',
       element: <NotificationPage />
-    },
-    {
-      path: 'notifications/:id',
-      element: <NotificationDetail />
     },
     {
       path: 'flash-sale',
@@ -112,12 +103,12 @@ const AdminRoutes = {
         { path: 'edit/:id', element: <FlashSaleForm /> }
       ]
     },
-{
+    {
       path: 'home-sections',
       children: [
         { index: true, element: <HomeSectionList /> },
         { path: 'create', element: <HomeSectionFormPage /> },
-        { path: 'edit/:slug', element: <HomeSectionFormPage /> } 
+        { path: 'edit/:slug', element: <HomeSectionFormPage /> }
       ]
     },
 
@@ -130,14 +121,13 @@ const AdminRoutes = {
       element: <OrderDetail />
     },
     {
-  path: 'highlighted-category-items',
-  children: [
-    { index: true, element: <HighlightedCategoryItemList /> },
-    { path: 'create', element: <HighlightedCategoryItemForm /> },
-    { path: 'edit/:slug', element: <HighlightedCategoryItemForm /> } // ✅ dùng slug thay id
-  ]
-},
-
+      path: 'highlighted-category-items',
+      children: [
+        { index: true, element: <HighlightedCategoryItemList /> },
+        { path: 'create', element: <HighlightedCategoryItemForm /> },
+        { path: 'edit/:slug', element: <HighlightedCategoryItemForm /> } 
+      ]
+    },
 
     {
       path: 'users',
@@ -146,10 +136,6 @@ const AdminRoutes = {
     {
       path: '/admin/users/:id',
       element: <UserDetailPage />
-    },
-    {
-      path: 'users/deleted',
-      element: <DeletedUserList />
     },
     { path: 'users/create', element: <UserAdd /> },
 
@@ -217,8 +203,12 @@ const AdminRoutes = {
       element: <Add />
     },
     {
-      path: 'bai-viet/chinh-sua/:id',
+      path: 'quan-ly-bai-viet/chinh-sua-bai-viet/:slug',
       element: <Edit />
+    },
+    {
+      path: 'quan-ly-bai-viet/chi-tiet-bai-viet/:slug',
+      element: <NewsDetails />
     },
     ,
     {
@@ -229,6 +219,10 @@ const AdminRoutes = {
     {
       path: 'them-danh-muc-bai-viet',
       element: <CategoryAdd />
+    },
+    {
+      path: 'danh-muc-bai-viet/chinh-sua-danh-muc/:slug',
+      element: <NewsCategoryEdit />
     },
     {
       path: 'comments',

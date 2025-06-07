@@ -10,17 +10,19 @@ const Add = () => {
   const handleSubmit = async (data) => {
     try {
       const res = await newsService.create(data); // ✅ Gán vào biến
+      console.log('du lieu gui len',data)
+      debugger
       toast.success(res.data.message || 'Thêm bài viết thành công');
       navigate('/admin/quan-ly-bai-viet');
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Thêm bài viết thất bại');
-      console.error("Lỗi khi thêm bài viết:", err?.response?.data || err.message || err);
-    }
+    console.error("Lỗi khi thêm bài viết:", err?.response?.data || err.message || err);
+    throw err;
+  }
   };
 
   return (
     <div>
-      <FormPost onSubmit={handleSubmit} mode="add" />
+      <FormPost onSubmit={handleSubmit} mode="add" encType="multipart/form-data"/>
     </div>
   );
 };

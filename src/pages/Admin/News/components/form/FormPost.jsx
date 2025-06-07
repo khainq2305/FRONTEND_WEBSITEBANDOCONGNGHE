@@ -1,19 +1,20 @@
 import { useState, useEffect } from "react";
 import { Grid, FormControlLabel, Switch } from "@mui/material";
-import { validatePostForm } from "@/utils/News/validatePostForm";
 import Content from "@/pages/Admin/News/components/form/Content";
 import Sidebar from "@/pages/Admin/News/components/sidebar/Sidebar";
 import { newsCategoryService } from "@/services/admin/newCategoryService";
 import { normalizeCategoryList } from "@/utils";
+import { tagService } from "@/services/admin/tagService";
 
 const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [categories, setCategories] = useState([]);
-  const [status, setStatus] = useState("active");
+  const [status, setStatus] = useState(1);
   const [content, setContent] = useState("");
-  const [avatar, setAvatar] = useState(null);
+  const [thumbnail, setThumbnail] = useState(null);
   const [tags, setTags] = useState([]);
+  const [allTags, setAllTags] = useState([])
   const [isScheduled, setIsScheduled] = useState(false);
   const [publishAt, setPublishAt] = useState("");
   const [isFeature, setIsFeature] = useState(false);
@@ -23,9 +24,9 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
     if (initialData) {
       setTitle(initialData.title || "");
       setCategory(initialData.categoryId || "");
-      setStatus(initialData.status || "active");
+      setStatus(initialData.status || 1);
       setContent(initialData.content || "");
-      setAvatar(initialData.avatar || null);
+      setThumbnail(initialData.thumbnail || null);
       setTags(initialData.tags || []);
       setIsFeature(initialData.isFeature || false);
       setIsScheduled(Boolean(initialData.publishAt));
@@ -39,33 +40,55 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
         const res = await newsCategoryService.getAll();
         const activeCategories = res.data.data.filter((c) => c.deletedAt === null);
         setCategories(normalizeCategoryList(activeCategories));
+        console.log(normalizeCategoryList(activeCategories))
       } catch (error) {
         console.error("Lỗi lấy danh mục:", error);
       }
     };
     fetchCategories();
   }, []);
+  const fetchTags = async () => {
+  try {
+    const res = await tagService.getAll();
+    console.log('Dữ liệu tag là', res.data.data);
+    setAllTags(res.data.data); // ✅ Gán vào danh sách gợi ý
+  } catch (error) {
+    console.error('lỗi lấy tag', error);
+  }
+};
+  useEffect(() => {
+    fetchTags()
+  },[])
+  const handleSubmit = async () => {
+  const formData = new FormData();
+  formData.append("title", title);
+  formData.append("content", content);
+  formData.append("category", category);
+  formData.append("status", isScheduled ? 2 : status); // 2: hẹn giờ
+  formData.append("publishAt", isScheduled ? publishAt : "");
+  formData.append("isFeature", isFeature);
+  formData.append("thumbnail", thumbnail);
+  formData.append('tags', JSON.stringify(tags));
 
-  const handleSubmit = () => {
-    const formData = {
-      title,
-      content,
-      category,
-      status: isScheduled ? 2 : status,
-      tags,
-      avatar,
-      publishAt: isScheduled ? publishAt : null,
-      isFeature
-    };
+  try {
+    await onSubmit?.(formData);
+    console.log('form data',formData);
+    setErrors({}); // Reset lỗi nếu thành công
+  // ...
+} catch (err) {
+  const res = err.response;
+  if (res?.status === 400 && typeof res.data?.errors === "object") {
+    setErrors(res.data.errors);
+  } else {
+    console.error("Lỗi không xác định:", err);
+  }
+}
+};
 
-    const result = validatePostForm(formData);
-    if (!result.valid) {
-      setErrors(result.errors);
-      return;
-    }
 
-    onSubmit?.(formData);
-  };
+
+
+
 
   return (
     <div title="Thêm bài viết mới">
@@ -76,10 +99,8 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
             setTitle={setTitle}
             content={content}
             setContent={setContent}
-            avatar={avatar}
-            setAvatar={setAvatar}
-            
             errors={errors}
+            setErrors={setErrors}
           />
         </Grid>
         <Grid item xs={12} md={3}>
@@ -94,11 +115,13 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
             publishAt={publishAt}
             setPublishAt={setPublishAt}
             errors={errors}
-            onSubmit={handleSubmit}
-            avatar={avatar}
-            setAvatar={setAvatar}
+            setErrors={setErrors}
+            handleSubmit={handleSubmit}
+            setThumbnail={setThumbnail}
+            thumbnail={thumbnail}
             tags={tags}
             setTags={setTags}
+            allTags={allTags} 
             isFeature={isFeature}
             setIsFeature={setIsFeature}
             mode={mode}

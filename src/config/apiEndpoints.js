@@ -34,7 +34,8 @@ export const API_ENDPOINT = {
       getDefault: '/default'
     },
     category: {
-      base: `${API_BASE_URL}/api/client/categories`
+      base: `${API_BASE_URL}/api/client/categories`,
+       combinedMenu: '/combined-menu'
     },
     section: {
       base: `${API_BASE_URL}`,
@@ -99,7 +100,30 @@ export const API_ENDPOINT = {
     flashSale: {
       base: `${API_BASE_URL}`,
       list: '/flash-sale/list'
-    }
+    },
+    review: {
+      base: `${API_BASE_URL}/review`,
+      create: '/create',
+      getBySku: (id) => `/sku/${id}`,
+      check: (skuId) => `/check/${skuId}`
+    },
+    news: {
+      base: `${API_BASE_URL}/tin-noi-bat`,
+      featurePost: '',
+      byCategory: '/theo-danh-muc',
+      getBySlug: '',
+      getRelated: '/bai-viet-lien-quan',
+      calculateFee: '/calculate-fee'
+    },
+     notification: {
+      base: `${API_BASE_URL}/admin/notifications`,
+      getAll: '', 
+      create: '', 
+      getById: '/:id', 
+      update: '/:id', 
+      delete: '/:id', 
+      deleteMany: '/delete-many',
+    },
   },
   admin: {
     product: {
@@ -261,6 +285,10 @@ export const API_ENDPOINT = {
       trashPost: '/chuyen-vao-thung-rac',
       forceDelete: '/xoa-vinh-vien',
       restorePost: '/khoi-phuc'
+    },
+    tags: {
+      base: `${API_BASE_URL}/admin/tags`,
+      getAll: ''
     },
     newsCategory: {
       base: `${API_BASE_URL}/admin/quan-ly-danh-muc`,

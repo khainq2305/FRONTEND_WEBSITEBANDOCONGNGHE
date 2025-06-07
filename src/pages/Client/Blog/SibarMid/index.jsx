@@ -3,7 +3,7 @@ import channel from '../../../../assets/Client/images/News/hqdefault.jpg';
 import ytb from '../../../../assets/Client/images/News/YouTube.png';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClock, faComment } from '@fortawesome/free-regular-svg-icons';
-
+import { Link } from 'react-router-dom';
 /**
  */
 const SibarMid = ({ items = [], title}) => {
@@ -47,7 +47,7 @@ const SibarMid = ({ items = [], title}) => {
       {/* Danh sách bài viết nổi bật */}
       <div className="space-y-4 sm:space-y-5">
         {items.map((item, idx) => (
-          <div key={item.id || idx} className="pb-3 sm:pb-4 border-b border-gray-100 last:border-b-0 group">
+          <Link to={`/tin-noi-bat/${item.slug}`} key={item.id || idx} className="pb-3 sm:pb-4 border-b border-gray-100 last:border-b-0 group">
             <div className="flex gap-3 sm:gap-4">
               <div className="flex-1 text-left min-w-0">
                 <h4 className="font-semibold text-sm sm:text-base text-gray-800 group-hover:text-primary transition-colors line-clamp-2 leading-tight mb-1">
@@ -77,7 +77,7 @@ const SibarMid = ({ items = [], title}) => {
             <p className="text-left text-xs sm:text-sm text-gray-600 mt-1.5 line-clamp-2 hidden sm:block">
               {item.desc}
             </p>
-          </div>
+          </Link>
         ))}
       </div>
     </div>

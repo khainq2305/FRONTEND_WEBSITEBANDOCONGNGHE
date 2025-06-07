@@ -7,6 +7,7 @@ import { ImportExport } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import MoreActionsMenu from '@/pages/Admin/News/components/MoreActionsMenu/MoreActionsMenu';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { toast } from 'react-toastify';
 
 const CategoryTable = ({
   filters,
@@ -20,21 +21,16 @@ const CategoryTable = ({
   categories,
   setCategories,
   currentPage,
-  pageSize
+  pageSize,
+  handleCategoryDragEnd
 }) => {
   const rows = categories;
   const navigate = useNavigate();
 
   const handleDragEnd = (result) => {
-    if (!result.destination) return;
-
-    const newRows = [...rows];
-    const [movedRow] = newRows.splice(result.source.index, 1);
-    newRows.splice(result.destination.index, 0, movedRow);
-    setCategories(newRows);
+    handleCategoryDragEnd(result, rows, setCategories, toast);
   };
-  console.log('currentPage:', currentPage, typeof currentPage);
-console.log('pageSize:', pageSize, typeof pageSize);
+
   return (
     <TableContainer component={Paper}>
       <DragDropContext onDragEnd={handleDragEnd}>

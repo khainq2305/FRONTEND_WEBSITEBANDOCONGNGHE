@@ -20,7 +20,8 @@ const ArticleTable = ({
   handleForceDelete,
   setArticles,
   currentPage,
-  pageSize
+  pageSize,
+  slug
 }) => {
   const navigate = useNavigate();
   const rows = articles;
@@ -86,7 +87,7 @@ const ArticleTable = ({
                         </TableCell>
                         <TableCell>{(currentPage - 1) * pageSize + index + 1}</TableCell>
                         <TableCell>{row.title}</TableCell>
-                        <TableCell>{row.User?.fullName || 'không có'}</TableCell>
+                        <TableCell>{row.author?.fullName || 'không có'}</TableCell>
                         <TableCell>{row.category?.name || `#${row.categoryId}` || 'không có'}</TableCell>
                         <TableCell>
                           <Button
@@ -116,17 +117,8 @@ const ArticleTable = ({
                                 navigate(`/admin/quan-ly-bai-viet/chinh-sua-bai-viet/${row.slug}`)
                               }
                               onView={() =>
-                                setModalItem({
-                                  ...row,
-                                  name: row.title,
-                                  author: `${row.authorId}`,
-                                  category: row.category?.name || `#${row.categoryId}`,
-                                  date: new Date(row.createdAt).toLocaleDateString('vi-VN'),
-                                  tag: row.status,
-                                  comment: 0,
-                                  status: row.status,
-                                  publishAt: row.publishAt
-                                })
+                              navigate(`/admin/quan-ly-bai-viet/chi-tiet-bai-viet/${row.slug}`)
+
                               }
                               onRestore={() => handleRestore(row.slug)}
                               onForceDelete={() => handleForceDelete(row.slug)}
