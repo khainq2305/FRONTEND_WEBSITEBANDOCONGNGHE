@@ -15,7 +15,7 @@ const VerifyEmailPage = Loadable(lazy(() => import('pages/Client/Auth/VerifyEmai
 const UserProfilePage = Loadable(lazy(() => import('pages/Client/Auth/UserProfilePage.jsx')));
 const CartPage = Loadable(lazy(() => import('pages/Client/Cart')));
 const CheckoutPage = Loadable(lazy(() => import('pages/Client/Payment')));
-const OrderConfirmation = Loadable(lazy(() => import('pages/Client/OrderConfirmation')));
+const OrderConfirmation = Loadable(lazy(() => import('pages/Client/Payment/OrderConfirmation')));
 
 const News = Loadable(lazy(() => import('pages/Client/Blog/index.jsx')));
 const NewsDetails = Loadable(lazy(() => import('pages/Client/BlogDetail')));

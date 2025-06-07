@@ -1,29 +1,29 @@
 import { Box, Select, MenuItem, Button } from '@mui/material';
 import { useState, useEffect } from 'react';
 
+/**
+ * BulkActions – chọn & thực thi thao tác hàng loạt
+ * @param {{ onSubmit: (opt:{value:string,label:string})=>void, status:string }} props
+ */
 const BulkActions = ({ onSubmit, status }) => {
   const [action, setAction] = useState('');
 
   useEffect(() => {
-    // Reset action khi tab thay đổi
-    if (status === 'trashed') {
-      setAction('restore');
-    } else {
-      setAction('trash');
-    }
+    setAction(status === 'trashed' ? 'restore' : 'trash');
   }, [status]);
 
+
   const getOptions = () => {
-    if (status === 'trashed') {
+    if (status === 'trashed')
       return [
-        { value: 'restore', label: 'Khôi phục' },
-        { value: 'forceDelete', label: 'Xoá vĩnh viễn' }
+        { value: 'restore',    label: 'Khôi phục' },
+        { value: 'forceDelete', label: 'Xoá vĩnh viễn' },
       ];
-    }
-    return [
-      { value: 'trash', label: 'Chuyển vào thùng rác' }
-    ];
+    return [{ value: 'trash', label: 'Chuyển vào thùng rác' }];
   };
+
+
+  const options = getOptions();
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -33,7 +33,7 @@ const BulkActions = ({ onSubmit, status }) => {
         onChange={(e) => setAction(e.target.value)}
         sx={{ minWidth: 180 }}
       >
-        {getOptions().map((opt) => (
+        {options.map((opt) => (
           <MenuItem key={opt.value} value={opt.value}>
             {opt.label}
           </MenuItem>
@@ -42,11 +42,14 @@ const BulkActions = ({ onSubmit, status }) => {
 
       <Button
         variant="contained"
-        onClick={() => onSubmit(action)}
-        sx={{ height: 40 }}
+        sx={{ height: 35 }}
         disabled={!action}
+        onClick={() => {
+          const opt = options.find((o) => o.value === action);
+          if (opt) onSubmit(opt);          
+        }}
       >
-        Thực Hiện
+        Thực hiện
       </Button>
     </Box>
   );

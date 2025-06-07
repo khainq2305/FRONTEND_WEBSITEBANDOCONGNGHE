@@ -12,6 +12,7 @@ const CheckoutPage = () => {
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(1);
     const [shippingFee, setShippingFee] = useState(0);
     const [productsInOrder, setProductsInOrder] = useState([]);
+const [selectedCoupon, setSelectedCoupon] = useState(null);
 
     useEffect(() => {
       console.log("[CheckoutPage] Product Formatting useEffect - STARTED");
@@ -35,6 +36,17 @@ const CheckoutPage = () => {
         console.warn("[CheckoutPage] Product Formatting useEffect - No 'selectedCartItems' in localStorage.");
       }
     }, []);
+useEffect(() => {
+  const storedCoupon = localStorage.getItem("selectedCoupon");
+  if (storedCoupon) {
+    try {
+      const parsed = JSON.parse(storedCoupon);
+      setSelectedCoupon(parsed);
+    } catch (err) {
+      console.error("❌ Lỗi khi parse selectedCoupon từ localStorage:", err);
+    }
+  }
+}, []);
 
     const totals = productsInOrder.reduce(
       (acc, item) => {
@@ -234,12 +246,14 @@ if (typeof fee !== 'undefined') {
                     />
                 </div>
                 <div className="lg:sticky lg:top-4 lg:h-fit">
-                   <OrderSummary
+<OrderSummary
   totalAmount={totals.totalAmount}
   discount={totals.discount}
   shippingFee={shippingFee}
-  selectedPaymentMethod={selectedPaymentMethod} // ✅ thêm dòng này
+  selectedPaymentMethod={selectedPaymentMethod}
+  selectedCoupon={selectedCoupon} // ✅ truyền xuống
 />
+
 
                 </div>
             </div>

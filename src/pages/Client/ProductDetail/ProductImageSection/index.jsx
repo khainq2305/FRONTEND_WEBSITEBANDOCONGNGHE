@@ -1,8 +1,7 @@
-// ProductImageSection.js
 import React, { useState } from "react";
 import FeatureSlider from "../FeatureSlider"; // Đảm bảo đường dẫn này chính xác
 
-// Icons (WishlistHeartStyledIcon, ChevronLeftIcon, ChevronRightIcon - giữ nguyên)
+// Icons (giữ nguyên)
 const WishlistHeartStyledIcon = ({ isFavoritedState, ...props }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
     fill={isFavoritedState ? "currentColor" : "white"}
@@ -34,7 +33,7 @@ export default function ProductImageSection({
   allImages = [],
   productName,
   stickyTopOffset = "md:top-6",
-  infoBoxContent, // <-- Prop mới để nhận ProductInfoBox
+  infoBoxContent,
 }) {
   const [isFavorited, setIsFavorited] = useState(false);
 
@@ -60,17 +59,21 @@ export default function ProductImageSection({
 
   const showArrows = Array.isArray(allImages) && allImages.length > 1;
 
-  const arrowButtonBaseClasses = "absolute top-1/2 transform -translate-y-1/2 p-2.5 rounded-full shadow-lg focus:outline-none z-10 transition-all duration-200 ease-in-out opacity-0 group-hover:opacity-100";
-  const arrowButtonDefaultAppearance = "bg-white text-gray-700";
-  const arrowButtonHoverAppearance = "hover:bg-primary hover:text-white";
+  // --- BẮT ĐẦU SỬA LỖI ---
+  // Thay đổi cách hiển thị: Mặc định hơi mờ (opacity-60), khi hover vào vùng ảnh (`group`) thì hiện rõ (group-hover:opacity-100)
+  const arrowButtonBaseClasses = "absolute top-1/2 transform -translate-y-1/2 p-2.5 rounded-full shadow-lg focus:outline-none z-10 transition-opacity duration-200 ease-in-out opacity-60 group-hover:opacity-100";
+  
+  // Nền mặc định hơi trong suốt để giao diện đẹp hơn
+  const arrowButtonDefaultAppearance = "bg-white/70 backdrop-blur-sm text-gray-800";
+  
+  // Khi hover trực tiếp vào nút thì nền trắng đục
+  const arrowButtonHoverAppearance = "hover:bg-white";
+  // --- KẾT THÚC SỬA LỖI ---
 
   return (
-    // Khối div gốc của ProductImageSection, có thể không cần padding lớn ở đây nữa
-    // vì ProductInfoBox sẽ có padding riêng.
-    <div className={`md:sticky ${stickyTopOffset} md:z-10 `}>
-      <div className="bg-white md:shadow-xl md:rounded-lg md:p-4 space-y-4"> {/* Di chuyển shadow, rounded, p-4 vào đây */}
-        {/* Khối ảnh chính và các nút */}
-        <div className="group w-full aspect-[4/3] border border-gray-200 rounded-lg overflow-hidden relative shadow-sm p-15"> {/* Giữ padding cho ảnh chính nếu muốn ảnh nhỏ */}
+    <div className={`md:sticky ${stickyTopOffset} md:z-10 min-w-0`}>
+      <div className="bg-white md:shadow-xl md:rounded-lg md:p-4 space-y-4">
+        <div className="group w-full aspect-[4/3] border border-gray-200 rounded-lg overflow-hidden relative shadow-sm p-4">
           <img
             src={mainImage}
             alt={productName || "Product image"}
@@ -103,18 +106,16 @@ export default function ProductImageSection({
           )}
         </div>
         
-        {/* FeatureSlider */}
         {FeatureSlider && (
-            <FeatureSlider
-                images={allImages}
-                currentImage={mainImage}
-                onSelect={(imgFullUrl) => setMainImage(imgFullUrl)}
-            />
+          <FeatureSlider
+            images={allImages}
+            currentImage={mainImage}
+            onSelect={(imgFullUrl) => setMainImage(imgFullUrl)}
+          />
         )}
 
-        {/* Render khối thông tin sản phẩm (ProductInfoBox) nếu được truyền vào */}
         {infoBoxContent && (
-          <div className="mt-4"> {/* Thêm khoảng cách với FeatureSlider nếu cần */}
+          <div className="mt-4">
             {infoBoxContent}
           </div>
         )}

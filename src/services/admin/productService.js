@@ -9,11 +9,13 @@ export const productService = {
 
   getCategoryTree: () => get(`${base}${API_ENDPOINT.admin.product.getCategoryTree}`),
   getBrandList: () => get(`${base}${API_ENDPOINT.admin.product.getBrandList}`),
- getById: (id) => get(`${base}${API_ENDPOINT.admin.product.getById(id)}`),
+   getById: (slug) =>
+    get(`${base}${API_ENDPOINT.admin.product.getById(slug)}`),
+
   softDelete: (id) => del(`${base}${API_ENDPOINT.admin.product.softDelete(id)}`),
   softDeleteMany: (ids) => post(`${base}${API_ENDPOINT.admin.product.softDeleteMany}`, { ids }),
-update: (id, data) => put(`${base}/product/update/${id}`, data),
-
+update: (slug, data) => put(`${base}/product/update/${slug}`, data),
+forceDeleteMany: (ids) => post(`${base}${API_ENDPOINT.admin.product.forceDeleteMany}`, { ids }) ,
   restore: (id) => patch(`${base}${API_ENDPOINT.admin.product.restore(id)}`),
   restoreMany: (ids) => post(`${base}${API_ENDPOINT.admin.product.restoreMany}`, { ids }),
   updateOrderIndexBulk: (data) => post(`${base}${API_ENDPOINT.admin.product.updateOrderIndexBulk}`, data),

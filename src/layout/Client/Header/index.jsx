@@ -26,6 +26,7 @@ const Header = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const [flatCategoriesFromAPI, setFlatCategoriesFromAPI] = useState([]);
+const [cartItemCount, setCartItemCount] = useState(0);
 
  const accountDropdownTimerRef = useRef(null);
  const handleAccountDropdownEnter = () => {
@@ -37,7 +38,20 @@ const handleAccountDropdownLeave = () => {
     setIsDropdownOpen(false);
   }, 300);
 };
+useEffect(() => {
+  const fetchCartItemCount = async () => {
+    try {
+      const res = await import('services/client/cartService').then(m => m.cartService.getCart());
+      const items = res.data?.cartItems || [];
+      const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
+      setCartItemCount(totalQuantity);
+    } catch (err) {
+      console.error('❌ Lỗi khi lấy giỏ hàng:', err);
+    }
+  };
 
+  fetchCartItemCount();
+}, []);
   useEffect(() => {
 const fetchCategories = async () => {
   try {
@@ -124,10 +138,10 @@ useEffect(() => {
 
  const handleLogout = async () => {
   try {
-    // ✅ Gọi API logout (nếu có)
-    await authService.logout(); // Đảm bảo API này hoạt động đúng (server xóa session)
+    
+    await authService.logout(); 
 
-    // ✅ Xóa token khỏi LocalStorage và SessionStorage
+   
     localStorage.removeItem("token");
     sessionStorage.removeItem("token");
 
@@ -231,7 +245,7 @@ useEffect(() => {
 
   return (
     <>
-      <header className="bg-primary-gradient text-white w-full shadow-md z-30 relative">
+      <header className="sticky top-0 bg-primary-gradient text-white w-full shadow-md z-30 relative">
         {/* Mobile & Tablet View */}
         <div className="lg:hidden">
           <div className="flex justify-center items-center pt-2.5 pb-1.5 px-4">
@@ -343,10 +357,18 @@ useEffect(() => {
                   </div>
                 )}
               </div>
-              <button className="flex flex-col items-center gap-1 px-2 py-2 rounded-lg hover-primary transition-all">
-                <ShoppingCart className="w-6 h-6" strokeWidth={1.8} color="#fff" />
-                <span className="text-white text-[11px] font-semibold leading-tight text-center">Giỏ hàng</span>
-              </button>
+           <Link to="/cart" className="relative flex flex-col items-center gap-1 px-2 py-2 rounded-lg hover-primary transition-all">
+  <div className="relative">
+    <ShoppingCart className="w-6 h-6" strokeWidth={1.8} color="#fff" />
+    {cartItemCount > 0 && (
+      <span className="absolute -top-1.5 -right-2 bg-red-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold shadow-md">
+        {cartItemCount}
+      </span>
+    )}
+  </div>
+  <span className="text-white text-[11px] font-semibold leading-tight text-center">Giỏ hàng</span>
+</Link>
+
 
 <div
   className="hidden lg:block relative"

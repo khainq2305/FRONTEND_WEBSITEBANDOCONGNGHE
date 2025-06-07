@@ -5,13 +5,14 @@ import {
   Checkbox, IconButton, Menu, MenuItem
 } from '@mui/material';
 import { toast } from 'react-toastify';
-
-import { couponService } from '../../../services/admin/couponService';
-import MUIPagination from '../../../components/common/Pagination';
 import { useNavigate } from 'react-router-dom';
-import { confirmDelete } from '../../../components/common/ConfirmDeleteDialog';
-import EditIcon from '@mui/icons-material/Edit';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+
+import MUIPagination from '../../../components/common/Pagination';
+import { couponService } from '../../../services/admin/couponService';
+import { confirmDelete } from '../../../components/common/ConfirmDeleteDialog';
+import LoaderAdmin from '../../../components/Admin/LoaderVip';
+import HighlightText from '../../../components/Admin/HighlightText';
 
 export default function CouponList() {
   const [coupons, setCoupons] = useState([]);
@@ -20,8 +21,11 @@ export default function CouponList() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const itemsPerPage = 10;
   const [bulkAction, setBulkAction] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [summaryCounts, setSummaryCounts] = useState({ total: 0, active: 0, inactive: 0, deleted: 0 });
+
+  const itemsPerPage = 10;
   const navigate = useNavigate();
 
   const [selectedId, setSelectedId] = useState(null);
@@ -32,9 +36,7 @@ export default function CouponList() {
         { label: 'Khôi phục', value: 'restore' },
         { label: 'Xoá vĩnh viễn', value: 'forceDelete' }
       ]
-    : [
-        { label: 'Chuyển vào thùng rác', value: 'delete' }
-      ];
+    : [{ label: 'Chuyển vào thùng rác', value: 'delete' }];
 
   const openMenu = (e, id) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -52,49 +54,93 @@ export default function CouponList() {
   }, [search, statusFilter, currentPage]);
 
   const fetchCoupons = async () => {
+    setLoading(true);
     try {
-      const res = await couponService.list({ search, page: currentPage, limit: itemsPerPage, status: statusFilter });
+      const res = await couponService.list({
+        search,
+        page: currentPage,
+        limit: itemsPerPage,
+        status: statusFilter
+      });
       setCoupons(res.data.data || []);
       setTotalItems(res.data.pagination.totalItems);
+      setSummaryCounts(res.data.summary || {});
       setSelectedIds([]);
     } catch (err) {
-      console.error('Lỗi khi load danh sách:', err);
+      toast.error('Lỗi khi tải danh sách');
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleSingleAction = async (actionType) => {
-  if (!selectedId) return;
-  let confirmed = false;
+    if (!selectedId) return;
+    let confirmed = false;
 
-  try {
-    if (actionType === 'delete') {
-      confirmed = await confirmDelete('xoá', 'mã này');
-      if (confirmed) {
-        await couponService.softDelete(selectedId);
-        toast.success('Đã xoá tạm thời');
+    try {
+      if (actionType === 'delete') {
+        confirmed = await confirmDelete('xoá', 'mã này');
+        if (confirmed) {
+          await couponService.softDelete(selectedId);
+          toast.success('Đã xoá tạm thời');
+        }
+      } else if (actionType === 'restore') {
+        confirmed = await confirmDelete('khôi phục', 'mã này');
+        if (confirmed) {
+          await couponService.restore(selectedId);
+          toast.success('Đã khôi phục');
+        }
+      } else if (actionType === 'forceDelete') {
+        confirmed = await confirmDelete('xoá vĩnh viễn', 'mã này');
+        if (confirmed) {
+          await couponService.forceDelete(selectedId);
+          toast.success('Đã xoá vĩnh viễn');
+        }
       }
-    } else if (actionType === 'restore') {
-      confirmed = await confirmDelete('khôi phục', 'mã này');
-      if (confirmed) {
-        await couponService.restore(selectedId);
-        toast.success('Đã khôi phục');
-      }
-    } else if (actionType === 'forceDelete') {
-      confirmed = await confirmDelete('xoá vĩnh viễn', 'mã này');
-      if (confirmed) {
-        await couponService.forceDelete(selectedId);
-        toast.success('Đã xoá vĩnh viễn');
-      }
+    } catch (err) {
+      toast.error('Thao tác thất bại');
+      console.error(err);
     }
-  } catch (err) {
-    toast.error('Thao tác thất bại');
-    console.error(err);
-  }
 
-  closeMenu();
-  fetchCoupons();
-};
+    closeMenu();
+    fetchCoupons();
+  };
 
+  const handleApplyBulkAction = async () => {
+    if (selectedIds.length === 0) return;
+    let confirmed = false;
+
+    try {
+      if (bulkAction === 'delete') {
+        confirmed = await confirmDelete('xoá', 'các mã đã chọn');
+        if (confirmed) {
+          await couponService.softDeleteMany(selectedIds);
+          toast.success('Đã xoá tạm thời các mã');
+        }
+      } else if (bulkAction === 'restore') {
+        confirmed = await confirmDelete('khôi phục', 'các mã đã chọn');
+        if (confirmed) {
+          await couponService.restoreMany(selectedIds);
+          toast.success('Đã khôi phục các mã');
+        }
+      } else if (bulkAction === 'forceDelete') {
+        confirmed = await confirmDelete('xoá vĩnh viễn', 'các mã đã chọn');
+        if (confirmed) {
+          await couponService.forceDeleteMany(selectedIds);
+          toast.success('Đã xoá vĩnh viễn các mã');
+        }
+      }
+
+      if (confirmed) {
+        fetchCoupons();
+        setBulkAction('');
+      }
+    } catch (err) {
+      toast.error('Thao tác hàng loạt thất bại');
+      console.error(err);
+    }
+  };
 
   const handleTabChange = (e, newValue) => {
     setStatusFilter(newValue);
@@ -111,134 +157,111 @@ export default function CouponList() {
     setBulkAction(e.target.value);
   };
 
-const handleApplyBulkAction = async () => {
-  if (selectedIds.length === 0) return;
-  let confirmed = false;
-
-  try {
-    if (bulkAction === 'delete') {
-      confirmed = await confirmDelete('xoá', 'các mã đã chọn');
-      if (confirmed) {
-        await couponService.softDeleteMany(selectedIds);
-        toast.success('Đã xoá tạm thời các mã');
-      }
-    } else if (bulkAction === 'restore') {
-      confirmed = await confirmDelete('khôi phục', 'các mã đã chọn');
-      if (confirmed) {
-        await couponService.restoreMany(selectedIds);
-        toast.success('Đã khôi phục các mã');
-      }
-    } else if (bulkAction === 'forceDelete') {
-      confirmed = await confirmDelete('xoá vĩnh viễn', 'các mã đã chọn');
-      if (confirmed) {
-        await couponService.forceDeleteMany(selectedIds);
-        toast.success('Đã xoá vĩnh viễn các mã');
-      }
-    }
-
-    if (confirmed) {
-      fetchCoupons();
-      setBulkAction('');
-    }
-  } catch (err) {
-    toast.error('❌ Thao tác hàng loạt thất bại');
-    console.error(err);
-  }
-};
-
-
   const isAllSelected = coupons.length > 0 && selectedIds.length === coupons.length;
   const toggleSelectAll = () => {
     if (isAllSelected) setSelectedIds([]);
     else setSelectedIds(coupons.map(c => c.id));
   };
 
-  const getDiscountLabel = (coupon) => coupon.discountType === 'percent'
-    ? `${coupon.discountValue}%`
-    : `${Number(coupon.discountValue).toLocaleString()}₫`;
+  const getDiscountLabel = (coupon) =>
+    coupon.discountType === 'percent'
+      ? `${coupon.discountValue}%`
+      : `${Number(coupon.discountValue).toLocaleString()}₫`;
 
-  const formatDate = (date) => date ? new Date(date).toLocaleDateString('vi-VN') : '---';
+  const formatDate = (date) =>
+    date ? new Date(date).toLocaleDateString('vi-VN') : '---';
 
   return (
     <Box>
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-  <Typography variant="h4">Danh sách mã giảm giá</Typography>
-  <Button variant="contained" color="primary" onClick={() => navigate('/admin/coupons/add')}>
-    Thêm Mới
-  </Button>
-</Box>
+      {loading && <LoaderAdmin fullscreen />}
+
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h4">Danh sách mã giảm giá</Typography>
+        <Button variant="contained" color="primary" onClick={() => navigate('/admin/coupons/create')}>
+          Thêm Mới
+        </Button>
+      </Box>
 
       <Box sx={{ borderRadius: 2, p: 2, bgcolor: 'white', mb: 2 }}>
-       <Tabs
-  value={statusFilter}
-  onChange={handleTabChange}
-  sx={{
-    mb: 2,
-    minHeight: 'unset',
-    '& .MuiTabs-flexContainer': {
-      gap: 1,
-    },
-    '& .MuiTab-root': {
-      textTransform: 'none',
-      borderRadius: '6px',
-      px: 2,
-      py: 0.5,
-      minHeight: '32px',
-      minWidth: 'auto',
-      fontWeight: 500,
-      backgroundColor: '#fff',
-      color: '#007bff',
-      border: '1px solid #007bff',
-      '&.Mui-selected': {
-        backgroundColor: '#007bff',
-        color: '#fff',
-      },
-      '&:hover': {
-        backgroundColor: '#e6f0ff',
-      }
-    },
-  }}
-  TabIndicatorProps={{ style: { display: 'none' } }} // Ẩn thanh gạch dưới
->
-  <Tab label="Tất Cả" value="all" />
-  <Tab label="Hoạt Động" value="active" />
-  <Tab label="Tạm Tắt" value="inactive" />
-  <Tab label="Thùng Rác" value="deleted" />
-</Tabs>
+        <Tabs
+          value={statusFilter}
+          onChange={handleTabChange}
+          sx={{
+            mb: 2,
+            '& .MuiTabs-flexContainer': { gap: 0.4 },
+            '& .MuiTab-root': {
+              textTransform: 'none',
+              borderRadius: '6px',
+              px: 2,
+              py: '4px',
+              minHeight: '32px',
+              fontSize: 14,
+              fontWeight: 500,
+              backgroundColor: '#fff',
+              color: '#333',
+              border: '1px solid transparent',
+              '&:not(.Mui-selected):hover': {
+                backgroundColor: '#f0f7ff',
+                borderColor: '#d0e2ff',
+              },
+              '&.Mui-selected': {
+                backgroundColor: '#007bff',
+                color: '#fff',
+                borderColor: '#007bff',
+              },
+            }
+          }}
+          TabIndicatorProps={{ style: { display: 'none' } }}
+        >
+          <Tab label={`Tất Cả (${summaryCounts.total || 0})`} value="all" />
+          <Tab label={`Hoạt Động (${summaryCounts.active || 0})`} value="active" />
+          <Tab label={`Tạm Tắt (${summaryCounts.inactive || 0})`} value="inactive" />
+          <Tab label={`Thùng Rác (${summaryCounts.deleted || 0})`} value="deleted" />
+        </Tabs>
 
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <FormControl size="small" sx={{ minWidth: 200 }}>
+              <InputLabel id="bulk-action-label">Hành động hàng loạt</InputLabel>
+              <Select
+                labelId="bulk-action-label"
+                value={bulkAction}
+                onChange={handleBulkChange}
+                label="Hành động hàng loạt"
+              >
+                {statusFilter !== 'deleted' && <MenuItem value="delete">Chuyển vào thùng rác</MenuItem>}
+                {statusFilter === 'deleted' && [
+                  <MenuItem key="restore" value="restore">Khôi phục</MenuItem>,
+                  <MenuItem key="forceDelete" value="forceDelete">Xoá vĩnh viễn</MenuItem>
+                ]}
+              </Select>
+            </FormControl>
 
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-          <FormControl size="small" sx={{ minWidth: 200 }}>
-            <InputLabel id="bulk-action-label">Hành động hàng loạt</InputLabel>
-            <Select
-  labelId="bulk-action-label"
-  id="bulk-action-select"
-  value={bulkAction}
-  onChange={handleBulkChange}
-  label="Hành động hàng loạt"
->
-  {statusFilter !== 'deleted' && <MenuItem value="delete">Chuyển vào thùng rác</MenuItem>}
-  {statusFilter === 'deleted' && [
-    <MenuItem key="restore" value="restore">Khôi phục</MenuItem>,
-    <MenuItem key="forceDelete" value="forceDelete">Xoá vĩnh viễn</MenuItem>
-  ]}
-</Select>
-
-          </FormControl>
-
-          <Button variant="contained" onClick={handleApplyBulkAction} disabled={!bulkAction || selectedIds.length === 0}>
-            Áp Dụng
-          </Button>
+            <Button
+              variant="contained"
+              onClick={handleApplyBulkAction}
+              disabled={!bulkAction || selectedIds.length === 0}
+              sx={{
+                minWidth: 100,
+                backgroundColor: (!bulkAction || selectedIds.length === 0) ? '#f5f5f5' : '#007bff',
+                color: (!bulkAction || selectedIds.length === 0) ? '#aaa' : '#fff',
+                boxShadow: 'none',
+                '&:hover': {
+                  backgroundColor: (!bulkAction || selectedIds.length === 0) ? '#f5f5f5' : '#0066d6'
+                }
+              }}
+            >
+              Áp Dụng
+            </Button>
+          </Box>
 
           <TextField
             placeholder="Tìm kiếm..."
             size="small"
             value={search}
             onChange={handleSearchChange}
-            sx={{ flexGrow: 1, minWidth: 250 }}
+            sx={{ minWidth: 300, ml: 'auto' }}
           />
-
-       
         </Box>
       </Box>
 
@@ -278,17 +301,30 @@ const handleApplyBulkAction = async () => {
                     />
                   </TableCell>
                   <TableCell>{(currentPage - 1) * itemsPerPage + idx + 1}</TableCell>
-                  <TableCell>{coupon.code}</TableCell>
-                  <TableCell>{coupon.discountType === 'percent' ? 'Phần trăm' : 'Số tiền'}</TableCell>
+                  <TableCell>
+                    <HighlightText text={coupon.code} highlight={search} />
+                  </TableCell>
+                  <TableCell>
+                    {coupon.discountType === 'percent'
+                      ? 'Phần trăm'
+                      : coupon.discountType === 'amount'
+                      ? 'Số tiền'
+                      : 'Miễn phí vận chuyển'}
+                  </TableCell>
                   <TableCell>{getDiscountLabel(coupon)}</TableCell>
                   <TableCell>{coupon.usedCount}/{coupon.totalQuantity}</TableCell>
                   <TableCell>{formatDate(coupon.startTime)} - {formatDate(coupon.endTime)}</TableCell>
                   <TableCell>
-                    <Chip label={coupon.isActive ? 'Hoạt động' : 'Tạm ngưng'} color={coupon.isActive ? 'success' : 'default'} size="small" />
+                    <Chip
+                      label={coupon.isActive ? 'Hoạt động' : 'Tạm ngưng'}
+                      color={coupon.isActive ? 'success' : 'default'}
+                      size="small"
+                    />
                   </TableCell>
                   <TableCell align="right">
-                    <IconButton onClick={() => navigate(`/admin/coupons/edit/${coupon.id}`)}><EditIcon fontSize="small" /></IconButton>
-                    <IconButton onClick={(e) => openMenu(e, coupon.id)}><MoreVertIcon fontSize="small" /></IconButton>
+                    <IconButton onClick={(e) => openMenu(e, coupon.id)}>
+                      <MoreVertIcon fontSize="small" />
+                    </IconButton>
                   </TableCell>
                 </TableRow>
               ))
@@ -306,6 +342,13 @@ const handleApplyBulkAction = async () => {
           transformOrigin={{ vertical: 'top', horizontal: 'left' }}
           PaperProps={{ sx: { minWidth: 180, p: 1 } }}
         >
+          <MenuItem onClick={() => {
+            navigate(`/admin/coupons/edit/${selectedId}`);
+            closeMenu();
+          }}>
+            Sửa
+          </MenuItem>
+
           {menuActions.map((action) => (
             <MenuItem
               key={action.value}
@@ -314,6 +357,9 @@ const handleApplyBulkAction = async () => {
                 closeMenu();
               }}
             >
+              {action.label === 'Khôi phục' && ''}
+              {action.label === 'Xoá vĩnh viễn' && ''}
+              {action.label === 'Chuyển vào thùng rác' && ''}
               {action.label}
             </MenuItem>
           ))}

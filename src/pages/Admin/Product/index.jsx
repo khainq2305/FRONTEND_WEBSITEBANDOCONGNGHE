@@ -1,4 +1,3 @@
-// src/pages/admin/products/ProductListPage.jsx
 import React, { useEffect, useState, useRef } from 'react';
 import { productService } from '../../../services/admin/productService';
 import {
@@ -42,6 +41,12 @@ export default function ProductListPage() {
   const [filter, setFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [tabCounts, setTabCounts] = useState({
+    all: 0,
+    active: 0,
+    inactive: 0,
+    deleted: 0
+  });
 
   const [searchText, setSearchText] = useState('');
   const [selectedIds, setSelectedIds] = useState([]);
@@ -78,15 +83,25 @@ export default function ProductListPage() {
     fetchCategories();
   }, []);
 
-  const flattenCategories = (tree, prefix = '') =>
-    tree.reduce((acc, cat) => {
-      const label = prefix ? `${prefix} > ${cat.name}` : cat.name;
-      acc.push({ id: cat.id, name: label });
-      if (cat.children?.length) {
-        acc.push(...flattenCategories(cat.children, label));
-      }
-      return acc;
-    }, []);
+ const flattenCategories = (nodes, depth = 0) => {
+  const result = [];
+  for (const node of nodes) {
+   
+    const indent = '  '.repeat(depth);
+   
+    const label = depth > 0
+      ? `${indent}├─ ${node.name}`
+      : node.name;
+    result.push({ id: node.id, name: label });
+
+  
+    if (node.children && node.children.length > 0) {
+      result.push(...flattenCategories(node.children, depth + 1));
+    }
+  }
+  return result;
+};
+
 
   useEffect(() => {
     fetchData();
@@ -110,6 +125,7 @@ export default function ProductListPage() {
       if (res.data && res.data.data) {
         setProducts(res.data.data || []);
         setTotalItems(res.data.pagination.totalItems || 0);
+        setTabCounts(res.data.counts || {});
       } else {
         setProducts([]);
         setTotalItems(0);
@@ -118,6 +134,7 @@ export default function ProductListPage() {
       }
     } catch (error) {
       setTotalItems(0);
+      console.error('Lỗi khi tải dữ liệu sản phẩm:', error); // Thêm log chi tiết lỗi
     } finally {
       setIsLoading(false);
     }
@@ -126,20 +143,39 @@ export default function ProductListPage() {
   const handleDragEnd = async ({ active, over }) => {
     if (!over || active.id === over.id) return;
 
-    const oldIndex = filteredProducts.findIndex((p) => String(p.id) === String(active.id));
-    const newIndex = filteredProducts.findIndex((p) => String(p.id) === String(over.id));
+    // Lấy danh sách sản phẩm hiện tại để xác định index
+    const currentProductList = products.filter(p => {
+      // Logic lọc tương tự như filteredProducts để đảm bảo đúng thứ tự hiển thị
+      if (filter === 'active' && (!p.isActive || p.deletedAt)) return false;
+      if (filter === 'inactive' && (p.isActive || p.deletedAt)) return false;
+      if (filter === 'deleted' && !p.deletedAt) return false;
+      if (filter === 'all' && p.deletedAt) return false;
+      if (filter !== 'deleted' && p.deletedAt) return false;
+      if (selectedCategoryId && String(p.category?.id) !== String(selectedCategoryId)) return false;
+      const kw = searchText.toLowerCase().trim();
+      if (kw) {
+        return p.name?.toLowerCase().includes(kw) || p.slug?.toLowerCase().includes(kw) || p.category?.name?.toLowerCase().includes(kw);
+      }
+      return true;
+    });
+
+
+    const oldIndex = currentProductList.findIndex((p) => String(p.id) === String(active.id));
+    const newIndex = currentProductList.findIndex((p) => String(p.id) === String(over.id));
 
     if (oldIndex < 0 || newIndex < 0) return;
 
-    const reordered = arrayMove(filteredProducts, oldIndex, newIndex);
+    const reordered = arrayMove(currentProductList, oldIndex, newIndex);
 
+    // Tạo payload với orderIndex dựa trên vị trí mới trong danh sách đã sắp xếp
     const payload = reordered.map((p, idx) => ({ id: p.id, orderIndex: idx }));
 
     try {
-      setIsLoading(true); // Thêm isLoading
+      setIsLoading(true); 
       await productService.updateOrderIndexBulk({ items: payload });
       toast.success('Đã cập nhật thứ tự sản phẩm.');
-      await fetchData();
+      // Gọi lại fetchData để đảm bảo dữ liệu và orderIndex được tải lại chính xác từ server
+      await fetchData(); 
     } catch (err) {
       console.error('Lỗi cập nhật thứ tự:', err);
       toast.error('Lỗi cập nhật thứ tự sản phẩm.');
@@ -167,39 +203,48 @@ export default function ProductListPage() {
   const toggleSelectOne = (id) => setSelectedIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
 
   const handleBulkAction = async () => {
-    if (!bulkAction || !selectedIds.length) return;
-    const labels = {
-      delete: 'xoá',
-      restore: 'khôi phục',
-      forceDelete: 'xoá vĩnh viễn'
-    };
-
-    if (!(await confirmDelete(labels[bulkAction], ` ${selectedIds.length} sản phẩm đã chọn`))) return;
-
-    setIsLoading(true);
-    try {
-      if (bulkAction === 'delete') {
-        await productService.softDeleteMany(selectedIds);
-        toast.success('Đã xóa tạm thời các sản phẩm đã chọn');
-        setProducts((prev) => prev.map((p) => (selectedIds.includes(p.id) ? { ...p, deletedAt: new Date().toISOString() } : p)));
-      } else if (bulkAction === 'restore') {
-        await productService.restoreMany(selectedIds);
-        toast.success('Đã khôi phục các sản phẩm đã chọn');
-        setProducts((prev) => prev.map((p) => (selectedIds.includes(p.id) ? { ...p, deletedAt: null } : p)));
-      } else {
-        await Promise.all(selectedIds.map((id) => productService.forceDelete(id)));
-        toast.success('Đã xóa vĩnh viễn các sản phẩm đã chọn');
-        setProducts((prev) => prev.filter((p) => !selectedIds.includes(p.id)));
-      }
-      setSelectedIds([]);
-      setBulkAction('');
-    } catch (err) {
-      console.error('Lỗi bulk action:', err);
-      toast.error(`Lỗi khi ${labels[bulkAction]} hàng loạt.`);
-    } finally {
-      setIsLoading(false);
-    }
+  if (!bulkAction || !selectedIds.length) return;
+  const labels = {
+    delete: 'xoá',
+    restore: 'khôi phục',
+    forceDelete: 'xoá vĩnh viễn'
   };
+
+  if (!(await confirmDelete(labels[bulkAction], ` ${selectedIds.length} sản phẩm đã chọn`))) return;
+
+  setIsLoading(true);
+  try {
+    if (bulkAction === 'delete') {
+      await productService.softDeleteMany(selectedIds);
+      toast.success('Đã xóa tạm thời các sản phẩm đã chọn');
+    } else if (bulkAction === 'restore') {
+      await productService.restoreMany(selectedIds);
+      toast.success('Đã khôi phục các sản phẩm đã chọn');
+    } else {
+      // ✅ forceDelete có thể bị chặn bởi backend => cần hiển thị cảnh báo rõ ràng
+      await productService.forceDeleteMany(selectedIds);
+      toast.success('Đã xóa vĩnh viễn các sản phẩm đã chọn');
+    }
+
+    setSelectedIds([]);
+    setBulkAction('');
+    await fetchData(); // Cập nhật lại dữ liệu sau khi thao tác xong
+
+  } catch (err) {
+    console.error('Lỗi bulk action:', err);
+
+
+    if (err?.response?.data?.message) {
+      toast.warning(err.response.data.message);
+    } else {
+      toast.error(`Lỗi khi ${labels[bulkAction]} hàng loạt.`);
+    }
+
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   const handleDeleteOne = async (id, name) => {
     if (!(await confirmDelete('xoá', name))) return;
@@ -207,8 +252,8 @@ export default function ProductListPage() {
     try {
       await productService.softDelete(id);
       toast.success(`Đã xóa sản phẩm "${name}" thành công`);
-
-      setProducts((prevProducts) => prevProducts.map((p) => (p.id === id ? { ...p, deletedAt: new Date().toISOString() } : p)));
+      // Gọi lại fetchData để cập nhật UI sau khi xóa mềm
+      await fetchData(); 
       setSelectedIds((prev) => prev.filter((pid) => pid !== id));
     } catch (err) {
       console.error('Xóa mềm lỗi:', err);
@@ -224,8 +269,8 @@ export default function ProductListPage() {
     try {
       await productService.restore(id);
       toast.success(`Đã khôi phục sản phẩm "${name}" thành công`);
-
-      setProducts((prevProducts) => prevProducts.map((p) => (p.id === id ? { ...p, deletedAt: null } : p)));
+      // Gọi lại fetchData để cập nhật UI sau khi khôi phục
+      await fetchData(); 
       setSelectedIds((prev) => prev.filter((pid) => pid !== id));
     } catch (err) {
       console.error('Khôi phục lỗi:', err);
@@ -235,28 +280,35 @@ export default function ProductListPage() {
     }
   };
 
-  const handleForceDelete = async (id, name) => {
-    if (!(await confirmDelete('xoá vĩnh viễn', name))) return;
-    setIsLoading(true);
-    try {
-      await productService.forceDelete(id);
-      toast.success(`Đã xoá vĩnh viễn "${name}"`);
-      setProducts((prev) => prev.filter((p) => p.id !== id));
-      setSelectedIds((prev) => prev.filter((pid) => pid !== id));
-    } catch (err) {
-      console.error('Xóa vĩnh viễn lỗi:', err);
+const handleForceDelete = async (id, name) => {
+  if (!(await confirmDelete('xoá vĩnh viễn', name))) return;
+  setIsLoading(true);
+  try {
+    await productService.forceDelete(id);
+    toast.success(`Đã xoá vĩnh viễn "${name}"`);
+    await fetchData();
+    setSelectedIds((prev) => prev.filter((pid) => pid !== id));
+  } catch (err) {
+    console.error('Xóa vĩnh viễn lỗi:', err);
+
+    // 🔥 THÊM xử lý lỗi chi tiết từ backend
+    if (err?.response?.data?.message) {
+      toast.warning(err.response.data.message); // hoặc toast.error nếu bạn thích
+    } else {
       toast.error(`Lỗi khi xoá vĩnh viễn sản phẩm "${name}".`);
-    } finally {
-      setIsLoading(false);
     }
-  };
+
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const filteredProducts = products.filter((p) => {
     if (filter === 'active' && (!p.isActive || p.deletedAt)) return false;
     if (filter === 'inactive' && (p.isActive || p.deletedAt)) return false;
     if (filter === 'deleted' && !p.deletedAt) return false;
-    if (filter === 'all' && p.deletedAt) return false;
-    if (filter !== 'deleted' && p.deletedAt) return false;
+    if (filter === 'all' && p.deletedAt) return false; // Thêm điều kiện này để 'all' không hiển thị sản phẩm đã xóa tạm thời
+    if (filter !== 'deleted' && p.deletedAt) return false; // Đảm bảo chỉ tab 'deleted' hiển thị sản phẩm đã xóa tạm thời
     if (selectedCategoryId && String(p.category?.id) !== String(selectedCategoryId)) return false;
 
     const kw = searchText.toLowerCase().trim();
@@ -285,7 +337,7 @@ export default function ProductListPage() {
 
   return (
     <Box>
-      <Toastify />
+
       {isLoading && <LoaderAdmin fullscreen />}
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -297,14 +349,19 @@ export default function ProductListPage() {
 
       <Box sx={{ p: 2, mb: 2, border: '1px solid #eee', borderRadius: 2, bgcolor: '#fafafa' }}>
         <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
-          {['Tất Cả', 'Hoạt Động', 'Tạm Tắt', 'Thùng Rác'].map((lbl, i) => {
-            const val = ['all', 'active', 'inactive', 'deleted'][i];
-            const isActiveFilter = filter === val;
+          {[
+            { label: 'Tất Cả', value: 'all' },
+            { label: 'Hoạt Động', value: 'active' },
+            { label: 'Tạm Tắt', value: 'inactive' },
+            { label: 'Thùng Rác', value: 'deleted' }
+          ].map(({ label, value }) => {
+            const isActiveFilter = filter === value;
+            const count = tabCounts[value] || 0;
 
             return (
               <Box
-                key={val}
-                onClick={() => setFilter(val)}
+                key={value}
+                onClick={() => setFilter(value)}
                 sx={{
                   px: 2,
                   py: 0.8,
@@ -320,7 +377,7 @@ export default function ProductListPage() {
                   }
                 }}
               >
-                {lbl}
+                {`${label} (${count})`}
               </Box>
             );
           })}
@@ -362,23 +419,30 @@ export default function ProductListPage() {
               Áp Dụng
             </Button>
 
-            <FormControl size="small" sx={{ minWidth: 180, mt: '-4px' }}>
-              <InputLabel id="cat-filter">Danh mục</InputLabel>
-              <Select
-                labelId="cat-filter"
-                value={selectedCategoryId}
-                label="Danh mục"
-                onChange={(e) => setSelectedCategoryId(e.target.value)}
-                // notched
-              >
-                <MuiMenuItem value="">Tất cả</MuiMenuItem>
-                {categoryOptions.map((c) => (
-                  <MuiMenuItem key={c.id} value={c.id}>
-                    {c.name}
-                  </MuiMenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <FormControl size="small" sx={{ minWidth: 280, mt: '-4px' }}>
+  <InputLabel id="cat-filter">Danh mục</InputLabel>
+  <Select
+    labelId="cat-filter"
+    value={selectedCategoryId}
+    label="Danh mục"
+    onChange={(e) => setSelectedCategoryId(e.target.value)}
+    MenuProps={{
+      PaperProps: {
+        style: {
+          minWidth: 300,    // đặt chiều rộng tối thiểu cho dropdown
+        },
+      },
+    }}
+  >
+    <MuiMenuItem value="">Tất cả</MuiMenuItem>
+    {categoryOptions.map((c) => (
+      <MuiMenuItem key={c.id} value={c.id}>
+        {c.name}
+      </MuiMenuItem>
+    ))}
+  </Select>
+</FormControl>
+
           </Box>
           <TextField
             placeholder="Tìm kiếm..."
@@ -466,7 +530,7 @@ export default function ProductListPage() {
                           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                             <IconButton size="small" onClick={(e) => handleMenuOpen(e, product)}>
                               {' '}
-                              {/* size="small" */}
+                            
                               <MoreVertIcon />
                             </IconButton>
                             <ImportExportIcon
@@ -534,7 +598,7 @@ export default function ProductListPage() {
             <>
               <MenuItem
                 onClick={() => {
-                  window.location.href = `/admin/products/edit/${menuProduct.id}`;
+                  window.location.href = `/admin/products/edit/${menuProduct.slug}`;
                 }}
               >
                 Sửa

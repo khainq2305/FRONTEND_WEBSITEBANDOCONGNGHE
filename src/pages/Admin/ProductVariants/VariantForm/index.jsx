@@ -28,7 +28,7 @@ const [isLoading, setIsLoading] = useState(false);
     handleSubmit,
     reset,
     setValue,
-      setError, // ⬅️ thêm cái này
+      setError, 
     formState: { errors }
   } = useForm({
     defaultValues: {

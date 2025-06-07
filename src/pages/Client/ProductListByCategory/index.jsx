@@ -1,3 +1,5 @@
+// src/pages/client/ProductListByCategory/index.js
+
 import { useEffect, useRef, useState } from 'react';
 import Banner from './Banner';
 import FilterBar from './FilterBar';
@@ -10,9 +12,9 @@ import { productService } from '../../../services/client/productService';
 import { brandService } from '../../../services/client/brandService';
 import { categoryService } from '../../../services/client/categoryService';
 import { wishlistService } from '../../../services/client/wishlistService';
+import { bannerService } from '../../../services/client/bannerService'; // Thêm import
 import { toast } from 'react-toastify';
 import Loader from '../../../components/common/Loader';
-
 
 const ITEMS_PER_PAGE = 20;
 
@@ -26,34 +28,53 @@ export default function ProductListByCategory() {
   const [paginationEnabled, setPaginationEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isStickySortBar, setIsStickySortBar] = useState(false);
+  const [categoryName, setCategoryName] = useState('Danh mục');
+  const [brands, setBrands] = useState([]);
+  
+  // State mới cho banner và categoryId
+  const [banners, setBanners] = useState([]);
+  const [categoryId, setCategoryId] = useState(null);
+
   const sortBarRef = useRef();
   const slug = window.location.pathname.split('/').pop();
 
-  // Lấy tên danh mục
+  // Lấy tên và ID của danh mục
   const fetchCategoryName = async () => {
     try {
       const res = await categoryService.getBySlug(slug);
       const cat = res.data;
       const name = cat.parent?.name || cat.name || 'Danh mục';
       setCategoryName(name);
+      setCategoryId(cat.id); // Lưu lại ID
     } catch (err) {
       console.error('❌ Không lấy được tên danh mục:', err);
       setCategoryName('Danh mục');
     }
   };
 
-  // Lấy danh sách yêu thích từ server
+  // Hàm mới để lấy banner theo categoryId
+  const fetchCategoryBanners = async () => {
+    if (!categoryId) return;
+    try {
+      const res = await bannerService.getByCategoryId(categoryId);
+      setBanners(res.data?.data || []);
+    } catch (err) {
+      console.error('❌ Lỗi khi lấy banner danh mục:', err);
+    }
+  };
+
   const fetchFavorites = async () => {
     try {
       const res = await wishlistService.getAll();
-      const ids = res.data.map((item) => item.product.id);
+      const ids = res.data
+        .filter(item => item && item.product && item.product.id)
+        .map(item => item.product.id);
       setFavorites(ids);
     } catch (err) {
       console.error('❌ Lỗi khi lấy wishlist:', err);
     }
   };
 
-  // Toggle yêu thích
   const handleToggleFavorite = async (productId) => {
     try {
       if (favorites.includes(productId)) {
@@ -71,7 +92,6 @@ export default function ProductListByCategory() {
     }
   };
 
-  // Gọi API sản phẩm
   const fetchProducts = async (page = 1) => {
     if (!slug) return;
     setLoading(true);
@@ -87,7 +107,6 @@ export default function ProductListByCategory() {
       });
 
       const raw = res.data.products || [];
-
       const formatted = raw.map((item) => {
         const sku = item.skus?.[0] || {};
         const price = sku.price ?? 0;
@@ -97,6 +116,7 @@ export default function ProductListByCategory() {
         return {
           id: item.id,
           name: item.name,
+          slug: item.slug,
           image: sku.media?.[0]?.mediaUrl || item.thumbnail,
           price: price.toLocaleString('vi-VN'),
           oldPrice: originalPrice ? originalPrice.toLocaleString('vi-VN') : null,
@@ -120,13 +140,18 @@ export default function ProductListByCategory() {
     }
   };
 
-  // Gọi tên danh mục và yêu thích ban đầu
+  // useEffect để lấy thông tin chung ban đầu
   useEffect(() => {
     fetchCategoryName();
     fetchFavorites();
   }, [slug]);
 
-  // Gọi API brands
+  // useEffect riêng để lấy banner sau khi đã có categoryId
+  useEffect(() => {
+    fetchCategoryBanners();
+  }, [categoryId]);
+
+  // useEffect để lấy danh sách brands
   useEffect(() => {
     const fetchBrands = async () => {
       try {
@@ -139,37 +164,32 @@ export default function ProductListByCategory() {
     fetchBrands();
   }, [slug]);
 
-  // Gọi lại sản phẩm khi filter/sort thay đổi
+  // useEffect để gọi lại sản phẩm khi filter/sort thay đổi
   useEffect(() => {
     fetchProducts(1);
     setCurrentPage(1);
   }, [filters, sortOption, slug, favorites]);
 
-  // Theo dõi sticky
+  // useEffect để theo dõi vị trí thanh sort
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         setIsStickySortBar(!entry.isIntersecting);
       },
-      { root: null, threshold: 0, rootMargin: '-64px 0px 0px 0px' } // tùy chỉnh nếu cần
+      { rootMargin: '-64px 0px 0px 0px' }
     );
 
-    if (sortBarRef.current) {
-      observer.observe(sortBarRef.current);
-    }
-
-    return () => {
-      if (sortBarRef.current) {
-        observer.unobserve(sortBarRef.current);
-      }
-    };
+    if (sortBarRef.current) observer.observe(sortBarRef.current);
+    return () => sortBarRef.current && observer.unobserve(sortBarRef.current);
   }, []);
 
   return (
     <main className="w-full flex justify-center">
       <div className="w-full max-w-screen-xl px-4">
         {!isStickySortBar && <Breadcrumb categoryName={categoryName} categorySlug={slug} />}
-        <Banner />
+        
+        <Banner banners={banners} />
+        
         <FilterBar categorySlug={slug} filters={filters} setFilters={setFilters} />
         <div ref={sortBarRef} />
         <SortBar

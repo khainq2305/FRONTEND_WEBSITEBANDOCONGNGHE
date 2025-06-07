@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronRight, FileSearch } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import fallbackImage from '../../../../assets/Client/images/News/Danh-gia-Oppo-Reno12-5G-Dien-thoai-tam-trung-so-huu-AI-dinh-cao-350x250.jpg'; // ✅ thêm fallback
-import { API_BASE_URL } from '../../../../constants/environment'; // ✅ API base để ghép URL ảnh
+import { API_BASE_URL } from '../../../../constants/environment'; 
 
 const CategoryMenu = ({ topLevelCategories = [], allCategories = [], isOpen = false }) => {
   const [activeL1Category, setActiveL1Category] = useState(null);
@@ -87,32 +87,45 @@ const CategoryMenu = ({ topLevelCategories = [], allCategories = [], isOpen = fa
           </div>
         )}
 
-        {level2Display.length > 0 ? (
-          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-3">
-            {level2Display.map((cat) => (
-              <Link to={`/category/${cat.slug}`} key={cat.id} className="text-center group flex flex-col items-center">
-                <div className="mb-1.5 w-[80px] h-[80px] p-1.5 flex items-center justify-center rounded-md bg-white border border-gray-200 group-hover:border-blue-300">
-                  <img
-                    src={cat.thumbnail ? `${API_BASE_URL}/${cat.thumbnail}` : fallbackImage}
-                    alt={cat.name}
-                    onError={(e) => {
-                      e.currentTarget.src = fallbackImage;
-                    }}
-                    className="max-w-full max-h-full object-contain"
-                  />
-                </div>
-                <div className="text-[11px] sm:text-xs text-gray-700 group-hover:text-primary truncate w-full">{cat.name}</div>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full text-gray-500 text-sm py-10 text-center">
-            <FileSearch className="w-10 h-10 sm:w-12 sm:h-12 text-gray-300 mb-3" />
-            <span>
-              Không có sản phẩm hay danh mục con cho <strong>{activeL1Category?.name}</strong>.
-            </span>
-          </div>
-        )}
+      {level2Display.length > 0 ? (
+  <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-3">
+    {level2Display.map((cat) => (
+      <Link
+        to={`/category/${cat.slug}`}
+        key={cat.id}
+        className="text-center group flex flex-col items-center"
+      >
+        <div className="mb-1.5 w-[80px] h-[80px] p-1.5 flex items-center justify-center rounded-md bg-white border border-gray-200 group-hover:border-blue-300">
+          <img
+            src={
+              cat.thumbnail
+                ? cat.thumbnail.startsWith('http')
+                  ? cat.thumbnail
+                  : `${API_BASE_URL}/${cat.thumbnail}`
+                : fallbackImage
+            }
+            alt={cat.name}
+            onError={(e) => {
+              e.currentTarget.src = fallbackImage;
+            }}
+            className="max-w-full max-h-full object-contain"
+          />
+        </div>
+        <div className="text-[11px] sm:text-xs text-gray-700 group-hover:text-primary truncate w-full">
+          {cat.name}
+        </div>
+      </Link>
+    ))}
+  </div>
+) : (
+  <div className="flex flex-col items-center justify-center h-full text-gray-500 text-sm py-10 text-center">
+    <FileSearch className="w-10 h-10 sm:w-12 sm:h-12 text-gray-300 mb-3" />
+    <span>
+      Không có sản phẩm hay danh mục con cho <strong>{activeL1Category?.name}</strong>.
+    </span>
+  </div>
+)}
+
       </div>
     </div>
   );

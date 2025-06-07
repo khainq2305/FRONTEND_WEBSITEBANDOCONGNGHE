@@ -5,6 +5,7 @@ import "slick-carousel/slick/slick.css";
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import './ProductCategorySection.css';
 import { highlightedCategoryService } from "../../../../services/client/highlightedCategoryService";
+ import { API_BASE_URL } from '../../../../constants/environment';
 
 const ProductCategorySection = () => {
   const [categoriesData, setCategoriesData] = useState([]);
@@ -15,11 +16,18 @@ const ProductCategorySection = () => {
   const THRESHOLD_FOR_SLIDER = ITEMS_PER_ROW_LG_GRID * NUM_ROWS_GRID;
 
   const shouldUseSlider = categoriesData.length > THRESHOLD_FOR_SLIDER;
+const getImageUrl = (fileName) =>
+  !fileName
+    ? ''
+    : fileName.startsWith('http')
+    ? fileName
+    : `${API_BASE_URL}/uploads/highlighted/${fileName}`;
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await highlightedCategoryService.list();
+          console.log("✅ Highlighted category data:", res.data?.data); // 👈 THÊM DÒNG NÀ
         // --- Test slider với nhiều mục ---
         // const exampleManyItems = Array.from({ length: 25 }, (_, i) => ({ id: `cat${i}`, name: `Danh mục ${i} (Test ${i+1})`, slug: `danh-muc-${i}`, imageUrl: `https://via.placeholder.com/100/0000FF/FFFFFF?Text=DM${i+1}` }));
         // setCategoriesData(exampleManyItems);
@@ -93,12 +101,28 @@ const ProductCategorySection = () => {
                                    focus:outline-none focus:ring-1 focus:ring-red-400 focus:z-10 relative"
                   title={category.name}
                 >
-                  <img
-                    src={category.imageUrl}
-                    alt={category.name}
-                    className="w-14 h-14 md:w-16 md:h-16 object-cover mb-1.5 group-hover:opacity-80 transition-opacity"
-                    loading="lazy"
-                  />
+                 
+
+<div className="relative w-14 h-14 md:w-16 md:h-16 mb-1.5">
+  {/* Badge */}
+  {category.label && (
+    <div className={`
+      absolute top-0 right-0 z-10 text-white text-[9px] md:text-[10px] font-bold px-1 py-0.5 rounded-tr-md rounded-bl-md
+      ${category.label === 'hot' ? 'bg-red-600' : category.label === 'new' ? 'bg-green-600' : 'bg-blue-600'}
+    `}>
+      {category.label === 'hot' ? 'HOT' : category.label === 'new' ? 'MỚI' : 'NỔI BẬT'}
+    </div>
+  )}
+
+  <img
+    src={category.imageUrl}
+    alt={category.name}
+    className="w-full h-full object-cover group-hover:opacity-80 transition-opacity"
+    loading="lazy"
+  />
+</div>
+
+
                   <span
                     className="text-[10px] sm:text-[11px] md:text-xs leading-tight flex items-center justify-center text-center"
                     style={{
@@ -121,35 +145,48 @@ const ProductCategorySection = () => {
           className={`inline-grid grid-cols-3 sm:grid-cols-4 md:grid-cols-10 lg:grid-cols-${ITEMS_PER_ROW_LG_GRID} gap-0`}
         >
           {displayedCategoriesForStaticGrid.map((item, index) => (
-            <div key={item.id + '-static-' + index} className="h-full outline-none p-1">
-              <a
-                href={item.slug ? `/category/${item.slug}` : '#'}
-                className="text-center p-2.5 md:p-3 text-gray-700 no-underline
-                                 bg-white flex flex-col items-center justify-center h-full
-                                 transition-colors duration-150 ease-in-out group hover:bg-gray-100
-                                 focus:outline-none focus:ring-1 focus:ring-red-400 focus:z-10 relative"
-                title={item.name}
-              >
-                <img
-                  src={item.imageUrl}
-                  alt={item.name}
-                  className="w-14 h-14 md:w-16 md:h-16 object-contain mb-1.5 group-hover:opacity-80 transition-opacity"
-                  loading="lazy"
-                />
-                <span
-                  className="text-[10px] sm:text-[11px] md:text-xs leading-tight flex items-center justify-center text-center"
-                  style={{
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
-                    height: '2.8em',
-                  }}
-                >
-                  {item.name}
-                </span>
-              </a>
-            </div>
+           <div key={item.id + '-static-' + index} className="h-full outline-none p-1">
+  <a
+    href={item.slug ? `/category/${item.slug}` : '#'}
+    className="text-center p-2.5 md:p-3 text-gray-700 no-underline
+              bg-white flex flex-col items-center justify-center h-full
+              transition-colors duration-150 ease-in-out group hover:bg-gray-100
+              focus:outline-none focus:ring-1 focus:ring-red-400 focus:z-10 relative"
+    title={item.name}
+  >
+    <div className="relative w-14 h-14 md:w-16 md:h-16 mb-1.5">
+      {item.label && (
+        <div className={`
+          absolute top-0 right-0 z-10 text-white text-[9px] md:text-[10px] font-bold px-1 py-0.5 rounded-tr-md rounded-bl-md
+          ${item.label === 'hot' ? 'bg-red-600' : item.label === 'new' ? 'bg-green-600' : 'bg-blue-600'}
+        `}>
+          {item.label === 'hot' ? 'HOT' : item.label === 'new' ? 'MỚI' : 'NỔI BẬT'}
+        </div>
+      )}
+
+      <img
+        src={item.imageUrl}
+        alt={item.name}
+        className="w-full h-full object-contain group-hover:opacity-80 transition-opacity"
+        loading="lazy"
+      />
+    </div>
+
+    <span
+      className="text-[10px] sm:text-[11px] md:text-xs leading-tight flex items-center justify-center text-center"
+      style={{
+        display: '-webkit-box',
+        WebkitLineClamp: 2,
+        WebkitBoxOrient: 'vertical',
+        overflow: 'hidden',
+        height: '2.8em',
+      }}
+    >
+      {item.name}
+    </span>
+  </a>
+</div>
+
           ))}
         </div>
       )}

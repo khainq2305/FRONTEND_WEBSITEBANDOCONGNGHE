@@ -1,16 +1,26 @@
-import { post } from '../common/crud'; 
-import { API_ENDPOINT } from '../../config/apiEndpoints';
-import axios from 'axios';
+import { get, post } from '../common/crud'; // ✅ Giả sử đã có hàm get()
 
-const base = `${API_ENDPOINT.client.order.base || '/order'}`;
+import { API_ENDPOINT } from '../../config/apiEndpoints';
+
+const base = `${API_ENDPOINT.client.order.base || '/orders'}`;
 
 export const orderService = {
   createOrder: (data) => {
     console.log("[orderService] createOrder called with data:", data);
     return post(`${base}/create`, data);
   },
-  getShippingFee: async (data) => {
-    console.log("📡 GỌI THẲNG AXIOS POST ĐẾN:", `${base}/calculate-shipping-fee`);
-    return await axios.post(`${base}/calculate-shipping-fee`, data);
+
+  getShippingFee: (data) => {
+    return post(`${base}/calculate-shipping-fee`, data);
   },
+
+  momoPay: (payload) => {
+    return post(`${base}/momo`, payload);
+  },
+
+  // ✅ THÊM MỚI
+  getOrderById: (id) => {
+    console.log("[orderService] getOrderById:", id);
+    return get(`${base}/${id}`); // => /orders/:id
+  }
 };

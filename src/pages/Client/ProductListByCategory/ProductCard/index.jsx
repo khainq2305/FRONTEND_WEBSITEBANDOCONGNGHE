@@ -2,21 +2,23 @@
   import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa'; // From react-icons
   import { HeartIcon, ArrowPathIcon as CompareIcon } from '@heroicons/react/24/outline'; // Outline icons from Heroicons
   import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid'; // Solid heart icon from Heroicons
+import { Link } from 'react-router-dom'; // Thêm ở đầu file
+export default function ProductCard({
+  id,
+  slug, // ✅ THÊM DÒNG NÀY
+  name,
+  price,
+  oldPrice,
+  discount,
+  image,
+  rating,
+  isFavorite,
+  onAddToFavorites,
+  onCompare,
+  inStock,
+  soldCount
+}) {
 
-  export default function ProductCard({
-    id, // Ensure id is always passed for key and actions
-    name,
-    price,
-    oldPrice,
-    discount,
-    image,
-    rating,
-    isFavorite,
-    onAddToFavorites,
-    onCompare,
-    inStock,
-    soldCount
-  }) {
     const renderStars = (rate) => {
       const stars = [];
       const numRating = parseFloat(rate);
@@ -62,7 +64,7 @@
             -{discount}%
           </div>
         )}
-        <a href={`#product/${id}`} className="block">
+        <Link to={`/product/${slug}`} className="block">
           <div className="relative w-full h-[160px] sm:h-[200px] mb-2 flex items-center justify-center">
             <img
               src={image}
@@ -77,7 +79,7 @@
           >
             {name}
           </h3>
-        </a>
+        </Link>
         <div className="mt-auto flex flex-col flex-grow justify-end">
           <div className="text-sm sm:text-[15px] mb-1">
             <span className="text-red-600 font-bold">{currentPriceFormatted}₫</span>

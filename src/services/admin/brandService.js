@@ -9,7 +9,7 @@ export const brandService = {
         return get(`${base}?${query}`);
     },
 
-    getById: (id) => get(`${base}/detail/${id}`),
+      getById: (slug) => get(`${base}/detail/${slug}`), 
 
     create: (data) => {
         const url = `${base}/create`;
@@ -19,8 +19,8 @@ export const brandService = {
         });
     },
 
-    update: (id, data) => {
-        const url = `${base}/update/${id}`;
+     update: (slug, data) => {
+        const url = `${base}/update/${slug}`; 
         const formData = buildFormData(data);
         return put(url, formData, {
             headers: { 'Content-Type': 'multipart/form-data' }

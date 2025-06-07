@@ -2,14 +2,12 @@ import { lazy } from 'react';
 import Loadable from 'components/Admin/Loadable';
 import DashboardLayout from 'layout/Admin';
 
-// Pages
 const DashboardDefault = Loadable(lazy(() => import('pages/Admin/Dashboard')));
 
 const OrderList = Loadable(lazy(() => import('pages/Admin/OrderList')));
 const OrderDetail = Loadable(lazy(() => import('pages/Admin/OrderDetail')));
 const UserList = Loadable(lazy(() => import('pages/Admin/User/UserList')));
 const UserAdd = Loadable(lazy(() => import('pages/Admin/User/UserAdd')));
-
 
 const CouponList = Loadable(lazy(() => import('pages/Admin/Coupon')));
 
@@ -45,12 +43,12 @@ const FlashSaleList = Loadable(lazy(() => import('pages/Admin/FlashSale')));
 const FlashSaleForm = Loadable(lazy(() => import('pages/Admin/FlashSale/FlashSaleForm')));
 //
 // Banner 3 bảng mới
-const BannerList = Loadable(lazy(() => import('pages/Admin/Banner')));
 const BannerForm = Loadable(lazy(() => import('pages/Admin/Banner/BannerForm')));
-const PlacementList = Loadable(lazy(() => import('pages/Admin/Banner/PlacementList')));
-const PlacementForm = Loadable(lazy(() => import('pages/Admin/Banner/PlacementForm')));
-const PlacementBannerList = Loadable(lazy(() => import('pages/Admin/Banner/PlacementBannerList')));
-const AssignBannerToPlacementForm = Loadable(lazy(() => import('pages/Admin/Banner/AssignBannerToPlacementForm')));
+const BannerList            = Loadable(lazy(() => import('pages/Admin/Banner')));
+// const BannerForm            = Loadable(lazy(() => import('pages/Admin/Banner/BannerForm')));
+const NotFound = Loadable(lazy(() => import('pages/Admin/NotFound')));
+
+
 const CategoryList = Loadable(lazy(() => import('pages/Admin/CaterogyProduct/CategoryList/CategoryList')));
 const CategoryAddd = Loadable(lazy(() => import('pages/Admin/CaterogyProduct/CategoryAdd/CategoryAdd')));
 const CategoryEdit = Loadable(lazy(() => import('pages/Admin/CaterogyProduct/CategoryEdit/CategoryEdit')));
@@ -58,7 +56,6 @@ const NotificationPage = Loadable(lazy(() => import('pages/Admin/Notification'))
 const NotificationDetail = Loadable(lazy(() => import('pages/Admin/Notification/NotificationDetail')));
 const DeletedUserList = Loadable(lazy(() => import('pages/Admin/User/DeletedUserList')));
 const UserDetailPage = Loadable(lazy(() => import('pages/Admin/User/UserDetailDialog')));
-const HomeSectionDetailPage = Loadable(lazy(() => import('pages/Admin/HomeSection/HomeSectionDetail')));
 
 const AdminRoutes = {
   path: '/admin',
@@ -73,25 +70,18 @@ const AdminRoutes = {
       element: <DashboardDefault />
     },
 
-    // CRUD Banner
-    {
+     {
       path: 'banners',
       children: [
+     
         { index: true, element: <BannerList /> },
+      
         { path: 'create', element: <BannerForm /> },
+       
         { path: 'edit/:id', element: <BannerForm /> }
       ]
     },
-
    
-    {
-      path: 'placements',
-      children: [
-        { index: true, element: <PlacementList /> },
-        { path: 'create', element: <PlacementForm /> },
-        { path: 'edit/:id', element: <PlacementForm /> }
-      ]
-    },
     {
       path: 'categories/list',
       element: <CategoryList />
@@ -104,20 +94,8 @@ const AdminRoutes = {
       path: 'categories/edit/:id',
       element: <CategoryEdit />
     },
-    
-    {
-      path: 'placement-banners',
-      children: [
-        {
-          index: true,
-          element: <AssignBannerToPlacementForm />
-        },
-        {
-          path: ':placementId/banners',
-          element: <PlacementBannerList />
-        }
-      ]
-    },
+
+   
     {
       path: 'notifications',
       element: <NotificationPage />
@@ -134,14 +112,12 @@ const AdminRoutes = {
         { path: 'edit/:id', element: <FlashSaleForm /> }
       ]
     },
-
-    {
+{
       path: 'home-sections',
       children: [
         { index: true, element: <HomeSectionList /> },
         { path: 'create', element: <HomeSectionFormPage /> },
-         { path: 'detail/:id', element: <HomeSectionDetailPage /> }, // ✅ Thêm dòng này
-         { path: 'edit/:id',   element: <HomeSectionFormPage /> },
+        { path: 'edit/:slug', element: <HomeSectionFormPage /> } 
       ]
     },
 
@@ -154,13 +130,14 @@ const AdminRoutes = {
       element: <OrderDetail />
     },
     {
-      path: 'highlighted-category-items',
-      children: [
-        { index: true, element: <HighlightedCategoryItemList /> },
-        { path: 'create', element: <HighlightedCategoryItemForm /> },
-        { path: 'edit/:id', element: <HighlightedCategoryItemForm /> }
-      ]
-    },
+  path: 'highlighted-category-items',
+  children: [
+    { index: true, element: <HighlightedCategoryItemList /> },
+    { path: 'create', element: <HighlightedCategoryItemForm /> },
+    { path: 'edit/:slug', element: <HighlightedCategoryItemForm /> } // ✅ dùng slug thay id
+  ]
+},
+
 
     {
       path: 'users',
@@ -175,16 +152,15 @@ const AdminRoutes = {
       element: <DeletedUserList />
     },
     { path: 'users/create', element: <UserAdd /> },
-  
 
     { path: 'coupons', element: <CouponList /> },
     {
       path: 'coupons/create',
-      element: <CouponForm /> 
+      element: <CouponForm />
     },
     {
       path: 'coupons/edit/:id',
-      element: <CouponForm /> 
+      element: <CouponForm />
     },
     {
       path: 'products',
@@ -203,7 +179,7 @@ const AdminRoutes = {
       path: 'product-variants',
       children: [
         { index: true, element: <VariantList /> },
-        { path: 'create', element: <VariantForm /> }, 
+        { path: 'create', element: <VariantForm /> },
         { path: 'edit/:variantId', element: <VariantForm /> }
       ]
     },
@@ -212,10 +188,10 @@ const AdminRoutes = {
       path: 'products/create',
       element: <ProductAddPage />
     },
-{
-  path: 'products/edit/:id',
-  element: <ProductEditPage />
-},
+    {
+      path: 'products/edit/:slug',
+      element: <ProductEditPage />
+    },
 
     {
       path: 'brands',
@@ -266,6 +242,10 @@ const AdminRoutes = {
     {
       path: 'product-question',
       element: <ProductQuestion />
+    },
+    {
+      path: '*',
+      element: <NotFound />
     }
   ]
 };

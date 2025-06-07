@@ -9,9 +9,10 @@ const CategoryActionsMenu = ({
   onEdit,
   onDelete,
   onRestore,
-  isTrashed,
   onRestoreAll,
-  onDeleteAll
+  onDeleteAll,
+  onForceDelete,
+  isTrashed
 }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
@@ -43,8 +44,8 @@ const CategoryActionsMenu = ({
                 Khôi phục tất cả
               </MenuItem>
             )}
-            {onDelete && (
-              <MenuItem onClick={() => handleAction(onDelete)}>
+            {onForceDelete && (
+              <MenuItem onClick={() => handleAction(onForceDelete)}>
                 <DeleteIcon fontSize="small" style={{ marginRight: 8 }} />
                 Xoá vĩnh viễn
               </MenuItem>

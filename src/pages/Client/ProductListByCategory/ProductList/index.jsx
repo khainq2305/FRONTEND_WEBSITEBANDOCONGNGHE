@@ -22,11 +22,13 @@ export default function ProductList({
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 px-2 sm:px-4">
             {products.map((item) => (
               <ProductCard
-                key={item.id}
-                {...item}
-                isFavorite={favorites.includes(item.id)}
-                onAddToFavorites={onToggleFavorite}
-              />
+  key={item.id}
+  {...item}
+  slug={item.slug} // ✅ THÊM DÒNG NÀY
+  isFavorite={favorites.includes(item.id)}
+  onAddToFavorites={onToggleFavorite}
+/>
+
             ))}
           </div>
           {totalItems > itemsPerPage && (

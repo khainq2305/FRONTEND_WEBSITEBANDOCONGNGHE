@@ -1,7 +1,26 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { bannerService } from '../../../services/client/bannerService';
 
 const Topbar = () => {
-  const bannerImageUrl = 'https://cdnv2.tgdd.vn/mwg-static/dmx/Banner/e2/72/e272b852da2d5ac3d652a7cd3d1560fe.jpg';
+  const [bannerImageUrl, setBannerImageUrl] = useState('');
+
+  useEffect(() => {
+    const fetchTopbarBanner = async () => {
+      try {
+        const res = await bannerService.getByType('topbar');
+        const banners = res?.data?.data || [];
+        if (banners.length > 0) {
+          setBannerImageUrl(banners[0].imageUrl);
+        }
+      } catch (err) {
+        console.error('Lỗi khi lấy banner topbar:', err);
+      }
+    };
+
+    fetchTopbarBanner();
+  }, []);
+
+  if (!bannerImageUrl) return null; 
 
   return (
     <div 
@@ -10,7 +29,7 @@ const Topbar = () => {
     >
       <img
         src={bannerImageUrl}
-        alt="Promotional Banner"
+        alt="Topbar Banner"
         className="w-full max-w-screen-xl object-cover h-[44px] sm:h-[60px] md:h-[80px] lg:h-[44px] xl:h-[44px] transition-all duration-300 ease-in-out"
         style={{
           width: '100%',

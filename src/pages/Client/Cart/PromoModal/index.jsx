@@ -1,124 +1,160 @@
-// src/components/Client/PromoModal.jsx
-import React, { useState, useEffect } from 'react'; // Thêm useEffect
-import ReactDOM from 'react-dom'; // THÊM IMPORT NÀY
-import { FiX } from 'react-icons/fi';
+import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { FiX, FiInfo, FiTag, FiTruck } from 'react-icons/fi';
+import { couponService } from "../../../../services/client/couponService";
 
-const sampleAvailablePromos = [
-  { id: 'SALE10', name: 'Giảm 10% đơn hàng', description: 'Áp dụng cho tất cả sản phẩm.' },
-  { id: 'FREESHIP', name: 'Miễn phí vận chuyển', description: 'Cho đơn hàng từ 200.000đ.' },
-  { id: 'NEWUSER', name: 'Ưu đãi người mới', description: 'Giảm 50.000đ cho đơn đầu tiên.' },
-];
-
-const PromoModal = ({ onClose, onApply, availablePromos = sampleAvailablePromos }) => {
-  const [selectedPromo, setSelectedPromo] = useState(null);
+const PromoModal = ({ modalTitle = "Hồng Ân Khuyến Mãi", onClose, onApply }) => {
+  const [availablePromos, setAvailablePromos] = useState([]);
+  const [selectedCode, setSelectedCode] = useState(null);
   const [inputPromoCode, setInputPromoCode] = useState('');
 
-  // Ngăn cuộn trang nền khi modal mở
   useEffect(() => {
     document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
+    couponService.getAvailable()
+      .then((res) => {
+        const list = res.data?.data || [];
+        const mapped = list.map(coupon => ({
+          id: coupon.code,
+          type: coupon.discountType === 'shipping' ? 'shipping' : 'discount',
+          iconType: coupon.discountType === 'shipping' ? 'truck' : 'tag',
+          title: coupon.title || coupon.code,
+          description: `Cho đơn từ ${coupon.minOrderAmount?.toLocaleString()}₫`,
+          expiryDate: coupon.expiryDate ? new Date(coupon.expiryDate).toLocaleDateString('vi-VN') : null,
+          isApplicable: coupon.isApplicable
+        }));
+        setAvailablePromos(mapped);
+      })
+      .catch(err => {
+        console.error("❌ Lỗi khi tải mã giảm giá:", err);
+      });
+
+    return () => { document.body.style.overflow = 'unset'; };
   }, []);
 
-  const handleApplyClick = () => {
-    if (selectedPromo) {
-      onApply(selectedPromo.id);
-    } else if (inputPromoCode.trim() !== '') {
-      onApply(inputPromoCode.trim());
-    } else {
-      alert('Vui lòng chọn hoặc nhập mã ưu đãi.');
-    }
+  const handleSelect = (promo) => {
+    if (!promo.isApplicable) return;
+    setInputPromoCode('');
+    setSelectedCode(prev => (prev === promo.id ? null : promo.id));
   };
 
-  // Nội dung JSX của modal
+  const handleApply = () => {
+    const codeToApply = inputPromoCode.trim().toUpperCase() || selectedCode;
+    if (codeToApply) return onApply(codeToApply);
+    alert('Vui lòng chọn hoặc nhập mã ưu đãi.');
+  };
+
+  const groupedPromos = availablePromos.reduce((acc, promo) => {
+    const key = promo.type === 'shipping' ? 'Miễn Phí Vận Chuyển' : 'Mã Giảm Giá';
+    acc[key] = acc[key] || [];
+    acc[key].push(promo);
+    return acc;
+  }, {});
+
+  const PromoIcon = ({ type, className }) =>
+    type === 'truck' ? <FiTruck className={className} /> : <FiTag className={className} />;
+
   const modalContent = (
-    <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10000] px-4 py-6 sm:p-0 " // Giữ z-index cao
-      onClick={onClose} // Đóng khi click ra ngoài
-    >
+    <div className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center px-4 py-6" onClick={onClose}>
       <div
-        className="bg-white rounded-lg shadow-xl w-full sm:max-w-lg mx-auto overflow-hidden"
-        onClick={(e) => e.stopPropagation()} // Ngăn đóng khi click vào modal
+        className="bg-white rounded-lg shadow-xl w-full max-w-lg overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Header Modal */}
-        <div className="flex justify-between items-center p-4 sm:p-5 border-b border-gray-200">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-800">Chọn hoặc nhập mã ưu đãi</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+        {/* Header */}
+        <div className="flex justify-between items-center p-4 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-800">{modalTitle}</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <FiX size={22} />
           </button>
         </div>
 
-        {/* Content Modal */}
-        <div className="p-4 sm:p-5 space-y-4 max-h-[calc(100vh-180px)] sm:max-h-[500px] overflow-y-auto">
-          {availablePromos && availablePromos.length > 0 && (
-            <div className="space-y-3">
-              <h4 className="text-sm font-medium text-gray-600">Ưu đãi có sẵn cho bạn:</h4>
-              {availablePromos.map((promo) => (
-                <label
-                  key={promo.id}
-                  htmlFor={`promo-${promo.id}`}
-                  className={`block p-3 border rounded-md cursor-pointer transition-all ${
-                    selectedPromo?.id === promo.id
-                      ? 'border-primary ring-1 ring-primary bg-primary-50'
-                      : 'border-gray-300 hover:border-gray-400'
-                  }`}
-                >
-                  <div className="flex items-start sm:items-center">
-                    <input
-                      type="radio"
-                      id={`promo-${promo.id}`}
-                      name="promoOption"
-                      value={promo.id}
-                      checked={selectedPromo?.id === promo.id}
-                      onChange={() => {
-                        setSelectedPromo(promo);
-                        setInputPromoCode('');
-                      }}
-                      className="h-4 w-4 text-primary focus:ring-primary border-gray-300 mr-3 mt-1 sm:mt-0"
-                    />
-                    <div className="flex-1">
-                      <p className="font-semibold text-sm text-gray-800">{promo.name}</p>
-                      <p className="text-xs text-gray-500">{promo.description}</p>
-                    </div>
-                  </div>
-                </label>
-              ))}
-            </div>
-          )}
-
-          <div className="relative pt-3 pb-1">
-            <div className="absolute inset-0 flex items-center" aria-hidden="true">
-              <div className="w-full border-t border-gray-300"></div>
-            </div>
-            <div className="relative flex justify-center">
-              <span className="bg-white px-2 text-xs sm:text-sm text-gray-500">Hoặc</span>
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="promoCodeInput" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-              Nhập mã ưu đãi khác
-            </label>
+        {/* Nhập mã */}
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex space-x-2">
             <input
-              type="text"
-              id="promoCodeInput"
               value={inputPromoCode}
               onChange={(e) => {
-                setInputPromoCode(e.target.value);
-                setSelectedPromo(null);
+                setInputPromoCode(e.target.value.toUpperCase());
+                setSelectedCode(null);
               }}
-              placeholder="Nhập mã tại đây"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary text-sm"
+              placeholder="Nhập mã ưu đãi"
+              className="w-full px-3 py-2 border rounded text-sm focus:ring-primary focus:outline-none"
             />
+            <button
+              onClick={handleApply}
+              className="bg-gray-100 hover:bg-gray-200 text-sm font-semibold px-4 rounded"
+            >
+              Áp dụng
+            </button>
           </div>
         </div>
 
-        {/* Footer Modal */}
-        <div className="px-4 sm:px-5 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg flex justify-end">
+        {/* Danh sách mã */}
+        <div className="p-4 space-y-6 max-h-[400px] overflow-y-auto">
+          {Object.entries(groupedPromos).map(([groupName, promos]) => (
+            <div key={groupName} className="space-y-3">
+              <h4 className="font-semibold text-gray-700">{groupName}</h4>
+              {promos.map((promo) => {
+                const isSelected = selectedCode === promo.id;
+                return (
+                  <div
+                    key={promo.id}
+                    onClick={() => handleSelect(promo)}
+                    className={`flex items-stretch border rounded-md overflow-hidden cursor-pointer transition-all 
+                      ${isSelected ? 'border-blue-500 ring-2 ring-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'} 
+                      ${!promo.isApplicable && 'bg-gray-100 opacity-60 cursor-not-allowed'}
+                    `}
+                  >
+                    {/* Icon trái */}
+                    <div
+                      className={`w-20 flex-shrink-0 flex items-center justify-center p-2 
+                        ${promo.type === 'shipping' ? 'bg-green-500' : 'bg-red-500'}`}
+                    >
+                      <PromoIcon type={promo.iconType} className="text-white h-8 w-8" />
+                    </div>
+
+                    {/* Nội dung */}
+                    <div className="flex-1 p-3 pr-2">
+                      <div className="flex justify-between items-center">
+                        <p className="font-semibold text-sm text-gray-800">{promo.title}</p>
+                        <FiInfo className="text-gray-400" size={14} />
+                      </div>
+                      <p className="text-xs text-gray-500">{promo.description}</p>
+                      {promo.expiryDate && (
+                        <p className="text-xs text-gray-400 mt-1">HSD: {promo.expiryDate}</p>
+                      )}
+                    </div>
+
+                    {/* Bên phải */}
+                    <div className="w-24 flex items-center justify-center p-2 border-l">
+                      {!promo.isApplicable ? (
+                        <span className="text-[10px] text-gray-500 px-1 py-0.5 rounded bg-gray-200 transform -rotate-12 font-bold text-center leading-tight">
+                          CHƯA THOẢ <br /> ĐIỀU KIỆN
+                        </span>
+                      ) : (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSelect(promo);
+                          }}
+                          className={`w-full text-xs font-medium py-1.5 rounded 
+                            ${isSelected ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-600 hover:bg-blue-200'}`}
+                        >
+                          {isSelected ? 'Bỏ chọn' : 'Áp dụng'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div className="px-4 py-3 border-t bg-gray-50 text-right">
           <button
-            onClick={handleApplyClick}
-            className="bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-5 sm:px-6 rounded-md transition-colors text-sm"
+            onClick={handleApply}
+            className="bg-primary hover:bg-primary-dark text-white font-semibold px-5 py-2 rounded text-sm"
           >
             Áp dụng
           </button>
@@ -127,11 +163,14 @@ const PromoModal = ({ onClose, onApply, availablePromos = sampleAvailablePromos 
     </div>
   );
 
-  // Sử dụng ReactDOM.createPortal để render modal vào #modal-root
-  return ReactDOM.createPortal(
-    modalContent,
-    document.getElementById('modal-root')
-  );
+  let modalRoot = document.getElementById('modal-root');
+  if (!modalRoot) {
+    modalRoot = document.createElement('div');
+    modalRoot.id = 'modal-root';
+    document.body.appendChild(modalRoot);
+  }
+
+  return ReactDOM.createPortal(modalContent, modalRoot);
 };
 
 export default PromoModal;

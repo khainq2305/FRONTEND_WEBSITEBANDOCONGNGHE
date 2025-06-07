@@ -25,18 +25,18 @@ const icons = {
 };
 
 const pages = [
-  {
+   {
     id: 'product-section-collapse',
-    title: 'Sản phẩm',
+    title: 'Quản lý sản phẩm',
     type: 'collapse',
-    icon: icons.AppstoreOutlined,
+    icon: icons.AppstoreOutlined, 
     children: [
       {
         id: 'product-list',
-        title: 'Danh sách sản phẩm',
+        title: 'Sản phẩm',
         type: 'item',
         url: '/admin/products',
-        icon: icons.TableOutlined,
+        icon: icons.FileTextOutlined, 
         breadcrumbs: false
       },
       {
@@ -44,7 +44,7 @@ const pages = [
         title: 'Sản phẩm nổi bật',
         type: 'item',
         url: '/admin/home-sections',
-        icon: icons.AppstoreOutlined, 
+        icon: icons.GiftOutlined,
         breadcrumbs: false
       },
       {
@@ -52,7 +52,7 @@ const pages = [
         title: 'Danh mục nổi bật',
         type: 'item',
         url: '/admin/highlighted-category-items',
-        icon: icons.AppstoreOutlined, 
+        icon: icons.ProfileOutlined,
         breadcrumbs: false
       },
       {
@@ -60,7 +60,7 @@ const pages = [
         title: 'Danh mục sản phẩm',
         type: 'item',
         url: '/admin/categories/list',
-        icon: icons.TagsOutlined,
+        icon: icons.TagsOutlined, 
         breadcrumbs: false
       },
       {
@@ -68,35 +68,20 @@ const pages = [
         title: 'Thuộc tính sản phẩm',
         type: 'item',
         url: '/admin/product-variants',
-        icon: icons.CommentOutlined,
-        breadcrumbs: false
-      }
-    ]
-  },
-  {
-    id: 'brand-section-collapse',
-    title: 'Thương hiệu',
-    type: 'collapse',
-    icon: icons.TagsOutlined,
-    children: [
-      {
-        id: 'brand-list',
-        title: 'Danh sách',
-        type: 'item',
-        url: '/admin/brands',
-        icon: icons.TableOutlined,
+        icon: icons.CommentOutlined, 
         breadcrumbs: false
       },
       {
-        id: 'brand-create',
-        title: 'Thêm thương hiệu',
+        id: 'brand-list',
+        title: 'Thương hiệu',
         type: 'item',
-        url: '/admin/brands/create',
-        icon: icons.FileTextOutlined,
+        url: '/admin/brands',
+        icon: icons.MessageOutlined,
         breadcrumbs: false
       }
     ]
   },
+ 
 
   {
     id: 'flash-sale',
@@ -124,45 +109,22 @@ const pages = [
   },
 
   {
-    id: 'slider-section',
-    title: 'Slider & Banner',
-    type: 'collapse',
-    icon: icons.FileTextOutlined,
-    children: [
-      {
-        id: 'placement-list',
-        title: 'Danh sách khối hiển thị',
-        type: 'item',
-        url: '/admin/placements',
-        icon: icons.TableOutlined,
-        breadcrumbs: false
-      },
-      {
-        id: 'placement-create',
-        title: 'Thêm khối hiển thị',
-        type: 'item',
-        url: '/admin/placements/create',
-        icon: icons.FileTextOutlined,
-        breadcrumbs: false
-      },
-      {
-        id: 'banner-list',
-        title: 'Danh sách Banner',
-        type: 'item',
-        url: '/admin/banners',
-        icon: icons.TableOutlined,
-        breadcrumbs: false
-      },
-      {
-        id: 'banner-create',
-        title: 'Thêm Banner',
-        type: 'item',
-        url: '/admin/banners/create',
-        icon: icons.FileTextOutlined,
-        breadcrumbs: false
-      }
-    ]
-  },
+  id: 'slider-section',
+  title: 'Slider & Banner',
+  type: 'collapse',
+  icon: icons.FileTextOutlined,
+  children: [
+    {
+      id: 'banner-list',
+      title: 'Danh sách Banner',
+      type: 'item',
+      url: '/admin/banners',   // trỏ vào BannerList (hiển thị tất cả banner)
+      icon: TableOutlined,
+      breadcrumbs: false
+    }
+  ]
+},
+
 
   {
     id: 'coupon-section',

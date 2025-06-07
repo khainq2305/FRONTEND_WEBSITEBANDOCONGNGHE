@@ -1,164 +1,156 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import ReactDOM from "react-dom";
 
-export default function TechnicalSpec() {
+// Component giờ sẽ nhận props `specs` từ component cha
+export default function TechnicalSpec({ specs = [] }) {
   const [showSpecModal, setShowSpecModal] = useState(false);
+  
+  const [fullSpecs, setFullSpecs] = useState([]);
 
-  const briefSpecs = [
-    ["Màn hình", "6.9” Super Retina XDR"],
-    ["Camera", "48MP + Tele + Ultra"],
-    ["Camera trước", "12MP f/1.9"],
-    ["Chipset", "Apple A18 Pro"],
-    ["RAM", "12GB"],
-    ["Bộ nhớ", "1TB"],
-    ["SIM", "nano + eSIM"],
-    ["OS", "iOS 18"],
-    ["Tính năng", "120Hz, HDR, Dynamic Island"],
-  ];
+  useEffect(() => {
+    // Ngăn cuộn trang khi modal mở
+    if (showSpecModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    // Cleanup function khi component unmount
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showSpecModal]);
 
-  const fullSpecs = [
-    {
-      title: "Màn hình",
-      data: [
-        ["Kích thước màn hình", "6.9 inches"],
-        ["Công nghệ màn hình", "Super Retina XDR OLED"],
-        ["Độ phân giải", "2868 x 1320 pixels"],
-        ["Tần số quét", "120Hz"],
-        [
-          "Tính năng",
-          "Dynamic Island, HDR, True Tone, ProMotion 120Hz",
-        ],
-      ],
-    },
-    {
-      title: "Camera sau",
-      data: [
-        ["Thông số", "48MP + 12MP Tele + 12MP Siêu rộng"],
-        ["Quay video", "4K@24/60fps, 1080p@120fps"],
-        ["Tính năng", "Night mode, Deep Fusion, HDR 5"],
-      ],
-    },
-    {
-      title: "Camera trước",
-      data: [
-        ["Độ phân giải", "12MP, f/1.9"],
-        ["Quay video", "4K@60fps, 1080p@60fps"],
-      ],
-    },
-    {
-      title: "Hiệu năng",
-      data: [
-        ["Chipset", "Apple A18 Pro"],
-        ["GPU", "6 lõi"],
-        ["CPU", "6 lõi (2 hiệu năng + 4 tiết kiệm)"],
-      ],
-    },
-    {
-      title: "Bộ nhớ",
-      data: [
-        ["RAM", "12GB"],
-        ["Bộ nhớ trong", "256GB"],
-      ],
-    },
-    {
-      title: "Kết nối & Giao tiếp",
-      data: [
-        ["SIM", "2 SIM (nano + eSIM)"],
-        ["Wi-Fi", "Wi-Fi 7"],
-        ["Bluetooth", "5.3"],
-        ["GPS", "GPS, GLONASS, Galileo, BeiDou, NavIC"],
-        ["NFC", "Có"],
-      ],
-    },
-    {
-      title: "Pin & Sạc",
-      data: [
-        ["Công nghệ sạc", "MagSafe 25W, Qi2 15W"],
-        ["Cổng sạc", "USB Type-C"],
-      ],
-    },
-    {
-      title: "Thiết kế",
-      data: [
-        ["Chất liệu", "Mặt lưng kính, viền Titanium"],
-        ["Kích thước", "163 x 77.6 x 8.25 mm"],
-        ["Trọng lượng", "227g"],
-        ["Chuẩn kháng nước", "IP68"],
-      ],
-    },
-    {
-      title: "Tính năng khác",
-      data: [
-        ["Bảo mật", "Face ID"],
-        ["Tính năng đặc biệt", "5G, SOS, Apple Pay, AI Phone"],
-        ["Âm thanh", "Dolby Atmos, FLAC, MP3..."],
-      ],
-    },
-    {
-      title: "Thông tin khác",
-      data: [
-        ["Hệ điều hành", "iOS 18"],
-        ["Thời điểm ra mắt", "09/2024"],
-      ],
-    },
-  ];
+  // Xử lý dữ liệu động
+  useEffect(() => {
+    if (!specs || specs.length === 0) {
+      setFullSpecs([]);
+      return;
+    }
+
+    const groupedSpecs = specs.reduce((acc, spec) => {
+      const group = spec.specGroup || "Thông số khác"; 
+      if (!acc[group]) {
+        acc[group] = [];
+      }
+      acc[group].push([spec.specKey, spec.specValue]);
+      return acc;
+    }, {});
+
+    const processedFullSpecs = Object.entries(groupedSpecs).map(([title, data]) => ({
+      title,
+      data,
+    }));
+    setFullSpecs(processedFullSpecs);
+
+  }, [specs]); 
+
+
+  const SpecModal = () => {
+    const modalContentRef = useRef(null);
+
+    const handleBackdropClick = (e) => {
+      if (modalContentRef.current && !modalContentRef.current.contains(e.target)) {
+        setShowSpecModal(false);
+      }
+    };
+
+    return (
+      <div 
+        className="fixed inset-0 bg-black/60 flex justify-center items-center z-50 p-4"
+        onMouseDown={handleBackdropClick}
+      >
+        <div ref={modalContentRef} className="bg-white max-w-xl w-full rounded-lg shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
+          {/* Header */}
+          <div className="flex justify-between items-center px-4 py-3 bg-primary text-white flex-shrink-0">
+            <h2 className="text-lg font-bold">Thông số kỹ thuật</h2>
+            <button
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/40 transition-colors"
+              onClick={() => setShowSpecModal(false)}
+              aria-label="Đóng"
+            >
+              <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          
+          {/* Content */}
+          <div className="text-sm text-gray-800 space-y-4 p-4 overflow-y-auto bg-gray-50">
+            {fullSpecs.map((section, idx) => (
+              <div key={idx} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <h3 className="font-semibold bg-gray-100 px-4 py-2.5 text-gray-800 border-b border-gray-200">
+                  {section.title}
+                </h3>
+                <div className="divide-y divide-gray-100">
+                  {section.data.map(([label, value], i) => (
+                    <div key={i} className="flex justify-between items-start gap-4 px-4 py-2.5">
+                      <span className="text-gray-600 w-2/5">{label}</span>
+                      <span className="text-right w-3/5 font-semibold text-gray-900">{value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Footer */}
+          <div className="flex-shrink-0 p-3 border-t border-gray-200 bg-white">
+            <button
+              onClick={() => setShowSpecModal(false)}
+              className="w-full bg-primary text-white py-2 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+            >
+              Đóng
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  };
+
+  if (fullSpecs.length === 0) {
+      return null;
+  }
 
   return (
     <>
-      <div className="bg-white p-4 rounded border border-gray-200 shadow-md text-sm md:sticky md:top-4 md:self-start">
-        <h2 className="font-semibold text-base mb-3">Thông số kỹ thuật</h2>
-        <table className="w-full text-sm">
-          <tbody>
-            {briefSpecs.map(([label, value], i) => (
-              <tr key={i} className="align-top">
-                <td className="py-1 pr-2 text-gray-600 font-medium whitespace-nowrap">{label}:</td>
-                <td className="py-1 text-gray-800">{value}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm text-sm">
+        {/* ✅ TIÊU ĐỀ CHÍNH CĂN GIỮA */}
+        <h2 className="text-center font-bold text-lg mb-4 text-gray-800">
+          Thông số kỹ thuật
+        </h2>
+        
+        {/* ✅ GIAO DIỆN MỚI CHO PHẦN TÓM TẮT */}
+        <div className="space-y-4">
+          {fullSpecs.map((section, sectionIdx) => (
+            <div key={sectionIdx}>
+              {/* Tiêu đề nhóm với nền xám */}
+              <h3 className="font-semibold bg-gray-100 rounded-md px-3 py-2 text-gray-700">
+                {section.title}
+              </h3>
+              {/* Các dòng thông số */}
+              <div className="mt-2 space-y-2">
+                {section.data.map(([label, value], specIdx) => (
+                  <div key={specIdx} className="flex justify-between items-start text-xs px-2">
+                    <p className="text-gray-600 w-2/5">{label}</p>
+                    <p className="text-gray-800 font-medium w-3/5 text-right">{value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
         <button
           onClick={() => setShowSpecModal(true)}
-          className="w-full mt-4 bg-gray-100 py-2 rounded hover:bg-gray-200 text-center text-sm text-red-600"
+          className="w-full mt-4 bg-primary text-white py-2 rounded-md hover:opacity-90 transition-all text-sm font-semibold"
         >
           Xem chi tiết cấu hình
         </button>
       </div>
 
-      {showSpecModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-20 flex justify-center items-center z-50">
-          <div className="bg-white border border-gray-300 max-w-2xl w-full rounded-lg shadow-lg overflow-y-auto max-h-[80vh]">
-            <div className="flex justify-between items-center px-4 py-3 border-b border-gray-200 sticky top-0 bg-white z-10">
-              <h2 className="text-base font-semibold text-gray-800">Thông số kỹ thuật chi tiết</h2>
-              <button
-                className="text-xl font-bold text-gray-600 hover:text-red-600"
-                onClick={() => setShowSpecModal(false)}
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="text-sm text-gray-800 space-y-6 p-4">
-              {fullSpecs.map((section, idx) => (
-                <div key={idx} className="border border-gray-200 rounded-md overflow-hidden">
-                  <h3 className="font-semibold bg-gray-100 px-4 py-2 text-gray-700">
-                    {section.title}
-                  </h3>
-                  {section.data.map(([label, value], i) => (
-                    <div
-                      key={i}
-                      className={`flex justify-between items-start gap-3 px-4 py-2 ${
-                        i % 2 === 0 ? "bg-white" : "bg-gray-50"
-                      }`}
-                    >
-                      <span className="text-gray-600 w-1/2">{label}</span>
-                      <span className="text-right w-1/2">{value}</span>
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+      {showSpecModal && ReactDOM.createPortal(
+        <SpecModal />,
+        document.body
       )}
     </>
   );

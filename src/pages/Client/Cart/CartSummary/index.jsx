@@ -1,30 +1,93 @@
-// src/components/Client/CartSummary.jsx
-import React, { useState } from "react"; // Thêm useState
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
 import { FaPercentage, FaQuestionCircle } from "react-icons/fa";
 import { FiChevronUp, FiChevronRight } from "react-icons/fi";
-import PromoModal from "../PromoModal"; // Import component Modal (sẽ tạo ở bước 2)
-const CartSummary = ({ hasSelectedItems, orderTotals, onCheckout }) => {
+import PromoModal from "../PromoModal";
+import { couponService } from "../../../../services/client/couponService";
+import { formatCurrencyVND } from "../../../../utils/formatCurrency";
 
-  const [isPromoModalOpen, setIsPromoModalOpen] = useState(false); // State cho modal ưu đãi
+const CartSummary = ({ 
+  hasSelectedItems, 
+  selectedItems,
+  orderTotals,
+  onCheckout 
+}) => {
+  const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
+  const [appliedCouponCode, setAppliedCouponCode] = useState("");
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [couponError, setCouponError] = useState("");
 
-  const navigateToCheckout = (event) => {
-    if (!hasSelectedItems) {
-      event.preventDefault();
-      alert("Vui lòng chọn ít nhất một sản phẩm để tiếp tục.");
+  // 🔁 Load lại mã đã áp từ LocalStorage khi reload
+  useEffect(() => {
+    // ===== THAY ĐỔI 1: đảm bảo key khớp với chỗ lưu =====
+    const savedCode = localStorage.getItem("appliedCouponCode");
+    const savedDiscount = localStorage.getItem("discountAmount");
+
+    if (savedCode && savedDiscount) {
+      setAppliedCouponCode(savedCode);
+      setDiscountAmount(Number(savedDiscount));
     }
-  };
+  }, []);
 
   const openPromoModal = () => setIsPromoModalOpen(true);
   const closePromoModal = () => setIsPromoModalOpen(false);
 
-  const handleApplyPromo = (promoCode) => {
-    // Xử lý logic áp dụng mã khuyến mãi ở đây
-    // Ví dụ: gọi API, cập nhật lại orderTotals, v.v.
-    alert(`Đã áp dụng mã: ${promoCode}`);
-    closePromoModal();
+  const handleApplyPromo = async (code) => {
+    if (!hasSelectedItems || selectedItems.length === 0) {
+      alert("Vui lòng chọn ít nhất một sản phẩm trước khi áp mã.");
+      closePromoModal();
+      return;
+    }
+
+    // Lấy skuId từ sản phẩm đầu tiên
+    const firstSkuId = selectedItems[0].skuId || selectedItems[0].product?.skuId || null;
+    if (!firstSkuId) {
+      alert("Không tìm thấy SKU của sản phẩm để áp mã.");
+      closePromoModal();
+      return;
+    }
+
+    const numericOrderTotal = Number(orderTotals.payablePrice.replace(/[^\d]/g, ""));
+
+    try {
+      const response = await couponService.applyCoupon({
+        code,
+        skuId: firstSkuId,
+        orderTotal: numericOrderTotal,
+      });
+
+      const { coupon } = response.data;
+
+      setAppliedCouponCode(coupon.code);
+      setDiscountAmount(coupon.discountAmount);
+      setCouponError("");
+
+      // ===== THAY ĐỔI 2: lưu đúng key vào localStorage =====
+      localStorage.setItem("appliedCouponCode", coupon.code);
+      localStorage.setItem("discountAmount", coupon.discountAmount.toString());
+
+      closePromoModal();
+    } catch (error) {
+      const msg =
+        error.response?.data?.message ||
+        error.message ||
+        "Lỗi khi áp mã giảm giá.";
+      setCouponError(msg);
+      setAppliedCouponCode("");
+      setDiscountAmount(0);
+
+      // ===== THAY ĐỔI 3: xóa đúng key nếu apply thất bại =====
+      localStorage.removeItem("appliedCouponCode");
+      localStorage.removeItem("discountAmount");
+
+      closePromoModal();
+    }
   };
 
+  const rawPayable = Number(orderTotals.payablePrice.replace(/[^\d]/g, ""));
+  const payableAfterDiscount = rawPayable - discountAmount;
+  const payableAfterDiscountFormatted = formatCurrencyVND(
+    payableAfterDiscount > 0 ? payableAfterDiscount : 0
+  );
 
   const totals = orderTotals || {
     totalPrice: "0 đ",
@@ -33,12 +96,19 @@ const CartSummary = ({ hasSelectedItems, orderTotals, onCheckout }) => {
     rewardPoints: "+0",
   };
 
+  // 🔁 Reset coupon sau khi đặt hàng thành công
+  const handleCheckout = () => {
+    // ===== THAY ĐỔI 4: xóa đúng key khi finish checkout =====
+    localStorage.removeItem("appliedCouponCode");
+    localStorage.removeItem("discountAmount");
+    onCheckout();
+  };
+
   return (
-    <> {/* Bọc bởi Fragment để chứa modal */}
+    <>
       <aside className="bg-white rounded-md p-3 sm:p-4 border border-gray-200 shadow-sm flex flex-col gap-4">
-        {/* Phần "Chọn hoặc nhập ưu đãi" */}
+        {/* Áp mã */}
         <div className="border border-gray-200 rounded-md p-3">
-          {/* THAY ĐỔI Ở ĐÂY: onClick để mở modal */}
           <button
             onClick={openPromoModal}
             className="flex justify-between items-center w-full text-sm text-gray-800 hover:text-primary transition-colors"
@@ -47,13 +117,18 @@ const CartSummary = ({ hasSelectedItems, orderTotals, onCheckout }) => {
               <span className="mr-2 text-red-500 text-lg">
                 <FaPercentage />
               </span>
-              Chọn hoặc nhập ưu đãi
+              {appliedCouponCode
+                ? `Mã đã áp: ${appliedCouponCode}`
+                : "Chọn hoặc nhập ưu đãi"}
             </span>
             <FiChevronRight className="text-gray-400" />
           </button>
+          {couponError && (
+            <p className="mt-2 text-xs text-red-500">{couponError}</p>
+          )}
         </div>
 
-        {/* Phần "Đổi điểm" */}
+        {/* Đổi điểm */}
         <div className="border border-gray-200 rounded-md p-3">
           <div className="flex justify-between items-center w-full text-sm text-gray-800">
             <div className="flex items-center">
@@ -72,7 +147,7 @@ const CartSummary = ({ hasSelectedItems, orderTotals, onCheckout }) => {
           </div>
         </div>
 
-        {/* Thông tin đơn hàng */}
+        {/* Tổng kết */}
         <div className="text-sm text-gray-700 space-y-2">
           <h3 className="font-semibold text-base text-gray-800">Thông tin đơn hàng</h3>
           <div className="flex justify-between">
@@ -86,7 +161,11 @@ const CartSummary = ({ hasSelectedItems, orderTotals, onCheckout }) => {
           <hr className="border-dashed" />
           <div className="flex justify-between text-gray-800 font-semibold">
             <span>Cần thanh toán</span>
-            <span className="text-red-600 text-base">{totals.payablePrice}</span>
+            <span className="text-red-600 text-base">
+              {appliedCouponCode
+                ? payableAfterDiscountFormatted
+                : totals.payablePrice}
+            </span>
           </div>
           <div className="flex justify-between items-center text-xs text-gray-500">
             <span>Điểm thưởng</span>
@@ -103,28 +182,22 @@ const CartSummary = ({ hasSelectedItems, orderTotals, onCheckout }) => {
           </button>
         </div>
 
-        {/* Nút xác nhận đơn */}
+        {/* Xác nhận */}
         <button
-  onClick={onCheckout}
-  disabled={!hasSelectedItems}
-  className={`block text-center w-full font-semibold py-3 rounded-md transition-colors text-base ${
-    hasSelectedItems
-      ? "bg-primary text-white hover:bg-primary-dark"
-      : "bg-gray-300 text-gray-500 cursor-not-allowed"
-  }`}
->
-  Xác nhận đơn
-</button>
-
+          onClick={handleCheckout}
+          disabled={!hasSelectedItems}
+          className={`block text-center w-full font-semibold py-3 rounded-md transition-colors text-base ${
+            hasSelectedItems
+              ? "bg-primary text-white hover:bg-primary-dark"
+              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+          }`}
+        >
+          Xác nhận đơn
+        </button>
       </aside>
 
-      {/* Modal chọn/nhập ưu đãi */}
       {isPromoModalOpen && (
-        <PromoModal
-          onClose={closePromoModal}
-          onApply={handleApplyPromo}
-          // availablePromos={...} // Bạn có thể truyền danh sách ưu đãi có sẵn vào đây
-        />
+        <PromoModal onClose={closePromoModal} onApply={handleApplyPromo} />
       )}
     </>
   );

@@ -36,32 +36,47 @@ export const API_ENDPOINT = {
     category: {
       base: `${API_BASE_URL}/api/client/categories`
     },
+    section: {
+      base: `${API_BASE_URL}`,
+      list: '/home-sections'
+    },
     product: {
       base: `${API_BASE_URL}/product`,
-      getBySlug: (slug) => `/${slug}` // ✅ dùng slug như "iphone-15"
+      baseList: `${API_BASE_URL}`,
+      getBySlug: (slug) => `/product/${slug}`
     },
     highlightedCategory: {
       base: `${API_BASE_URL}`,
-      list: '/highlighted-categories' // 👈 route BE trả về danh mục nổi bật (public)
+      list: '/highlighted-categories'
     },
+    coupon: {
+      base: `${API_BASE_URL}`,
+      apply: '/apply',
+      available: '/available'
+    },
+
     search: {
       base: `${API_BASE_URL}`,
       search: '/search',
       history: '/search/history'
     },
+    brand: {
+      base: '/api/client/brands'
+    },
     cart: {
       base: `${API_BASE_URL}/cart`,
       add: '/add',
-      list: '/my-cart', // ✅ Sửa lại cho đúng route backend
-      updateQuantity: '/update-quantity', // ✔ Đúng với route backend
-      deleteItem: (id) => `/item/${id}`
+      list: '/my-cart',
+      updateQuantity: '/update-quantity',
+      deleteItem: (id) => `/item/${id}`,
+      deleteMultiple: '/delete-multiple'
     },
-    // Thêm vào `client` trong API_ENDPOINT:
     order: {
       base: `${API_BASE_URL}/orders`,
       create: '/create',
-      calculateFee: '/calculate-fee', // 👈 thêm dòng này
-      create: '/'
+      calculateFee: '/calculate-fee',
+      momoPay: '/momo',
+      momoCallback: '/momo-callback'
     },
     news: {
       base: `${API_BASE_URL}/tin-noi-bat`,
@@ -74,6 +89,16 @@ export const API_ENDPOINT = {
       list: '/',
       add: (productId) => `/${productId}`,
       remove: (productId) => `/${productId}`
+    },
+    banner: {
+      base: `${API_BASE_URL}`,
+      getByType: (type) => `/banner?type=${type}`,
+      getByCategory: (categoryId) => `/banner/category/${categoryId}`,
+      getByProduct: (productId) => `/banner/product/${productId}`
+    },
+    flashSale: {
+      base: `${API_BASE_URL}`,
+      list: '/flash-sale/list'
     }
   },
   admin: {
@@ -83,8 +108,8 @@ export const API_ENDPOINT = {
       list: '/product/list',
       getCategoryTree: '/categories/tree',
       getBrandList: '/brands/list',
-      getById: (id) => `/product/${id}`,
-
+      getById: (slug) => `/product/${slug}`,
+      forceDeleteMany: '/product/force-delete-many',
       softDelete: (id) => `/product/soft/${id}`,
       softDeleteMany: '/product/soft-delete-many',
       restore: (id) => `/product/restore/${id}`,
@@ -94,23 +119,31 @@ export const API_ENDPOINT = {
     },
     notification: {
       base: `${API_BASE_URL}/admin/notifications`,
-      getAll: '', // GET /admin/notifications?page=...
-      create: '', // POST /admin/notifications
-      getById: '/:id', // GET /admin/notifications/:id
-      update: '/:id', // PUT /admin/notifications/:id
-      delete: '/:id', // DELETE /admin/notifications/:id
-      deleteMany: '/delete-many', // POST /admin/notifications/delete-many
-      updateOrder: '/update-order', // POST /admin/notifications/update-order
-      forceDelete: '/force-delete/:id' // (tuỳ, nếu bạn dùng xoá cứng riêng lẻ)
+      getAll: '',
+      create: '',
+      getById: '/:id',
+      update: '/:id',
+      delete: '/:id',
+      deleteMany: '/delete-many',
+      updateOrder: '/update-order',
+      forceDelete: '/force-delete/:id'
     },
+
     category: {
       base: `${API_BASE_URL}/admin/categories`,
       getAll: '',
       getById: '/:id',
       create: '',
       update: '/:id',
-      delete: '/:id',
-      restore: '/restore/:id'
+
+      restore: '/restore/:id',
+      restoreMany: '/restore-many',
+
+      softDelete: (id) => `/soft-delete/${id}`,
+      softDeleteMany: '/soft-delete',
+
+      forceDelete: (id) => `/force-delete/${id}`,
+      forceDeleteMany: '/force-delete-many'
     },
     coupon: {
       base: `${API_BASE_URL}/admin`,
@@ -123,6 +156,14 @@ export const API_ENDPOINT = {
       softDeleteMany: '/coupon/soft-delete-many',
       restoreMany: '/coupon/restore-many',
       forceDeleteMany: '/coupon/force-delete-many'
+    },
+
+    order: {
+      base: `${API_BASE_URL}/admin`,
+      list: '/order/list',
+      getById: '/order/:id',
+      updateStatus: '/order/:id/status',
+      cancel: '/order/:id/cancel'
     },
     variant: {
       base: `${API_BASE_URL}/admin`,
@@ -141,40 +182,28 @@ export const API_ENDPOINT = {
       base: `${API_BASE_URL}/admin`,
       list: '/sections',
       create: '/sections',
-      update: (id) => `/sections/${id}`,
-      delete: (id) => `/sections/${id}`,
-getDetail: (id) => `/sections/${id}`,
-updateOrder: '/sections/update-order' , // ✅ bổ sung dòng này
-      getAllSkus: '/sections/skus' 
-    },
+      update: (slug) => `/sections/${slug}`,
+      delete: (idOrSlug) => `/sections/${idOrSlug}`,
+      getById: (slug) => `/sections/${slug}`,
 
-    slider: {
-      banner: {
-        base: `${API_BASE_URL}/admin`,
-        list: '/banners',
-        create: '/banners',
-        update: (id) => `/banners/${id}`,
-        delete: (id) => `/banners/${id}`
-      },
-      placement: {
-        base: `${API_BASE_URL}/admin`,
-        list: '/placements',
-        create: '/placements',
-        update: (id) => `/placements/${id}`,
-        delete: (id) => `/placements/${id}`
-      },
-      assignment: {
-        base: `${API_BASE_URL}/admin`,
-        assign: '/assignments',
-        getByPlacement: (placementId) => `/placements/${placementId}/banners`,
-        delete: (id) => `/assignments/${id}`
-      }
+      updateOrder: '/sections/update-order',
+      getAllProducts: '/sections/products'
+    },
+    banner: {
+      base: `${API_BASE_URL}/admin`,
+      list: '/banners',
+      create: '/banners',
+      getById: (id) => `/banners/${id}`,
+      update: (id) => `/banners/${id}`,
+      delete: (id) => `/banners/${id}`,
+      forceDeleteMany: '/banners/force-delete',
+      updateOrder: (id) => `/banners/${id}/update-order`
     },
     variantValue: {
       base: `${API_BASE_URL}/admin`,
       getByVariantId: (id) => `/variant-values/${id}`,
       create: '/variant-values/create',
-      update: (id) => `/variant-values/${id}`, 
+      update: (id) => `/variant-values/${id}`,
       softDelete: (id) => `/variant-values/${id}`,
       forceDelete: (id) => `/variant-values/${id}/force`,
       restore: (id) => `/variant-values/${id}/restore`,
@@ -182,40 +211,42 @@ updateOrder: '/sections/update-order' , // ✅ bổ sung dòng này
       forceDeleteMany: '/variant-values/force-delete-many',
       restoreMany: '/variant-values/restore-many',
       reorder: '/variant-values/reorder',
-    createQuick: '/variant-values/create-quick',
-
+      createQuick: '/variant-values/create-quick'
     },
 
     highlightedCategoryItem: {
       base: `${API_BASE_URL}/admin`,
       list: '/highlighted-category-items/list',
       create: '/highlighted-category-items',
-      update: (id) => `/highlighted-category-items/${id}`,
+      update: (slug) => `/highlighted-category-items/${slug}`,
+      getBySlug: (slug) => `/highlighted-category-items/${slug}`,
+
       delete: (id) => `/highlighted-category-items/${id}`,
       deleteMany: '/highlighted-category-items/delete-many',
       getCategories: '/highlighted-category-items/categories/list',
-      reorder: '/highlighted-category-items/reorder' 
+      reorder: '/highlighted-category-items/reorder'
     },
 
     flashSale: {
       base: `${API_BASE_URL}/admin`,
       list: '/flash-sales',
-
       create: '/flash-sales',
+      update: (id) => `/flash-sales/${id}`,
+      getById: (id) => `/flash-sales/${id}`,
+      delete: (id) => `/flash-sales/${id}`,
+      deleteMany: '/flash-sales/delete-many',
 
-      update: (id) => `/flash-sale/${id}`,
-      delete: (id) => `/flash-sale/${id}`,
-      deleteMany: '/flash-sale/delete-many',
-      restore: (id) => `/flash-sale/restore/${id}`,
-      restoreMany: '/flash-sale/restore-many',
-      forceDelete: (id) => `/flash-sale/force/${id}`,
-      forceDeleteMany: '/flash-sale/force-delete-many',
+      softDelete: (id) => `/flash-sales/soft-delete/${id}`,
+      softDeleteMany: '/flash-sales/soft-delete-many',
+      restore: (id) => `/flash-sales/restore/${id}`,
+      restoreMany: '/flash-sales/restore-many',
 
-      
+      forceDelete: (id) => `/flash-sales/force/${id}`,
+      forceDeleteMany: '/flash-sales/force-delete-many',
+
       getSkus: '/flash-sales/skus/available',
       getCategories: '/flash-sales/categories/available-tree'
     },
-
     user: {
       base: `${API_BASE_URL}/admin`,
       users: '/users',
@@ -245,9 +276,9 @@ updateOrder: '/sections/update-order' , // ✅ bổ sung dòng này
     brand: {
       base: `${API_BASE_URL}/admin/brands`,
       getAll: '/',
-      getById: (id) => `/detail/${id}`,
+      getById: (slug) => `/detail/${slug}`,
       create: '/create',
-      update: (id) => `/update/${id}`,
+      update: (slug) => `/update/${slug}`,
       softDelete: '/soft-delete',
       forceDelete: '/force-delete',
       restore: '/restore',

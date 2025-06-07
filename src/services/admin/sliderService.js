@@ -1,26 +1,22 @@
 import { API_ENDPOINT } from '../../config/apiEndpoints';
-import { get, post, patch, del } from '../common/crud';
+import { get, post, put, del, delWithBody } from '../common/crud';
 
-const bannerBase = API_ENDPOINT.admin.slider.banner.base;
-const placementBase = API_ENDPOINT.admin.slider.placement.base;
-const assignmentBase = API_ENDPOINT.admin.slider.assignment.base;
+const base = API_ENDPOINT.admin.banner.base;
+const paths = API_ENDPOINT.admin.banner;
 
 export const sliderService = {
-  // ==== BANNER ====
-  getBanners: () => get(`${bannerBase}${API_ENDPOINT.admin.slider.banner.list}`),
-  createBanner: (data) => post(`${bannerBase}${API_ENDPOINT.admin.slider.banner.create}`, data),
-  updateBanner: (id, data) => patch(`${bannerBase}${API_ENDPOINT.admin.slider.banner.update(id)}`, data),
-  deleteBanner: (id) => del(`${bannerBase}${API_ENDPOINT.admin.slider.banner.delete(id)}`),
+  list: (params = {}) => get(`${base}${paths.list}`, params),
 
-  // ==== PLACEMENT ====
-  getPlacements: () => get(`${placementBase}${API_ENDPOINT.admin.slider.placement.list}`),
-  createPlacement: (data) => post(`${placementBase}${API_ENDPOINT.admin.slider.placement.create}`, data),
-  updatePlacement: (id, data) => patch(`${placementBase}${API_ENDPOINT.admin.slider.placement.update(id)}`, data),
-  deletePlacement: (id) => del(`${placementBase}${API_ENDPOINT.admin.slider.placement.delete(id)}`),
+  getById: (id) => get(`${base}${paths.getById(id)}`),
 
-  // ==== ASSIGNMENT ====
-  assignBanner: (data) => post(`${assignmentBase}${API_ENDPOINT.admin.slider.assignment.assign}`, data),
-  getBannersByPlacement: (placementId) =>
-    get(`${assignmentBase}${API_ENDPOINT.admin.slider.assignment.getByPlacement(placementId)}`),
-  deleteAssignment: (id) => del(`${assignmentBase}${API_ENDPOINT.admin.slider.assignment.delete(id)}`)
+  create: (formData) => post(`${base}${paths.create}`, formData),
+
+  update: (id, formData) => put(`${base}${paths.update(id)}`, formData),
+
+  delete: (id) => del(`${base}${paths.delete(id)}`),
+
+   updateOrder: (id, displayOrder) =>
+    put(`${base}${paths.updateOrder(id)}`, { displayOrder }),
+  deleteMany: (idsArray) =>
+    delWithBody(`${base}${paths.forceDeleteMany}`, { ids: idsArray })
 };

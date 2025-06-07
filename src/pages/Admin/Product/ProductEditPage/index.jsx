@@ -6,16 +6,18 @@ import LoaderAdmin from '../../../../components/Admin/LoaderVip';
 import { toast } from 'react-toastify';
 
 export default function ProductEditPage() {
-  const { id } = useParams();
+  const { slug } = useParams(); 
   const navigate = useNavigate();
 
   const [initialData, setInitialData] = useState(null);
   const [loading, setLoading] = useState(true);
+  // Thêm state để quản lý loader khi submit
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await productService.getById(id);
+        const res = await productService.getById(slug); 
         setInitialData(res.data.data);
       } catch (err) {
         console.error('Lỗi lấy sản phẩm:', err);
@@ -25,23 +27,33 @@ export default function ProductEditPage() {
         setLoading(false);
       }
     };
-    fetchProduct();
-  }, [id, navigate]);
+    if (slug) fetchProduct(); 
+  }, [slug, navigate]);
 
+  // Khi user bấm “Lưu”, bật loader, cố gắng cập nhật, và nếu có lỗi thì re-throw để ProductForm bắt và hiển thị dưới input.
   const handleUpdate = async (formData) => {
+    setSubmitting(true);
     try {
-      await productService.update(id, formData);
-      toast.success('✅ Cập nhật sản phẩm thành công');
+      await productService.update(slug, formData);
+      toast.success('Cập nhật sản phẩm thành công');
       navigate('/admin/products');
     } catch (err) {
-      toast.error('❌ Cập nhật thất bại');
-      console.error(err);
+      console.error('Lỗi cập nhật sản phẩm:', err);
+      // Bắt rồi throw tiếp để ProductForm xử lý formErrors
+      throw err;
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  if (loading) return <LoaderAdmin fullscreen />;
+  if (loading) {
+    return <LoaderAdmin fullscreen />;
+  }
 
-return <ProductForm onSubmit={handleUpdate} initialData={initialData} />
-
-;
+  return (
+    <>
+      {submitting && <LoaderAdmin fullscreen />}
+      <ProductForm onSubmit={handleUpdate} initialData={initialData} />
+    </>
+  );
 }
