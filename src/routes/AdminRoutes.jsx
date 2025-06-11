@@ -52,6 +52,9 @@ const CategoryList = Loadable(lazy(() => import('pages/Admin/CaterogyProduct/Cat
 const CategoryAddd = Loadable(lazy(() => import('pages/Admin/CaterogyProduct/CategoryAdd/CategoryAdd')));
 const CategoryEdit = Loadable(lazy(() => import('pages/Admin/CaterogyProduct/CategoryEdit/CategoryEdit')));
 const NotificationPage = Loadable(lazy(() => import('pages/Admin/Notification')));
+const NotificationCreatePage = Loadable(lazy(() => import('pages/Admin/Notification/NotificationCreatePage')));
+const NotificationEditPage = Loadable(lazy(() => import('pages/Admin/Notification/NotificationEditPage')));
+
 const UserDetailPage = Loadable(lazy(() => import('pages/Admin/User/UserDetailDialog')));
 
 const AdminRoutes = {
@@ -93,8 +96,13 @@ const AdminRoutes = {
 
     {
       path: 'notifications',
-      element: <NotificationPage />
+      children: [
+        { index: true, element: <NotificationPage /> },
+        { path: 'create', element: <NotificationCreatePage /> },
+        { path: 'edit/:slug', element: <NotificationEditPage /> }
+      ]
     },
+
     {
       path: 'flash-sale',
       children: [
@@ -125,7 +133,7 @@ const AdminRoutes = {
       children: [
         { index: true, element: <HighlightedCategoryItemList /> },
         { path: 'create', element: <HighlightedCategoryItemForm /> },
-        { path: 'edit/:slug', element: <HighlightedCategoryItemForm /> } 
+        { path: 'edit/:slug', element: <HighlightedCategoryItemForm /> }
       ]
     },
 

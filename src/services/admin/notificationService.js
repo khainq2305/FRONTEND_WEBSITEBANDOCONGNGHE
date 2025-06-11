@@ -22,6 +22,7 @@ export const notificationService = {
   getById: (id) => get(`${base}${API_ENDPOINT.admin.notification.getById.replace(':id', id)}`),
 
   create: (formData) => post(`${base}${API_ENDPOINT.admin.notification.create}`, formData),
+  getBySlug: (slug) => get(`${base}/slug/${slug}`),
 
   update: (id, formData) =>
     API.put(`${base}${API_ENDPOINT.admin.notification.update.replace(':id', id)}`, formData, {

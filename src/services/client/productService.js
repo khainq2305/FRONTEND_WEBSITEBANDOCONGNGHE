@@ -40,5 +40,12 @@ getBySlug: (slug) => get(`${API_ENDPOINT.client.product.baseList}${API_ENDPOINT.
   }
 
   return get(productListBase, query);
-}
+},
+ // ✅ Thêm hàm gọi API so sánh
+  getCompareByIds: (ids = []) => {
+    if (!ids.length) throw new Error('Thiếu danh sách ID sản phẩm để so sánh');
+    const query = ids.join(',');
+    return get(`/admin/product-compare?ids=${query}`);
+  }
+
 };

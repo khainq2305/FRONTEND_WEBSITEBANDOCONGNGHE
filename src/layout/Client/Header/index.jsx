@@ -39,12 +39,18 @@ const Header = () => {
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const res = await notificationService.getForUser();
-        setNotifications(res.data || []);
-      } catch (err) {
-        console.error('Lỗi lấy thông báo:', err);
-        setNotifications([]);
-      }
+  const res = await notificationService.getForUser();
+  setNotifications(res.data || []);
+} catch (err) {
+  if (err.response?.status === 401) {
+    setNotifications([]); // ✅ Dùng [] thay vì null
+  } else {
+    console.error('Lỗi lấy thông báo:', err);
+    setNotifications([]); // ✅ fallback an toàn
+  }
+}
+
+
     };
 
     fetchNotifications();
@@ -364,7 +370,14 @@ useEffect(() => {
                   aria-haspopup="true"
                   aria-expanded={isNotificationDropdownOpen}
                 >
-                  <Bell className="w-6 h-6" strokeWidth={1.5} color="#fff" />
+                  <div className="relative">
+                    <Bell className="w-6 h-6" strokeWidth={1.5} color="#fff" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] px-1.5 rounded-full font-bold min-w-[16px] h-[16px] flex items-center justify-center leading-none">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
+                    )}
+                  </div>
                   <span className="text-white text-[10px] font-medium leading-tight mt-1">Thông báo</span>
                 </button>
                 {isNotificationDropdownOpen && (
@@ -376,6 +389,7 @@ useEffect(() => {
                       notifications={notifications}
                       setNotifications={setNotifications}
                       onClose={() => setIsNotificationDropdownOpen(false)}
+                      userInfo={userInfo}
                     />
                   </div>
                 )}

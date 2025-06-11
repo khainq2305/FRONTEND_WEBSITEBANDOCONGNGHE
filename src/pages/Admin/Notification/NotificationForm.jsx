@@ -42,7 +42,7 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
         newErrors.link = 'Link điều hướng không được để trống';
       } else if (
         !/^https:\/\/.+/.test(form.link.trim()) && // Không phải link ngoài
-        !/^\/[a-zA-Z0-9]/.test(form.link.trim()) // không phải link nội bộ
+        !/^\/[a-zA-Z0-9]/.test(form.link.trim()) // Và cũng không phải link nội bộ
       ) {
         newErrors.link = 'Link không hợp lệ! Phải bắt đầu bằng https:// hoặc /';
       }
@@ -91,6 +91,7 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
       const newForm = {
         ...editing,
         startAt: formattedStartAt,
+        slug: editing.slug || '',
         userIds: [],
         imageFile: null
       };
