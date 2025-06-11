@@ -47,7 +47,7 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
         newErrors.link = 'Link không hợp lệ! Phải bắt đầu bằng https:// hoặc /';
       }
     }
-
+//
     if (!form.startAt) newErrors.startAt = 'Vui lòng chọn ngày bắt đầu hiển thị';
 
     if (!editing && !form.imageFile && !preview) newErrors.image = 'Vui lòng chọn ảnh';

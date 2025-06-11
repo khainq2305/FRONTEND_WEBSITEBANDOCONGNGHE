@@ -384,6 +384,7 @@ useEffect(() => {
                   <div
                     className="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-lg z-50 transition-transform duration-200 ease-in-out"
                   >
+                    
                     <NotificationDropdown
                       isOpen={isNotificationDropdownOpen}
                       notifications={notifications}

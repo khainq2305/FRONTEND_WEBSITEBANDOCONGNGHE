@@ -57,7 +57,7 @@ const NotificationPage = () => {
       setLoading(false);
     }
   };
-
+//
   useEffect(() => {
     fetchData();
   }, [reload, page, status, search, typeFilter, itemsPerPage]);

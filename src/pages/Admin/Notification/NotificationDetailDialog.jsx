@@ -126,7 +126,7 @@ const Detail = ({ label, value }) => (
     </Typography>
   </Box>
 );
-
+//
 const formatDate = (dateStr) => {
   if (!dateStr) return '—';
   const date = new Date(dateStr);

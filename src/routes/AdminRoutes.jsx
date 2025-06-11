@@ -99,7 +99,7 @@ const AdminRoutes = {
       children: [
         { index: true, element: <NotificationPage /> },
         { path: 'create', element: <NotificationCreatePage /> },
-        { path: 'edit/:slug', element: <NotificationEditPage /> }
+        { path: 'edit/:slug', element: <NotificationEditPage /> }//
       ]
     },
     {

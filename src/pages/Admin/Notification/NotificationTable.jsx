@@ -69,7 +69,7 @@ function RowSortable({ item, index, selectedIds, onSelect, onEdit, onDelete, onV
     </TableRow>
   );
 }
-
+//
 const NotificationTable = ({
   notifications = [],
   selectedIds = [],

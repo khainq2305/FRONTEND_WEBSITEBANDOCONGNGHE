@@ -23,7 +23,7 @@ const NotificationEditPage = () => {
     };
     fetchData();
   }, [slug, navigate]);
-
+//
   if (loading) return <p className="p-6">Đang tải thông tin thông báo...</p>;
 
   return (
