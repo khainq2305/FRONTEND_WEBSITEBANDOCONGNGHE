@@ -102,7 +102,6 @@ const AdminRoutes = {
         { path: 'edit/:slug', element: <NotificationEditPage /> }
       ]
     },
-
     {
       path: 'flash-sale',
       children: [

@@ -116,7 +116,6 @@ const NotificationDetailDialog = ({ open, onClose, data }) => {
     </Dialog>
   );
 };
-
 const Detail = ({ label, value }) => (
   <Box mb={2}>
     <Typography variant="body2" fontWeight={600} gutterBottom>

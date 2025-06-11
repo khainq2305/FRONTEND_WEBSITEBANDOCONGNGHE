@@ -5,7 +5,6 @@ import { API_ENDPOINT } from '../../config/apiEndpoints';
 const base = API_ENDPOINT.admin.notification.base;
 
 export const notificationService = {
-  //Dùng API từ axios instance
   getUsers: async () => {
     try {
       const res = await API.get('/admin/users');

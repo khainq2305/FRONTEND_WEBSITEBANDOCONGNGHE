@@ -4,7 +4,7 @@ import NotificationForm from './NotificationForm';
 import { notificationService } from '../../../services/admin/notificationService';
 
 const NotificationEditPage = () => {
-  const { slug } = useParams(); // ✅ chỉ cần slug
+  const { slug } = useParams();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -12,7 +12,7 @@ const NotificationEditPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await notificationService.getBySlug(slug); // ✅ dùng slug
+        const res = await notificationService.getBySlug(slug);
         setEditing(res.data);
       } catch (err) {
         console.error('Không tìm thấy thông báo:', err);

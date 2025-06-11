@@ -61,7 +61,7 @@ function RowSortable({ item, index, selectedIds, onSelect, onEdit, onDelete, onV
         <div className="flex justify-end items-center gap-2">
           <MoreActionsMenu
             onView={() => onView(item)}
-            onEdit={() => navigate(`/admin/notifications/edit/${item.slug}`)} // ✅ đúng
+            onEdit={() => navigate(`/admin/notifications/edit/${item.slug}`)} // đúng
             onDelete={() => onDelete(item)}
           />
         </div>
