@@ -1,6 +1,7 @@
 import { lazy } from 'react';
 import Loadable from 'components/Admin/Loadable';
 import DashboardLayout from 'layout/Admin';
+import RequireAuth from '@/components/Admin/RequireAuth';
 
 const DashboardDefault = Loadable(lazy(() => import('pages/Admin/Dashboard')));
 
@@ -56,7 +57,9 @@ const UserDetailPage = Loadable(lazy(() => import('pages/Admin/User/UserDetailDi
 
 const AdminRoutes = {
   path: '/admin',
-  element: <DashboardLayout />,
+  element: <RequireAuth>
+    <DashboardLayout />
+  </RequireAuth>,
   children: [
     {
       index: true,

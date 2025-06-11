@@ -1,34 +1,32 @@
-// src/App.js
-
+// src/App.jsx
+import { useEffect } from 'react';
 import { RouterProvider } from 'react-router-dom';
-import router from './routes'; // Đảm bảo đường dẫn này đúng
-import ThemeCustomization from './themes'; // Đảm bảo đường dẫn này đúng
-import Toastify from 'components/common/Toastify'; // Đảm bảo đường dẫn này đúng
-import ScrollTop from './components/Admin/ScrollTop'; // Đảm bảo đường dẫn này đúng
+import router from './routes';
+
+import useAuthStore from '@/stores/AuthStore';
 
 import { GoogleOAuthProvider } from '@react-oauth/google';
-// import { UserProvider } from './contexts/UserContext'; // ✅ 1. Import UserProvider
+import ThemeCustomization from './themes';
+import Toastify from 'components/common/Toastify';
+import ScrollTop from './components/Admin/ScrollTop';
 
-import './assets/Client/css/global.css';
-import './index.css';
-
-// Lấy Client ID từ biến môi trường
 const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 export default function App() {
+  const fetchUserInfo = useAuthStore((s) => s.fetchUserInfo);
+
+  useEffect(() => {
+    fetchUserInfo(); // gọi khi app mount
+  }, []);
+
   return (
-    // GoogleOAuthProvider thường bao bọc các phần liên quan đến xác thực Google
     <GoogleOAuthProvider clientId={clientId}>
-      {/* ✅ 2. UserProvider bao bọc các phần cần truy cập dữ liệu người dùng */}
-      {/* <UserProvider> */}
-        <ThemeCustomization>
-          <ScrollTop>
-            <Toastify />
-            {/* RouterProvider quản lý việc hiển thị các trang dựa trên route */}
-            <RouterProvider router={router} />
-          </ScrollTop>
-        </ThemeCustomization>
-      {/* </UserProvider> */}
+      <ThemeCustomization>
+        <ScrollTop>
+          <Toastify />
+          <RouterProvider router={router} />
+        </ScrollTop>
+      </ThemeCustomization>
     </GoogleOAuthProvider>
   );
 }

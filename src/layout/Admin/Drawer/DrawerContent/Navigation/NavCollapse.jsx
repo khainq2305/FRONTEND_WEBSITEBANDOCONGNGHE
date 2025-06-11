@@ -1,4 +1,3 @@
-// NavCollapse.js
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import List from '@mui/material/List';
@@ -8,64 +7,90 @@ import ListItemText from '@mui/material/ListItemText';
 import Collapse from '@mui/material/Collapse';
 import Typography from '@mui/material/Typography';
 
-import NavItem from './NavItem';
-import { useGetMenuMaster } from 'api/menu';
-
 import { RightOutlined } from '@ant-design/icons';
 
-export default function NavCollapse({ menu, level }) {
+import NavItem from './NavItem';
+import { isMenuDisabled } from '@/utils/isMenuDisabled';
+import useAuthStore from '@/stores/AuthStore'; // ✅ Lấy ability từ Zustand
+import { useGetMenuMaster } from 'api/menu';
+
+export default function NavCollapse({ menu, level, disabled = false }) {
   const [open, setOpen] = useState(false);
   const { menuMaster } = useGetMenuMaster();
   const drawerOpen = menuMaster.isDashboardDrawerOpened;
+  const ability = useAuthStore((state) => state.ability);
+
+  // ✅ Tự gán nếu có allow
+  if (!menu.subject && !menu.action && menu.allow) {
+    menu.subject = menu.allow;
+    menu.action = 'read';
+  }
+
+  const isDisabled = isMenuDisabled(menu, ability) || disabled;
 
   const handleClick = () => {
-    setOpen(!open);
+    if (!isDisabled) setOpen(!open);
   };
 
   const Icon = menu.icon;
-  const menuIcon = menu.icon ? (
-    <Icon
-      style={{
-        fontSize: drawerOpen ? '1rem' : '1.25rem',
-      }}
-    />
-  ) : null;
+  const menuIcon = Icon ? <Icon style={{ fontSize: drawerOpen ? '1rem' : '1.25rem' }} /> : null;
 
-  const navChildren = menu.children?.map((childItem) => {
+  const navChildren = menu.children
+  ?.map((childItem) => {
+    if (!childItem.subject && !childItem.action && childItem.allow) {
+      childItem.subject = childItem.allow;
+      childItem.action = 'read';
+    }
+
+    const childDisabled = isMenuDisabled(childItem, ability) || isDisabled;
+
+    if (childDisabled) return null; // ✅ Không render nếu không có quyền
+
     switch (childItem.type) {
       case 'item':
-        return <NavItem key={childItem.id} item={childItem} level={level + 1} />;
-      case 'collapse':
-        return <NavCollapse key={childItem.id} menu={childItem} level={level + 1} />;
-      default:
         return (
-          <Typography key={childItem.id} variant="h6" color="error" align="center">
-            Lỗi Kiểu Mục Con
-          </Typography>
+          <NavItem
+            key={childItem.id}
+            item={childItem}
+            level={level + 1}
+            disabled={false}
+          />
         );
+      case 'collapse':
+        return (
+          <NavCollapse
+            key={childItem.id}
+            menu={childItem}
+            level={level + 1}
+            disabled={false}
+          />
+        );
+      default:
+        return null;
     }
-  });
+  })
+  .filter(Boolean); // ✅ Bỏ các null
 
-  // Define base padding and indentation step
-  const basePadding = 21; // Assuming NavItem uses 16px for level 1. Adjust if different.
-  const indentationStep = 28; // Your existing step
 
   return (
     <>
       <ListItemButton
+        disabled={isDisabled}
         onClick={handleClick}
         sx={(theme) => ({
-          // MODIFIED LINE: Adjusted padding-left calculation
-          pl: drawerOpen ? `${basePadding + (level - 1) * indentationStep}px` : 1.5,
+          pl: drawerOpen ? `${21 + (level - 1) * 28}px` : 1.5,
           py: !drawerOpen && level === 1 ? 1.25 : 1,
           minHeight: 48,
           display: 'flex',
           alignItems: 'center',
           ...(drawerOpen && {
-            '&:hover': { bgcolor: 'primary.lighter', ...(theme.applyStyles ? theme.applyStyles('dark', { bgcolor: 'divider' }) : {}) },
+            '&:hover': {
+              bgcolor: 'primary.lighter',
+              ...(theme.applyStyles?.('dark', { bgcolor: 'divider' }) || {})
+            }
           }),
           ...(!drawerOpen && {
-            '&:hover': { bgcolor: 'transparent' },
+            '&:hover': { bgcolor: 'transparent' }
           })
         })}
       >
@@ -78,7 +103,7 @@ export default function NavCollapse({ menu, level }) {
               borderRadius: drawerOpen ? 0 : 1.5,
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
+              justifyContent: 'center'
             }}
           >
             {menuIcon}
@@ -90,19 +115,19 @@ export default function NavCollapse({ menu, level }) {
             sx={{ my: 0 }}
           />
         )}
-
         {drawerOpen && (
           <RightOutlined
             style={{
               fontSize: '0.8rem',
               marginLeft: 'auto',
-              transition: 'transform 0.2s ease-in-out, opacity 0.2s ease-in-out',
+              transition: 'transform 0.2s ease-in-out',
               transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
               color: 'rgba(0, 0, 0, 0.54)'
             }}
           />
         )}
       </ListItemButton>
+
       {drawerOpen && (
         <Collapse in={open} timeout="auto" unmountOnExit>
           <List component="div" disablePadding sx={{ position: 'relative', zIndex: 1 }}>
@@ -114,7 +139,3 @@ export default function NavCollapse({ menu, level }) {
   );
 }
 
-NavCollapse.propTypes = {
-  menu: PropTypes.object.isRequired,
-  level: PropTypes.number.isRequired,
-};
