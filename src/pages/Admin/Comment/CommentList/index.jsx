@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 import {
   Card,
   CardHeader,
@@ -17,56 +17,52 @@ import {
   Select,
   MenuItem,
   Paper,
-  CircularProgress,
-} from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import StarIcon from "@mui/icons-material/Star";
-import StarBorderIcon from "@mui/icons-material/StarBorder";
+  CircularProgress
+} from '@mui/material';
+import { reviewService } from '@/services/admin/reviewService';
+
+import SearchIcon from '@mui/icons-material/Search';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import StarIcon from '@mui/icons-material/Star';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
 import SortIcon from '@mui/icons-material/Sort';
 import FormatListNumberedIcon from '@mui/icons-material/FormatListNumbered';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
-import { useNavigate } from "react-router-dom";
-import PaginationComponent from "components/common/Pagination";
+import { useNavigate } from 'react-router-dom';
+import PaginationComponent from 'components/common/Pagination';
 
 const CommentList = () => {
   const navigate = useNavigate();
-  const [sortOption, setSortOption] = useState("default");
-  const [searchText, setSearchText] = useState("");
+  const [sortOption, setSortOption] = useState('default');
+  const [searchText, setSearchText] = useState('');
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
   const [rowsPerPage] = useState(5);
 
-  useEffect(() => {
+useEffect(() => {
+  const fetchData = async () => {
     setLoading(true);
-    const mockData = [
-      {
-        productId: "1",
-        productName: "iPhone 16 Pro Max",
-        totalComments: 12,
-        avgRating: 4.7,
-        imageUrl: "https://cdn.dienthoaigiakho.vn/photos/1714197207464-Xiaomi-Redmi-A3-BL1.jpg"
-      },
-      {
-        productId: "2",
-        productName: "Samsung Galaxy S24 Ultra",
-        totalComments: 8,
-        avgRating: 4.3,
-        imageUrl: "https://cdn.dienthoaigiakho.vn/photos/1714197207464-Xiaomi-Redmi-A3-BL1.jpg"
-      },
-      {
-        productId: "3",
-        productName: "Xiaomi Redmi Note 13",
-        totalComments: 3,
-        avgRating: 3.5,
-        imageUrl: "https://cdn.dienthoaigiakho.vn/photos/1714197207464-Xiaomi-Redmi-A3-BL1.jpg"
+    try {
+      const res = await reviewService.getCommentSummary();
+      if (Array.isArray(res.data?.data)) {
+        setComments(res.data.data);
+      } else {
+        console.warn('⚠️ Dữ liệu không phải mảng:', res.data);
+        setComments([]);
       }
-    ];
-    setComments(mockData);
-    setLoading(false);
-  }, []);
+    } catch (error) {
+      console.error('❌ Lỗi khi load danh sách:', error);
+      setComments([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchData();
+}, []);
+
 
   const getFilteredData = () => {
     let filtered = [...comments];
@@ -78,23 +74,23 @@ const CommentList = () => {
     }
 
     switch (sortOption) {
-      case "most-commented":
+      case 'most-commented':
         filtered.sort((a, b) => b.totalComments - a.totalComments);
         break;
-      case "highest-rating":
+      case 'highest-rating':
         filtered = filtered
           .filter((item) => item.avgRating !== null)
           .sort((a, b) => b.avgRating - a.avgRating);
         break;
-      case "lowest-rating":
+      case 'lowest-rating':
         filtered = filtered
           .filter((item) => item.avgRating !== null)
           .sort((a, b) => a.avgRating - b.avgRating);
         break;
-      case "az":
+      case 'az':
         filtered.sort((a, b) => a.productName.localeCompare(b.productName));
         break;
-      case "za":
+      case 'za':
         filtered.sort((a, b) => b.productName.localeCompare(a.productName));
         break;
       default:
@@ -119,8 +115,8 @@ const CommentList = () => {
         }
       />
       <CardContent>
-        <Paper elevation={0} sx={{ p: 2, mb: 3, backgroundColor: "#f5f7fa", borderRadius: 3 }}>
-          <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={2}>
+        <Paper elevation={0} sx={{ p: 2, mb: 3, backgroundColor: '#f5f7fa', borderRadius: 3 }}>
+          <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} gap={2}>
             <TextField
               fullWidth
               placeholder="Tìm kiếm sản phẩm..."
@@ -146,7 +142,7 @@ const CommentList = () => {
               sx={{
                 backgroundColor: 'white',
                 borderRadius: 2,
-                "& .MuiSelect-select": { display: 'flex', alignItems: 'center' }
+                '& .MuiSelect-select': { display: 'flex', alignItems: 'center' }
               }}
             >
               <MenuItem value="default">
@@ -225,7 +221,7 @@ const CommentList = () => {
                           alt={item.productName}
                           width={80}
                           height={80}
-                          style={{ objectFit: "cover", borderRadius: 8 }}
+                          style={{ objectFit: 'cover', borderRadius: 8 }}
                         />
                       </TableCell>
                       <TableCell>
@@ -237,7 +233,7 @@ const CommentList = () => {
                       <TableCell align="center">
                         {[1, 2, 3, 4, 5].map((star) =>
                           star <= Math.round(item.avgRating) ? (
-                            <StarIcon key={star} fontSize="small" sx={{ color: "#fdd835" }} />
+                            <StarIcon key={star} fontSize="small" sx={{ color: '#fdd835' }} />
                           ) : (
                             <StarBorderIcon key={star} fontSize="small" />
                           )

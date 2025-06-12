@@ -31,6 +31,8 @@ const VariantValueList = Loadable(lazy(() => import('pages/Admin/VariantValue/in
 
 const CommentList = Loadable(lazy(() => import('pages/Admin/Comment/CommentList/index.jsx')));
 const CommentDetail = Loadable(lazy(() => import('pages/Admin/Comment/CommentDetail/index.jsx')));
+const AllCommentList = Loadable(lazy(() => import('pages/Admin/Comment/AllCommentList')));
+
 const VariantList = Loadable(lazy(() => import('pages/Admin/ProductVariants')));
 const VariantForm = Loadable(lazy(() => import('pages/Admin/ProductVariants/VariantForm')));
 const ProductListPage = Loadable(lazy(() => import('pages/Admin/Product')));
@@ -54,9 +56,15 @@ const CategoryEdit = Loadable(lazy(() => import('pages/Admin/CaterogyProduct/Cat
 const NotificationPage = Loadable(lazy(() => import('pages/Admin/Notification')));
 const UserDetailPage = Loadable(lazy(() => import('pages/Admin/User/UserDetailDialog')));
 
+import { UserProvider } from '@/contexts/UserContext';
+
 const AdminRoutes = {
   path: '/admin',
-  element: <DashboardLayout />,
+  element: (
+    <UserProvider>
+      <DashboardLayout />
+    </UserProvider>
+  ),
   children: [
     {
       index: true,
@@ -125,7 +133,7 @@ const AdminRoutes = {
       children: [
         { index: true, element: <HighlightedCategoryItemList /> },
         { path: 'create', element: <HighlightedCategoryItemForm /> },
-        { path: 'edit/:slug', element: <HighlightedCategoryItemForm /> } 
+        { path: 'edit/:slug', element: <HighlightedCategoryItemForm /> }
       ]
     },
 
@@ -229,8 +237,12 @@ const AdminRoutes = {
       element: <CommentList />
     },
     {
-      path: 'comments/:id',
+      path: 'comments/:productId',
       element: <CommentDetail />
+    },
+    {
+      path: 'comments/all',
+      element: <AllCommentList />
     },
 
     {

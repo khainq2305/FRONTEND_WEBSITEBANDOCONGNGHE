@@ -132,10 +132,10 @@ export const API_ENDPOINT = {
       deleteMany: '/delete-many'
     },
      productView: {
-    base: `${API_BASE_URL}/productviews`, // <- gốc
-    track: '/',          // POST: ghi nhận lượt xem
-    listByIds: '/list',  // POST: lấy theo ID localStorage
-    top: '/top'          // GET: top xem nhiều
+    base: `${API_BASE_URL}/productviews`, 
+    track: '/',        
+    listByIds: '/list',  
+    top: '/top'          
   },
   },
   admin: {
@@ -328,6 +328,13 @@ export const API_ENDPOINT = {
       forceDelete: '/force-delete',
       restore: '/restore',
       updateOrder: '/update-order'
+    },
+    reviews: {
+      base: `${API_BASE_URL}/admin/reviews`,
+      getAllByProductId: (productId) => `/product/${productId}`,
+      getSummary: '/summary',
+      reply: (id) => `/${id}/reply`,
+      getAll: ''
     }
   }
 };

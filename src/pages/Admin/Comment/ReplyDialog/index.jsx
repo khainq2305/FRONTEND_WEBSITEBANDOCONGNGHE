@@ -21,7 +21,8 @@ const ReplyDialog = ({
       <DialogTitle>Phản hồi bình luận</DialogTitle>
       <DialogContent dividers>
         <Typography mb={1}>
-          <strong>{selectedComment?.user}:</strong> {selectedComment?.content}
+          <strong>{selectedComment?.user?.fullName || "Người dùng"}:</strong>{" "}
+          {selectedComment?.content}
         </Typography>
         <TextField
           multiline

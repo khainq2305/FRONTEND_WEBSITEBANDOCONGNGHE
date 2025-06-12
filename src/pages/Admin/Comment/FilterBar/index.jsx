@@ -1,65 +1,59 @@
-import { Box, TextField, InputAdornment, Select, MenuItem } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
-
-const FilterBar = ({
-  searchText,
-  onSearchChange,
-  selectedRating,
-  onRatingChange,
-  selectedStatus,
-  onStatusChange,
-}) => {
-  return (
-    <Box
-      display="flex"
-      alignItems="center"
-      gap={2}
-      mb={3}
-      flexWrap="wrap"
-      sx={{ backgroundColor: "#f5f5f5", p: 2, borderRadius: 2 }}
+<Box display="flex" gap={2} flexWrap="wrap" mb={2}>
+  <FormControl size="small">
+    <InputLabel>Trạng thái</InputLabel>
+    <Select
+      value={activeStatus}
+      label="Trạng thái"
+      onChange={(e) => onChange('status', e.target.value)}
     >
-      <TextField
-        variant="outlined"
-        label="Tìm kiếm bình luận"
-        size="small"
-        value={searchText}
-        onChange={(e) => onSearchChange(e.target.value)}
-        sx={{ flex: 1, minWidth: 300, backgroundColor: "white", borderRadius: 1 }}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon color="action" />
-            </InputAdornment>
-          ),
-        }}
-      />
-      <Select
-        size="small"
-        value={selectedRating}
-        onChange={(e) => onRatingChange(e.target.value)}
-        displayEmpty
-        sx={{ minWidth: 160, backgroundColor: "white", borderRadius: 1 }}
-      >
-        <MenuItem value="all">⭐ Tất cả sao</MenuItem>
-        {[5, 4, 3, 2, 1].map((val) => (
-          <MenuItem key={val} value={val}>
-            {val} ⭐
-          </MenuItem>
-        ))}
-      </Select>
-      <Select
-        size="small"
-        value={selectedStatus}
-        onChange={(e) => onStatusChange(e.target.value)}
-        displayEmpty
-        sx={{ minWidth: 180, backgroundColor: "white", borderRadius: 1 }}
-      >
-        <MenuItem value="all">Tất cả trạng thái</MenuItem>
-        <MenuItem value="replied">Đã phản hồi</MenuItem>
-        <MenuItem value="not_replied">Chưa phản hồi</MenuItem>
-      </Select>
-    </Box>
-  );
-};
+      <MenuItem value="all">Tất cả</MenuItem>
+      <MenuItem value="replied">Đã phản hồi</MenuItem>
+      <MenuItem value="not_replied">Chưa phản hồi</MenuItem>
+    </Select>
+  </FormControl>
 
-export default FilterBar;
+  <FormControl size="small">
+    <InputLabel>Đánh giá</InputLabel>
+    <Select
+      value={activeRating}
+      label="Đánh giá"
+      onChange={(e) => onChange('rating', e.target.value)}
+    >
+      <MenuItem value="all">Tất cả</MenuItem>
+      {[5, 4, 3, 2, 1].map((val) => (
+        <MenuItem key={val} value={val}>
+          {val} sao
+        </MenuItem>
+      ))}
+    </Select>
+  </FormControl>
+
+  <TextField
+    size="small"
+    label="Từ ngày"
+    type="date"
+    value={fromDate}
+    onChange={(e) => onChange('fromDate', e.target.value)}
+    InputLabelProps={{ shrink: true }}
+  />
+  <TextField
+    size="small"
+    label="Đến ngày"
+    type="date"
+    value={toDate}
+    onChange={(e) => onChange('toDate', e.target.value)}
+    InputLabelProps={{ shrink: true }}
+  />
+
+
+</Box>
+
+{getActiveFilterChips().length > 0 && (
+  <Box display="flex" flexWrap="wrap" gap={1} mb={2}>
+    <Typography variant="body2" sx={{ fontWeight: 500, mt: '4px' }}>Đang lọc:</Typography>
+    {getActiveFilterChips().map((chip, index) => (
+      <Chip key={index} label={chip.label} color="info" variant="outlined" size="small" />
+    ))}
+  </Box>
+)}
+

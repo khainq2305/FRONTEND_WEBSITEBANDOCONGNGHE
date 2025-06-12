@@ -14,9 +14,9 @@ const CommentRow = ({ item, index, page, onMenuOpen }) => {
     <TableRow>
       <TableCell>{page * 5 + index + 1}</TableCell>
       <TableCell>
-        <Avatar src={item.avatar} alt={item.user} />
+        <Avatar src={item.user?.avatarUrl || ''} alt={item.user?.fullName || ''} />
       </TableCell>
-      <TableCell>{item.user}</TableCell>
+      <TableCell>{item.user?.fullName}</TableCell>
       <TableCell>
         {[1, 2, 3, 4, 5].map((star) =>
           star <= item.rating ? (
@@ -29,28 +29,24 @@ const CommentRow = ({ item, index, page, onMenuOpen }) => {
       <TableCell>
         <Typography fontSize={14}>{item.content}</Typography>
         <Typography fontSize={12} color="text.secondary">
-          {item.date}
+          {new Date(item.createdAt).toLocaleString("vi-VN")}
         </Typography>
       </TableCell>
       <TableCell>
-        <Typography fontWeight={600} color={item.reply ? "green" : "orange"}>
-          {item.reply ? "Đã phản hồi" : "Chưa phản hồi"}
+        <Typography fontWeight={600} color={item.replyContent ? "green" : "orange"}>
+          {item.replyContent ? "Đã phản hồi" : "Chưa phản hồi"}
         </Typography>
       </TableCell>
       <TableCell>
-        {item.reply ? (
+        {item.replyContent ? (
           <>
-            <Typography>{item.reply}</Typography>
+            <Typography>{item.replyContent}</Typography>
             <Typography fontSize={12} color="text.secondary">
-              ({item.replyDate} - bởi {item.repliedBy || "?"})
+              ({new Date(item.replyDate).toLocaleString("vi-VN")} - bởi {item.repliedBy || "?"})
             </Typography>
           </>
         ) : (
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            fontStyle="italic"
-          >
+          <Typography variant="body2" color="text.secondary" fontStyle="italic">
             Chưa có phản hồi
           </Typography>
         )}

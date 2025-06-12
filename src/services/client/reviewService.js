@@ -21,15 +21,9 @@ export const reviewService = {
     return Array.isArray(res?.data?.reviews) ? res.data.reviews : [];
   },
 
-  /**
-   * @description Kiểm tra xem người dùng hiện tại đã đánh giá SKU này chưa.
-   * @param {string} skuId - ID của SKU cần kiểm tra.
-   * @returns {Promise<Object>} Promise trả về object, ví dụ: { hasReviewed: boolean }.
-   */
+
   checkUserReview: (skuId) => {
-    // Gọi đến API GET /reviews/check/{skuId}
-    // Giả định hàm `get` của bạn tự động xử lý credentials nếu đã cấu hình,
-    // hoặc bạn có thể thêm `{ withCredentials: true }` nếu cần.
+
     return get(
         `${base}${API_ENDPOINT.client.review.check(skuId)}`, 
         { withCredentials: true }
