@@ -1,20 +1,14 @@
+// pages/ProductListByCategory/FilterBar.jsx
+
 import { useEffect, useState } from 'react';
-import { brandService } from '../../../../services/client/brandService';
+// BỎ import brandService đi, không cần nữa
+// import { brandService } from '../../../../services/client/brandService';
 
-export default function FilterBar({ categorySlug, filters, setFilters }) {
-  const [brands, setBrands] = useState([]);
-
-  useEffect(() => {
-    const fetchBrands = async () => {
-      try {
-        const res = await brandService.getAll();
-        setBrands(res.data || []);
-      } catch (err) {
-        console.error('❌ Lỗi khi load brand:', err);
-      }
-    };
-    fetchBrands();
-  }, [categorySlug]);
+// Thêm `brands` vào props nhận được. Cho giá trị mặc định là mảng rỗng.
+export default function FilterBar({ categorySlug, filters, setFilters, brands = [] }) {
+  // BỎ HOÀN TOÀN useState và useEffect gọi API ở đây
+  // const [brands, setBrands] = useState([]);
+  // useEffect(() => { ... });
 
   const handleClick = (brandName) => {
     const updated = brandName ? [brandName] : [];
@@ -34,6 +28,7 @@ export default function FilterBar({ categorySlug, filters, setFilters }) {
           >
             TẤT CẢ
           </button>
+          {/* Component giờ sẽ render `brands` từ props */}
           {brands.map((brand) => (
             <button
               key={brand.id}

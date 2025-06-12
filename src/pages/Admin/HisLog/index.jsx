@@ -235,7 +235,7 @@ const AuditLogList = () => {
 
       <DetailModal log={selectedLog} onClose={() => setSelectedLog(null)} />
 
-      <Toastify />
+   
     </Box>
   );
 };

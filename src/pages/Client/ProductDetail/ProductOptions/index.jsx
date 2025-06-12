@@ -1,122 +1,152 @@
-// src/components/ProductDetail/ProductOptions.jsx
-
 import React from "react";
+import { CheckCircleIcon } from '@heroicons/react/24/solid';
 
-// Icon ngọn lửa cho nhãn giảm giá
-const FlameIcon = (props) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" {...props}>
-    <path fillRule="evenodd" d="M12.25 4.062a2.5 2.5 0 00-5 0v.063c.24.08 1.154.54 1.154 1.344 0 .5-.21 1.02-.625 1.5-.416.48-1.02.875-1.02 1.531 0 .657.604 1.057 1.02 1.531.416.48.625 1 .625 1.5 0 .805-.914 1.265-1.154 1.344V4.062a2.5 2.5 0 105 0v-.063c-.24-.08-1.154-.54-1.154-1.344 0-.5.21-1.02.625-1.5.416-.48 1.02-.875 1.02-1.531 0-.657-.604-1.057-1.02-1.531-.416-.48-.625-1-.625-1.5 0-.805.914-1.265 1.154-1.344V4.062z" clipRule="evenodd" />
-  </svg>
+const StarRating = ({ rating, totalStars = 5 }) => (
+    <div className="flex items-center">
+        {[...Array(totalStars)].map((_, index) => {
+            const numRating = parseFloat(rating);
+            const starKey = `star-${index}`;
+            if (numRating >= index + 1) {
+                return <svg key={starKey} className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.293c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>;
+            }
+            return <svg key={starKey} className="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.293c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>;
+        })}
+    </div>
 );
 
-
 export default function ProductOptions({
-  productOptionsData = [],
-  selectedOption,
-  setSelectedOption,
-  onAddToCart,
-  stickyTopOffset = "md:top-11",
-  banners = [], // Nhận prop banners
+    productName,
+    rating,
+    reviewCount,
+    productOptionsData = [],
+    selectedOption,
+    setSelectedOption,
+    onAddToCart,
+    banners = [],
 }) {
-  // Nếu chưa có dữ liệu thì hiển thị loading
-  if (!productOptionsData || productOptionsData.length === 0) {
-    return <div className="text-gray-500 text-sm">Đang tải biến thể sản phẩm…</div>;
-  }
+    if (!productOptionsData || productOptionsData.length === 0) {
+        return <div className="text-gray-500 text-sm">Đang tải...</div>;
+    }
 
-  // Tìm biến thể đang được chọn
-  const current = productOptionsData.find(o => o.label === selectedOption) || productOptionsData[0];
-  if (!current) return null;
+    const current = productOptionsData.find(o => o.label === selectedOption) || productOptionsData[0];
+    if (!current) return null;
+    
+    const isCurrentInStock = current.inStock;
+    
+    let discountAmount = 0;
+    let discountPercentage = 0;
+    if (current.numericOriginalPrice && current.numericPrice && current.numericOriginalPrice > current.numericPrice) {
+        discountAmount = current.numericOriginalPrice - current.numericPrice;
+        discountPercentage = Math.round((discountAmount / current.numericOriginalPrice) * 100);
+    }
 
-  // --- Tính toán giảm giá ---
-  let discountAmount = 0;
-  let discountPercentage = 0;
-  if (current.numericOriginalPrice && current.numericPrice && current.numericOriginalPrice > current.numericPrice) {
-    discountAmount = current.numericOriginalPrice - current.numericPrice;
-    discountPercentage = Math.round((discountAmount / current.numericOriginalPrice) * 100);
-  }
-  // --- Kết thúc tính toán ---
+    return (
+        <div className={`p-4 rounded-lg border border-gray-200 shadow-sm space-y-4 text-gray-800 md:sticky md:top-4 h-fit bg-gradient-to-b from-white via-white to-amber-50/20`}>
+            
+            {/* === 1. TÊN SẢN PHẨM & ĐÁNH GIÁ === (Giữ nguyên) */}
+            <div>
+                <h1 className="text-2xl font-bold text-gray-900 leading-tight">{productName}</h1>
+                {reviewCount > 0 && (
+                    <div className="flex items-center space-x-2 text-sm text-gray-600 mt-2">
+                        <StarRating rating={rating} />
+                        <span>({reviewCount} đánh giá)</span>
+                    </div>
+                )}
+            </div>
 
-  return (
-    <div className={`bg-white p-4 rounded border border-gray-200 shadow-sm space-y-4 text-sm text-gray-800 md:sticky ${stickyTopOffset} h-fit`}>
-      
-      {/* Phần chọn biến thể sản phẩm */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-        {productOptionsData.map(opt => {
-          const isSelected = selectedOption === opt.label;
-          let swatch = null; 
-          if (opt.colorCode) { swatch = ( <div className="w-4 h-4 rounded-full border border-gray-400" style={{ backgroundColor: opt.colorCode }} /> ); } 
-          else if (opt.imageUrl) { swatch = ( <img src={opt.imageUrl} alt={opt.colorLabel || opt.label} className="w-4 h-4 rounded-full object-cover border border-gray-300" /> ); } 
-          else { swatch = ( <div className="w-4 h-4 flex items-center justify-center text-xs border rounded border-gray-300 bg-gray-100"> {opt.colorLabel ? opt.colorLabel.charAt(0).toUpperCase() : opt.label.charAt(0).toUpperCase()} </div> ); }
+            {/* === 2. KHỐI GIÁ BÁN MỚI === (Giữ nguyên) */}
+            <div className="space-y-2 rounded-lg bg-gray-100 p-4">
+                <div className="flex items-baseline gap-x-3">
+                    <p className="text-red-600 font-bold text-3xl">{current.price}</p>
+                    {current.originalPrice && (
+                        <p className="text-lg line-through text-gray-500">{current.originalPrice}</p>
+                    )}
+                </div>
+                {discountAmount > 0 && (
+                    <div className="inline-block bg-red-100 text-red-700 font-bold text-sm px-2.5 py-1 rounded-md">
+                        <span>Giảm {discountAmount.toLocaleString('vi-VN')}đ (-{discountPercentage}%)</span>
+                    </div>
+                )}
+            </div>
+            
+            {/* === 3. LỰA CHỌN PHIÊN BẢN (ĐÃ THÊM LẠI SWATCH ẢNH/MÀU) === */}
+            <div>
+                <p className="font-semibold text-gray-700 mb-2">Chọn phiên bản:</p>
+                <div className="flex flex-wrap gap-3"> {/* 👈 Tăng gap lên một chút cho thoáng */}
+                    {productOptionsData.map(opt => {
+                        const isSelected = selectedOption === opt.label;
+                        
+                        // ✅ LOGIC TẠO SWATCH ĐƯỢC THÊM LẠI
+                        let swatch = null;
+                        if (opt.colorCode) { 
+                            swatch = <div className="w-8 h-8 rounded-md border border-gray-300" style={{ backgroundColor: opt.colorCode }} />; 
+                        } else if (opt.imageUrl) { 
+                            swatch = <img src={opt.imageUrl} alt={opt.label} className="w-8 h-8 rounded-md object-cover border border-gray-300" />; 
+                        } else if (opt.variantImage) { 
+                            swatch = <img src={opt.variantImage} alt={opt.label} className="w-8 h-8 rounded-md object-cover border border-gray-300" />; 
+                        } else { 
+                            swatch = <div className="w-8 h-8 flex items-center justify-center text-xs border rounded-md bg-gray-100 font-semibold">{opt.label.charAt(0).toUpperCase()}</div>;
+                        }
 
-          return (
-            <button key={opt.label} onClick={() => setSelectedOption(opt.label)} className={`border rounded p-2 flex flex-col items-center justify-center text-center text-xs transition-colors duration-150 ${ isSelected ? "bg-blue-50 border-primary ring-1 ring-primary" : "border-gray-200 hover:border-primary text-gray-700"}`} >
-              <div className="flex items-center space-x-1 mb-1">
-                {swatch}
-                <span className={`font-semibold ${isSelected ? "text-primary" : "text-gray-700"}`}>
-                  {opt.label}
-                </span>
-              </div>
-              <div className={`font-bold ${isSelected ? "text-primary" : "text-red-600"}`}>
-                {opt.price}
-              </div>
-            </button>
-          );
-        })}
-      </div>
+                        return (
+                            <button 
+                                key={opt.label} 
+                                onClick={() => setSelectedOption(opt.label)} 
+                                disabled={!opt.inStock}
+                                // ✅ THAY ĐỔI LAYOUT CỦA NÚT BẤM
+                                className={`rounded-lg px-3 py-2 flex flex-row items-center text-left transition-all duration-150 relative border-2
+                                ${ isSelected ? "border-primary bg-primary/5" : "border-gray-300 bg-white" } 
+                                ${ !opt.inStock ? "opacity-50 cursor-not-allowed" : "hover:border-primary" }`}
+                            >
+                                <div className="flex-shrink-0 mr-3">{swatch}</div>
+                                
+                                <div className="flex flex-col">
+                                    <span className={`font-semibold text-sm ${isSelected ? "text-primary" : "text-gray-800"}`}>{opt.label}</span>
+                                    <div className={`font-bold mt-0.5 text-xs ${isSelected ? "text-primary" : "text-red-600"}`}>{opt.price}</div>
+                                </div>
+                                
+                                {isSelected && (
+                                    <div className="absolute -top-2 -right-2 bg-white rounded-full">
+                                        <CheckCircleIcon className="w-5 h-5 text-primary" />
+                                    </div>
+                                )}
+                                {!opt.inStock && (
+                                    <div className="absolute inset-0 bg-white/60 flex items-center justify-center rounded-lg">
+                                        <span className="text-red-600 font-bold text-xs bg-red-100 px-2 py-0.5 rounded-full">Hết hàng</span>
+                                    </div>
+                                )}
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
 
-      {/* --- Khu vực hiển thị giá và nhãn giảm giá --- */}
-      <div className="border border-gray-200 rounded p-3 space-y-2 bg-gray-50/80">
-        <div className="flex justify-between items-baseline">
-          <p className="text-primary font-bold text-2xl">{current.price}</p>
-          {current.originalPrice && (
-            <p className="text-sm line-through text-gray-500">{current.originalPrice}</p>
-          )}
+            {/* === 4. NÚT MUA HÀNG VÀ GIỎ HÀNG === (Giữ nguyên) */}
+            <div className="space-y-2 pt-2">
+                <button 
+                    disabled={!isCurrentInStock}
+                    className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-semibold text-base transition-all duration-150 flex flex-col items-center justify-center disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                    <span>{isCurrentInStock ? 'MUA NGAY' : 'Sản phẩm đã hết hàng'}</span>
+                    {isCurrentInStock && <span className="text-xs font-normal mt-0.5 opacity-90">Giao hàng tận nơi</span>}
+                </button>
+<button 
+    onClick={() => onAddToCart(selectedOption)} 
+    disabled={!isCurrentInStock}
+    // ✅ Thêm các class flex để căn chỉnh 2 dòng chữ
+    className="hover:opacity-90 w-full bg-primary text-white hover:bg-secondary font-semibold text-base py-2 rounded-lg transition-all duration-150 disabled:bg-gray-400 disabled:cursor-not-allowed flex flex-col items-center justify-center"
+>
+    {/* Dòng chữ chính - được bọc trong thẻ span */}
+    <span>Thêm vào giỏ hàng</span>
+    
+    {/* Dòng chữ phụ */}
+    {isCurrentInStock && (
+        <span className="text-xs font-normal mt-0.5 opacity-90">
+            Xem lại và thanh toán sau
+        </span>
+    )}
+</button>
+            </div>
         </div>
-        {discountAmount > 0 && (
-          <div className="inline-flex items-center gap-1 bg-red-100/80 text-red-600 font-semibold text-xs px-2 py-1 rounded-md">
-            <FlameIcon className="w-3.5 h-3.5" />
-            <span>
-              Giảm {discountAmount.toLocaleString('vi-VN')}đ (-{discountPercentage}%)
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* --- KHỐI HIỂN THỊ BANNER --- */}
-      {banners && banners.length > 0 && (
-        <div className="grid grid-cols-2 gap-2 pt-2">
-          {banners.slice(0, 2).map((banner) => (
-            <a 
-              key={banner.id} 
-              href={banner.linkUrl || '#'} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="block rounded overflow-hidden shadow hover:shadow-md transition-shadow"
-            >
-              <img 
-                src={banner.imageUrl} 
-                alt={banner.altText || banner.title} 
-                className="w-full h-auto object-cover aspect-[200/75]"
-              />
-            </a>
-          ))}
-        </div>
-      )}
-
-      {/* --- Khu vực nút bấm --- */}
-      <div className="space-y-2">
-         <button className="w-full bg-primary text-white py-2.5 rounded font-semibold text-sm transition-all duration-150 hover:opacity-80 flex flex-col items-center justify-center">
-          <span>
-            MUA NGAY
-          </span>
-          <span className="text-xs font-normal mt-0.5 opacity-90">
-            Giao tận nơi hoặc nhận tại cửa hàng
-          </span>
-        </button>
-        <button onClick={() => onAddToCart(selectedOption)} className="w-full bg-white text-primary border border-primary py-2.5 rounded font-semibold text-sm">
-          Thêm vào giỏ hàng
-        </button>
-      </div>
-    </div>
-  );
+    );
 }

@@ -40,5 +40,13 @@ getBySlug: (slug) => get(`${API_ENDPOINT.client.product.baseList}${API_ENDPOINT.
   }
 
   return get(productListBase, query);
+},
+getRelated: (categoryId, excludeProductId) => {
+  return get(`${API_ENDPOINT.client.product.base}${API_ENDPOINT.client.product.getRelated()}`, {
+    categoryId,
+    excludeId: excludeProductId, // TÊN PHẢI GIỐNG BÊN BACKEND NHẬN
+  });
 }
+
+
 };

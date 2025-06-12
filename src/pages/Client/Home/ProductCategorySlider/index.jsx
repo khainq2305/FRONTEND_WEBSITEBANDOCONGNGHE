@@ -196,7 +196,7 @@
 //   };
 
 //   return (
-//     <div className="category-slider-wrapper group max-w-screen-xl mx-auto bg-gray-50 rounded-lg shadow-md my-8"> 
+//     <div className="category-slider-wrapper group max-w-[1200px] mx-auto bg-gray-50 rounded-lg shadow-md my-8"> 
 //       <div className="header-block px-3 sm:px-4 pt-4 pb-3">
 //         <div className="flex flex-wrap justify-between items-center gap-y-2 mb-2 sm:mb-3">
 //           <h1 className="text-xl sm:text-2xl font-bold text-gray-800 whitespace-nowrap">

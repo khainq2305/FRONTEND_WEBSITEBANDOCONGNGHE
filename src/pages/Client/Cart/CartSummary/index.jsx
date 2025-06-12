@@ -31,57 +31,51 @@ const CartSummary = ({
   const openPromoModal = () => setIsPromoModalOpen(true);
   const closePromoModal = () => setIsPromoModalOpen(false);
 
-  const handleApplyPromo = async (code) => {
-    if (!hasSelectedItems || selectedItems.length === 0) {
-      alert("Vui lòng chọn ít nhất một sản phẩm trước khi áp mã.");
-      closePromoModal();
-      return;
-    }
+const handleApplyPromo = async (code) => {
+  if (!code) {
+    setAppliedCouponCode('');
+    setDiscountAmount(0);
+    setCouponError('');
 
-    // Lấy skuId từ sản phẩm đầu tiên
-    const firstSkuId = selectedItems[0].skuId || selectedItems[0].product?.skuId || null;
-    if (!firstSkuId) {
-      alert("Không tìm thấy SKU của sản phẩm để áp mã.");
-      closePromoModal();
-      return;
-    }
+    localStorage.removeItem("selectedCoupon"); // ✅ chỉ xài key này
+    closePromoModal();
+    return;
+  }
 
-    const numericOrderTotal = Number(orderTotals.payablePrice.replace(/[^\d]/g, ""));
+  if (!hasSelectedItems || selectedItems.length === 0) {
+    alert("Vui lòng chọn ít nhất một sản phẩm trước khi áp mã.");
+    closePromoModal();
+    return;
+  }
 
-    try {
-      const response = await couponService.applyCoupon({
-        code,
-        skuId: firstSkuId,
-        orderTotal: numericOrderTotal,
-      });
+  const firstSkuId = selectedItems[0].skuId || selectedItems[0].product?.skuId || null;
+  const numericOrderTotal = Number(orderTotals.payablePrice.replace(/[^\d]/g, ""));
 
-      const { coupon } = response.data;
+  try {
+    const response = await couponService.applyCoupon({
+      code,
+      skuId: firstSkuId,
+      orderTotal: numericOrderTotal,
+    });
 
-      setAppliedCouponCode(coupon.code);
-      setDiscountAmount(coupon.discountAmount);
-      setCouponError("");
+    const { coupon } = response.data;
 
-      // ===== THAY ĐỔI 2: lưu đúng key vào localStorage =====
-      localStorage.setItem("appliedCouponCode", coupon.code);
-      localStorage.setItem("discountAmount", coupon.discountAmount.toString());
+    setAppliedCouponCode(coupon.code);
+    setDiscountAmount(coupon.discountAmount);
+    setCouponError('');
 
-      closePromoModal();
-    } catch (error) {
-      const msg =
-        error.response?.data?.message ||
-        error.message ||
-        "Lỗi khi áp mã giảm giá.";
-      setCouponError(msg);
-      setAppliedCouponCode("");
-      setDiscountAmount(0);
+    // ✅ Chỉ lưu 1 key duy nhất
+    localStorage.setItem("selectedCoupon", JSON.stringify(coupon));
 
-      // ===== THAY ĐỔI 3: xóa đúng key nếu apply thất bại =====
-      localStorage.removeItem("appliedCouponCode");
-      localStorage.removeItem("discountAmount");
-
-      closePromoModal();
-    }
-  };
+    closePromoModal();
+  } catch (error) {
+    setCouponError(error?.response?.data?.message || "Lỗi khi áp mã");
+    setAppliedCouponCode('');
+    setDiscountAmount(0);
+    localStorage.removeItem("selectedCoupon");
+    closePromoModal();
+  }
+};
 
   const rawPayable = Number(orderTotals.payablePrice.replace(/[^\d]/g, ""));
   const payableAfterDiscount = rawPayable - discountAmount;
@@ -197,7 +191,13 @@ const CartSummary = ({
       </aside>
 
       {isPromoModalOpen && (
-        <PromoModal onClose={closePromoModal} onApply={handleApplyPromo} />
+        <PromoModal
+  onClose={() => setIsPromoModalOpen(false)}
+  onApply={handleApplyPromo}
+  skuId={selectedItems[0]?.skuId || null}
+  appliedCode={appliedCouponCode} // ✅ THÊM DÒNG NÀY
+/>
+
       )}
     </>
   );

@@ -1,7 +1,7 @@
 /* FreshProductSlider.css */
 
 .fresh-slider-wrapper {
-  /* overflow: hidden; */ /* Tailwind `overflow-hidden` hoặc `max-w-screen-xl` đã xử lý việc này */
+  /* overflow: hidden; */ /* Tailwind `overflow-hidden` hoặc `max-w-[1200px]` đã xử lý việc này */
 }
 
 /* Class được gán vào component Slider sản phẩm */

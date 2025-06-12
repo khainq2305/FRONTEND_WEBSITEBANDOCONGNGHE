@@ -1,7 +1,7 @@
 /* MainBannerSlider.css */
 
 .main-banner-slider-wrapper {
-  /* max-width: 1280px; */ /* Hoặc max-w-screen-xl nếu bạn muốn giới hạn chiều rộng */
+  /* max-width: 1280px; */ /* Hoặc max-w-[1200px] nếu bạn muốn giới hạn chiều rộng */
   /* margin: 0 auto; */ /* Để căn giữa nếu có max-width */
   /* overflow: hidden; */ /* QUAN TRỌNG: Nếu nút mũi tên nằm TRONG wrapper này và bạn không muốn chúng bị cắt
                            khi dịch chuyển ra ngoài một chút thì không nên đặt overflow:hidden ở đây.

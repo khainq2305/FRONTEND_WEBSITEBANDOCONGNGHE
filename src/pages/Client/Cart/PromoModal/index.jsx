@@ -1,162 +1,203 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { FiX, FiInfo, FiTag, FiTruck } from 'react-icons/fi';
-import { couponService } from "../../../../services/client/couponService";
+import { FiX, FiInfo } from 'react-icons/fi';
+import { couponService } from '../../../../services/client/couponService'; // <-- Sửa đường dẫn tới service của bạn
 
-const PromoModal = ({ modalTitle = "Hồng Ân Khuyến Mãi", onClose, onApply }) => {
+// ✅ THAY ĐỔI 1: Import 2 icon mặc định khác nhau
+import defaultShippingIcon from '../../../../assets/Client/images/image 12.png'; // Icon xe tải
+import defaultDiscountIcon from '../../../../assets/Client/images/pngtree-voucher-discount-png-image_4613299.png'; // Icon phiếu giảm giá (bạn cần có file này)
+
+const PromoModal = ({
+  modalTitle = "Hồng Ân Khuyến Mãi",
+  onClose,
+  appliedCode = "", 
+  onApply,
+  skuId,
+}) => {
   const [availablePromos, setAvailablePromos] = useState([]);
-  const [selectedCode, setSelectedCode] = useState(null);
+  const [selectedCode, setSelectedCode] = useState('');
   const [inputPromoCode, setInputPromoCode] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+useEffect(() => {
+  if (appliedCode && availablePromos.length > 0) {
+    const match = availablePromos.find(c => c.code === appliedCode);
+    if (match) {
+      setSelectedCode(match.code); // ✅ set lại mã đã áp nếu trùng mã từ ngoài
+    }
+  }
+}, [appliedCode, availablePromos]); // ✅ Phải có cả 2 dependency
 
   useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    couponService.getAvailable()
-      .then((res) => {
-        const list = res.data?.data || [];
-        const mapped = list.map(coupon => ({
-          id: coupon.code,
-          type: coupon.discountType === 'shipping' ? 'shipping' : 'discount',
-          iconType: coupon.discountType === 'shipping' ? 'truck' : 'tag',
-          title: coupon.title || coupon.code,
-          description: `Cho đơn từ ${coupon.minOrderAmount?.toLocaleString()}₫`,
-          expiryDate: coupon.expiryDate ? new Date(coupon.expiryDate).toLocaleDateString('vi-VN') : null,
-          isApplicable: coupon.isApplicable
-        }));
-        setAvailablePromos(mapped);
-      })
-      .catch(err => {
-        console.error("❌ Lỗi khi tải mã giảm giá:", err);
-      });
+    const fetchCoupons = async () => {
+      setIsLoading(true);
+      try {
+        const res = await couponService.getAvailable(skuId ? `?skuId=${skuId}` : '');
+        const couponsFromApi = res.data?.data || [];
+        
+        // ✅ THAY ĐỔI 2: Logic xử lý icon linh hoạt
+        const mapped = couponsFromApi.map((coupon) => {
+          let iconSrc = null;
 
+          // Ưu tiên hàng đầu: Nếu có bannerUrl từ API thì dùng luôn
+          if (coupon.bannerUrl) {
+            iconSrc = coupon.bannerUrl;
+          } 
+          // Nếu không có bannerUrl, dùng icon mặc định dựa theo loại coupon
+          else {
+            if (coupon.discountType === 'shipping') {
+              iconSrc = defaultShippingIcon;
+            } else { 
+              // Mặc định các loại còn lại (percent, fixed, amount) là mã giảm giá
+              iconSrc = defaultDiscountIcon;
+            }
+          }
+
+          return {
+            id: coupon.code,
+            code: coupon.code,
+            type: coupon.discountType,
+            title: coupon.title || coupon.code,
+            description: `Cho đơn hàng từ ${coupon.minOrderAmount?.toLocaleString()}đ`,
+            expiryDate: coupon.expiryDate ? new Date(coupon.expiryDate).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: '2-digit' }) : null,
+            isApplicable: coupon.isApplicable,
+            iconSrc: iconSrc, // Gán nguồn ảnh đã được quyết định
+          };
+        });
+        setAvailablePromos(mapped);
+        localStorage.setItem("availableCoupons", JSON.stringify(mapped)); // ✅ thêm dòng này
+      } catch (err) {
+        console.error("Lỗi khi lấy danh sách coupons:", err);
+        alert('Không thể tải danh sách khuyến mãi. Vui lòng thử lại.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    document.body.style.overflow = 'hidden';
+    fetchCoupons();
     return () => { document.body.style.overflow = 'unset'; };
-  }, []);
+  }, [skuId]);
 
   const handleSelect = (promo) => {
     if (!promo.isApplicable) return;
     setInputPromoCode('');
-    setSelectedCode(prev => (prev === promo.id ? null : promo.id));
+    setSelectedCode(prev => prev === promo.code ? '' : promo.code);
   };
 
-  const handleApply = () => {
+  const handleConfirm = () => {
     const codeToApply = inputPromoCode.trim().toUpperCase() || selectedCode;
-    if (codeToApply) return onApply(codeToApply);
-    alert('Vui lòng chọn hoặc nhập mã ưu đãi.');
+    // Nếu không nhập gì và cũng không chọn gì, xem như là bỏ áp mã
+    if (!codeToApply) {
+        onApply(''); // Gửi về chuỗi rỗng để component cha xử lý việc bỏ mã
+        onClose();
+        return;
+    }
+    onApply(codeToApply);
+    onClose();
   };
 
   const groupedPromos = availablePromos.reduce((acc, promo) => {
-    const key = promo.type === 'shipping' ? 'Miễn Phí Vận Chuyển' : 'Mã Giảm Giá';
+    const key = promo.type === 'shipping' ? 'Mã Vận Chuyển' : 'Mã Giảm Giá';
     acc[key] = acc[key] || [];
     acc[key].push(promo);
     return acc;
   }, {});
 
-  const PromoIcon = ({ type, className }) =>
-    type === 'truck' ? <FiTruck className={className} /> : <FiTag className={className} />;
-
   const modalContent = (
-    <div className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center px-4 py-6" onClick={onClose}>
-      <div
-        className="bg-white rounded-lg shadow-xl w-full max-w-lg overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-gray-100 rounded-lg shadow-xl w-full max-w-md flex flex-col" onClick={(e) => e.stopPropagation()} style={{ maxHeight: '90vh' }}>
         {/* Header */}
-        <div className="flex justify-between items-center p-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-800">{modalTitle}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            <FiX size={22} />
+        <div className="relative text-center py-3 border-b border-gray-200 flex-shrink-0">
+          <h3 className="text-base font-semibold text-gray-800">{modalTitle}</h3>
+          <button onClick={onClose} className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-500 hover:text-gray-800">
+            <FiX size={24} />
           </button>
         </div>
 
-        {/* Nhập mã */}
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex space-x-2">
-            <input
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <input
               value={inputPromoCode}
               onChange={(e) => {
-                setInputPromoCode(e.target.value.toUpperCase());
-                setSelectedCode(null);
+                  setInputPromoCode(e.target.value.toUpperCase());
+                  setSelectedCode('');
               }}
-              placeholder="Nhập mã ưu đãi"
-              className="w-full px-3 py-2 border rounded text-sm focus:ring-primary focus:outline-none"
-            />
-            <button
-              onClick={handleApply}
-              className="bg-gray-100 hover:bg-gray-200 text-sm font-semibold px-4 rounded"
-            >
-              Áp dụng
-            </button>
-          </div>
-        </div>
+              placeholder="Nhập mã giảm giá tại đây"
+              className="w-full px-3 py-2 border border-gray-300 rounded-sm text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
+          />
 
-        {/* Danh sách mã */}
-        <div className="p-4 space-y-6 max-h-[400px] overflow-y-auto">
-          {Object.entries(groupedPromos).map(([groupName, promos]) => (
-            <div key={groupName} className="space-y-3">
-              <h4 className="font-semibold text-gray-700">{groupName}</h4>
-              {promos.map((promo) => {
-                const isSelected = selectedCode === promo.id;
-                return (
-                  <div
-                    key={promo.id}
-                    onClick={() => handleSelect(promo)}
-                    className={`flex items-stretch border rounded-md overflow-hidden cursor-pointer transition-all 
-                      ${isSelected ? 'border-blue-500 ring-2 ring-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'} 
-                      ${!promo.isApplicable && 'bg-gray-100 opacity-60 cursor-not-allowed'}
-                    `}
-                  >
-                    {/* Icon trái */}
-                    <div
-                      className={`w-20 flex-shrink-0 flex items-center justify-center p-2 
-                        ${promo.type === 'shipping' ? 'bg-green-500' : 'bg-red-500'}`}
-                    >
-                      <PromoIcon type={promo.iconType} className="text-white h-8 w-8" />
-                    </div>
-
-                    {/* Nội dung */}
-                    <div className="flex-1 p-3 pr-2">
-                      <div className="flex justify-between items-center">
-                        <p className="font-semibold text-sm text-gray-800">{promo.title}</p>
-                        <FiInfo className="text-gray-400" size={14} />
+          {isLoading ? <p className="text-center py-10">Đang tải...</p> : 
+            Object.entries(groupedPromos).map(([groupName, promos]) => (
+              <div key={groupName}>
+                <div className="flex justify-between items-center mb-2">
+                    <h4 className="font-semibold text-gray-800 text-sm">{groupName}</h4>
+                    <span className="text-xs text-gray-500">Áp dụng tối đa: 1</span>
+                </div>
+                <div className="space-y-3">
+                  {promos.map((promo) => {
+                    const isSelected = selectedCode === promo.code;
+                    return (
+                      <div
+                        key={promo.id}
+                        onClick={() => handleSelect(promo)}
+                        className={`relative w-full flex bg-white rounded-md shadow-sm overflow-hidden transition-all duration-200 ${promo.isApplicable ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed'} ${isSelected ? 'border-2 border-blue-500' : 'border-2 border-transparent'}`}
+                      >
+                        <div className="w-24 flex-shrink-0 relative bg-white flex items-center justify-center p-2">
+                           {/* ✅ THAY ĐỔI 3: Dùng `promo.iconSrc` */}
+                          <img 
+                            src={promo.iconSrc} 
+                            alt="promo icon" 
+                            className="w-full h-full object-contain" 
+                            onError={(e) => { e.target.onerror = null; e.target.src = defaultDiscountIcon; }} // Fallback cuối cùng nếu URL lỗi
+                          />
+                          <div className="absolute top-0 right-0 h-full w-px bg-[repeating-linear-gradient(to_bottom,#e5e7eb,#e5e7eb_4px,transparent_4px,transparent_8px)]"></div>
+                        </div>
+                        <div className="flex-1 p-3 flex justify-between items-center">
+                          <div>
+                            <p className="font-semibold text-sm text-gray-900">{promo.title}</p>
+                            <p className="text-xs text-gray-600">{promo.description}</p>
+                            {promo.expiryDate && (
+                              <p className="text-xs text-gray-500 mt-1">HSD: {promo.expiryDate}</p>
+                            )}
+                          </div>
+                          <div className="flex items-center space-x-2 pl-2">
+                             <FiInfo className="text-gray-400 flex-shrink-0" size={16} />
+                            {!promo.isApplicable ? (
+                                <div className="absolute top-1/2 right-4 -translate-y-1/2 transform -rotate-12">
+                                    <div className="border-2 border-gray-400 rounded-md px-2 py-1">
+                                        <span className="text-xs text-center font-bold text-gray-400">CHƯA THOẢ ĐIỀU KIỆN</span>
+                                    </div>
+                                </div>
+                            ) : isSelected ? (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleSelect(promo); }}
+                                  className="bg-blue-500 text-white text-xs font-semibold px-4 py-1.5 rounded-sm"
+                                >
+                                  Bỏ chọn
+                                </button>
+                            ) : (
+                                <div className="w-5 h-5 border-2 border-blue-500 rounded-full"></div>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-xs text-gray-500">{promo.description}</p>
-                      {promo.expiryDate && (
-                        <p className="text-xs text-gray-400 mt-1">HSD: {promo.expiryDate}</p>
-                      )}
-                    </div>
-
-                    {/* Bên phải */}
-                    <div className="w-24 flex items-center justify-center p-2 border-l">
-                      {!promo.isApplicable ? (
-                        <span className="text-[10px] text-gray-500 px-1 py-0.5 rounded bg-gray-200 transform -rotate-12 font-bold text-center leading-tight">
-                          CHƯA THOẢ <br /> ĐIỀU KIỆN
-                        </span>
-                      ) : (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSelect(promo);
-                          }}
-                          className={`w-full text-xs font-medium py-1.5 rounded 
-                            ${isSelected ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-600 hover:bg-blue-200'}`}
-                        >
-                          {isSelected ? 'Bỏ chọn' : 'Áp dụng'}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ))}
+                    );
+                  })}
+                </div>
+              </div>
+            ))
+          }
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-3 border-t bg-gray-50 text-right">
+        <div className="p-4 bg-white border-t flex-shrink-0">
           <button
-            onClick={handleApply}
-            className="bg-primary hover:bg-primary-dark text-white font-semibold px-5 py-2 rounded text-sm"
+            onClick={handleConfirm}
+            disabled={isLoading}
+            className="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 disabled:bg-gray-400"
           >
-            Áp dụng
+            {isLoading ? 'Đang tải...' : 'Xác nhận'}
           </button>
         </div>
       </div>

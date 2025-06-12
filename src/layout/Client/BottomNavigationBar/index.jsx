@@ -14,7 +14,7 @@ const BottomNavigationBar = () => {
   // Chỉ hiển thị thanh này trên mobile và tablet (dưới lg breakpoint - 1024px)
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-top-nav z-40">
-      <div className="max-w-screen-xl mx-auto flex justify-around items-center h-[56px] px-2">
+      <div className="max-w-[1200px] mx-auto flex justify-around items-center h-[56px] px-2">
         {navItems.map((item) => (
           <a
             key={item.id}

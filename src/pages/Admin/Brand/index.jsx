@@ -242,7 +242,7 @@ const BrandList = () => {
 
   return (
     <Box sx={{ p: 2 }}>
-      <Toastify />
+
       {loading && <LoaderAdmin fullscreen />}
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>

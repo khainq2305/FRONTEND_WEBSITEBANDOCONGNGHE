@@ -19,17 +19,17 @@ const sortAddresses = (addressList) => {
   return sorted;
 };
 const getAddressIcon = (label) => {
-  if (!label) return "/images/home-default.png"; // fallback nếu null
+  if (!label) return "src/assets/Client/images/Logo/pngtree-vector-house-icon-png-image_3996106.jpg"; // fallback nếu null
 
   switch (label.toLowerCase()) {
     case "nhà riêng":
-      return "/images/home-default.png"; // icon nhà riêng
+      return "src/assets/Client/images/Logo/pngtree-vector-house-icon-png-image_3996106.jpg"; // icon nhà riêng
     case "văn phòng":
-      return "/images/office.png"; // icon văn phòng
+      return "src/assets/Client/images/Logo/vamphong.png"; // icon văn phòng
     case "nhà người yêu":
-      return "/images/heart-home.png"; // icon dễ thương nè
+      return "src/assets/Client/images/Logo/nhanguoiyeu.png"; // icon dễ thương nè
     default:
-      return "/images/home-default.png";
+      return "src/assets/Client/images/Logo/pngtree-vector-house-icon-png-image_3996106.jpg";
   }
 };
 

@@ -11,21 +11,46 @@ const formatCurrency = (vnd) => {
 const FavoriteProductsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [favoriteProducts, setFavoriteProducts] = useState([]);
+  const [loading, setLoading] = useState(true); // Thêm state loading để trải nghiệm tốt hơn
 
+  // Sử dụng useEffect để gọi lại API khi searchTerm thay đổi
   useEffect(() => {
-    const fetchFavorites = async () => {
-      try {
-        const res = await wishlistService.getAll(searchTerm ? { keyword: searchTerm } : {});
-        setFavoriteProducts(res.data || []);
-      } catch (err) {
-        console.error('❌ Lỗi lấy danh sách yêu thích:', err);
-      }
+    // Sử dụng debounce để tránh gọi API liên tục khi người dùng gõ
+    const handler = setTimeout(() => {
+      const fetchFavorites = async () => {
+        setLoading(true);
+        try {
+          const res = await wishlistService.getAll({ keyword: searchTerm });
+          setFavoriteProducts(res.data || []);
+        } catch (err) {
+          console.error('❌ Lỗi lấy danh sách yêu thích:', err);
+          toast.error("Không thể tải danh sách sản phẩm.");
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchFavorites();
+    }, 300); // Đợi 300ms sau khi người dùng ngừng gõ rồi mới tìm kiếm
+
+    return () => {
+      clearTimeout(handler); // Cleanup timeout
     };
+  }, [searchTerm]); // Phụ thuộc vào searchTerm
 
-    fetchFavorites();
-  }, []);
-
-  const filteredProducts = favoriteProducts.filter((item) => item?.product?.name?.toLowerCase().includes(searchTerm.toLowerCase()));
+  const handleRemoveItem = async (productId) => {
+    try {
+      await wishlistService.remove(productId);
+      setFavoriteProducts((prev) => prev.filter((fav) => fav.product.id !== productId));
+      toast.success('Đã xoá khỏi yêu thích');
+    } catch (err) {
+      console.error('❌ Lỗi khi xoá khỏi yêu thích:', err);
+      toast.error('Không thể xoá khỏi yêu thích');
+    }
+  };
+  
+  // Không cần lọc ở client nữa vì API đã hỗ trợ tìm kiếm
+  // const filteredProducts = favoriteProducts.filter(...);
 
   return (
     <div className="w-full">
@@ -44,71 +69,58 @@ const FavoriteProductsPage = () => {
         />
       </div>
 
-      {filteredProducts.length === 0 ? (
+      {loading ? (
+        <div className="text-center py-16">Đang tải...</div>
+      ) : favoriteProducts.length === 0 ? (
         <div className="text-center py-16 text-gray-500 bg-white rounded-sm border border-gray-200">
           <PackageOpen size={48} className="mx-auto mb-3 text-gray-400" />
-          Không tìm thấy sản phẩm nào.
+          {searchTerm ? "Không tìm thấy sản phẩm nào phù hợp." : "Bạn chưa có sản phẩm yêu thích nào."}
         </div>
       ) : (
-        filteredProducts.map((item) => {
+        favoriteProducts.map((item) => {
           const product = item.product || {};
-          const price = product?.skus?.[0]?.price || 0;
-          const originalPrice = product?.skus?.[0]?.originalPrice || 0;
+
+          // ✅ LOGIC GIÁ MỚI
+          // Lấy giá gốc và giá khuyến mãi mà không dùng fallback `|| 0`
+          const listPrice = product?.skus?.[0]?.originalPrice;
+          const salePrice = product?.skus?.[0]?.price;
+
+          // Giá hiển thị chính là giá sale, nếu không có thì mới lấy giá gốc
+          const displayPrice = salePrice ?? listPrice ?? 0;
+          
+          // Giá bị gạch chỉ tồn tại khi có giá sale và giá sale nhỏ hơn giá gốc
+          const strikethroughPrice = (salePrice != null && salePrice < listPrice) ? listPrice : null;
 
           return (
-            <div key={item.id} className="bg-white mb-4 border border-gray-200 rounded-sm">
-              <div className="px-4 py-3 border-b border-gray-200 flex justify-between items-center">
-                <div className="flex items-center gap-2 text-sm font-medium text-gray-800">
-                  <Heart size={16} className="text-red-500" />
-                  Sản phẩm đã thêm
-                </div>
-              </div>
-
-              <div className="px-4 py-4 flex border-b border-gray-200">
+            <div key={item.id} className="bg-white mb-4 border border-gray-200 rounded-sm shadow-sm overflow-hidden">
+              <div className="px-4 py-4 flex items-start border-b border-gray-200">
                 <img
                   src={product.thumbnail || 'https://via.placeholder.com/80'}
                   alt={product.name}
                   className="w-20 h-20 object-cover border rounded-sm mr-4 flex-shrink-0"
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-800 mb-1 line-clamp-2">{product.name}</p>
-                </div>
-                <div className="text-right ml-4 whitespace-nowrap">
-                  {originalPrice > price && <p className="text-xs text-gray-500 line-through">{formatCurrency(originalPrice)}</p>}
-                  <p className="text-sm text-orange-500 font-semibold">{formatCurrency(price)}</p>
-                </div>
-              </div>
-
-              <div className="px-4 py-3 bg-gray-50 text-right">
-                <div className="flex justify-end items-center mb-2">
-                  <span className="text-sm text-gray-800">Giá hiện tại:</span>
-                  <span className="text-lg font-semibold text-orange-500 ml-2">{formatCurrency(price)}</span>
-                </div>
-                <div className="flex justify-end items-center text-xs text-gray-500">
-                  <Info size={14} className="mr-1" />
-                  Đã thêm vào yêu thích
+                  <p className="text-sm font-medium text-gray-800 mb-1 line-clamp-2">{product.name}</p>
+                   {/* ✅ HIỂN THỊ GIÁ THEO LOGIC MỚI */}
+                  <div className="flex items-baseline gap-2">
+                    <p className="text-base text-orange-500 font-semibold">{formatCurrency(displayPrice)}</p>
+                    {strikethroughPrice && (
+                      <p className="text-xs text-gray-500 line-through">{formatCurrency(strikethroughPrice)}</p>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              <div className="px-4 py-3 flex flex-wrap justify-end items-center gap-2">
-                <button className="text-sm bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-sm transition-colors">
+              <div className="px-4 py-3 bg-gray-50 flex flex-wrap justify-end items-center gap-2">
+                <button className="text-sm bg-primary hover:opacity-85 text-white px-4 py-2 rounded-sm transition-colors">
                   Thêm vào giỏ
                 </button>
                 <button className="text-sm bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-sm transition-colors">
                   Xem Chi Tiết
                 </button>
                 <button
-                  onClick={async () => {
-                    try {
-                      await wishlistService.remove(product.id);
-                      setFavoriteProducts((prev) => prev.filter((fav) => fav.product.id !== product.id));
-                      toast.success('Đã xoá khỏi yêu thích');
-                    } catch (err) {
-                      console.error('❌ Lỗi khi xoá khỏi yêu thích:', err);
-                      toast.error('Không thể xoá khỏi yêu thích');
-                    }
-                  }}
-                  className="text-sm bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-sm transition-colors"
+                  onClick={() => handleRemoveItem(product.id)}
+                  className="text-sm bg-white border border-gray-300 hover:bg-gray-50 text-red-600 hover:border-red-400 px-4 py-2 rounded-sm transition-colors"
                 >
                   Bỏ Yêu Thích
                 </button>

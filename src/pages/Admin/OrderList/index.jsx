@@ -11,9 +11,11 @@ import Pagination from 'components/common/Pagination';
 import Toastify from 'components/common/Toastify';
 import CancelOrderDialog from './CancelOrderDialog';
 import UpdateOrderStatusDialog from './UpdateOrderStatusDialog';
+import HighlightText from '../../../components/Admin/HighlightText';
 
 import { useNavigate } from 'react-router-dom';
-import { fetchOrders } from '../../../services/admin/orderService';
+import { orderService } from '../../../services/admin/orderService';
+
 
 const MoreActionsMenu = ({ actions }) => {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -46,58 +48,58 @@ const MoreActionsMenu = ({ actions }) => {
 };
 
 const statusTabs = [
-  { value: '', label: 'Tất cả' },
-  { value: 'pending', label: 'Chờ xác nhận' },
-  { value: 'confirmed', label: 'Đã xác nhận' },
-  { value: 'shipping', label: 'Đang giao' },
-  { value: 'delivered', label: 'Đã giao' },
-  { value: 'cancelled', label: 'Đã hủy' },
-  { value: 'refunded', label: 'Trả hàng/Hoàn tiền' }
+  { value: '', label: 'Tất cả', color: 'gray' },
+  { value: 'pending', label: 'Chờ xác nhận', color: '#ff9800' },     // cam
+  { value: 'confirmed', label: 'Đã xác nhận', color: '#2196f3' },   // xanh dương
+  { value: 'shipping', label: 'Đang giao', color: '#3f51b5' },      // tím
+  { value: 'delivered', label: 'Đã giao', color: '#4caf50' },       // xanh lá
+  { value: 'cancelled', label: 'Đã hủy', color: '#f44336' },        // đỏ
+  { value: 'refunded', label: 'Trả hàng/Hoàn tiền', color: '#9e9e9e' } // xám
 ];
+
 
 const OrderList = () => {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
 
-  const [orders, setOrders] = useState([]);           // danh sách đơn hàng
-  const [totalItems, setTotalItems] = useState(0);    // tổng số đơn hàng (cho pagination)
-  const [totalPages, setTotalPages] = useState(0);    // tổng số trang (nếu server trả)
-  const [loading, setLoading] = useState(false);      // loading spinner
+  const [orders, setOrders] = useState([]);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [loading, setLoading] = useState(false);
 
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [updateStatusDialogOpen, setUpdateStatusDialogOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
   const navigate = useNavigate();
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
 
-  // Hàm load data từ API
   const loadOrders = useCallback(async () => {
-    setLoading(true);
-    try {
-      const responseData = await fetchOrders({
-        page,
-        limit: itemsPerPage,
-        search,
-        status
-      });
+  setLoading(true);
+  try {
+  const { data } = await orderService.getAll({
+  page,
+  limit: itemsPerPage,
+  search,
+  status
+});
 
-      // Giả sử server trả về: { totalItems, totalPages, currentPage, data: [ ... orders ] }
-      setOrders(responseData.data || []);
-      setTotalItems(responseData.totalItems || 0);
-      setTotalPages(responseData.totalPages || 1);
-    } catch (err) {
-      console.error('Lỗi fetch orders:', err);
-      Toastify.error('Không tải được danh sách đơn hàng');
-    } finally {
-      setLoading(false);
-    }
-  }, [page, search, status]);
+setOrders(data.data || []);
+setTotalItems(data.totalItems || 0);
+setTotalPages(data.totalPages || 1);
 
-  // Gọi loadOrders mỗi khi page / search / status thay đổi
+  } catch (err) {
+    console.error('Lỗi fetch orders:', err);
+    Toastify.error('Không tải được danh sách đơn hàng');
+  } finally {
+    setLoading(false);
+  }
+}, [page, search, status]);
+
+
   useEffect(() => {
-    setPage(1);          // reset về trang 1 khi search hoặc status đổi
+    setPage(1);
   }, [search, status]);
 
   useEffect(() => {
@@ -129,35 +131,57 @@ const OrderList = () => {
 
   return (
     <Box sx={{ p: 2 }}>
-      {/* TAB lọc theo status */}
-      <Box sx={{ display: 'flex', gap: 4, borderBottom: '1px solid #eee', mb: 2 }}>
-        {statusTabs.map((tab) => (
-          <Box
-            key={tab.value}
-            onClick={() => setStatus(tab.value)}
-            sx={{
-              pb: 1, px: 1, cursor: 'pointer',
-              borderBottom: status === tab.value ? '2px solid red' : '2px solid transparent',
-              color: status === tab.value ? 'red' : 'black',
-              fontWeight: status === tab.value ? 600 : 400,
-              fontSize: 15
-            }}
-          >
-            {tab.label}
-          </Box>
-        ))}
+    <Box
+  sx={{
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 2,
+    p: 2,
+    mb: 2,
+    border: '1px solid #eee',
+    borderRadius: 2,
+    backgroundColor: '#fafafa'
+  }}
+>
+  {/* Tabs lọc trạng thái */}
+  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+    {statusTabs.map((tab) => (
+      <Box
+        key={tab.value}
+        onClick={() => setStatus(tab.value)}
+        sx={{
+          cursor: 'pointer',
+          px: 2,
+          py: 1,
+          borderRadius: '20px',
+          fontSize: 14,
+          fontWeight: 500,
+          backgroundColor: status === tab.value ? tab.color : '#f5f5f5',
+          color: status === tab.value ? '#fff' : '#333',
+          border: `1px solid ${tab.color}`,
+          transition: '0.2s ease-in-out',
+          '&:hover': {
+            backgroundColor: tab.color,
+            color: '#fff'
+          }
+        }}
+      >
+        {tab.label}
       </Box>
+    ))}
+  </Box>
 
-      {/* Search input */}
-      <Box sx={{ mb: 2, width: '300px' }}>
-        <SearchInput
-          placeholder="Tìm mã đơn hoặc khách hàng..."
-          value={search}
-          onChange={setSearch}
-        />
-      </Box>
+  {/* Ô tìm kiếm */}
+  <Box sx={{ width: '300px' }}>
+    <SearchInput
+      placeholder="Tìm mã đơn hoặc khách hàng..."
+      value={search}
+      onChange={setSearch}
+    />
+  </Box>
+</Box>
 
-      {/* Table */}
+
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
@@ -183,15 +207,18 @@ const OrderList = () => {
                 ? orders.map((order, idx) => (
                     <TableRow key={order.id}>
                       <TableCell>{(page - 1) * itemsPerPage + idx + 1}</TableCell>
-                      <TableCell>{order.code}</TableCell>
-                      <TableCell>{order.customerName || order.customer}</TableCell>
+                    <TableCell><HighlightText text={order.code} highlight={search} /></TableCell>
+
+                      <TableCell><HighlightText text={order.customerName || order.customer} highlight={search} /></TableCell>
+
                       <TableCell>
                         {Number(order.total).toLocaleString('vi-VN')} ₫
                       </TableCell>
                       <TableCell>{getStatusChip(order.status)}</TableCell>
                       <TableCell>
-                        {new Date(order.createdAt).toLocaleDateString('vi-VN')}
-                      </TableCell>
+  {new Date(order.createdAt).toLocaleString('vi-VN')}
+</TableCell>
+
                       <TableCell align="right">
                         <MoreActionsMenu
                           actions={[
@@ -227,23 +254,18 @@ const OrderList = () => {
         </Table>
       </TableContainer>
 
-      {/* Pagination */}
       <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
         <Pagination
           currentPage={page}
           totalItems={totalItems}
           itemsPerPage={itemsPerPage}
           onPageChange={(newPage) => setPage(newPage)}
-          // Nếu component Pagination của bạn hỗ trợ thay đổi số items trên trang, dùng onPageSizeChange
           onPageSizeChange={(size) => {
-            // giả sử bạn muốn cho user thay đổi itemsPerPage
-            // setItemsPerPage(size);
             setPage(1);
           }}
         />
       </Box>
 
-      {/* Dialogs */}
       <CancelOrderDialog
         open={cancelDialogOpen}
         onClose={() => setCancelDialogOpen(false)}
@@ -251,7 +273,7 @@ const OrderList = () => {
         onConfirm={(reason) => {
           Toastify.success(`Đã hủy đơn ${selectedOrder?.code} với lý do: ${reason}`);
           setCancelDialogOpen(false);
-          loadOrders(); // refresh sau khi hủy
+          loadOrders();
         }}
       />
 
@@ -262,11 +284,9 @@ const OrderList = () => {
         onConfirm={(newStatus) => {
           Toastify.success(`Đã cập nhật trạng thái đơn ${selectedOrder?.code} thành "${newStatus}"`);
           setUpdateStatusDialogOpen(false);
-          loadOrders(); // refresh sau khi cập nhật
+          loadOrders();
         }}
       />
-
-      <Toastify />
     </Box>
   );
 };

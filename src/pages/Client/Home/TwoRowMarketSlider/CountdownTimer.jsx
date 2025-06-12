@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from 'react';
 
-const CountdownTimer = ({ endTime }) => {
-    // --- PHẦN LOGIC (giữ nguyên) ---
+// Hàm helper để thêm số 0 đằng trước cho các số < 10
+const formatTime = (time) => time.toString().padStart(2, '0');
+
+const CountdownTimer = ({ expiryTimestamp }) => {
+    // Hàm tính toán thời gian còn lại
     const calculateTimeLeft = () => {
-        const difference = +new Date(endTime) - +new Date();
+        const difference = +new Date(expiryTimestamp) - +new Date();
         let timeLeft = {};
 
         if (difference > 0) {
-            const totalHours = Math.floor(difference / (1000 * 60 * 60));
             timeLeft = {
-                days: Math.floor(totalHours / 24),
-                hours: totalHours % 24,
+                days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+                hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
                 minutes: Math.floor((difference / 1000 / 60) % 60),
-                seconds: Math.floor((difference / 1000) % 60),
+                seconds: Math.floor((difference / 1000) % 60)
             };
         }
         return timeLeft;
@@ -21,75 +23,43 @@ const CountdownTimer = ({ endTime }) => {
     const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
 
     useEffect(() => {
+        // Cập nhật thời gian mỗi giây
         const timer = setTimeout(() => {
             setTimeLeft(calculateTimeLeft());
         }, 1000);
+
+        // Dọn dẹp timer khi component bị hủy
         return () => clearTimeout(timer);
     });
 
-    const addLeadingZeros = (value) => {
-        const numValue = value || 0;
-        return numValue < 10 ? `0${numValue}` : numValue;
-    };
-    
-    // --- PHẦN STYLE (CSS đã được chuyển vào đây) ---
-    const styles = {
-        countdownBox: {
-            backgroundColor: '#fff',
-            color: '#d73249',
-            padding: '8px 10px',
-            borderRadius: '6px',
-            fontSize: '1.125rem', // 18px
-            fontWeight: '700',
-            minWidth: '42px',
-            textAlign: 'center',
-            lineHeight: '1',
-            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-        },
-        countdownSeparator: {
-            fontSize: '1.125rem',
-            fontWeight: '700',
-            color: '#d73249',
-            paddingBottom: '2px',
-        },
-        container: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '1rem' // 16px
-        },
-        timeGroup: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem' // 8px
-        },
-        title: {
-            fontSize: '1rem', // 16px
-            fontWeight: '600',
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            color: '#d73249'
-        }
-    };
+    const renderTimeBox = (value) => (
+        <span className="bg-red-600 text-white font-bold text-lg rounded-md px-2 py-1 min-w-[38px] text-center shadow-inner">
+            {formatTime(value)}
+        </span>
+    );
 
-    // --- PHẦN RENDER ---
-    const { days, hours, minutes, seconds } = timeLeft;
-    const totalHours = (days || 0) * 24 + (hours || 0);
+    // Kiểm tra xem còn thời gian hay không
+    const hasTimeLeft = Object.values(timeLeft).some(val => val > 0);
 
-    if (!Object.keys(timeLeft).length) {
-        return <span style={{...styles.title, color: '#4A5568'}}>ĐÃ KẾT THÚC</span>;
+    if (!hasTimeLeft) {
+        return <span className="text-red-700 font-bold text-lg">Đã kết thúc!</span>;
     }
 
+    // Hiển thị giao diện đồng hồ
     return (
-        <div style={styles.container}>
-            <span style={styles.title}>Kết thúc trong</span>
-            <div style={styles.timeGroup}>
-                <div style={styles.countdownBox}>{addLeadingZeros(totalHours)}</div>
-                <span style={styles.countdownSeparator}>:</span>
-                <div style={styles.countdownBox}>{addLeadingZeros(minutes)}</div>
-                <span style={styles.countdownSeparator}>:</span>
-                <div style={styles.countdownBox}>{addLeadingZeros(seconds)}</div>
-            </div>
+        <div className="flex items-center gap-1.5" aria-label="Thời gian còn lại">
+            {/* Hiển thị ngày nếu có */}
+            {timeLeft.days > 0 && (
+                <>
+                    {renderTimeBox(timeLeft.days)}
+                    <span className="text-red-600 font-bold text-xl">:</span>
+                </>
+            )}
+            {renderTimeBox(timeLeft.hours)}
+            <span className="text-red-600 font-bold text-xl">:</span>
+            {renderTimeBox(timeLeft.minutes)}
+            <span className="text-red-600 font-bold text-xl">:</span>
+            {renderTimeBox(timeLeft.seconds)}
         </div>
     );
 };

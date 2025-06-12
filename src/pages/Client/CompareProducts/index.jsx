@@ -151,7 +151,7 @@ function CompareProducts() { // Đổi tên component cha
 
   return (
     <div className="bg-[#f3f4f6] min-h-screen py-3 px-2 text-xs font-['Roboto',_sans-serif]">
-      <div className="container mx-auto max-w-screen-xl bg-white shadow-sm rounded-md overflow-hidden border border-gray-300">
+      <div className="container mx-auto max-w-[1200px] bg-white shadow-sm rounded-md overflow-hidden border border-gray-300">
         <ProductHeaderComparison
           products={productsDataArray}
           showOnlyDifferences={showOnlyDifferences}

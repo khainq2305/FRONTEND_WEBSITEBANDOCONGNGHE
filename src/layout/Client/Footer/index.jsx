@@ -4,7 +4,7 @@ import React from 'react';
 const Footer = () => {
   return (
     <footer className="bg-white text-gray-800 pt-10 pb-4">
-      <div className="max-w-screen-xl mx-auto">
+      <div className="max-w-[1200px] mx-auto">
         <div className="px-4 sm:px-6 md:px-8 lg:px-0">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
             {/* --- CỘT 1: THÔNG TIN LIÊN HỆ --- */}

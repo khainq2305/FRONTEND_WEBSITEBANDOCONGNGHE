@@ -57,8 +57,6 @@ const VariantList = () => {
     switch (type) {
       case 'color':
         return 'Màu sắc';
-      case 'image':
-        return 'Hình ảnh';
       case 'text':
         return 'Chữ';
       default:
@@ -69,8 +67,6 @@ const VariantList = () => {
     switch (type) {
       case 'color':
         return 'success';
-      case 'image':
-        return 'info';
       case 'text':
         return 'default';
       default:

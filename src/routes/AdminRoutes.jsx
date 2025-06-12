@@ -74,7 +74,7 @@ const AdminRoutes = {
 
         { path: 'create', element: <BannerForm /> },
 
-        { path: 'edit/:id', element: <BannerForm /> }
+        { path: 'edit/:slug', element: <BannerForm /> }
       ]
     },
 
@@ -100,7 +100,7 @@ const AdminRoutes = {
       children: [
         { index: true, element: <FlashSaleList /> },
         { path: 'create', element: <FlashSaleForm /> },
-        { path: 'edit/:id', element: <FlashSaleForm /> }
+        { path: 'edit/:slug', element: <FlashSaleForm /> }
       ]
     },
     {

@@ -1,394 +1,382 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
-  Box, Button, Grid, TextField, Typography, Paper, Checkbox, FormControlLabel, Autocomplete
+    Box, Button, Grid, TextField, Typography, Paper, Checkbox, FormControlLabel, Autocomplete
 } from '@mui/material';
 import { useForm, Controller } from 'react-hook-form';
 import { useParams, useNavigate } from 'react-router-dom';
-import toast from 'react-hot-toast';
+import { toast } from 'react-toastify';
+import { useDropzone } from 'react-dropzone';
 import { flashSaleService } from '../../../../services/admin/flashSaleService';
+import TinyEditor from '../../../../components/Admin/TinyEditor';
+import { formatCurrencyVND } from '../../../../utils/formatCurrency';
+import LoaderAdmin from '../../../../components/Admin/LoaderVip';
 
 const discountTypeOptions = [
-  { label: 'Theo phần trăm', value: 'percent' },
-  { label: 'Giảm cố định', value: 'amount' },
+    { label: 'Theo phần trăm', value: 'percent' },
+    { label: 'Giảm cố định', value: 'amount' },
 ];
 
 const FlashSaleForm = () => {
-  const { id } = useParams();
-  const isEdit = !!id;
-  const navigate = useNavigate();
+    const { slug } = useParams();
+    const isEdit = !!slug;
+    const navigate = useNavigate();
 
-  const { control, handleSubmit, reset, formState: { errors } } = useForm({
-    defaultValues: {
-      title: '',
-      bannerUrl: '',
-      slug: '',
-      description: '',
-      startTime: '',
-      endTime: '',
-      isActive: true,
-      items: [],
-      categories: []
+    const { control, handleSubmit, reset, watch, setError, formState: { errors } } = useForm({
+        defaultValues: {
+            title: '',
+            description: '',
+            startTime: '',
+            endTime: '',
+            isActive: true,
+            items: [],
+            categories: [],
+            bannerUrl: '',
+            bgColor: '#FFFFFF'
+        }
+    });
+
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isInitialLoading, setIsInitialLoading] = useState(true);
+
+    const [skuOptions, setSkuOptions] = useState([]);
+    const [categoryOptions, setCategoryOptions] = useState([]);
+    const [bannerPreview, setBannerPreview] = useState(null);
+    const [bannerFile, setBannerFile] = useState(null);
+
+    const initialBannerUrl = watch('bannerUrl');
+
+    useEffect(() => {
+        if (isEdit && initialBannerUrl) {
+            setBannerPreview(initialBannerUrl);
+        }
+    }, [isEdit, initialBannerUrl]);
+
+    const onDrop = useCallback(acceptedFiles => {
+        if (acceptedFiles && acceptedFiles.length > 0) {
+            const file = acceptedFiles[0];
+            setBannerFile(file);
+            setBannerPreview(URL.createObjectURL(file));
+        }
+    }, []);
+
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+        onDrop,
+        accept: { 'image/jpeg': [], 'image/png': [], 'image/gif': [], 'image/webp': [] },
+        multiple: false
+    });
+
+    const removeBanner = () => {
+        setBannerPreview(null);
+        setBannerFile(null);
     }
-  });
 
-  const [skuOptions, setSkuOptions] = useState([]);
-  const [categoryOptions, setCategoryOptions] = useState([]);
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                const [skuRes, catRes] = await Promise.all([
+                    flashSaleService.getSkus(),
+                    flashSaleService.getCategories()
+                ]);
+                setSkuOptions(skuRes.data || []);
+                setCategoryOptions(flattenCategoryTree(catRes.data || []));
+            } catch (err) {
+                toast.error('Lỗi tải dữ liệu SKU hoặc danh mục');
+            }
+        };
+        loadData();
+    }, []);
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [skuRes, catRes] = await Promise.all([
-          flashSaleService.getSkus(),
-          flashSaleService.getCategories()
-        ]);
-
-        setSkuOptions(skuRes.data || []);
-        setCategoryOptions(flattenCategoryTree(catRes.data || []));
-      } catch (err) {
-        toast.error('Lỗi tải dữ liệu SKU hoặc danh mục');
-      }
+    const flattenCategoryTree = (tree, level = 0) => {
+        return tree.reduce((acc, node) => {
+            const indentation = '│   '.repeat(level) + (level > 0 ? '├─ ' : '');
+            const label = `${indentation}${node.name}`;
+            acc.push({ ...node, label, categoryId: node.id });
+            if (node.children?.length) {
+                acc = acc.concat(flattenCategoryTree(node.children, level + 1));
+            }
+            return acc;
+        }, []);
     };
 
-    loadData();
-  }, []);
+    useEffect(() => {
+        if (!isEdit) {
+            setIsInitialLoading(false);
+            return;
+        }
+        
+        flashSaleService.getById(slug).then((res) => {
+            const data = res.data;
+            data.startTime = data.startTime?.slice(0, 16);
+            data.endTime = data.endTime?.slice(0, 16);
+            data.items = (data.flashSaleItems || []).map(item => ({
+                id: item.flashSaleSku?.id,
+                skuId: item.flashSaleSku?.id,
+                salePrice: item.salePrice,
+                quantity: item.quantity,
+                maxPerUser: item.maxPerUser,
+                note: item.note,
+                label: `${item.flashSaleSku?.product?.name || 'Lỗi sản phẩm'} - ${item.flashSaleSku?.skuCode || 'Lỗi SKU'}`,
+                originalPrice: item.flashSaleSku?.price
+            }));
+            data.categories = (data.categories || []).map(cat => ({
+                ...cat,
+                categoryId: cat.category?.id,
+                label: cat.category?.name,
+                id: cat.category?.id
+            }));
+            reset(data);
+        }).catch(() => {
+            toast.error("Không thể tải dữ liệu Flash Sale!");
+            navigate('/admin/flash-sale');
+        }).finally(() => {
+            setIsInitialLoading(false);
+        });
+    }, [slug, isEdit, navigate, reset]);
 
-  const flattenCategoryTree = (tree, prefix = '') => {
-    return tree.reduce((acc, node) => {
-      const label = prefix ? `${prefix} > ${node.name}` : node.name;
-      acc.push({ ...node, label, categoryId: node.id });
-      if (node.children?.length) {
-        acc = acc.concat(flattenCategoryTree(node.children, label));
-      }
-      return acc;
-    }, []);
-  };
+    const onSubmit = async (formData) => {
+        setIsSubmitting(true);
+        try {
+            const payload = new FormData();
+            payload.append('title', formData.title);
+            payload.append('description', formData.description);
+            payload.append('startTime', formData.startTime);
+            payload.append('endTime', formData.endTime);
+            payload.append('isActive', formData.isActive);
+            payload.append('bgColor', formData.bgColor);
 
-  useEffect(() => {
-    if (isEdit) {
-      flashSaleService.getById(id).then((res) => {
-        const data = res.data;
-        data.startTime = data.startTime?.slice(0, 16);
-        data.endTime = data.endTime?.slice(0, 16);
+            const itemsPayload = formData.items.map(item => ({
+                skuId: item.id,
+                salePrice: item.salePrice === '' ? null : Number(item.salePrice),
+                quantity: item.quantity === '' ? null : Number(item.quantity),
+                maxPerUser: item.maxPerUser === '' ? null : Number(item.maxPerUser),
+                note: item.note || ''
+            }));
 
-        data.items = (data.items || []).map(item => ({
-          skuId: item.sku?.id,
-          skuCode: item.sku?.skuCode,
-          productName: item.sku?.product?.name || '',
-          label: `${item.sku?.product?.name || ''} - ${item.sku?.skuCode}`,
-          id: item.sku?.id
-        }));
+            const categoriesPayload = formData.categories.map(cat => ({
+                categoryId: cat.categoryId,
+                discountType: cat.discountType || 'percent',
+                discountValue: cat.discountValue === '' ? null : Number(cat.discountValue),
+               maxPerUser:
+  cat.maxPerUser === undefined ||
+  cat.maxPerUser === null ||
+  `${cat.maxPerUser}`.trim() === ''
+    ? null
+    : Number(cat.maxPerUser),
 
-        data.categories = (data.categories || []).map(cat => ({
-          categoryId: cat.category?.id,
-          label: cat.category?.name,
-          id: cat.category?.id
-        }));
+                priority: cat.priority === '' ? 0 : Number(cat.priority),
+            }));
 
-        reset(data);
-      });
+            payload.append('items', JSON.stringify(itemsPayload));
+            payload.append('categories', JSON.stringify(categoriesPayload));
+
+            if (bannerFile) {
+                payload.append('bannerImage', bannerFile);
+            }
+
+            if (isEdit) {
+                await flashSaleService.update(slug, payload);
+                toast.success('Cập nhật thành công');
+            } else {
+                await flashSaleService.create(payload);
+                toast.success('Tạo mới thành công');
+            }
+            navigate('/admin/flash-sale');
+
+        } catch (err) {
+            if (err.response && err.response.data && Array.isArray(err.response.data.errors)) {
+                const serverErrors = err.response.data.errors;
+                serverErrors.forEach(error => {
+                    setError(error.field, { type: 'manual', message: error.message });
+                });
+                toast.error('Vui lòng kiểm tra lại các lỗi trên form.');
+            } else {
+                toast.error(err.response?.data?.message || 'Có lỗi xảy ra khi lưu, vui lòng thử lại.');
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleItemChange = (field, index, property, value) => {
+        const updatedItems = [...field.value];
+        updatedItems[index][property] = value;
+        field.onChange(updatedItems);
+    };
+
+    if (isInitialLoading) {
+        return <LoaderAdmin fullscreen />;
     }
-  }, [id]);
 
-  const onSubmit = async (formData) => {
-    try {
-      const payload = {
-        ...formData,
-        items: formData.items.map(item => ({
-          skuId: item.skuId,
-          salePrice: item.salePrice || 0,
-          quantity: item.quantity || 0,
-          maxPerUser: item.maxPerUser || null,
-          note: item.note || '',
-          labelColor: item.labelColor || ''
-        })),
-        categories: formData.categories.map(cat => ({
-          categoryId: cat.categoryId,
-          discountType: cat.discountType || 'percent',
-          discountValue: cat.discountValue || 0,
-          maxPerUser: cat.maxPerUser || null,
-          priority: cat.priority || 0
-        }))
-      };
+    return (
+        <Box p={2} sx={{ position: 'relative' }}>
+            {isSubmitting && <LoaderAdmin fullscreen />}
+            <Paper sx={{ p: 3, opacity: isSubmitting ? 0.6 : 1 }}>
+                <Typography variant="h5" mb={3}>
+                    {isEdit ? 'Cập nhật Flash Sale' : 'Thêm mới Flash Sale'}
+                </Typography>
 
-      if (isEdit) {
-        await flashSaleService.update(id, payload);
-        toast.success('Cập nhật thành công');
-      } else {
-        await flashSaleService.create(payload);
-        toast.success('Tạo mới thành công');
-      }
-
-      navigate('/admin/flash-sale');
-    } catch (err) {
-      toast.error('Lỗi khi lưu Flash Sale');
-    }
-  };
-
-  return (
-    <Box p={2}>
-      <Paper sx={{ p: 3 }}>
-        <Typography variant="h5" mb={3}>
-          {isEdit ? 'Cập nhật Flash Sale' : 'Thêm mới Flash Sale'}
-        </Typography>
-
-        <form onSubmit={handleSubmit(onSubmit)} noValidate>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <Controller
-                name="title"
-                control={control}
-                rules={{ required: 'Tên là bắt buộc' }}
-                render={({ field }) => (
-                  <TextField {...field} fullWidth label="Tên Flash Sale" error={!!errors.title} helperText={errors.title?.message} />
-                )}
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <Controller
-                name="bannerUrl"
-                control={control}
-                render={({ field }) => (
-                  <TextField {...field} fullWidth label="Link ảnh banner" />
-                )}
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <Controller
-                name="slug"
-                control={control}
-                render={({ field }) => (
-                  <TextField {...field} fullWidth label="Slug (URL)" />
-                )}
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <Controller
-                name="description"
-                control={control}
-                render={({ field }) => (
-                  <TextField {...field} fullWidth multiline minRows={3} label="Mô tả chi tiết" />
-                )}
-              />
-            </Grid>
-
-            <Grid item xs={6}>
-              <Controller
-                name="startTime"
-                control={control}
-                rules={{ required: 'Thời gian bắt đầu là bắt buộc' }}
-                render={({ field }) => (
-                  <TextField {...field} fullWidth type="datetime-local" label="Bắt đầu" InputLabelProps={{ shrink: true }} error={!!errors.startTime} helperText={errors.startTime?.message} />
-                )}
-              />
-            </Grid>
-
-            <Grid item xs={6}>
-              <Controller
-                name="endTime"
-                control={control}
-                rules={{ required: 'Thời gian kết thúc là bắt buộc' }}
-                render={({ field }) => (
-                  <TextField {...field} fullWidth type="datetime-local" label="Kết thúc" InputLabelProps={{ shrink: true }} error={!!errors.endTime} helperText={errors.endTime?.message} />
-                )}
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <Controller
-                name="isActive"
-                control={control}
-                render={({ field }) => (
-                  <FormControlLabel control={<Checkbox {...field} checked={field.value} />} label="Kích hoạt Flash Sale" />
-                )}
-              />
-            </Grid>
-
-            {/* SKU chọn */}
-            <Grid item xs={12}>
-              <Controller
-                name="items"
-                control={control}
-                render={({ field }) => (
-                  <>
-                    <Autocomplete
-                      multiple
-                      options={skuOptions.map(sku => ({
-                        ...sku,
-                        label: sku.label || `${sku.productName || ''} - ${sku.skuCode}`,
-                        skuId: sku.id
-                      }))}
-                      getOptionLabel={(option) => option.label}
-                      value={field.value}
-                      onChange={(_, val) => field.onChange(val)}
-                      renderTags={() => null}
-                      isOptionEqualToValue={(option, value) => option.skuId === value.skuId}
-                      renderInput={(params) => <TextField {...params} label="Chọn sản phẩm SKU" />}
-                    />
-                    <Box mt={1} sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                      {field.value.map((sku) => (
-                        <Box
-                          key={sku.skuId}
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            border: '1px solid #ccc',
-                            borderRadius: '16px',
-                            px: 1.5,
-                            py: 0.5,
-                            bgcolor: '#f0f0f0',
-                            fontSize: '13px'
-                          }}
-                        >
-                          {sku.label}
-                          <Button
-                            size="small"
-                            onClick={() => field.onChange(field.value.filter(item => item.skuId !== sku.skuId))}
-                            sx={{ ml: 1, minWidth: 'unset', p: 0, lineHeight: 1, color: '#888' }}
-                          >
-                            ×
-                          </Button>
-                        </Box>
-                      ))}
-                    </Box>
-                  </>
-                )}
-              />
-            </Grid>
-
-            {/* Danh mục chọn + chi tiết từng danh mục */}
-            <Grid item xs={12}>
-              <Controller
-                name="categories"
-                control={control}
-                render={({ field }) => (
-                  <>
-                    <Autocomplete
-                      multiple
-                      options={categoryOptions}
-                      getOptionLabel={(option) => option.label}
-                      value={field.value}
-                      onChange={(_, val) => field.onChange(val)}
-                      renderTags={() => null}
-                      isOptionEqualToValue={(option, value) => option.categoryId === value.categoryId}
-                      renderInput={(params) => <TextField {...params} label="Chọn danh mục áp dụng" />}
-                    />
-                    <Box mt={1} sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                      {field.value.map((cat) => (
-                        <Box
-                          key={cat.categoryId}
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            border: '1px solid #ccc',
-                            borderRadius: '16px',
-                            px: 1.5,
-                            py: 0.5,
-                            bgcolor: '#f0f0f0',
-                            fontSize: '13px'
-                          }}
-                        >
-                          {cat.label}
-                          <Button
-                            size="small"
-                            onClick={() => field.onChange(field.value.filter(item => item.categoryId !== cat.categoryId))}
-                            sx={{ ml: 1, minWidth: 'unset', p: 0, lineHeight: 1, color: '#888' }}
-                          >
-                            ×
-                          </Button>
-                        </Box>
-                      ))}
-                    </Box>
-
-                    {/* Chi tiết cấu hình giảm giá theo danh mục */}
-                    {field.value.map((cat, index) => (
-                      <Box key={cat.categoryId} sx={{ border: '1px solid #ddd', borderRadius: 2, p: 2, mt: 1 }}>
-                        <Typography variant="subtitle2" gutterBottom>
-                          {cat.label}
-                        </Typography>
-                        <Grid container spacing={2}>
-                          <Grid item xs={3}>
-                            <TextField
-                              select
-                              label="Loại giảm"
-                              fullWidth
-                              value={cat.discountType || 'percent'}
-                              onChange={(e) => {
-                                const updated = [...field.value];
-                                updated[index].discountType = e.target.value;
-                                field.onChange(updated);
-                              }}
-                              SelectProps={{ native: true }}
-                            >
-                              {discountTypeOptions.map((opt) => (
-                                <option key={opt.value} value={opt.value}>
-                                  {opt.label}
-                                </option>
-                              ))}
-                            </TextField>
-                          </Grid>
-
-                          <Grid item xs={3}>
-                            <TextField
-                              label="Giá trị giảm"
-                              fullWidth
-                              type="number"
-                              value={cat.discountValue || 0}
-                              onChange={(e) => {
-                                const updated = [...field.value];
-                                updated[index].discountValue = Number(e.target.value);
-                                field.onChange(updated);
-                              }}
+                <form onSubmit={handleSubmit(onSubmit)} noValidate>
+                    <Grid container spacing={3}>
+                        <Grid item xs={12} sm={8}>
+                            <Controller name="title" control={control} rules={{ required: 'Tên là bắt buộc' }}
+                                render={({ field }) => (<TextField {...field} fullWidth label="Tên Flash Sale" error={!!errors.title} helperText={errors.title?.message} />)}
                             />
-                          </Grid>
-
-                          <Grid item xs={3}>
-                            <TextField
-                              label="Mỗi người được mua"
-                              fullWidth
-                              type="number"
-                              value={cat.maxPerUser || ''}
-                              onChange={(e) => {
-                                const updated = [...field.value];
-                                updated[index].maxPerUser = Number(e.target.value);
-                                field.onChange(updated);
-                              }}
-                            />
-                          </Grid>
-
-                          <Grid item xs={3}>
-                            <TextField
-                              label="Độ ưu tiên"
-                              fullWidth
-                              type="number"
-                              value={cat.priority || 0}
-                              onChange={(e) => {
-                                const updated = [...field.value];
-                                updated[index].priority = Number(e.target.value);
-                                field.onChange(updated);
-                              }}
-                            />
-                          </Grid>
                         </Grid>
-                      </Box>
-                    ))}
-                  </>
-                )}
-              />
-            </Grid>
+                        <Grid item xs={12} sm={4}>
+                            <Controller name="bgColor" control={control}
+                                render={({ field }) => (
+                                    <TextField fullWidth type="color" label="Màu nền" helperText="Màu nền chung"
+                                        value={field.value || '#FFFFFF'} onChange={field.onChange}
+                                        sx={{ '& .MuiInputBase-input': { height: '2.4375em', p: '4px' } }}
+                                    />
+                                )}
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Typography variant="subtitle1" gutterBottom>Ảnh banner</Typography>
+                            {bannerPreview ? (
+                                <Box sx={{ position: 'relative', border: '1px solid #ddd', borderRadius: 2, p: 1, overflow: 'hidden' }}>
+                                    <img src={bannerPreview} alt="Banner Preview" style={{ width: '100%', height: 'auto', maxHeight: '350px', objectFit: 'contain', display: 'block' }} />
+                                    <Button variant="contained" color="error" size="small" sx={{ position: 'absolute', top: 16, right: 16 }} onClick={removeBanner}> Xóa / Đổi ảnh </Button>
+                                </Box>
+                            ) : (
+                                <Box {...getRootProps()} sx={{ border: '2px dashed', borderColor: isDragActive ? 'primary.main' : (errors.bannerImage ? 'error.main' : '#e0e0e0'), borderRadius: 2, p: 3, textAlign: 'center', cursor: 'pointer', bgcolor: isDragActive ? 'action.hover' : '#fafafa', transition: 'border .24s ease-in-out', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', minHeight: 160 }}>
+                                    <input {...getInputProps()} />
+                                    <Typography variant="h6" color="textSecondary"> Kéo thả hoặc bấm để chọn ảnh </Typography>
+                                    <Typography variant="body2" color="textSecondary" mt={1}> PNG, JPG, GIF, WEBP </Typography>
+                                </Box>
+                            )}
+                            <Typography variant="caption" color="textSecondary" sx={{ mt: 1, display: 'block' }}>
+                                Kích thước đề xuất: 1200px x 400px. Dung lượng nên dưới 150KB.
+                            </Typography>
+                            {errors.bannerImage && ( <Typography color="error" variant="caption" sx={{ mt: 0.5, ml: 2 }}> {errors.bannerImage.message} </Typography> )}
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Typography variant="subtitle1" gutterBottom>Mô tả chi tiết</Typography>
+                            <Controller name="description" control={control} render={({ field }) => (<TinyEditor value={field.value} onChange={field.onChange} />)} />
+                        </Grid>
+                        <Grid item xs={6}>
+                            <Controller name="startTime" control={control} rules={{ required: 'Thời gian bắt đầu là bắt buộc' }} render={({ field }) => (<TextField {...field} fullWidth type="datetime-local" label="Bắt đầu" InputLabelProps={{ shrink: true }} error={!!errors.startTime} helperText={errors.startTime?.message} />)} />
+                        </Grid>
+                        <Grid item xs={6}>
+                            <Controller name="endTime" control={control} rules={{ required: 'Thời gian kết thúc là bắt buộc' }} render={({ field }) => (<TextField {...field} fullWidth type="datetime-local" label="Kết thúc" InputLabelProps={{ shrink: true }} error={!!errors.endTime} helperText={errors.endTime?.message} />)} />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Controller name="isActive" control={control} render={({ field }) => (<FormControlLabel control={<Checkbox {...field} checked={field.value} />} label="Kích hoạt Flash Sale" />)} />
+                        </Grid>
 
-            <Grid item xs={12}>
-              <Button type="submit" variant="contained">
-                {isEdit ? 'Cập nhật' : 'Tạo mới'}
-              </Button>
-            </Grid>
-          </Grid>
-        </form>
-      </Paper>
-    </Box>
-  );
+                        <Grid item xs={12}>
+                            <Typography variant="h6" gutterBottom>Sản phẩm tham gia</Typography>
+                            <Controller name="items" control={control}
+                                render={({ field }) => (
+                                    <>
+                                        <Autocomplete
+                                            multiple options={skuOptions.filter(opt => !field.value.some(selected => selected.id === opt.id))}
+                                            getOptionLabel={(option) => option.label || ''}
+                                            value={[]}
+                                            onChange={(_, newValue) => {
+                                                const newItems = newValue
+                                                    .filter(newItem => !field.value.some(existing => existing.id === newItem.id))
+                                                    .map(newItem => ({
+                                                        id: newItem.id, skuId: newItem.id, label: newItem.label,
+                                                        originalPrice: newItem.originalPrice, salePrice: '', quantity: '',
+                                                        maxPerUser: '', note: ''
+                                                    }));
+                                                field.onChange([...field.value, ...newItems]);
+                                            }}
+                                            renderTags={() => null}
+                                            isOptionEqualToValue={(option, value) => option.id === value.id}
+                                            renderInput={(params) => (<TextField {...params} label="Tìm và chọn sản phẩm SKU..." error={!!errors.items && !Array.isArray(errors.items)} helperText={errors.items && !Array.isArray(errors.items) ? errors.items.message : ''}/>)}
+                                        />
+                                        <Box mt={2} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                            {field.value.map((sku, index) => (
+                                                <Paper key={sku.id || sku.skuId} elevation={3} sx={{ p: 2 }}>
+                                                    <Grid container spacing={2} alignItems="flex-start">
+                                                        <Grid item xs={12}>
+                                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                                <Typography variant="subtitle1" fontWeight="bold"> {index + 1}. {sku.label} </Typography>
+                                                                <Button size="small" color="error" onClick={() => field.onChange(field.value.filter(item => item.id !== sku.id))}>Xóa</Button>
+                                                            </Box>
+                                                        </Grid>
+                                                        <Grid item xs={12} sm={4}>
+                                                            {sku.originalPrice != null && (<Typography variant="body2" sx={{ mb: 0.5, color: 'text.secondary' }}>Giá gốc: <strong style={{color: '#d32f2f'}}>{formatCurrencyVND(sku.originalPrice)}</strong></Typography>)}
+                                                            <TextField fullWidth type="number" label="Giá sale" size="small" value={sku.salePrice || ''} onChange={(e) => handleItemChange(field, index, 'salePrice', e.target.value)} InputProps={{ inputProps: { min: 0 } }} error={!!errors.items?.[index]?.salePrice} helperText={errors.items?.[index]?.salePrice?.message}/>
+                                                        </Grid>
+                                                        <Grid item xs={6} sm={4}>
+                                                            <Typography variant="body2" sx={{ mb: 0.5 }}>&nbsp;</Typography>
+                                                            <TextField fullWidth type="number" label="Số lượng bán" size="small" value={sku.quantity || ''} onChange={(e) => handleItemChange(field, index, 'quantity', e.target.value)} InputProps={{ inputProps: { min: 1 } }} error={!!errors.items?.[index]?.quantity} helperText={errors.items?.[index]?.quantity?.message}/>
+                                                        </Grid>
+                                                        <Grid item xs={6} sm={4}>
+                                                            <Typography variant="body2" sx={{ mb: 0.5 }}>&nbsp;</Typography>
+                                                            <TextField fullWidth type="number" label="Tối đa/người" size="small" value={sku.maxPerUser || ''} onChange={(e) => handleItemChange(field, index, 'maxPerUser', e.target.value)} InputProps={{ inputProps: { min: 1 } }} error={!!errors.items?.[index]?.maxPerUser} helperText={errors.items?.[index]?.maxPerUser?.message}/>
+                                                        </Grid>
+                                                        <Grid item xs={12}>
+                                                            <TextField fullWidth label="Ghi chú (tùy chọn)" size="small" value={sku.note || ''} onChange={(e) => handleItemChange(field, index, 'note', e.target.value)}/>
+                                                        </Grid>
+                                                    </Grid>
+                                                </Paper>
+                                            ))}
+                                        </Box>
+                                    </>
+                                )}
+                            />
+                        </Grid>
+
+                        <Grid item xs={12}>
+                            <Typography variant="h6" gutterBottom>Giảm giá theo danh mục (tùy chọn)</Typography>
+                            <Controller name="categories" control={control}
+                                render={({ field }) => (
+                                    <>
+                                        <Autocomplete
+                                            multiple options={categoryOptions.filter(opt => !field.value.some(selected => selected.id === opt.id))}
+                                            getOptionLabel={(option) => option.label}
+                                            value={[]}
+                                            onChange={(_, newValue) => { field.onChange([...field.value, ...newValue]); }}
+                                            renderTags={() => null}
+                                            isOptionEqualToValue={(option, value) => option.id === value.id}
+                                            renderInput={(params) => <TextField {...params} label="Tìm và chọn danh mục áp dụng..." />}
+                                        />
+                                        <Box mt={2} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                            {field.value.map((cat, index) => (
+                                                <Paper key={cat.id} elevation={3} sx={{ p: 2 }}>
+                                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                                                        <Typography variant="subtitle1" fontWeight="500">{cat.label}</Typography>
+                                                        <Button size="small" color="error" onClick={() => field.onChange(field.value.filter(item => item.id !== cat.id))}>Xóa</Button>
+                                                    </Box>
+                                                    <Grid container spacing={2}>
+                                                        <Grid item xs={6} sm={3}>
+                                                            <TextField select fullWidth label="Loại giảm" size="small" value={cat.discountType || 'percent'} onChange={(e) => handleItemChange(field, index, 'discountType', e.target.value)} SelectProps={{ native: true }}>
+                                                                {discountTypeOptions.map((opt) => (<option key={opt.value} value={opt.value}>{opt.label}</option>))}
+                                                            </TextField>
+                                                        </Grid>
+                                                        <Grid item xs={6} sm={3}>
+                                                            <TextField fullWidth type="number" label="Giá trị giảm" size="small" value={cat.discountValue || ''} onChange={(e) => handleItemChange(field, index, 'discountValue', e.target.value)} error={!!errors.categories?.[index]?.discountValue} helperText={errors.categories?.[index]?.discountValue?.message} />
+                                                        </Grid>
+                                                        <Grid item xs={6} sm={3}>
+                                                            <TextField fullWidth type="number" label="Tối đa/người" size="small" value={cat.maxPerUser || ''} onChange={(e) => handleItemChange(field, index, 'maxPerUser', e.target.value)} error={!!errors.categories?.[index]?.maxPerUser} helperText={errors.categories?.[index]?.maxPerUser?.message} />
+                                                        </Grid>
+                                                        <Grid item xs={6} sm={3}>
+                                                            <TextField fullWidth type="number" label="Độ ưu tiên" size="small" value={cat.priority || 0} onChange={(e) => handleItemChange(field, index, 'priority', e.target.value)} error={!!errors.categories?.[index]?.priority} helperText={errors.categories?.[index]?.priority?.message}/>
+                                                        </Grid>
+                                                    </Grid>
+                                                </Paper>
+                                            ))}
+                                        </Box>
+                                    </>
+                                )}
+                            />
+                        </Grid>
+
+                        <Grid item xs={12}>
+                            <Button type="submit" variant="contained" color="primary" sx={{ mt: 2 }} disabled={isSubmitting}>
+                                {isSubmitting ? (isEdit ? 'Đang cập nhật...' : 'Đang tạo...') : (isEdit ? 'Cập nhật' : 'Tạo mới')}
+                            </Button>
+                        </Grid>
+                    </Grid>
+                </form>
+            </Paper>
+        </Box>
+    );
 };
 
 export default FlashSaleForm;

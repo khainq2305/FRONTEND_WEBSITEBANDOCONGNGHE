@@ -19,7 +19,9 @@ export const API_ENDPOINT = {
       getResetCooldown: '/get-reset-cooldown',
       verificationCooldown: '/verification-cooldown',
       userInfo: '/user-info',
-      updateProfile: '/update-profile'
+      updateProfile: '/update-profile',
+      changePassword: '/change-password',
+
     },
     shipping: {
       base: `${API_BASE_URL}/shipping`,
@@ -35,7 +37,7 @@ export const API_ENDPOINT = {
     },
     category: {
       base: `${API_BASE_URL}/api/client/categories`,
-       combinedMenu: '/combined-menu'
+      combinedMenu: '/combined-menu'
     },
     section: {
       base: `${API_BASE_URL}`,
@@ -44,7 +46,9 @@ export const API_ENDPOINT = {
     product: {
       base: `${API_BASE_URL}/product`,
       baseList: `${API_BASE_URL}`,
-      getBySlug: (slug) => `/product/${slug}`
+      getBySlug: (slug) => `/product/${slug}`,
+    getRelated: () => `/related`
+
     },
     highlightedCategory: {
       base: `${API_BASE_URL}`,
@@ -77,7 +81,10 @@ export const API_ENDPOINT = {
       create: '/create',
       calculateFee: '/calculate-fee',
       momoPay: '/momo',
-      momoCallback: '/momo-callback'
+      momoCallback: '/momo-callback',
+        vietqrPay: '/generate-vietqr', // ✅ sửa lại đúng route backend
+      cancel: (orderId) => `/${orderId}/cancel`,
+
     },
     news: {
       base: `${API_BASE_URL}/tin-noi-bat`,
@@ -115,15 +122,21 @@ export const API_ENDPOINT = {
       getRelated: '/bai-viet-lien-quan',
       calculateFee: '/calculate-fee'
     },
-     notification: {
+    notification: {
       base: `${API_BASE_URL}/admin/notifications`,
-      getAll: '', 
-      create: '', 
-      getById: '/:id', 
-      update: '/:id', 
-      delete: '/:id', 
-      deleteMany: '/delete-many',
+      getAll: '',
+      create: '',
+      getById: '/:id',
+      update: '/:id',
+      delete: '/:id',
+      deleteMany: '/delete-many'
     },
+     productView: {
+    base: `${API_BASE_URL}/productviews`, // <- gốc
+    track: '/',          // POST: ghi nhận lượt xem
+    listByIds: '/list',  // POST: lấy theo ID localStorage
+    top: '/top'          // GET: top xem nhiều
+  },
   },
   admin: {
     product: {
@@ -209,7 +222,7 @@ export const API_ENDPOINT = {
       update: (slug) => `/sections/${slug}`,
       delete: (idOrSlug) => `/sections/${idOrSlug}`,
       getById: (slug) => `/sections/${slug}`,
-
+      getAllCategories: '/sections/categories',
       updateOrder: '/sections/update-order',
       getAllProducts: '/sections/products'
     },
@@ -217,12 +230,16 @@ export const API_ENDPOINT = {
       base: `${API_BASE_URL}/admin`,
       list: '/banners',
       create: '/banners',
-      getById: (id) => `/banners/${id}`,
-      update: (id) => `/banners/${id}`,
+      getById: (slug) => `/banners/${slug}`,
+      update: (slug) => `/banners/${slug}`,
+
       delete: (id) => `/banners/${id}`,
       forceDeleteMany: '/banners/force-delete',
-      updateOrder: (id) => `/banners/${id}/update-order`
+      updateOrder: (id) => `/banners/${id}/update-order`,
+      categoriesForSelect: '/banners/categories-for-select',
+      productsForSelect: '/banners/products-for-select'
     },
+
     variantValue: {
       base: `${API_BASE_URL}/admin`,
       getByVariantId: (id) => `/variant-values/${id}`,
@@ -255,8 +272,8 @@ export const API_ENDPOINT = {
       base: `${API_BASE_URL}/admin`,
       list: '/flash-sales',
       create: '/flash-sales',
-      update: (id) => `/flash-sales/${id}`,
-      getById: (id) => `/flash-sales/${id}`,
+      update: (slug) => `/flash-sales/${slug}`,
+      getById: (slug) => `/flash-sales/${slug}`,
       delete: (id) => `/flash-sales/${id}`,
       deleteMany: '/flash-sales/delete-many',
 

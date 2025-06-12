@@ -5,19 +5,16 @@ const paymentOptions = [
     id: 1,
     label: 'Thanh toán khi nhận hàng',
     icon: 'https://s3-sgn09.fptcloud.com/ict-payment-icon/payment/cod.png',
-
   },
   {
     id: 2,
-    label: 'Thanh toán bằng QR Code, thẻ ATM nội địa',
-    icon: 'https://s3-sgn09.fptcloud.com/ict-payment-icon/payment/vnpay.png',
+    label: 'Chuyển khoản ngân hàng',
+    icon: 'https://i.gyazo.com/566d62fd25cf0867e0033fb1b9b47927.png',
   },
-  {
+   {
     id: 3,
-    label:
-      'Thanh toán bằng thẻ quốc tế Visa, Master, JCB, AMEX, Apple Pay, Google Pay',
-    icon: 'https://s3-sgn09.fptcloud.com/ict-payment-icon/payment/alepay.png',
-    tag: 'Ưu đãi',
+    label: 'Thanh toán bằng ví VNPay',
+    icon: 'https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-VNPAY-QR-1-300x96.png',
   },
   {
     id: 4,
@@ -39,17 +36,24 @@ const PaymentMethod = ({ selectedPaymentMethod, setSelectedPaymentMethod }) => {
         {paymentOptions.map((option) => (
           <label
             key={option.id}
-            className={`flex items-center gap-4 p-3 border rounded-lg cursor-pointer transition ${option.disabled
-                ? 'opacity-50 cursor-not-allowed'
-                : 'hover:border-red-500'
-              }`}
+            className={`
+              flex items-center gap-4 p-3 rounded-lg cursor-pointer transition-colors duration-200
+              ${option.disabled
+                ? 'opacity-50 cursor-not-allowed bg-gray-100'
+                // ✨ ĐỔI TỪ ĐỎ SANG XANH
+                : selectedPaymentMethod === option.id
+                  ? 'bg-sky-50 ring-1 ring-sky-500' 
+                  : 'hover:bg-gray-50'
+              }
+            `}
           >
             <input
               type="radio"
               name="payment"
               checked={selectedPaymentMethod === option.id}
               onChange={() => !option.disabled && setSelectedPaymentMethod(option.id)}
-              className="accent-red-500 w-4 h-4"
+              // ✨ ĐỔI TỪ ĐỎ SANG XANH
+              className="form-radio h-4 w-4 text-sky-600 focus:ring-sky-500"
               disabled={option.disabled}
             />
 

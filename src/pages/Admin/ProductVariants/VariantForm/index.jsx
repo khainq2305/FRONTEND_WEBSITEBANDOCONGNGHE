@@ -11,7 +11,6 @@ import TinyEditor from '../../../../components/Admin/TinyEditor';
 import LoaderAdmin from '../../../../components/Admin/LoaderVip';
 
 const variantTypes = [
-  { value: 'image', label: 'Hình ảnh' },
   { value: 'color', label: 'Màu sắc' },
   { value: 'text', label: 'Chữ' }
 ];

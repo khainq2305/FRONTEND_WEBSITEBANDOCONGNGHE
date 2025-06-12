@@ -233,7 +233,7 @@ const ProductQuestions = () => {
         formatDateTime={formatDateTime}
       />
 
-      <Toastify />
+    
     </Box>
   );
 };

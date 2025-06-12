@@ -2,47 +2,47 @@ import ProductCard from '../ProductCard';
 import MUIPagination from '@/components/common/Pagination';
 
 export default function ProductList({
-  products = [],
-  favorites = [],
-  onToggleFavorite = () => {},
-  loading = false,
-  currentPage = 1,
-  totalItems = 0,
-  itemsPerPage = 20,
-  onPageChange = () => {},
+    products = [],
+    favorites = [],
+    onToggleFavorite = () => { },
+    loading = false,
+    currentPage = 1,
+    totalItems = 0,
+    itemsPerPage = 20,
+    onPageChange = () => { },
 }) {
-  return (
-    <>
-      {loading ? (
-        <div className="text-center py-10 text-gray-500">Đang tải sản phẩm...</div>
-      ) : products.length === 0 ? (
-        <div className="text-center py-10 text-gray-500">Không tìm thấy sản phẩm nào.</div>
-      ) : (
+    return (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 px-2 sm:px-4">
-            {products.map((item) => (
-              <ProductCard
-  key={item.id}
-  {...item}
-  slug={item.slug} // ✅ THÊM DÒNG NÀY
-  isFavorite={favorites.includes(item.id)}
-  onAddToFavorites={onToggleFavorite}
-/>
+            {loading ? (
+                <div className="text-center py-10 text-gray-500">Đang tải sản phẩm...</div>
+            ) : products.length === 0 ? (
+                <div className="text-center py-10 text-gray-500">Không tìm thấy sản phẩm nào.</div>
+            ) : (
+                <>
+                    {/* ⭐ QUAY TRỞ LẠI LAYOUT GRID ĐỂ CÁC SẢN PHẨM LUÔN CĂN TRÁI */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        {products.map((item) => (
+                            <ProductCard
+                                key={item.id}
+                                {...item}
+                                isFavorite={favorites.includes(item.id)}
+                                onAddToFavorites={onToggleFavorite}
+                            />
+                        ))}
+                    </div>
 
-            ))}
-          </div>
-          {totalItems > itemsPerPage && (
-            <div className="mt-8 flex justify-center">
-              <MUIPagination
-                currentPage={currentPage}
-                totalItems={totalItems}
-                itemsPerPage={itemsPerPage}
-                onPageChange={onPageChange}
-              />
-            </div>
-          )}
+                    {totalItems > itemsPerPage && (
+                        <div className="mt-8 flex justify-center">
+                            <MUIPagination
+                                currentPage={currentPage}
+                                totalItems={totalItems}
+                                itemsPerPage={itemsPerPage}
+                                onPageChange={onPageChange}
+                            />
+                        </div>
+                    )}
+                </>
+            )}
         </>
-      )}
-    </>
-  );
+    );
 }

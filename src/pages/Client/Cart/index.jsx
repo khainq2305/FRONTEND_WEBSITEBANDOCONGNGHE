@@ -126,7 +126,7 @@ const CartPage = () => {
   };
 
   return (
-    <main className="max-w-screen-xl mx-auto px-4 pb-20">
+    <main className="max-w-[1200px] mx-auto px-4 pb-20">
       <nav className="py-3 text-xs sm:text-sm text-blue-500 whitespace-normal">
         <a href="/" className="hover:underline">
           Trang chủ

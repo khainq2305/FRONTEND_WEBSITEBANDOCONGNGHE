@@ -95,7 +95,7 @@ const News = () => {
 
   return (
     <NewsContext.Provider value={{ stripHTML, featuredNews, setfeaturedNews }}>
-      <div className="max-w-screen-xl mx-auto w-full px-4">
+      <div className="max-w-[1200px] mx-auto w-full px-4">
         <div className="text-left px-4 py-4">
           <h1>Trang chủ / Tin tức nổi bật </h1>
         </div>

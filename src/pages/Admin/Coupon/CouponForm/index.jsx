@@ -1,14 +1,24 @@
 // imports...
 import React, { useEffect, useState } from 'react';
 import {
-  Box, Button, Grid, MenuItem, TextField, Typography,
-  FormControl, InputLabel, Select, Checkbox,
-  FormControlLabel, Autocomplete
+  Box,
+  Button,
+  Grid,
+  MenuItem,
+  TextField,
+  Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  Checkbox,
+  FormControlLabel,
+  Autocomplete
 } from '@mui/material';
 import { useForm, Controller } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { couponService } from '../../../../services/admin/couponService';
 import TinyEditor from '../../../../components/Admin/TinyEditor';
+import { toast } from 'react-toastify';
 
 export default function CouponForm() {
   const { id } = useParams();
@@ -39,6 +49,17 @@ export default function CouponForm() {
       type: 'public'
     }
   });
+  const flattenCategoryTree = (tree, level = 0) => {
+    return tree.reduce((acc, node) => {
+      const indentation = '│   '.repeat(level) + (level > 0 ? '├─ ' : '');
+      acc.push({ id: node.id, label: `${indentation}${node.label}` });
+
+      if (node.children?.length) {
+        acc = acc.concat(flattenCategoryTree(node.children, level + 1));
+      }
+      return acc;
+    }, []);
+  };
 
   const selectedType = watch('type');
   const selectedDiscountType = watch('discountType');
@@ -56,18 +77,21 @@ export default function CouponForm() {
 
   useEffect(() => {
     couponService.getUsers().then((res) => setUserList(res.data || []));
-    couponService.getCategories().then((res) => setCategoryList(res.data || []));
+    couponService.getCategories().then((res) => {
+      const flattened = flattenCategoryTree(res.data || []);
+      setCategoryList(flattened);
+    });
+
     couponService.getProducts().then((res) => setProductList(res.data || []));
   }, []);
 
   useEffect(() => {
-   if (selectedType === 'auto') {
-  setApplyUser(false);           // auto không áp theo user
-  // vẫn giữ applyProduct và applyCategory theo checkbox
-} else if (selectedType === 'public') {
-  setApplyUser(false);           // public cũng không áp theo user
-}
-
+    if (selectedType === 'auto') {
+      setApplyUser(false); // auto không áp theo user
+      // vẫn giữ applyProduct và applyCategory theo checkbox
+    } else if (selectedType === 'public') {
+      setApplyUser(false); // public cũng không áp theo user
+    }
   }, [selectedType]);
 
   useEffect(() => {
@@ -129,8 +153,10 @@ export default function CouponForm() {
     try {
       if (isEdit) {
         await couponService.update(id, payload);
+        toast.success('Cập nhật mã giảm giá thành công!');
       } else {
         await couponService.create(payload);
+        toast.success('Thêm mã giảm giá thành công!');
       }
       clearErrors();
       navigate('/admin/coupons');
@@ -154,231 +180,294 @@ export default function CouponForm() {
         {isEdit ? 'Cập nhật' : 'Thêm mới'} Mã Giảm Giá
       </Typography>
       <Box
-  sx={{
-    border: '1px solid #ddd',
-    borderRadius: 2,
-    p: 3,
-    boxShadow: 1,
-    backgroundColor: '#fff',
-    mt: 2
-  }}
->
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <Grid container spacing={2}>
-          {/* Code */}
-          <Grid item xs={12} sm={6}>
-            <Controller
-              name="code"
-              control={control}
-              render={({ field }) => (
-                <TextField {...field} label="Mã Code" error={!!errors.code} helperText={errors.code?.message} fullWidth />
-              )}
-            />
-          </Grid>
+        sx={{
+          border: '1px solid #ddd',
+          borderRadius: 2,
+          p: 3,
+          boxShadow: 1,
+          backgroundColor: '#fff',
+          mt: 2
+        }}
+      >
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Grid container spacing={2}>
+            {/* Code */}
+            <Grid item xs={12} sm={6}>
+              <Controller
+                name="code"
+                control={control}
+                render={({ field }) => (
+                  <TextField {...field} label="Mã Code" error={!!errors.code} helperText={errors.code?.message} fullWidth />
+                )}
+              />
+            </Grid>
 
-          {/* Type */}
-          <Grid item xs={12} sm={6}>
-            <Controller
-              name="type"
-              control={control}
-              render={({ field }) => (
-                <TextField select label="Loại coupon" {...field} fullWidth>
-                  <MenuItem value="public">Công khai</MenuItem>
-                  <MenuItem value="private">Chỉ định</MenuItem>
-                  <MenuItem value="auto">Tự động</MenuItem>
-                </TextField>
-              )}
-            />
-          </Grid>
+            {/* Type */}
+            <Grid item xs={12} sm={6}>
+              <Controller
+                name="type"
+                control={control}
+                render={({ field }) => (
+                  <TextField select label="Loại coupon" {...field} fullWidth>
+                    <MenuItem value="public">Công khai</MenuItem>
+                    <MenuItem value="private">Chỉ định</MenuItem>
+                    <MenuItem value="auto">Tự động</MenuItem>
+                  </TextField>
+                )}
+              />
+            </Grid>
 
-          {/* Title */}
-          <Grid item xs={12}>
-            <Controller
-              name="title"
-              control={control}
-              render={({ field }) => (
-                <TextField {...field} label="Tiêu đề" error={!!errors.title} helperText={errors.title?.message} fullWidth />
-              )}
-            />
-          </Grid>
+            {/* Title */}
+            <Grid item xs={12}>
+              <Controller
+                name="title"
+                control={control}
+                render={({ field }) => (
+                  <TextField {...field} label="Tiêu đề" error={!!errors.title} helperText={errors.title?.message} fullWidth />
+                )}
+              />
+            </Grid>
 
-          {/* Description */}
-          <Grid item xs={12}>
-            <Typography fontWeight="bold" gutterBottom>Mô tả chi tiết</Typography>
-            <Controller
-              name="description"
-              control={control}
-              render={({ field: { value, onChange } }) => (
-                <TinyEditor value={value} onChange={onChange} height={300} />
+            {/* Description */}
+            <Grid item xs={12}>
+              <Typography fontWeight="bold" gutterBottom>
+                Mô tả chi tiết
+              </Typography>
+              <Controller
+                name="description"
+                control={control}
+                render={({ field: { value, onChange } }) => <TinyEditor value={value} onChange={onChange} height={300} />}
+              />
+              {errors.description && (
+                <Typography color="error" variant="caption">
+                  {errors.description.message}
+                </Typography>
               )}
-            />
-            {errors.description && (
-              <Typography color="error" variant="caption">{errors.description.message}</Typography>
+            </Grid>
+
+            {/* Discount Type */}
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth error={!!errors.discountType}>
+                <InputLabel>Loại giảm</InputLabel>
+                <Controller
+                  name="discountType"
+                  control={control}
+                  render={({ field }) => (
+                    <Select {...field} label="Loại giảm">
+                      <MenuItem value="percent">Phần trăm</MenuItem>
+                      <MenuItem value="amount">Số tiền</MenuItem>
+                      <MenuItem value="shipping">Miễn phí vận chuyển</MenuItem>
+                    </Select>
+                  )}
+                />
+              </FormControl>
+            </Grid>
+
+            {/* Discount Value */}
+            {selectedDiscountType !== 'shipping' && (
+              <Grid item xs={12} sm={6}>
+                <Controller
+                  name="discountValue"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Giá trị giảm"
+                      type="number"
+                      error={!!errors.discountValue}
+                      helperText={errors.discountValue?.message}
+                      fullWidth
+                    />
+                  )}
+                />
+              </Grid>
             )}
-          </Grid>
 
-          {/* Discount Type */}
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth error={!!errors.discountType}>
-              <InputLabel>Loại giảm</InputLabel>
-              <Controller
-                name="discountType"
-                control={control}
-                render={({ field }) => (
-                  <Select {...field} label="Loại giảm">
-                    <MenuItem value="percent">Phần trăm</MenuItem>
-                    <MenuItem value="amount">Số tiền</MenuItem>
-                    <MenuItem value="shipping">Miễn phí vận chuyển</MenuItem>
-                  </Select>
-                )}
-              />
-            </FormControl>
-          </Grid>
-
-          {/* Discount Value */}
-          {selectedDiscountType !== 'shipping' && (
+            {/* Total Quantity */}
             <Grid item xs={12} sm={6}>
               <Controller
-                name="discountValue"
+                name="totalQuantity"
                 control={control}
                 render={({ field }) => (
-                  <TextField {...field} label="Giá trị giảm" type="number" error={!!errors.discountValue} helperText={errors.discountValue?.message} fullWidth />
+                  <TextField
+                    {...field}
+                    label="Tổng số lượng"
+                    type="number"
+                    error={!!errors.totalQuantity}
+                    helperText={errors.totalQuantity?.message}
+                    fullWidth
+                  />
                 )}
               />
             </Grid>
-          )}
 
-          {/* Total Quantity */}
-          <Grid item xs={12} sm={6}>
-            <Controller
-              name="totalQuantity"
-              control={control}
-              render={({ field }) => (
-                <TextField {...field} label="Tổng số lượng" type="number" error={!!errors.totalQuantity} helperText={errors.totalQuantity?.message} fullWidth />
-              )}
-            />
-          </Grid>
-
-          {/* Max Usage/User */}
-          <Grid item xs={12} sm={6}>
-            <Controller
-              name="maxUsagePerUser"
-              control={control}
-              render={({ field }) => (
-                <TextField {...field} label="Số lần dùng/user" type="number" error={!!errors.maxUsagePerUser} helperText={errors.maxUsagePerUser?.message} fullWidth />
-              )}
-            />
-          </Grid>
-
-          {/* Min Order Value */}
-          <Grid item xs={12} sm={6}>
-            <Controller
-              name="minOrderValue"
-              control={control}
-              render={({ field }) => (
-                <TextField {...field} label="Giá tối thiểu" type="number" error={!!errors.minOrderValue} helperText={errors.minOrderValue?.message} fullWidth />
-              )}
-            />
-          </Grid>
-
-          {/* Max Discount Value */}
-          {selectedDiscountType !== 'shipping' && (
+            {/* Max Usage/User */}
             <Grid item xs={12} sm={6}>
               <Controller
-                name="maxDiscountValue"
+                name="maxUsagePerUser"
                 control={control}
                 render={({ field }) => (
-                  <TextField {...field} label="Giảm tối đa" type="number" error={!!errors.maxDiscountValue} helperText={errors.maxDiscountValue?.message} fullWidth />
+                  <TextField
+                    {...field}
+                    label="Số lần dùng/user"
+                    type="number"
+                    error={!!errors.maxUsagePerUser}
+                    helperText={errors.maxUsagePerUser?.message}
+                    fullWidth
+                  />
                 )}
               />
             </Grid>
-          )}
 
-          {/* Time Range */}
-          <Grid item xs={12} sm={6}>
-            <Controller
-              name="startTime"
-              control={control}
-              render={({ field }) => (
-                <TextField {...field} label="Bắt đầu" type="datetime-local" InputLabelProps={{ shrink: true }} fullWidth error={!!errors.startTime} helperText={errors.startTime?.message} />
+            {/* Min Order Value */}
+            <Grid item xs={12} sm={6}>
+              <Controller
+                name="minOrderValue"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Giá tối thiểu"
+                    type="number"
+                    error={!!errors.minOrderValue}
+                    helperText={errors.minOrderValue?.message}
+                    fullWidth
+                  />
+                )}
+              />
+            </Grid>
+
+            {/* Max Discount Value */}
+            {selectedDiscountType !== 'shipping' && (
+              <Grid item xs={12} sm={6}>
+                <Controller
+                  name="maxDiscountValue"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Giảm tối đa"
+                      type="number"
+                      error={!!errors.maxDiscountValue}
+                      helperText={errors.maxDiscountValue?.message}
+                      fullWidth
+                    />
+                  )}
+                />
+              </Grid>
+            )}
+
+            {/* Time Range */}
+            <Grid item xs={12} sm={6}>
+              <Controller
+                name="startTime"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Bắt đầu"
+                    type="datetime-local"
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                    error={!!errors.startTime}
+                    helperText={errors.startTime?.message}
+                  />
+                )}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Controller
+                name="endTime"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Kết thúc"
+                    type="datetime-local"
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                    error={!!errors.endTime}
+                    helperText={errors.endTime?.message}
+                  />
+                )}
+              />
+            </Grid>
+
+            {/* Apply Type Checkboxes */}
+            <Grid item xs={12}>
+              <Typography fontWeight="bold" gutterBottom>
+                Loại áp dụng
+              </Typography>
+
+              {selectedType === 'private' && (
+                <FormControlLabel
+                  control={<Checkbox checked={applyUser} onChange={(e) => setApplyUser(e.target.checked)} />}
+                  label="Áp dụng theo người dùng"
+                />
               )}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <Controller
-              name="endTime"
-              control={control}
-              render={({ field }) => (
-                <TextField {...field} label="Kết thúc" type="datetime-local" InputLabelProps={{ shrink: true }} fullWidth error={!!errors.endTime} helperText={errors.endTime?.message} />
-              )}
-            />
-          </Grid>
 
-          {/* Apply Type Checkboxes */}
-        <Grid item xs={12}>
-  <Typography fontWeight="bold" gutterBottom>Loại áp dụng</Typography>
-
-  {selectedType === 'private' && (
-    <FormControlLabel control={<Checkbox checked={applyUser} onChange={(e) => setApplyUser(e.target.checked)} />} label="Áp dụng theo người dùng" />
-  )}
-
-  <FormControlLabel control={<Checkbox checked={applyProduct} onChange={(e) => setApplyProduct(e.target.checked)} />} label="Áp dụng theo sản phẩm" />
-  <FormControlLabel control={<Checkbox checked={applyCategory} onChange={(e) => setApplyCategory(e.target.checked)} />} label="Áp dụng theo danh mục" />
-</Grid>
-
-
-          {/* Autocomplete */}
-          {applyUser && (
-            <Grid item xs={12}>
-              <Autocomplete
-                multiple
-                options={userList}
-                getOptionLabel={(o) => o.fullName}
-                value={userList.filter((u) => selectedUserIds.includes(u.id))}
-                onChange={(e, val) => setSelectedUserIds(val.map((u) => u.id))}
-                renderInput={(params) => <TextField {...params} label="Chọn người dùng" />}
-                isOptionEqualToValue={(o, v) => o.id === v.id}
+              <FormControlLabel
+                control={<Checkbox checked={applyProduct} onChange={(e) => setApplyProduct(e.target.checked)} />}
+                label="Áp dụng theo sản phẩm"
+              />
+              <FormControlLabel
+                control={<Checkbox checked={applyCategory} onChange={(e) => setApplyCategory(e.target.checked)} />}
+                label="Áp dụng theo danh mục"
               />
             </Grid>
-          )}
 
-          {applyProduct && (
+            {/* Autocomplete */}
+            {applyUser && (
+              <Grid item xs={12}>
+                <Autocomplete
+                  multiple
+                  options={userList}
+                  getOptionLabel={(o) => o.fullName}
+                  value={userList.filter((u) => selectedUserIds.includes(u.id))}
+                  onChange={(e, val) => setSelectedUserIds(val.map((u) => u.id))}
+                  renderInput={(params) => <TextField {...params} label="Chọn người dùng" />}
+                  isOptionEqualToValue={(o, v) => o.id === v.id}
+                />
+              </Grid>
+            )}
+
+            {applyProduct && (
+              <Grid item xs={12}>
+                <Autocomplete
+                  multiple
+                  options={productList}
+                  getOptionLabel={(o) => o.label}
+                  value={productList.filter((p) => selectedProductIds.includes(p.id))}
+                  onChange={(e, val) => setSelectedProductIds(val.map((p) => p.id))}
+                  renderInput={(params) => <TextField {...params} label="Chọn sản phẩm" />}
+                  isOptionEqualToValue={(o, v) => o.id === v.id}
+                />
+              </Grid>
+            )}
+
+            {applyCategory && (
+              <Grid item xs={12}>
+                <Autocomplete
+                  multiple
+                  options={categoryList}
+                  getOptionLabel={(o) => o.label}
+                  value={categoryList.filter((c) => selectedCategoryIds.includes(c.id))}
+                  onChange={(e, val) => setSelectedCategoryIds(val.map((c) => c.id))}
+                  renderInput={(params) => <TextField {...params} label="Chọn danh mục" />}
+                  isOptionEqualToValue={(o, v) => o.id === v.id}
+                />
+              </Grid>
+            )}
+
+            {/* Submit */}
             <Grid item xs={12}>
-              <Autocomplete
-                multiple
-                options={productList}
-                getOptionLabel={(o) => o.label}
-                value={productList.filter((p) => selectedProductIds.includes(p.id))}
-                onChange={(e, val) => setSelectedProductIds(val.map((p) => p.id))}
-                renderInput={(params) => <TextField {...params} label="Chọn sản phẩm" />}
-                isOptionEqualToValue={(o, v) => o.id === v.id}
-              />
+              <Button type="submit" variant="contained" disabled={loading}>
+                {isEdit ? 'Cập nhật' : 'Thêm mới'}
+              </Button>
             </Grid>
-          )}
-
-          {applyCategory && (
-            <Grid item xs={12}>
-              <Autocomplete
-                multiple
-                options={categoryList}
-                getOptionLabel={(o) => o.label}
-                value={categoryList.filter((c) => selectedCategoryIds.includes(c.id))}
-                onChange={(e, val) => setSelectedCategoryIds(val.map((c) => c.id))}
-                renderInput={(params) => <TextField {...params} label="Chọn danh mục" />}
-                isOptionEqualToValue={(o, v) => o.id === v.id}
-              />
-            </Grid>
-          )}
-
-          {/* Submit */}
-          <Grid item xs={12}>
-            <Button type="submit" variant="contained" disabled={loading}>
-              {isEdit ? 'Cập nhật' : 'Thêm mới'}
-            </Button>
           </Grid>
-        </Grid>
-      </form>
-    </Box>
+        </form>
+      </Box>
     </Box>
   );
 }

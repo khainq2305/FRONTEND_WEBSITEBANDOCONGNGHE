@@ -58,7 +58,8 @@ const MainBannerSlider = () => {
   };
 
  return (
-  <div className="main-banner-slider-wrapper group relative w-full mx-auto my-4 rounded-lg overflow-hidden max-h-[400px]">
+  // ✅ SỬA LẠI CHIỀU CAO TỐI ĐA Ở ĐÂY
+  <div className="main-banner-slider-wrapper group relative w-full mx-auto my-4 rounded-lg overflow-hidden max-h-[250px]">
     <Slider {...settings} ref={sliderRef} className="main-banner-slick-slider h-full">
       {banners.map((banner) => (
         <div key={banner.id} className="banner-slide-item h-full">
@@ -67,7 +68,8 @@ const MainBannerSlider = () => {
               src={banner.imageUrl}
               alt={banner.altText || banner.title || 'Banner'}
               className="w-full h-full object-cover"
-              style={{ maxHeight: '400px', height: '100%' }}
+              // ✅ VÀ SỬA LẠI CHIỀU CAO TỐI ĐA Ở ĐÂY
+              style={{ maxHeight: '250px', height: '100%' }}
             />
           </a>
         </div>

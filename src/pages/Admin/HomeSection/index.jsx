@@ -275,7 +275,8 @@ export default function HomeSectionList() {
                               {sec.slug}
                             </TableCell>
                             <TableCell>{TYPE_LABELS[sec.type] || sec.type}</TableCell>
-                            <TableCell align="center">{sec.productHomeSections?.length || 0}</TableCell>
+       <TableCell align="center">{sec.products?.length || 0}</TableCell>
+
                             <TableCell align="center">{sec.banners?.length || 0}</TableCell>
                              <TableCell align="center">{sec.orderIndex}</TableCell>
                             <TableCell align="center">

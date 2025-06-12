@@ -52,7 +52,7 @@ const NewsDetails = () => {
       }, []);
     return (
         <>
-            <div className="max-w-screen-xl mx-auto w-full px-4">
+            <div className="max-w-[1200px] mx-auto w-full px-4">
                 <div className='py-4'>
                     <h1 className='text-xs md:text-sm'>Bài viết / Galaxy s25</h1>
                 </div>

@@ -172,7 +172,7 @@ export default function HighlightedCategoryItemList() {
 
   return (
     <Box p={2}>
-      {/* <Toastify /> */}
+     
       {isLoading && <LoaderAdmin fullscreen />}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 2 }}>
         <Typography variant="h5" fontWeight={600}>

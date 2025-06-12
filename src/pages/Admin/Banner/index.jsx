@@ -20,7 +20,7 @@ import {
   IconButton,
   Checkbox,
   Menu,
-  Chip,
+  Chip
 } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { Link } from 'react-router-dom';
@@ -50,39 +50,46 @@ const BannerList = () => {
   const [totalItems, setTotalItems] = useState(0);
 
   const isAllSelected = displayed.length > 0 && selectedIds.length === displayed.length;
-const imageSizeMap = {
-  'topbar': { width: 200, height: 40 },
-  'slider-main': { width: 300, height: 120 },
-  'slider-side': { width: 150, height: 150 },
-  'mid-poster': { width: 200, height: 100 },
-  'slider-footer': { width: 300, height: 80 },
-};
+  const imageSizeMap = {
+    topbar: { width: 200, height: 40 },
+    'slider-main': { width: 300, height: 120 },
+    'slider-side': { width: 150, height: 150 },
+    'mid-poster': { width: 200, height: 100 },
+    'slider-footer': { width: 300, height: 80 }
+  };
+  const BANNER_TYPES = [
+    { value: 'topbar', label: 'Topbar' },
+    { value: 'slider-main', label: 'Slider chính' },
+    { value: 'slider-side', label: '3 ảnh bên slider' },
+    { value: 'mid-poster', label: '6 poster giữa trang' },
+    { value: 'slider-footer', label: 'Slider cuối trang' },
+    { value: 'category-banner', label: 'Banner danh mục' },
+    { value: 'product-banner', label: 'Banner sản phẩm' },
+    { value: 'popup-banner', label: 'Popup nổi' },
+    { value: 'banner-left-right', label: 'Banner trái/phải' }
+  ];
 
   useEffect(() => {
-    fetchBanners();
-  }, [tab, typeFilter, currentPage]);
+    const delayDebounce = setTimeout(() => {
+      fetchBanners(searchKeyword.trim());
+    }, 300); // debounce 300ms
 
-  useEffect(() => {
-    const kw = searchKeyword.trim().toLowerCase();
-    let filtered = banners;
-    if (kw) {
-      filtered = banners.filter((b) =>
-        (b.title || '').toLowerCase().includes(kw)
-      );
-    }
+    return () => clearTimeout(delayDebounce);
+  }, [searchKeyword, tab, typeFilter, currentPage]);
 
-    setTotalItems(filtered.length);
-    const start = (currentPage - 1) * itemsPerPage;
-    setDisplayed(filtered.slice(start, start + itemsPerPage));
-    setSelectedIds([]);
-  }, [banners, searchKeyword, currentPage, itemsPerPage]);
-
-  const fetchBanners = async () => {
+  const fetchBanners = async (search = searchKeyword.trim()) => {
     try {
       setLoading(true);
-      const params = {};
+
+      const params = {
+        page: currentPage,
+        limit: itemsPerPage,
+        search
+      };
+
       if (tab === 'active') params.isActive = '1';
       else if (tab === 'inactive') params.isActive = '0';
+
       if (typeFilter) params.type = typeFilter;
 
       const res = await sliderService.list(params);
@@ -90,6 +97,7 @@ const imageSizeMap = {
       const pagination = res?.data?.pagination || {};
 
       setBanners(data);
+      setDisplayed(data);
       setTypeOptions([...new Set(data.map((b) => b.type).filter(Boolean))]);
       setTotalItems(pagination.totalItems || data.length);
 
@@ -99,6 +107,7 @@ const imageSizeMap = {
     } catch (err) {
       console.error('Lỗi khi tải danh sách banner:', err);
       setBanners([]);
+      setDisplayed([]);
       setTypeOptions([]);
       setTotalItems(0);
     } finally {
@@ -112,15 +121,14 @@ const imageSizeMap = {
     setSearchKeyword('');
   };
 
-  const handleSearch = () => setCurrentPage(1);
+  const handleSearch = () => {
+    setCurrentPage(1);
+    fetchBanners(searchKeyword.trim()); // ✅ TRUYỀN từ khóa mới
+  };
 
-  const handleSelectAll = (e) =>
-    setSelectedIds(e.target.checked ? displayed.map((b) => b.id) : []);
+  const handleSelectAll = (e) => setSelectedIds(e.target.checked ? displayed.map((b) => b.id) : []);
 
-  const handleSelectOne = (id) =>
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
+  const handleSelectOne = (id) => setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
 
   const handleMenuOpen = (e, id) => {
     setAnchorEl(e.currentTarget);
@@ -180,70 +188,58 @@ const imageSizeMap = {
       {(loading || isLoadingAction) && <LoaderAdmin fullscreen />}
 
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h6" fontWeight={600}>Danh sách Banner</Typography>
-        <Button
-          component={Link}
-          to="/admin/banners/create"
-          variant="contained"
-          disabled={loading || isLoadingAction}
-        >
+        <Typography variant="h6" fontWeight={600}>
+          Danh sách Banner
+        </Typography>
+        <Button component={Link} to="/admin/banners/create" variant="contained" disabled={loading || isLoadingAction}>
           Thêm mới
         </Button>
       </Box>
-  <Paper sx={{ p: 2, mb: 2 }}>
-<Tabs
-  value={tab}
-  onChange={handleTabChange}
-  sx={{ mb: 2 }}
-  TabIndicatorProps={{ style: { display: 'none' } }}
->
-  {[
-    { label: 'Tất cả', value: 'all' },
-    { label: 'Hoạt động', value: 'active' },
-    { label: 'Tạm tắt', value: 'inactive' }
-  ].map((t) => (
-    <Tab
-      key={t.value}
-      value={t.value}
-      label={t.label}
-      disableRipple
-      sx={{
-        textTransform: 'none',
-        fontWeight: 500,
-        borderRadius: 8,
-        px: 2.5,
-        py: 1,
-        minHeight: 36,
-        mr: 1,
-        bgcolor: tab === t.value ? '#1a73e8' : 'transparent',
-        color: tab === t.value ? '#fff' : '#000',
-        '&.Mui-selected': {
-          color: '#fff',
-        },
-        '&:hover': {
-          bgcolor: tab === t.value ? '#1a73e8' : '#f5f5f5',
-        },
-      }}
-    />
-  ))}
-</Tabs>
+      <Paper sx={{ p: 2, mb: 2 }}>
+        <Tabs value={tab} onChange={handleTabChange} sx={{ mb: 2 }} TabIndicatorProps={{ style: { display: 'none' } }}>
+          {[
+            { label: 'Tất cả', value: 'all' },
+            { label: 'Hoạt động', value: 'active' },
+            { label: 'Tạm tắt', value: 'inactive' }
+          ].map((t) => (
+            <Tab
+              key={t.value}
+              value={t.value}
+              label={t.label}
+              disableRipple
+              sx={{
+                textTransform: 'none',
+                fontWeight: 500,
+                borderRadius: 8,
+                px: 2.5,
+                py: 1,
+                minHeight: 36,
+                mr: 1,
+                bgcolor: tab === t.value ? '#1a73e8' : 'transparent',
+                color: tab === t.value ? '#fff' : '#000',
+                '&.Mui-selected': {
+                  color: '#fff'
+                },
+                '&:hover': {
+                  bgcolor: tab === t.value ? '#1a73e8' : '#f5f5f5'
+                }
+              }}
+            />
+          ))}
+        </Tabs>
 
-
-    
         <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
           <FormControl size="small" sx={{ minWidth: 180 }}>
             <Select
               displayEmpty
               value={bulkAction}
               onChange={(e) => setBulkAction(e.target.value)}
-              renderValue={(val) => val ? 'Xoá vĩnh viễn' : 'Hành động hàng loạt'}
+              renderValue={(val) => (val ? 'Xoá vĩnh viễn' : 'Hành động hàng loạt')}
               disabled={loading || isLoadingAction || !displayed.length}
             >
               <MenuItem value="delete">Xoá vĩnh viễn</MenuItem>
             </Select>
           </FormControl>
-
-          
 
           <Button
             variant="contained"
@@ -253,18 +249,31 @@ const imageSizeMap = {
           >
             Áp dụng
           </Button>
-<FormControl size="small" sx={{ minWidth: 180 }}>
+          <FormControl size="small" sx={{ minWidth: 180 }}>
             <Select
               displayEmpty
               value={typeFilter}
-              onChange={(e) => { setTypeFilter(e.target.value); setCurrentPage(1); }}
-              renderValue={(v) => v || 'Tất cả loại'}
+              onChange={(e) => {
+                setTypeFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              renderValue={(val) => {
+                const found = BANNER_TYPES.find((opt) => opt.value === val);
+                return found?.label || 'Tất cả loại';
+              }}
               disabled={loading || isLoadingAction}
             >
-              <MenuItem value=""><em>Tất cả loại</em></MenuItem>
-              {typeOptions.map((t) => <MenuItem key={t} value={t}>{t}</MenuItem>)}
+              <MenuItem value="">
+                <em>Tất cả loại</em>
+              </MenuItem>
+              {BANNER_TYPES.map((opt) => (
+                <MenuItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
+
           <Box ml="auto" display="flex" alignItems="center" gap={1}>
             <TextField
               size="small"
@@ -275,26 +284,21 @@ const imageSizeMap = {
               sx={{ width: 300 }}
               disabled={loading || isLoadingAction}
             />
-            <Button variant="outlined" onClick={handleSearch} disabled={loading || isLoadingAction}>
-              Tìm kiếm
-            </Button>
           </Box>
         </Box>
       </Paper>
 
       {loading ? (
-        <Box display="flex" justifyContent="center" mt={4}><CircularProgress /></Box>
+        <Box display="flex" justifyContent="center" mt={4}>
+          <CircularProgress />
+        </Box>
       ) : (
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
               <TableRow>
                 <TableCell padding="checkbox">
-                  <Checkbox
-                    checked={isAllSelected}
-                    onChange={handleSelectAll}
-                    disabled={loading || isLoadingAction || !displayed.length}
-                  />
+                  <Checkbox checked={isAllSelected} onChange={handleSelectAll} disabled={loading || isLoadingAction || !displayed.length} />
                 </TableCell>
                 <TableCell align="center">STT</TableCell>
                 <TableCell>Ảnh</TableCell>
@@ -308,7 +312,9 @@ const imageSizeMap = {
             <TableBody>
               {displayed.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} align="center">Không có banner nào.</TableCell>
+                  <TableCell colSpan={8} align="center">
+                    Không có banner nào.
+                  </TableCell>
                 </TableRow>
               ) : (
                 displayed.map((b, idx) => (
@@ -321,40 +327,46 @@ const imageSizeMap = {
                       />
                     </TableCell>
                     <TableCell align="center">{(currentPage - 1) * itemsPerPage + idx + 1}</TableCell>
-           <TableCell>
-  {(() => {
-    const size = imageSizeMap[b.type] || { width: 80, height: 80 };
-    return (
-      <img
-        src={b.imageUrl || ''}
-        alt={b.altText || 'Banner'}
-        width={size.width}
-        height={size.height}
-        style={{ borderRadius: 4, objectFit: 'cover' }}
-      />
-    );
-  })()}
-</TableCell>
+                    <TableCell>
+                      {(() => {
+                        const size = b.imageSize || { width: 80, height: 80 };
+                        return (
+                          <img
+                            src={b.imageUrl || ''}
+                            alt={b.altText || 'Banner'}
+                            width={size.width}
+                            height={size.height}
+                            style={{ borderRadius: 4, objectFit: 'cover' }}
+                          />
+                        );
+                      })()}
+                    </TableCell>
 
                     <TableCell>
                       <HighlightText text={b.title || '-'} highlight={searchKeyword.trim()} />
                     </TableCell>
                     <TableCell>
-                      <Chip size="small" color="primary" label={({
-                        topbar: 'Topbar',
-                        'slider-main': 'Slider chính',
-                        'slider-side': '3 ảnh bên slider',
-                        'mid-poster': '6 poster giữa trang',
-                        'slider-footer': 'Slider cuối trang'
-                      })[b.type] || b.type} />
+                      <Chip
+                        size="small"
+                        color="primary"
+                        label={
+                          {
+                            topbar: 'Topbar',
+                            'slider-main': 'Slider chính',
+                            'slider-side': '3 ảnh bên slider',
+                            'mid-poster': ' poster giữa trang',
+                            'slider-footer': 'Slider cuối trang',
+                            'product-banner': 'Banner sản phẩm',
+                            'category-banner': 'Banner danh mục',
+                            'popup-banner': 'Popup',
+                            'banner-left-right': 'Banner hai bên'
+                          }[b.type] || b.type
+                        }
+                      />
                     </TableCell>
                     <TableCell>{b.displayOrder}</TableCell>
                     <TableCell>
-                      {b.isActive ? (
-                        <Chip label="Hoạt động" size="small" color="success" />
-                      ) : (
-                        <Chip label="Tạm tắt" size="small" />
-                      )}
+                      {b.isActive ? <Chip label="Hoạt động" size="small" color="success" /> : <Chip label="Tạm tắt" size="small" />}
                     </TableCell>
                     <TableCell>
                       <IconButton onClick={(e) => handleMenuOpen(e, b.id)} disabled={loading || isLoadingAction}>
@@ -376,7 +388,11 @@ const imageSizeMap = {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <MenuItem component={Link} to={`/admin/banners/edit/${selectedRowId}`} onClick={handleMenuClose}>
+        <MenuItem
+          component={Link}
+          to={`/admin/banners/edit/${banners.find((b) => b.id === selectedRowId)?.slug}`}
+          onClick={handleMenuClose}
+        >
           Chỉnh sửa
         </MenuItem>
         <MenuItem onClick={handleSingleDelete}>Xoá</MenuItem>
@@ -384,12 +400,7 @@ const imageSizeMap = {
 
       {!loading && totalItems > itemsPerPage && (
         <Box mt={2} display="flex" justifyContent="center">
-          <MUIPagination
-            currentPage={currentPage}
-            totalItems={totalItems}
-            itemsPerPage={itemsPerPage}
-            onPageChange={setCurrentPage}
-          />
+          <MUIPagination currentPage={currentPage} totalItems={totalItems} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
         </Box>
       )}
     </>

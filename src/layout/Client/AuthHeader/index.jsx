@@ -24,7 +24,7 @@ const AuthHeader = () => {
     >
       <div
         
-        className="w-full max-w-screen-xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between"
+        className="w-full max-w-[1200px] mx-auto px-4 sm:px-6 py-3 flex items-center justify-between"
       >
         <div className="flex items-center min-w-0"> 
           <Link to="/" className="no-underline flex-shrink-0"> 

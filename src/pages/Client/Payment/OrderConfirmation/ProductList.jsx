@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatCurrencyVND } from '../../../../utils/formatCurrency';
 
 const ProductList = ({ products }) => (
     <div className="bg-white p-4 rounded-lg shadow mb-4">
@@ -9,20 +10,23 @@ const ProductList = ({ products }) => (
             {products.map((product, index) => (
                 <div key={index} className="flex items-start gap-3">
                     <img
-                        src={product.image}
+                        src={product.image || '/images/default-thumbnail.jpg'}
                         alt={product.name}
                         className="w-10 h-10 rounded object-cover mt-1"
                     />
-                    <div className="flex justify-between items-start w-full">
-                        <p className="text-sm text-gray-800">{product.name}</p>
-                        <div className="text-right">
-                            <div className="text-sm text-red-600 font-semibold">
-                                {product.price.toLocaleString()} ₫
-                            </div>
-                            <div className="text-xs text-gray-400 line-through">
-                                {product.originalPrice.toLocaleString()} ₫
-                            </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-800 truncate">{product.name || "Sản phẩm không tên"}</p>
+                        <p className="text-xs text-gray-500">Số lượng: {product.quantity || 1}</p>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                        <div className="text-sm text-red-600 font-semibold">
+                            {formatCurrencyVND(product.price ?? 0)}
                         </div>
+                        {(product.originalPrice && product.originalPrice > product.price) && (
+                            <div className="text-xs text-gray-400 line-through">
+                                {formatCurrencyVND(product.originalPrice)}
+                            </div>
+                        )}
                     </div>
                 </div>
             ))}

@@ -149,7 +149,7 @@ export default function ProductShowcase({
 
 
   return (
-    <div className="product-showcase-wrapper max-w-screen-xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+    <div className="product-showcase-wrapper max-w-[1200px] mx-auto bg-white rounded-lg shadow-md overflow-hidden">
   <style>{`
     .product-showcase-wrapper {
       position: relative;

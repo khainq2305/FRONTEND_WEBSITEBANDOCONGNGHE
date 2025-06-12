@@ -20,10 +20,14 @@ export const sectionService = {
   update: (slug, data) => put(`${base}${API_ENDPOINT.admin.section.update(slug)}`, data),
 
   getById: (slug) => get(`${base}${API_ENDPOINT.admin.section.getById(slug)}`),
-
+  getAllCategories: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return get(`${base}${API_ENDPOINT.admin.section.getAllCategories}?${query}`);
+  },
   delete: (id) => del(`${base}${API_ENDPOINT.admin.section.delete(id)}`),
    getAllProducts: (params = {}) => {
     const query = new URLSearchParams(params).toString();
     return get(`${base}${API_ENDPOINT.admin.section.getAllProducts}?${query}`);
-  }
+  },
+
 };

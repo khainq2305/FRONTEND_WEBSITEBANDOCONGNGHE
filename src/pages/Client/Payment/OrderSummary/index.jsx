@@ -26,36 +26,70 @@ useEffect(() => {
 }, [propCoupon]);
 
   const handleApplyPromo = (couponCode) => {
-    try {
-      const couponStorage = JSON.parse(localStorage.getItem("availableCoupons") || "[]");
-      const found = couponStorage.find(c => c.code === couponCode);
-      if (found) {
-        setSelectedCoupon(found);
-        localStorage.setItem("selectedCoupon", JSON.stringify(found));
-        toast.success(`Áp dụng mã ${couponCode} thành công!`);
-      } else {
-        toast.error("Không tìm thấy thông tin mã đã chọn!");
-      }
-    } catch (err) {
-      console.error("❌ Lỗi khi xử lý mã:", err);
-      toast.error("Lỗi khi áp mã giảm giá!");
+  // ✅ Nếu người dùng bỏ mã
+  if (!couponCode) {
+    setSelectedCoupon(null);
+    localStorage.removeItem("selectedCoupon");
+    toast.success("Đã bỏ áp dụng mã giảm giá.");
+    return;
+  }
+
+  try {
+    const couponStorage = JSON.parse(localStorage.getItem("availableCoupons") || "[]");
+    const found = couponStorage.find(c => c.code === couponCode);
+
+    if (found) {
+      setSelectedCoupon(found);
+      localStorage.setItem("selectedCoupon", JSON.stringify(found));
+      toast.success(`Áp dụng mã ${couponCode} thành công!`);
+    } else {
+      toast.error("Không tìm thấy thông tin mã đã chọn!");
     }
-    setIsPromoModalOpen(false);
-  };
+  } catch (err) {
+    console.error("❌ Lỗi khi xử lý mã:", err);
+    toast.error("Lỗi khi áp mã giảm giá!");
+  }
 
-  const couponDiscount =
-    selectedCoupon?.discountType === "amount"
-      ? selectedCoupon.discountValue
-      : selectedCoupon?.discountType === "percentage"
-      ? Math.round((totalAmount * selectedCoupon.discountValue) / 100)
-      : 0;
+  setIsPromoModalOpen(false);
+};
 
-  const totalDiscount = discount + couponDiscount;
-  const finalAmount = totalAmount - totalDiscount + shippingFee;
+useEffect(() => {
+  if (propCoupon) {
+    setSelectedCoupon(propCoupon);
+  } else {
+    const stored = localStorage.getItem("selectedCoupon");
+    if (stored) {
+      try {
+        setSelectedCoupon(JSON.parse(stored));
+      } catch (e) {
+        console.error("❌ Không parse được selectedCoupon:", e);
+      }
+    }
+  }
+}, [propCoupon]);
+
+
+ const couponDiscount =
+  selectedCoupon?.discountType === "amount"
+    ? selectedCoupon.discountValue
+    : selectedCoupon?.discountType === "percentage"
+    ? Math.round((totalAmount * selectedCoupon.discountValue) / 100)
+    : 0;
+
+// ✅ Nếu là mã giảm phí vận chuyển → tính riêng
+const shippingDiscount =
+  selectedCoupon?.discountType === "shipping"
+    ? Math.min(shippingFee, selectedCoupon.discountValue || 0) // ví dụ freeship tối đa 30k
+    : 0;
+
+const totalDiscount = discount + couponDiscount;
+const finalAmount = totalAmount - totalDiscount + (shippingFee - shippingDiscount);
 
 const handlePlaceOrder = async () => {
   try {
     const selectedItems = JSON.parse(localStorage.getItem("selectedCartItems") || "[]");
+    console.log("🛒 Selected items:", selectedItems);
+
     if (selectedItems.length === 0) {
       toast.error("Không có sản phẩm được chọn!");
       return;
@@ -63,6 +97,8 @@ const handlePlaceOrder = async () => {
 
     const addressRes = await userAddressService.getDefault();
     const address = addressRes.data?.data;
+    console.log("📍 Địa chỉ mặc định:", address);
+
     if (!address?.id) {
       toast.error("Chưa có địa chỉ giao hàng mặc định!");
       return;
@@ -78,30 +114,74 @@ const handlePlaceOrder = async () => {
         quantity: item.quantity,
         price: item.finalPrice,
       })),
+      cartItemIds: selectedItems.map(item => item.id),
     };
 
-    // 👉 BƯỚC 1: Tạo đơn hàng
+    console.log("📤 Payload gửi lên backend:", payload);
+
     const res = await orderService.createOrder(payload);
     const createdOrderId = res.data?.orderId || res.data?.data?.id;
+    const createdOrderCode = res.data?.orderCode || res.data?.data?.orderCode;
 
-    if (!createdOrderId) {
+    console.log("✅ Đã tạo đơn:", {
+      createdOrderId,
+      createdOrderCode,
+      selectedPaymentMethod,
+    });
+
+    if (!createdOrderId || !createdOrderCode) {
       toast.error("Không lấy được mã đơn hàng.");
       return;
     }
 
-    // 👉 BƯỚC 2: Nếu là MoMo → gọi momoPay
+    // 👉 Nếu là Chuyển khoản ngân hàng (VietQR)
+    if (selectedPaymentMethod === 2) {
+      console.log("🔁 Phát hiện thanh toán VietQR");
+
+      const vietqrRes = await orderService.vietqrPay({
+        accountNumber: '2222555552005',
+        accountName: 'NGUYEN QUOC KHAI',
+        bankCode: 'MB',
+        amount: finalAmount,
+        message: createdOrderCode,
+      });
+
+      const qrUrl = vietqrRes.data?.qrImage;
+      console.log("📦 QR URL từ VietQR:", qrUrl);
+
+      if (!qrUrl) {
+        toast.error("Không lấy được ảnh VietQR.");
+        return;
+      }
+
+      const fullCart = JSON.parse(localStorage.getItem("cartItems") || "[]");
+      const updatedCart = fullCart.filter(cartItem =>
+        !selectedItems.some(selected => selected.skuId === cartItem.skuId)
+      );
+      localStorage.setItem("cartItems", JSON.stringify(updatedCart));
+      localStorage.removeItem("selectedCartItems");
+      localStorage.removeItem("selectedCoupon");
+
+      console.log("➡️ Điều hướng sang trang xác nhận có QR");
+      navigate(`/order-confirmation?orderCode=${createdOrderCode}&qr=${encodeURIComponent(qrUrl)}`);
+      return;
+    }
+
+    // 👉 Nếu là MoMo
     if (selectedPaymentMethod === 4) {
+      console.log("🔁 Phát hiện thanh toán MoMo");
+
       const momoRes = await orderService.momoPay({ orderId: createdOrderId });
       const momoPayUrl = momoRes.data?.payUrl;
 
+      console.log("🔗 Momo URL:", momoPayUrl);
+
       if (momoPayUrl) {
-        // ❌ Xóa các sản phẩm đã đặt khỏi giỏ hàng tổng
         const fullCart = JSON.parse(localStorage.getItem("cartItems") || "[]");
         const updatedCart = fullCart.filter(cartItem =>
           !selectedItems.some(selected => selected.skuId === cartItem.skuId)
         );
         localStorage.setItem("cartItems", JSON.stringify(updatedCart));
-
         localStorage.removeItem("selectedCartItems");
         localStorage.removeItem("selectedCoupon");
 
@@ -113,25 +193,26 @@ const handlePlaceOrder = async () => {
       return;
     }
 
-    // 👉 COD hoặc phương thức khác
+    // 👉 Trường hợp còn lại: COD hoặc không khớp
+    console.log("⚠️ Rơi vào nhánh COD hoặc phương thức chưa xử lý");
+
     toast.success("Đặt hàng thành công!");
 
-    // ❌ Xóa các sản phẩm đã đặt khỏi giỏ hàng tổng
     const fullCart = JSON.parse(localStorage.getItem("cartItems") || "[]");
     const updatedCart = fullCart.filter(cartItem =>
       !selectedItems.some(selected => selected.skuId === cartItem.skuId)
     );
     localStorage.setItem("cartItems", JSON.stringify(updatedCart));
-
     localStorage.removeItem("selectedCartItems");
     localStorage.removeItem("selectedCoupon");
 
-    navigate(`/order-confirmation?id=${createdOrderId}`);
+    navigate(`/order-confirmation?orderCode=${createdOrderCode}`);
   } catch (err) {
     console.error("❌ Lỗi khi đặt hàng:", err);
     toast.error(err?.response?.data?.message || "Lỗi đặt hàng!");
   }
 };
+
 
 
 
@@ -188,13 +269,16 @@ const handlePlaceOrder = async () => {
             </span>
           </div>
           <div className="flex justify-between mb-2">
-            <span>Phí vận chuyển</span>
-            <span>
-              {typeof shippingFee === "number" && shippingFee > 0
-                ? `${shippingFee.toLocaleString("vi-VN")} đ`
-                : "Miễn phí"}
-            </span>
-          </div>
+  <span>Phí vận chuyển</span>
+  <span>
+    {shippingFee === 0
+      ? "Miễn phí"
+      : shippingDiscount > 0
+      ? `${(shippingFee - shippingDiscount).toLocaleString("vi-VN")} đ`
+      : `${shippingFee.toLocaleString("vi-VN")} đ`}
+  </span>
+</div>
+
           <div className="pt-2">
             <div className="border-t border-dashed border-gray-300 mb-2" />
             <div className="flex justify-between text-base sm:text-sm font-bold text-red-600">
@@ -217,7 +301,7 @@ const handlePlaceOrder = async () => {
 
         <button
           onClick={handlePlaceOrder}
-          className="block text-center w-full bg-primary text-white font-semibold py-3 rounded-md transition"
+          className="block text-center hover:opacity-85 w-full bg-primary text-white font-semibold py-3 rounded-md transition"
         >
           Đặt hàng
         </button>
@@ -231,10 +315,12 @@ const handlePlaceOrder = async () => {
 
       {/* ✅ Hiển thị modal chọn mã */}
       {isPromoModalOpen && (
-        <PromoModal
-          onClose={() => setIsPromoModalOpen(false)}
-          onApply={handleApplyPromo}
-        />
+       <PromoModal
+  onClose={() => setIsPromoModalOpen(false)}
+  onApply={handleApplyPromo}
+  appliedCode={selectedCoupon?.code || ""}
+/>
+
       )}
     </div>
   );

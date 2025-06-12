@@ -8,7 +8,7 @@ import BottomNavigationBar from './BottomNavigationBar';
 import FloatingContact from '../../pages/Client/FloatingContact'; // Đúng đường dẫn tới file bạn tạo
 import { CategoryProvider } from '../../contexts/CategoryContext';
 import Toastify from '../../components/common/Toastify';
-
+import PopupBanner from '../../pages/Client/PopupBanner';
 const ClientLayout = () => {
   const location = useLocation();
 
@@ -40,6 +40,7 @@ const ClientLayout = () => {
       <Footer />
       <FloatingContact />
       <BottomNavigationBar />
+       <PopupBanner />
       <Toastify />
       <div className="pb-[56px] lg:pb-0"></div>
     </>

@@ -56,8 +56,8 @@ const ClientRoutes = {
       path: 'category/:id',
       element: <ProductListByCategory />
     },
-   { path: 'product/:slug', element: <ProductDetail /> },
-  { path: 'tin-noi-bat', element: <News /> },
+    { path: 'product/:slug', element: <ProductDetail /> },
+    { path: 'tin-noi-bat', element: <News /> },
     { path: 'tin-noi-bat/:slug', element: <NewsDetails /> },
     { path: 'cart', element: <CartPage /> },
     { path: 'checkout', element: <CheckoutPage /> },
@@ -66,7 +66,7 @@ const ClientRoutes = {
     { path: 'news', element: <News /> },
     { path: 'news/:id', element: <NewsDetails /> },
     { path: 'orderlookup', element: <OrderLookup /> },
-      { path: 'compare-products', element: <ProductComparison /> },
+    { path: 'compare-products', element: <ProductComparison /> }
   ]
 };
 

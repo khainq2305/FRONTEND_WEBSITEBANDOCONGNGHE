@@ -30,7 +30,7 @@ const Topbar = () => {
       <img
         src={bannerImageUrl}
         alt="Topbar Banner"
-        className="w-full max-w-screen-xl object-cover h-[44px] sm:h-[60px] md:h-[80px] lg:h-[44px] xl:h-[44px] transition-all duration-300 ease-in-out"
+        className="w-full max-w-[1200px] object-cover h-[44px] sm:h-[60px] md:h-[80px] lg:h-[44px] xl:h-[44px] transition-all duration-300 ease-in-out"
         style={{
           width: '100%',
           height: 'auto',
