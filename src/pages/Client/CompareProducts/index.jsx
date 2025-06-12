@@ -102,7 +102,7 @@ function CompareProducts() {
             >
               {spec.specKey}
             </div>
-            <div className="flex-grow grid grid-cols-3">
+<div className={`flex-grow grid grid-cols-${products.length || 3}`}>
               {products.map((product, idx) => (
                 <div
                   key={`${spec.specKey}-${product.id}`}

@@ -7,6 +7,7 @@ import RenderDonMuaContentTuyChinh from './PurchaseHistoryPage';
 import AddressPageContent from './RenderDiaChiContent';
 import { authService } from '../../../services/client/authService';
 import FavoriteProductsPage from './FavoriteProductsPage';
+import NotificationListClient from './NotificationListClient';
 
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'; 
@@ -241,7 +242,12 @@ const UserProfilePage = () => {
             {activeTab === 'ngan-hang' && <EmptyContent title="Ngân Hàng" />}
             {activeTab === 'dia-chi' && <AddressPageContent />}
             {activeTab === 'doi-mat-khau' && <div className="bg-white dark:bg-gray-800 p-6 shadow-md rounded-md border border-gray-200 dark:border-gray-700"><h2 className="text-xl font-semibold dark:text-gray-100">Đổi Mật Khẩu</h2><p className="text-sm dark:text-gray-300">Nội dung trang Đổi Mật Khẩu...</p></div>}
-            {activeTab === 'thong-bao' && <div className="bg-white dark:bg-gray-800 p-6 shadow-md rounded-md border border-gray-200 dark:border-gray-700"><h2 className="text-xl font-semibold dark:text-gray-100">Thông Báo</h2><p className="text-sm dark:text-gray-300">Nội dung trang Thông Báo...</p></div>}
+{activeTab === 'thong-bao' && (
+  <div className="bg-white dark:bg-gray-800 p-6 shadow-md rounded-md border border-gray-200 dark:border-gray-700">
+    <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">Thông Báo</h2>
+    <NotificationListClient />
+  </div>
+)}
             {activeTab === 'don-mua' && <RenderDonMuaContentTuyChinh />}
             {activeTab === 'kho-voucher' && <div className="bg-white dark:bg-gray-800 p-6 shadow-md rounded-md border border-gray-200 dark:border-gray-700"><h2 className="text-xl font-semibold dark:text-gray-100">Kho Voucher</h2><p className="text-sm dark:text-gray-300">Nội dung trang Kho Voucher...</p></div>}
             {activeTab === 'san-pham-yeu-thich' && <FavoriteProductsPage />}

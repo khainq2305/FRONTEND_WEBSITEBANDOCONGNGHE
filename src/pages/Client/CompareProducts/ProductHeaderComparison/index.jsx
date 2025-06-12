@@ -14,16 +14,20 @@ const ProductHeaderComparison = ({
 
   return (
     <div className="flex border-b border-gray-300">
-      {/* Sidebar cột nhãn */}
+      {/* Cột nhãn bên trái - Hiển thị tên sản phẩm đang so sánh */}
       <div
-        className={`${sidebarWidthClass} flex-shrink-0 border-r border-gray-300 bg-white p-2 flex items-center`}
+        className={`${sidebarWidthClass} flex-shrink-0 border-r border-gray-300 bg-white p-2 flex flex-col items-start justify-center`}
       >
-        <span className="font-semibold text-xs text-gray-700 uppercase">
-          So sánh sản phẩm
-        </span>
+        <h2 className="text-sm font-semibold text-gray-800 mb-1">So sánh sản phẩm</h2>
+        {products.map((p, idx) => (
+          <div key={p?.id || idx} className="text-[13px] font-medium text-gray-700 leading-snug">
+            {p?.name}
+            {idx < products.length - 1 && <span className="mx-1 font-bold text-gray-500"> <br />&</span>}
+          </div>
+        ))}
       </div>
 
-      {/* Danh sách sản phẩm + slot trống */}
+      {/* Các cột sản phẩm */}
       <div className="flex-grow grid grid-cols-3 bg-white">
         {columnsToRender.map((product, index) => (
           <div
@@ -32,7 +36,7 @@ const ProductHeaderComparison = ({
           >
             {product ? (
               <>
-                {/* Nút X xoá */}
+                {/* Nút xoá */}
                 {products.length > 1 && (
                   <button
                     onClick={() => onRemoveProduct(product.id)}
@@ -42,7 +46,6 @@ const ProductHeaderComparison = ({
                     <XMarkIcon className="w-4 h-4" />
                   </button>
                 )}
-
                 <div className="text-[13px] font-medium text-gray-800 mt-5 text-center">
                   {product.name || "-"}
                 </div>
@@ -55,7 +58,7 @@ const ProductHeaderComparison = ({
                 </div>
               </>
             ) : (
-              // Slot thêm mới
+              // Slot trống
               <div className="flex flex-col items-center justify-center h-full text-gray-400">
                 <PlusIcon className="w-6 h-6 mb-1" />
                 <p className="text-xs text-center">Thêm sản phẩm</p>

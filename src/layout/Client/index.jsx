@@ -8,9 +8,11 @@ import BottomNavigationBar from './BottomNavigationBar';
 import FloatingContact from '../../pages/Client/FloatingContact'; // Đúng đường dẫn tới file bạn tạo
 import { CategoryProvider } from '../../contexts/CategoryContext';
 import Toastify from '../../components/common/Toastify';
+import CompareBar from '@/components/common/CompareBar';
 
 const ClientLayout = () => {
   const location = useLocation();
+  const isComparePage = location.pathname.startsWith('/compare-products');
 
   const isAuthPage = [
     '/dang-nhap',
@@ -35,6 +37,7 @@ const ClientLayout = () => {
 
       <main>
         <Outlet />
+      {!isComparePage && <CompareBar />}
       </main>
 
       <Footer />
