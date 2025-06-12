@@ -1,4 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
+import SEO from "../../../components/common/SEO";
+import {
+  createProductStructuredData,
+  createBreadcrumbStructuredData,
+  createProductUrl
+} from "../../../utils/seoUtils";
 import ProductImageSection from "./ProductImageSection";
 import ProductOptions from "./ProductOptions";
 import RelatedProductsSlider from "./RelatedProductsSlider";
@@ -35,7 +41,7 @@ const StarRating = ({ rating, totalStars = 5 }) => (
   </div>
 );
 
-const Breadcrumb = ({ productName }) => {
+const Breadcrumb = ({ productName, categoryName, categorySlug }) => {
   const [isDocked, setIsDocked] = useState(false);
   const breadcrumbRef = useRef(null);
 
@@ -68,10 +74,14 @@ const Breadcrumb = ({ productName }) => {
           <span>Trang chủ</span>
         </a>
         <span className="text-gray-400">/</span>
-        <a href="/products" className="hover:text-blue-500">
-          Sản phẩm
-        </a>
-        <span className="text-gray-400">/</span>
+        {categoryName && categorySlug && (
+          <>
+            <a href={`/danh-muc/${categorySlug}`} className="hover:text-blue-500">
+              {categoryName}
+            </a>
+            <span className="text-gray-400">/</span>
+          </>
+        )}
         <span className="transition-colors duration-200 text-gray-700 font-medium">
           {productName}
         </span>
@@ -338,7 +348,28 @@ export default function ProductDetail() {
 
   return (
     <div>
-      <Breadcrumb productName={productName} />
+      <SEO
+        title={productName}
+        description={product?.description ? 
+          (product.description.length > 160 ? 
+            product.description.substring(0, 157) + '...' : 
+            product.description
+          ) : 
+          `Mua ${productName} chính hãng với giá tốt nhất tại Điện Thoại Giá Kho. Miễn phí vận chuyển, bảo hành chính hãng.`
+        }
+        keywords={`${productName}, điện thoại, ${product?.brand?.name || ''}, mua điện thoại, giá rẻ`}
+        canonicalUrl={createProductUrl(slug)}
+        ogTitle={`${productName} - Giá tốt nhất tại Điện Thoại Giá Kho`}
+        ogDescription={product?.description?.substring(0, 160) + '...' || `Mua ${productName} chính hãng với giá tốt nhất`}
+        ogImage={mainImage}
+        structuredData={product ? createProductStructuredData(product) : null}
+      />
+      
+      <Breadcrumb 
+        productName={productName} 
+        categoryName={product?.category?.name}
+        categorySlug={product?.category?.slug}
+      />
       <div className="max-w-screen-xl mx-auto py-3 md:pt-1 md:pb-6 text-sm text-gray-800">
         <ProductTitleHeader
           productName={productName}

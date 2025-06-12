@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
-import moment from 'moment'; // ✅ THÊM DÒNG NÀY
+import moment from 'moment';
+import SEO from "../../../components/common/SEO";
+import { createOrganizationStructuredData } from "../../../utils/seoUtils";
 
 import SliderBanner from "./SliderBanner";
 import ProductCategorySection from "./ProductCategorySection";
@@ -8,7 +10,6 @@ import FreshProductSlider from "./FreshProductSlider";
 import PromoGridSection from "./PromoGridSection";
 import MainBannerSlider from "./MainBannerSlider";
 import TwoRowMarketSlider from "./TwoRowMarketSlider";
-
 import { flashSaleService } from '../../../services/client/flashSaleService';
 import { wishlistService } from '../../../services/client/wishlistService';
 import { sectionService } from "../../../services/client/sectionService";
@@ -76,9 +77,19 @@ const HomePage = () => {
         fetchFavorites();
     }, []);
 
-
     return (
         <>
+            <SEO
+                title="Điện Thoại Giá Kho - Cửa hàng điện thoại uy tín, giá tốt nhất"
+                description="Mua điện thoại chính hãng với giá tốt nhất tại Điện Thoại Giá Kho. Đa dạng thương hiệu iPhone, Samsung, Xiaomi, Oppo. Bảo hành chính hãng, miễn phí vận chuyển."
+                keywords="điện thoại, iPhone, Samsung, Xiaomi, Oppo, điện thoại giá rẻ, mua điện thoại, chính hãng"
+                canonicalUrl="/"
+                ogTitle="Điện Thoại Giá Kho - Mua điện thoại chính hãng giá tốt nhất"
+                ogDescription="Cửa hàng điện thoại uy tín với hàng ngàn sản phẩm chính hãng. Giá tốt, bảo hành chính hãng, giao hàng toàn quốc."
+                ogImage="/logo.png"
+                structuredData={createOrganizationStructuredData()}
+            />
+            
             {/* --- CÁC KHỐI KHÁC CỦA TRANG WEB --- */}
             <div className="flex justify-center px-2 py-2 bg-gray-100"><div className="max-w-screen-xl w-full mx-auto"><SliderBanner /></div></div>
             <div className="flex justify-center px-2 py-2 bg-gray-100"><div className="max-w-screen-xl w-full mx-auto"><ProductCategorySection /></div></div>

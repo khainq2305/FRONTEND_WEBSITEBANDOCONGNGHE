@@ -13,6 +13,9 @@ export default defineConfig(({ mode }) => {
       open: true,
       port: PORT,
       host: true,
+      allowedHosts: [
+        '.ngrok-free.app' // Cho phép tất cả các subdomain của ngrok-free.app
+      ]
     },
     preview: {
       open: true,

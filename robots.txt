@@ -1,0 +1,39 @@
+User-agent: *
+Allow: /
+
+# SEO-friendly URLs - Allow crawling
+Allow: /san-pham/
+Allow: /danh-muc/
+Allow: /tin-tuc/
+
+# Block sensitive and admin pages
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /api/
+Disallow: /thanh-toan/
+Disallow: /gio-hang/
+Disallow: /ho-so-ca-nhan/
+Disallow: /xac-nhan-don-hang/
+
+# Block old URL patterns (backward compatibility routes)
+Disallow: /category/
+Disallow: /product/
+Disallow: /news/
+Disallow: /cart
+Disallow: /checkout
+Disallow: /user-profile
+Disallow: /order-confirmation
+Disallow: /orderlookup
+Disallow: /compare-products
+
+# Block query strings and file types
+Disallow: /*?*
+Disallow: /*.json$
+Disallow: /*.js$
+Disallow: /*.css$
+
+# Sitemap location
+Sitemap: https://dienthoaigiakho.vn/sitemap.xml
+
+# Crawl delay to be polite
+Crawl-delay: 1

@@ -1,6 +1,13 @@
 // src/pages/client/ProductListByCategory/index.js
 
 import { useEffect, useRef, useState } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
+import SEO from '../../../components/common/SEO';
+import { 
+  createCategoryUrl, 
+  createBreadcrumbStructuredData,
+  createSlug 
+} from '../../../utils/seoUtils';
 import Banner from './Banner';
 import FilterBar from './FilterBar';
 import SortBar from './SortBar';
@@ -36,16 +43,20 @@ export default function ProductListByCategory() {
   const [categoryId, setCategoryId] = useState(null);
 
   const sortBarRef = useRef();
-  const slug = window.location.pathname.split('/').pop();
+  const location = useLocation();
+  const { slug: paramSlug } = useParams();
+  const slug = paramSlug || window.location.pathname.split('/').pop();
 
-  // Lấy tên và ID của danh mục
+  // Lấy thông tin chi tiết danh mục
   const fetchCategoryName = async () => {
     try {
       const res = await categoryService.getBySlug(slug);
       const cat = res.data;
       const name = cat.parent?.name || cat.name || 'Danh mục';
       setCategoryName(name);
-      setCategoryId(cat.id); // Lưu lại ID
+      setCategoryId(cat.id);
+      setCategory(cat);
+      setCategoryDescription(cat.description || '');
     } catch (err) {
       console.error('❌ Không lấy được tên danh mục:', err);
       setCategoryName('Danh mục');
@@ -186,6 +197,18 @@ export default function ProductListByCategory() {
   return (
     <main className="w-full flex justify-center">
       <div className="w-full max-w-screen-xl px-4">
+        <SEO 
+          title={`${categoryName} - Điện thoại chính hãng giá rẻ`}
+          description={`Mua ${categoryName} chính hãng với giá tốt nhất tại Điện Thoại Giá Kho. Đa dạng sản phẩm, bảo hành chính hãng, miễn phí vận chuyển.`}
+          keywords={`${categoryName}, điện thoại, ${categoryName} giá rẻ, mua ${categoryName}, chính hãng`}
+          canonicalUrl={createCategoryUrl(slug)}
+          ogTitle={`${categoryName} - Giá tốt nhất tại Điện Thoại Giá Kho`}
+          ogDescription={`Mua ${categoryName} chính hãng với giá tốt nhất`}
+          structuredData={createBreadcrumbStructuredData([
+            { name: 'Trang chủ', url: '/' },
+            { name: categoryName, url: createCategoryUrl(slug) }
+          ])}
+        />
         {!isStickySortBar && <Breadcrumb categoryName={categoryName} categorySlug={slug} />}
         
         <Banner banners={banners} />
