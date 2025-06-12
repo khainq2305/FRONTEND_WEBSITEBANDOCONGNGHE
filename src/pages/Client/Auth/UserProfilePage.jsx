@@ -242,6 +242,7 @@ const UserProfilePage = () => {
             {activeTab === 'ngan-hang' && <EmptyContent title="Ngân Hàng" />}
             {activeTab === 'dia-chi' && <AddressPageContent />}
             {activeTab === 'doi-mat-khau' && <div className="bg-white dark:bg-gray-800 p-6 shadow-md rounded-md border border-gray-200 dark:border-gray-700"><h2 className="text-xl font-semibold dark:text-gray-100">Đổi Mật Khẩu</h2><p className="text-sm dark:text-gray-300">Nội dung trang Đổi Mật Khẩu...</p></div>}
+
 {activeTab === 'thong-bao' && (
   <div className="bg-white dark:bg-gray-800 p-6 shadow-md rounded-md border border-gray-200 dark:border-gray-700">
     <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">Thông Báo</h2>

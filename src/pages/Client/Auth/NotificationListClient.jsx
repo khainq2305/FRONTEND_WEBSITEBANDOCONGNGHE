@@ -60,7 +60,6 @@ const NotificationListClient = () => {
     </div>
   ))}
 </div>
-
   );
 };
 
