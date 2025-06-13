@@ -76,8 +76,6 @@
 .scrollbar-thin::-webkit-scrollbar-track {
   background-color: transparent;
 }
-/* end */
-/* === CUSTOM SWIPER NAVIGATION ARROWS === */
 .swiper-button-next,
 .swiper-button-prev {
   width: 36px !important;
@@ -139,10 +137,6 @@
 .swiper-button-disabled::after {
     color: #999999 !important;
 }
-
-/* Ghi đè style cho Swiper pagination bullets */
-
-/* Định dạng chung cho tất cả các bullet */
 .swiper-pagination-bullet {
   width: 18px !important;  
   height: 6px !important; 

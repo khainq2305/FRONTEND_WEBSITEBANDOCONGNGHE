@@ -215,7 +215,7 @@ const ViewedProductsSlider = () => {
                 }
             `}</style>
             
-            <div className="flex justify-between items-center mb-2 px-1"> {/* <-- THAY ĐỔI #1: Giảm khoảng cách dưới tiêu đề */}
+            <div className="flex justify-between items-center mb-2 px-1"> 
                 <h2 className="text-lg md:text-xl font-bold text-primary">Sản phẩm đã xem</h2>
                 <button
                     type="button"
@@ -231,11 +231,11 @@ const ViewedProductsSlider = () => {
                     <div key={product.id} className="h-full p-1.5">
                         <div className="flex items-center bg-white rounded-md shadow-sm relative p-2.5 border border-gray-200 h-full hover:shadow-lg transition-shadow duration-200">
                             
-                            <a href={product.slug ? `/product/${product.slug}` : '#'} className="flex-shrink-0 mr-2"> {/* <-- THAY ĐỔI #2: Giảm khoảng cách bên phải ảnh */}
+                            <a href={product.slug ? `/product/${product.slug}` : '#'} className="flex-shrink-0 mr-2"> 
                                 <img src={product.thumbnail} alt={product.name} className="w-16 h-16 object-contain rounded" loading="lazy" />
                             </a>
                             
-                            <div className="flex flex-col justify-center flex-1 min-w-0 pr-4"> {/* <-- THAY ĐỔI #3: Thêm padding-right để tránh chạm nút 'x' */}
+                            <div className="flex flex-col justify-center flex-1 min-w-0 pr-4"> 
                                 <a href={product.slug ? `/product/${product.slug}` : '#'} title={product.name}>
                                     <p className="text-xs font-medium text-gray-800 hover:text-primary line-clamp-2 leading-snug mb-0.5">
                                         {product.name}

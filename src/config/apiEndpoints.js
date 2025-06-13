@@ -145,6 +145,12 @@ export const API_ENDPOINT = {
     },
   },
   admin: {
+     Auth: {
+      base: `${API_BASE_URL}/admin`,
+      login: '/dang-nhap-dashboard',
+      getUserInfo: '/account-info',
+      logout: '/dang-xuat'
+    },
     product: {
       base: `${API_BASE_URL}/admin`,
       create: '/product/create',

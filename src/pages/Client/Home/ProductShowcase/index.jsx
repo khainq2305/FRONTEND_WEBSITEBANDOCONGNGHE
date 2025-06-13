@@ -30,15 +30,15 @@ const InlinedProductCard = ({ id, name, price, oldPrice, discount, image, rating
         <h3
           className="font-semibold text-xs sm:text-[13px] text-gray-800 leading-tight mb-1 group-hover/productCard:text-blue-600 transition-colors duration-200"
           style={{
-            width: '200px',         // <--- GIẢI PHÁP CHIỀU RỘNG CỐ ĐỊNH ĐÃ HOẠT ĐỘNG
-            whiteSpace: 'normal',  // Quan trọng: Cho phép văn bản xuống dòng
+            width: '200px',         
+            whiteSpace: 'normal',  
             display: "-webkit-box",
-            WebkitLineClamp: 2,      // Giới hạn 2 dòng
+            WebkitLineClamp: 2,      
             WebkitBoxOrient: "vertical",
-            overflow: "hidden",      // Ẩn phần thừa
-            textOverflow: "ellipsis",  // Hiển thị dấu "..."
-            maxHeight: "2.6rem",     // Chiều cao tối đa cho 2 dòng
-            lineHeight: "1.3rem"     // Chiều cao mỗi dòng
+            overflow: "hidden",     
+            textOverflow: "ellipsis", 
+            maxHeight: "2.6rem",     
+            lineHeight: "1.3rem"  
           }}
         >
           {name}
@@ -109,11 +109,11 @@ export default function ProductShowcase({
         if (typeof val === 'object' && val.slidesPerView > maxSlides) {
           maxSlides = val.slidesPerView;
         } else if (typeof val === 'number' && val > maxSlides) {
-           // This case might not be typical for breakpoints but good to have
+        
            maxSlides = val;
         }
       });
-      // Check base slidesPerView if not in breakpoints
+   
       if (swiperSettings && swiperSettings.slidesPerView > maxSlides) {
           maxSlides = swiperSettings.slidesPerView;
       }
@@ -130,7 +130,7 @@ export default function ProductShowcase({
     onBeforeInit: (swiper) => { 
       swiper.params.navigation.prevEl = productSliderPrevRef.current;
       swiper.params.navigation.nextEl = productSliderNextRef.current;
-      // swiper.navigation.update(); // Consider re-adding if nav buttons are an issue
+      
     },
     slidesPerView: 1.2, 
     spaceBetween: 8,   
@@ -199,11 +199,11 @@ export default function ProductShowcase({
     WebkitBoxOrient: "vertical",
     overflow: "hidden",
     textOverflow: "ellipsis",
-    maxHeight: "2.6rem", // Phù hợp với 2 dòng
-    lineHeight: "1.3rem"  // Khoảng cách giữa các dòng
+    maxHeight: "2.6rem", 
+    lineHeight: "1.3rem"  
   }}
 >
-  {sectionTitle} {/* Chỗ này là sectionTitle nhé */}
+  {sectionTitle} 
 </h3>
 
 

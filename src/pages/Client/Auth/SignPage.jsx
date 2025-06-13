@@ -99,7 +99,7 @@ const AuthPage = () => {
       }
       navigate('/');
     } catch (err) {
-      console.error('❌ Đăng nhập Google thất bại:', err);
+      console.error('Đăng nhập Google thất bại:', err);
       alert(err?.response?.data?.message || 'Đăng nhập Google thất bại!');
     } finally {
       setIsLoading(false);
@@ -108,7 +108,7 @@ const AuthPage = () => {
 
   return (
     <div className="flex min-h-screen">
-      {/* Loader Overlay */}
+
       {isLoading && (
         <div
           style={{
@@ -131,7 +131,7 @@ const AuthPage = () => {
         </div>
       )}
 
-      {/* Panel bên trái */}
+     
       <div
         className="hidden bg-primary-gradient lg:flex w-1/2 relative overflow-hidden text-white flex-col justify-center items-center p-10"
         style={{
@@ -150,7 +150,7 @@ const AuthPage = () => {
         </div>
       </div>
 
-      {/* Phần form bên phải */}
+      
       <div className="flex flex-col justify-center items-center w-full lg:w-1/2 p-8">
         <div className="bg-light shadow-md rounded-lg p-6 w-full max-w-md">
           <h2 className="text-2xl font-bold mb-4 text-center text-primary">{isLogin ? 'Đăng nhập' : 'Đăng ký'}</h2>

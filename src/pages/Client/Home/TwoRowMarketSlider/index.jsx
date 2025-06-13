@@ -1,20 +1,16 @@
 import React, { useRef } from 'react';
 import Slider from "react-slick";
-import { Link } from 'react-router-dom'; // ✅ THÊM IMPORT LINK
+import { Link } from 'react-router-dom';
 
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import './TestResponsiveSlider.css';
-
-// Icons
 import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
 import { HeartIcon, ArrowPathIcon as CompareIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
 import CountdownTimer from './CountdownTimer';
 import useFavorites from '../../../../hooks/useFavorites';
-
-// Component con để hiển thị từng card sản phẩm trong slider
 const InlinedProductCard = ({ id, slug, name, price, oldPrice, discount, image, rating, soldCount, inStock, onAddToFavorites, onCompare, isFavorite }) => {
     const renderStars = (rate) => {
         const stars = [];
@@ -31,7 +27,7 @@ const InlinedProductCard = ({ id, slug, name, price, oldPrice, discount, image, 
         <div className="product-card-item w-full h-full flex flex-col border border-gray-200/70 rounded-lg overflow-hidden shadow-sm bg-white relative transition-shadow duration-200 ease-in-out group/productCard hover:shadow-md">
             {discount > 0 && (<div className="absolute top-2 left-2 bg-red-500 text-white text-[9px] sm:text-xs font-bold px-1.5 py-0.5 rounded z-10">-{discount}%</div>)}
             
-            {/* ✅ SỬA LẠI: Dùng <Link> và `slug` để điều hướng */}
+          
             <Link to={`/product/${slug}`} className="product-card-image-link block relative w-full h-[125px] xs:h-[140px] sm:h-[160px] mt-3 mb-1.5 sm:mt-4 sm:mb-2 flex items-center justify-center px-3">
                 <img src={image} alt={name} className="max-h-full max-w-full object-contain group-hover/productCard:scale-105 transition-transform duration-300" loading="lazy" />
             </Link>
@@ -70,7 +66,6 @@ const InlinedProductCard = ({ id, slug, name, price, oldPrice, discount, image, 
     );
 };
 
-// Component ProductColumn (Không đổi)
 const ProductColumn = ({ productTop, productBottom, onAddToFavorites, onCompare }) => {
     return (
         <div className="flex flex-col space-y-1.5 h-full">
@@ -102,8 +97,6 @@ const ProductColumn = ({ productTop, productBottom, onAddToFavorites, onCompare 
         </div>
     );
 };
-
-// Component CustomSlickArrow (Không đổi)
 const CustomSlickArrow = (props) => {
     const { type, onClick, className, style } = props;
     return (
@@ -112,8 +105,6 @@ const CustomSlickArrow = (props) => {
         </button>
     );
 };
-
-// Component chính
 const TwoRowMarketSlider = ({
     productsInput = [],
     imageBannerUrl,

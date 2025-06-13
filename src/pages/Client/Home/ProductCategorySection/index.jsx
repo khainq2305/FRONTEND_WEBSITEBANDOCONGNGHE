@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from "react";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import './ProductCategorySection.css'; // Giữ lại file css này cho slider
+import './ProductCategorySection.css'; 
 import { highlightedCategoryService } from "../../../../services/client/highlightedCategoryService";
 
 const ProductCategorySection = () => {
@@ -78,9 +78,6 @@ const ProductCategorySection = () => {
 
         return (
             <a href={item.slug ? `/category/${item.slug}` : '#'} className={itemClasses} title={item.name}>
-                {/* ======================================================= */}
-                {/* THAY ĐỔI Ở ĐÂY: Thêm bg-primary, rounded-full và padding */}
-                {/* ======================================================= */}
                 <div className="relative w-16 h-20 md:w-20 md:h-20 mb-2 rounded-xl p-2">
                     {item.label && (
                         <span className={`

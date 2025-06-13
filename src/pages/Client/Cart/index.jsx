@@ -203,12 +203,11 @@ const CartPage = () => {
           </aside>
         </div>
       ) : (
-        // If cart is empty, render EmptyCart component (full width)
+        
         <div className="w-full">
           <EmptyCart />
         </div>
       )}
-      {/* KẾT THÚC THAY ĐỔI CẤU TRÚC */}
     </main>
   );
 };

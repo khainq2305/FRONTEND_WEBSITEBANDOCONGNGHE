@@ -7,7 +7,7 @@ const PromoGridSection = () => {
   useEffect(() => {
     const fetchMidPosters = async () => {
       try {
-        const res = await bannerService.getByType('mid-poster'); // hoặc 'mid' tùy bạn set trong DB
+        const res = await bannerService.getByType('mid-poster'); 
         setBanners(res?.data?.data || []);
       } catch (err) {
         console.error('Lỗi khi lấy banner giữa:', err);

@@ -28,7 +28,6 @@ const AddressForm = ({ onSave, onCancel }) => {
     setIsLoadingProvinces(true);
     try {
         const data = await shippingService.getProvinces();
-        console.log("📌 Provinces API trả về:", data); // <== Thêm dòng này
         if (data && data.length > 0) {
             setProvinces(data);
         } else {

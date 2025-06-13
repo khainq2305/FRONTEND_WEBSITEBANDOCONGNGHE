@@ -10,8 +10,6 @@ import {
   CommentOutlined,
   GiftOutlined
 } from '@ant-design/icons';
-
-// icons
 const icons = {
   LoginOutlined,
   ProfileOutlined,
@@ -25,18 +23,18 @@ const icons = {
 };
 
 const pages = [
-   {
+  {
     id: 'product-section-collapse',
     title: 'Quản lý sản phẩm',
     type: 'collapse',
-    icon: icons.AppstoreOutlined, 
+    icon: icons.AppstoreOutlined,
     children: [
       {
         id: 'product-list',
         title: 'Sản phẩm',
         type: 'item',
         url: '/admin/products',
-        icon: icons.FileTextOutlined, 
+        icon: icons.FileTextOutlined,
         breadcrumbs: false
       },
       {
@@ -60,7 +58,7 @@ const pages = [
         title: 'Danh mục sản phẩm',
         type: 'item',
         url: '/admin/categories/list',
-        icon: icons.TagsOutlined, 
+        icon: icons.TagsOutlined,
         breadcrumbs: false
       },
       {
@@ -68,7 +66,7 @@ const pages = [
         title: 'Thuộc tính sản phẩm',
         type: 'item',
         url: '/admin/product-variants',
-        icon: icons.CommentOutlined, 
+        icon: icons.CommentOutlined,
         breadcrumbs: false
       },
       {
@@ -81,7 +79,6 @@ const pages = [
       }
     ]
   },
- 
 
   {
     id: 'flash-sale',
@@ -109,22 +106,21 @@ const pages = [
   },
 
   {
-  id: 'slider-section',
-  title: 'Slider & Banner',
-  type: 'collapse',
-  icon: icons.FileTextOutlined,
-  children: [
-    {
-      id: 'banner-list',
-      title: 'Danh sách Banner',
-      type: 'item',
-      url: '/admin/banners',   // trỏ vào BannerList (hiển thị tất cả banner)
-      icon: TableOutlined,
-      breadcrumbs: false
-    }
-  ]
-},
-
+    id: 'slider-section',
+    title: 'Slider & Banner',
+    type: 'collapse',
+    icon: icons.FileTextOutlined,
+    children: [
+      {
+        id: 'banner-list',
+        title: 'Danh sách Banner',
+        type: 'item',
+        url: '/admin/banners', 
+        icon: TableOutlined,
+        breadcrumbs: false
+      }
+    ]
+  },
 
   {
     id: 'coupon-section',
@@ -144,7 +140,7 @@ const pages = [
         id: 'coupon-add',
         title: 'Thêm mã giảm giá',
         type: 'item',
-        url: '/admin/coupons/create', 
+        url: '/admin/coupons/create',
         icon: icons.FileTextOutlined,
         breadcrumbs: false
       }
@@ -194,7 +190,7 @@ const pages = [
     ]
   },
 
- {
+  {
     id: 'user-management',
     title: 'Tài khoản',
     type: 'collapse',
@@ -217,11 +213,10 @@ const pages = [
         url: '/admin/users/create',
         icon: icons.FileTextOutlined,
         exact: true
-      },
-
+      }
     ]
   },
- {
+  {
     id: 'notification-section',
     title: 'Thông báo',
     type: 'collapse',
@@ -245,30 +240,28 @@ const pages = [
       }
     ]
   },
-{
-  id: 'comments',
-  title: 'Bình luận',
-  type: 'collapse',
-  icon: icons.MessageOutlined,
-  children: [
-    {
-      id: 'comment-list',
-      title: 'Đánh giá theo sản phẩm',
-      type: 'item',
-      url: '/admin/comments',
-      breadcrumbs: false
-    },
-    {
-      id: 'all-comments',
-      title: 'Tất cả bình luận',
-      type: 'item',
-      url: '/admin/comments/all',
-      breadcrumbs: false
-    }
-  ]
-},
-
-
+  {
+    id: 'comments',
+    title: 'Bình luận',
+    type: 'collapse',
+    icon: icons.MessageOutlined,
+    children: [
+      {
+        id: 'comment-list',
+        title: 'Đánh giá theo sản phẩm',
+        type: 'item',
+        url: '/admin/comments',
+        breadcrumbs: false
+      },
+      {
+        id: 'all-comments',
+        title: 'Tất cả bình luận',
+        type: 'item',
+        url: '/admin/comments/all',
+        breadcrumbs: false
+      }
+    ]
+  },
 
   {
     id: 'productqna',

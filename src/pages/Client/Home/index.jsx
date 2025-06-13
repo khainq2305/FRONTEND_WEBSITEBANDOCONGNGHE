@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import moment from 'moment';
 
-// Components
 import SliderBanner from './SliderBanner';
 import ProductCategorySection from './ProductCategorySection';
 import ViewedProductsSlider from './ViewedProductsSlider';
@@ -12,14 +11,11 @@ import TwoRowMarketSlider from './TwoRowMarketSlider';
 import StickyBannerItem from './StickyBannerItem';
 import { formatCurrencyVND } from '../../../utils/formatCurrency';
 import useFavorites from '../../../hooks/useFavorites';
-
-// Services
 import { bannerService } from '../../../services/client/bannerService';
 import { flashSaleService } from '../../../services/client/flashSaleService';
 import { wishlistService } from '../../../services/client/wishlistService';
 import { sectionService } from '../../../services/client/sectionService';
 
-// ✅ BƯỚC 1: Import URL gốc của API
 import { API_BASE_URL } from '../../../constants/environment';
 
 const HomePage = () => {
@@ -27,16 +23,14 @@ const HomePage = () => {
   const [flashSales, setFlashSales] = useState([]);
   const [stickyBanners, setStickyBanners] = useState([]);
   const { isFavorite, toggleFavorite } = useFavorites();
-
-  // ✅ BƯỚC 2: Thêm hàm helper để tạo URL ảnh đầy đủ
   const constructImageUrl = (path) => {
     if (!path) {
-      return 'https://placehold.co/300x300/e2e8f0/94a3b8?text=No+Image'; // Ảnh mặc định nếu path null
+      return 'https://placehold.co/300x300/e2e8f0/94a3b8?text=No+Image';
     }
     if (path.startsWith('http')) {
-      return path; // Trả về nếu đã là URL đầy đủ
+      return path;
     }
-    return `${API_BASE_URL}${path}`; // Nối với URL gốc của API
+    return `${API_BASE_URL}${path}`;
   };
 
   useEffect(() => {
@@ -47,11 +41,10 @@ const HomePage = () => {
           flashSaleService.list(),
           bannerService.getByType('banner-left-right')
         ]);
-        
+
         setSections(sectionsRes.data?.data || []);
         setFlashSales(flashSalesRes.data.data || []);
         setStickyBanners(stickyBannersRes.data?.data || []);
-
       } catch (error) {
         console.error('Lỗi khi tải dữ liệu trang chủ:', error);
       }
@@ -88,14 +81,14 @@ const HomePage = () => {
           const productsForSlider = saleEvent.flashSaleItems.map((item) => {
             const sku = item.sku || {};
             const product = sku.product || {};
-           const originalPrice = sku.originalPrice || 0;
-const salePrice = item.salePrice || 0;
+            const originalPrice = sku.originalPrice || 0;
+            const salePrice = item.salePrice || 0;
 
             const isGloballyOutOfStock = (sku.stock || 0) <= 0;
             const hasReachedLimit = (item.userPurchaseCount || 0) >= (item.limitPerUser || 1);
-console.log("SKU ProductMedia", sku.ProductMedia);
-const skuMedia = sku.ProductMedia || [];
-const imageUrl = skuMedia.length > 0 ? skuMedia[0].mediaUrl : product.thumbnail;
+            console.log('SKU ProductMedia', sku.ProductMedia);
+            const skuMedia = sku.ProductMedia || [];
+            const imageUrl = skuMedia.length > 0 ? skuMedia[0].mediaUrl : product.thumbnail;
 
             return {
               id: product.id,
@@ -105,16 +98,14 @@ const imageUrl = skuMedia.length > 0 ? skuMedia[0].mediaUrl : product.thumbnail;
               price: formatCurrencyVND(salePrice),
               oldPrice: originalPrice > 0 ? formatCurrencyVND(originalPrice) : null,
               discount: originalPrice > salePrice ? Math.round(100 - (salePrice * 100) / originalPrice) : 0,
-              // ✅ BƯỚC 3: SỬ DỤNG HÀM HELPER CHO KHỐI FLASH SALE
 
-image: constructImageUrl(imageUrl),
-rating: parseFloat(product.averageRating) || 0,
+              image: constructImageUrl(imageUrl),
+              rating: parseFloat(product.averageRating) || 0,
 
-              
               inStock: !isGloballyOutOfStock && !hasReachedLimit,
-             soldCount: parseInt(product.soldCount) || 0,
+              soldCount: parseInt(product.soldCount) || 0,
 
-              isFavorite: isFavorite(product.id),
+              isFavorite: isFavorite(product.id)
             };
           });
 
@@ -130,7 +121,7 @@ rating: parseFloat(product.averageRating) || 0,
           );
         })}
 
-        {/* --- KHỐI SẢN PHẨM MỚI --- */}
+       
         {sections.map((section) => {
           if (!section.products || section.products.length === 0) return null;
 
@@ -139,28 +130,25 @@ rating: parseFloat(product.averageRating) || 0,
               const skus = product.skus || [];
               if (skus.length === 0) return null;
 
-              const isProductInStock = skus.some(s => (s.stock || 0) > 0);
-              const displaySku = skus.find(s => (s.stock || 0) > 0) || skus[0];
+              const isProductInStock = skus.some((s) => (s.stock || 0) > 0);
+              const displaySku = skus.find((s) => (s.stock || 0) > 0) || skus[0];
               const oldPriceNum = parseFloat(displaySku.originalPrice);
               const finalPriceNum = parseFloat(displaySku.price);
 
-            return {
-  id: displaySku.id,
-  productId: product.id,
-  name: product.name || 'N/A',
-  slug: product.slug,
-  price: formatCurrencyVND(finalPriceNum),
-  oldPrice: oldPriceNum > 0 ? formatCurrencyVND(oldPriceNum) : null,
-  image: constructImageUrl(displaySku.ProductMedia?.[0]?.url || product.thumbnail),
-  discount: oldPriceNum > finalPriceNum
-    ? Math.round(100 - (finalPriceNum * 100) / oldPriceNum)
-    : 0,
-  rating: parseFloat(product.averageRating) || 0,  // ✅ Ép kiểu đúng
-  soldCount: parseInt(product.soldCount) || 0,     // ✅ Ép kiểu đúng
-  inStock: isProductInStock,
-  isFavorite: isFavorite(product.id)
-};
-
+              return {
+                id: displaySku.id,
+                productId: product.id,
+                name: product.name || 'N/A',
+                slug: product.slug,
+                price: formatCurrencyVND(finalPriceNum),
+                oldPrice: oldPriceNum > 0 ? formatCurrencyVND(oldPriceNum) : null,
+                image: constructImageUrl(displaySku.ProductMedia?.[0]?.url || product.thumbnail),
+                discount: oldPriceNum > finalPriceNum ? Math.round(100 - (finalPriceNum * 100) / oldPriceNum) : 0,
+                rating: parseFloat(product.averageRating) || 0,
+                soldCount: parseInt(product.soldCount) || 0,
+                inStock: isProductInStock,
+                isFavorite: isFavorite(product.id)
+              };
             })
             .filter((p) => p && p.id);
 

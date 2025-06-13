@@ -1,30 +1,10 @@
 /* TwoRowMarketSlider.css */
 
-.two-row-slider-wrapper {
-  /* overflow: hidden; */ /* Nếu nút mũi tên nằm ngoài và BỊ CẮT, hãy BỎ comment dòng này ở container CHA XA HƠN nữa của two-row-slider-wrapper,
-                            HOẶC đặt nút mũi tên nằm BÊN TRONG two-row-slider-content-area */
-}
-.two-row-slider-header-block {
-  /* Style cho header của khối Chợ Phiên nếu cần thêm */
-}
 
-/* Class được gán vào component Slider */
+
 .two-row-slick-slider.slick-slider {
   position: relative;
-  /* QUAN TRỌNG: Nếu div bọc ProductColumn có padding (ví dụ px-1 là 4px, sm:px-1.5 là 6px), 
-     thì margin âm tương ứng ở đây sẽ giúp cột đầu/cuối sát lề content-area.
-     BẮT ĐẦU BẰNG VIỆC BỎ MARGIN ÂM NÀY ĐỂ ĐẢM BẢO KHÔNG TRÀN.
-  */
-  /* margin-left: -4px;  */
-  /* margin-right: -4px; */
 }
-/* @media (min-width: 640px) {
-  .two-row-slick-slider.slick-slider {
-    margin-left: -6px; 
-    margin-right: -6px;
-  }
-} */
-
 
 .two-row-slick-slider .slick-list {
   overflow: hidden; 
@@ -40,12 +20,10 @@
   box-sizing: border-box;
 }
 
-.two-row-slick-slider .slick-slide > div > .flex.flex-col { /* ProductColumn */
+.two-row-slick-slider .slick-slide > div > .flex.flex-col { 
     width: 100% !important; 
     box-sizing: border-box !important;
 }
-
-/* Target InlinedProductCard (class gốc là product-card-item) */
 .two-row-slick-slider .product-card-item {
     width: 100% !important; 
     height: 100% !important; 
@@ -54,8 +32,6 @@
     flex-direction: column !important; 
 }
 
-
-/* --- Nút điều hướng --- */
 .two-row-slick-slider .slick-arrow { 
   position: absolute;
   top: 50%; 
@@ -63,18 +39,16 @@
   z-index: 20;
   cursor: pointer;
   border-radius: 50%;
-  width: 44px; /* Kích thước nút giống ảnh */
+  width: 44px; 
   height: 44px;
-  display: flex !important; /* Quan trọng để Slick quản lý ẩn hiện */
+  display: flex !important; 
   align-items: center;
   justify-content: center;
-  background-color: rgba(255, 255, 255, 0.6); /* Nền mờ */
+  background-color: rgba(255, 255, 255, 0.6); 
   border: none; 
-  color: #4B5563; /* text-gray-600 */
+  color: #4B5563; 
   box-shadow: 0 2px 5px rgba(0,0,0,0.15);
   transition: all 0.2s ease-in-out;
-  
-  /* Ẩn ban đầu, hiện khi hover wrapper */
   opacity: 0; 
   pointer-events: none;
   transform: translateY(-50%) scale(0.8); 
@@ -87,11 +61,11 @@
 }
 
 .two-row-slick-slider .slick-arrow.slick-disabled {
-  opacity: 0 !important; /* Ẩn hoàn toàn khi disabled */
+  opacity: 0 !important; 
   pointer-events: none !important;
   cursor: default;
 }
-/* Đảm bảo khi group hover mà nút disabled thì nó vẫn ẩn */
+
 .two-row-slider-wrapper.group:hover .two-row-slick-slider .slick-arrow.slick-disabled {
     opacity: 0 !important;
     pointer-events: none !important;
@@ -100,11 +74,9 @@
 
 .two-row-slick-slider .slick-arrow:hover:not(.slick-disabled) {
   background-color: rgba(255, 255, 255, 0.9); 
-  color: #111827; /* text-gray-900 */
+  color: #111827; 
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
-
-/* Vị trí nút (chờm ra ngoài một chút) */
 .two-row-slick-slider .slick-prev {
   left: -15px; 
 }
@@ -117,47 +89,30 @@
 }
 
 .slick-arrow-icon { 
-  width: 24px; /* Kích thước icon trong nút */
+  width: 24px; 
   height: 24px;
 }
 
-/* Responsive cho nút: JS đã đặt arrows:false cho mobile */
-@media (max-width: 1023px) { /* Ẩn nút từ tablet trở xuống nếu JS chưa làm */
-  /* .two-row-slick-slider .slick-arrow {
-     display: none !important; 
-  } */
-  /* Nếu bỏ margin âm ở desktop, ở đây cũng bỏ */
+@media (max-width: 1023px) { 
   .two-row-slick-slider.slick-slider {
-    /* margin-left: -4px; */
-    /* margin-right: -4px; */
   }
 }
-/* @media (min-width: 640px) and (max-width: 767px) {
-  .two-row-slick-slider.slick-slider {
-    margin-left: -6px; 
-    margin-right: -6px;
-  }
-} */
-
-/* --- CSS cho tên sản phẩm bên trong InlinedProductCard --- */
 .product-card-item .product-card-name {
   display: -webkit-box !important; 
   -webkit-line-clamp: 2 !important;
   -webkit-box-orient: vertical !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
-  
-  /* Bỏ class `leading-tight` khỏi thẻ h3 trong JSX của InlinedProductCard */
-  font-size: 0.75rem; /* Tailwind: text-xs */
+  font-size: 0.75rem; 
   line-height: 1.35; 
   height: calc(2 * 1.35em); 
   word-break: break-word; 
-  margin-bottom: 0.25rem; /* Tailwind: mb-1 */
+  margin-bottom: 0.25rem; 
 }
 
-@media (min-width: 640px) { /* sm breakpoint */
+@media (min-width: 640px) { 
   .product-card-item .product-card-name {
-    font-size: 0.8125rem; /* Tailwind: sm:text-[13px] */
+    font-size: 0.8125rem; 
     height: calc(2 * 1.35em); 
   }
 }

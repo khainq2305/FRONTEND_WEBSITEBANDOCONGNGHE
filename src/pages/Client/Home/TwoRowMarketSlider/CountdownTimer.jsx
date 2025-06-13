@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
-
-// Hàm helper để thêm số 0 đằng trước cho các số < 10
 const formatTime = (time) => time.toString().padStart(2, '0');
 
 const CountdownTimer = ({ expiryTimestamp }) => {
-    // Hàm tính toán thời gian còn lại
     const calculateTimeLeft = () => {
         const difference = +new Date(expiryTimestamp) - +new Date();
         let timeLeft = {};
@@ -23,12 +20,10 @@ const CountdownTimer = ({ expiryTimestamp }) => {
     const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
 
     useEffect(() => {
-        // Cập nhật thời gian mỗi giây
+        
         const timer = setTimeout(() => {
             setTimeLeft(calculateTimeLeft());
         }, 1000);
-
-        // Dọn dẹp timer khi component bị hủy
         return () => clearTimeout(timer);
     });
 
@@ -37,18 +32,13 @@ const CountdownTimer = ({ expiryTimestamp }) => {
             {formatTime(value)}
         </span>
     );
-
-    // Kiểm tra xem còn thời gian hay không
     const hasTimeLeft = Object.values(timeLeft).some(val => val > 0);
 
     if (!hasTimeLeft) {
         return <span className="text-red-700 font-bold text-lg">Đã kết thúc!</span>;
     }
-
-    // Hiển thị giao diện đồng hồ
     return (
         <div className="flex items-center gap-1.5" aria-label="Thời gian còn lại">
-            {/* Hiển thị ngày nếu có */}
             {timeLeft.days > 0 && (
                 <>
                     {renderTimeBox(timeLeft.days)}

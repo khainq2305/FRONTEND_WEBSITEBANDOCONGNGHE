@@ -4,8 +4,6 @@ import { Outlet, useLocation } from 'react-router-dom';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import Toolbar from '@mui/material/Toolbar';
 import Box from '@mui/material/Box';
-
-// Project Imports
 import ThemeCustomization from '../../themes';
 import Drawer from './Drawer';
 import Header from './Header';
@@ -14,7 +12,6 @@ import Loader from 'components/Admin/Loader';
 import Breadcrumbs from 'components/Admin/@extended/Breadcrumbs';
 
 
-// API and Utility Imports
 import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 
 
@@ -47,7 +44,7 @@ export default function DashboardLayout() {
               flexDirection: 'column'
             }}
           >
-            {/* Breadcrumbs except for specific route */}
+           
             {pathname !== '/apps/profiles/account/my-account' && <Breadcrumbs />}
             <Outlet />
             <Footer />
