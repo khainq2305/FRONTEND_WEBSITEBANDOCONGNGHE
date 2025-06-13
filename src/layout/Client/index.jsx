@@ -22,29 +22,30 @@ const ClientLayout = () => {
     '/register-email-sent'
   ].includes(location.pathname);
 
-  return (
-    <>
-      {isAuthPage ? (
-        <AuthHeader />
-      ) : (
-        <>
-          <Topbar />
-          <Header />
-        </>
-      )}
+ return (
+  <div className="bg-gray-100 min-h-screen text-gray-900"> {/* ← thêm bg ở đây */}
+    {isAuthPage ? (
+      <AuthHeader />
+    ) : (
+      <>
+        <Topbar />
+        <Header />
+      </>
+    )}
 
-      <main>
-        <Outlet />
-      </main>
+    <main>
+      <Outlet />
+    </main>
 
-      <Footer />
-      <FloatingContact />
-      <BottomNavigationBar />
-       <PopupBanner />
-      <Toastify />
-      <div className="pb-[56px] lg:pb-0"></div>
-    </>
-  );
+    <Footer />
+    <FloatingContact />
+    <BottomNavigationBar />
+    <PopupBanner />
+    <Toastify />
+    <div className="pb-[56px] lg:pb-0"></div>
+  </div>
+);
+
 };
 
 export default ClientLayout;

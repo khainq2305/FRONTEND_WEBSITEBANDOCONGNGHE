@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { FiX, FiInfo } from 'react-icons/fi';
-import { couponService } from '../../../../services/client/couponService'; // <-- Sửa đường dẫn tới service của bạn
-
-// ✅ THAY ĐỔI 1: Import 2 icon mặc định khác nhau
-import defaultShippingIcon from '../../../../assets/Client/images/image 12.png'; // Icon xe tải
-import defaultDiscountIcon from '../../../../assets/Client/images/pngtree-voucher-discount-png-image_4613299.png'; // Icon phiếu giảm giá (bạn cần có file này)
+import { couponService } from '../../../../services/client/couponService'; 
+import defaultShippingIcon from '../../../../assets/Client/images/image 12.png'; 
+import defaultDiscountIcon from '../../../../assets/Client/images/pngtree-voucher-discount-png-image_4613299.png'; 
 
 const PromoModal = ({
-  modalTitle = "Hồng Ân Khuyến Mãi",
+  modalTitle = "Có nhiêu tiền đó cũng nhập mã??",
   onClose,
   appliedCode = "", 
   onApply,
@@ -23,10 +21,10 @@ useEffect(() => {
   if (appliedCode && availablePromos.length > 0) {
     const match = availablePromos.find(c => c.code === appliedCode);
     if (match) {
-      setSelectedCode(match.code); // ✅ set lại mã đã áp nếu trùng mã từ ngoài
+      setSelectedCode(match.code); 
     }
   }
-}, [appliedCode, availablePromos]); // ✅ Phải có cả 2 dependency
+}, [appliedCode, availablePromos]); 
 
   useEffect(() => {
     const fetchCoupons = async () => {
@@ -34,21 +32,15 @@ useEffect(() => {
       try {
         const res = await couponService.getAvailable(skuId ? `?skuId=${skuId}` : '');
         const couponsFromApi = res.data?.data || [];
-        
-        // ✅ THAY ĐỔI 2: Logic xử lý icon linh hoạt
         const mapped = couponsFromApi.map((coupon) => {
           let iconSrc = null;
-
-          // Ưu tiên hàng đầu: Nếu có bannerUrl từ API thì dùng luôn
           if (coupon.bannerUrl) {
             iconSrc = coupon.bannerUrl;
           } 
-          // Nếu không có bannerUrl, dùng icon mặc định dựa theo loại coupon
           else {
             if (coupon.discountType === 'shipping') {
               iconSrc = defaultShippingIcon;
             } else { 
-              // Mặc định các loại còn lại (percent, fixed, amount) là mã giảm giá
               iconSrc = defaultDiscountIcon;
             }
           }
@@ -61,11 +53,11 @@ useEffect(() => {
             description: `Cho đơn hàng từ ${coupon.minOrderAmount?.toLocaleString()}đ`,
             expiryDate: coupon.expiryDate ? new Date(coupon.expiryDate).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: '2-digit' }) : null,
             isApplicable: coupon.isApplicable,
-            iconSrc: iconSrc, // Gán nguồn ảnh đã được quyết định
+            iconSrc: iconSrc, 
           };
         });
         setAvailablePromos(mapped);
-        localStorage.setItem("availableCoupons", JSON.stringify(mapped)); // ✅ thêm dòng này
+        localStorage.setItem("availableCoupons", JSON.stringify(mapped)); 
       } catch (err) {
         console.error("Lỗi khi lấy danh sách coupons:", err);
         alert('Không thể tải danh sách khuyến mãi. Vui lòng thử lại.');
@@ -87,9 +79,9 @@ useEffect(() => {
 
   const handleConfirm = () => {
     const codeToApply = inputPromoCode.trim().toUpperCase() || selectedCode;
-    // Nếu không nhập gì và cũng không chọn gì, xem như là bỏ áp mã
+    
     if (!codeToApply) {
-        onApply(''); // Gửi về chuỗi rỗng để component cha xử lý việc bỏ mã
+        onApply(''); 
         onClose();
         return;
     }
@@ -144,7 +136,7 @@ useEffect(() => {
                         className={`relative w-full flex bg-white rounded-md shadow-sm overflow-hidden transition-all duration-200 ${promo.isApplicable ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed'} ${isSelected ? 'border-2 border-blue-500' : 'border-2 border-transparent'}`}
                       >
                         <div className="w-24 flex-shrink-0 relative bg-white flex items-center justify-center p-2">
-                           {/* ✅ THAY ĐỔI 3: Dùng `promo.iconSrc` */}
+                          
                           <img 
                             src={promo.iconSrc} 
                             alt="promo icon" 
@@ -190,7 +182,7 @@ useEffect(() => {
           }
         </div>
 
-        {/* Footer */}
+       
         <div className="p-4 bg-white border-t flex-shrink-0">
           <button
             onClick={handleConfirm}

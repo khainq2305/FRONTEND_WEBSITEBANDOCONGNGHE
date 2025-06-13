@@ -1,7 +1,5 @@
-// src/layout/Client/FeatureBar.jsx
-
 import React from 'react';
-import { ThumbsUp, RefreshCw, CreditCard, Truck, Phone } from 'lucide-react'; 
+import { ThumbsUp, RefreshCw, CreditCard, Truck, Phone } from 'lucide-react';
 
 // THAY ĐỔI: Nhận prop 'isSticky' từ Header
 const FeatureBar = ({ isSticky }) => {
@@ -14,28 +12,34 @@ const FeatureBar = ({ isSticky }) => {
     ];
 
     return (
-        // THAY ĐỔI: Thêm logic để quyết định có class 'my-4' hay không
-        <div className={`max-w-[1200px] mx-auto bg-white py-3 shadow-md rounded-lg flex flex-wrap justify-around items-center gap-y-2 
-            ${!isSticky ? 'my-4' : ''} 
-        `}>
-            
-            {features.map((feature, index) => (
-                <div key={index} className="group flex items-center gap-x-2.5 p-1 cursor-pointer">
-                    <span className={`${feature.isHotline ? 'text-orange-500' : 'text-gray-700'}`}>
-                       {feature.icon}
-                    </span>
-                    <span className="text-sm font-semibold text-gray-800 text-center">
-                        {feature.text}
-                        {feature.isHotline && (
-                            <span className="text-orange-500 font-bold">
-                                {feature.phone}
-                            </span>
-                        )}
-                    </span>
-                </div>
-            ))}
-        </div>
-    );
+    <div
+        className={`
+            max-w-[1200px] mx-auto bg-white py-3 px-2 shadow-md rounded-lg
+            flex flex-nowrap overflow-x-auto
+            justify-start lg:justify-around items-center gap-x-4
+            ${!isSticky ? 'my-4' : ''}
+            hidden lg:flex
+        `}
+    >
+        {features.map((feature, index) => (
+            <div
+                key={index}
+                className="flex items-center gap-x-2.5 whitespace-nowrap px-2 py-1 min-w-fit"
+            >
+                <span className={`${feature.isHotline ? 'text-orange-500' : 'text-gray-700'}`}>
+                    {feature.icon}
+                </span>
+                <span className="text-sm font-semibold text-gray-800">
+                    {feature.text}
+                    {feature.isHotline && (
+                        <span className="text-orange-500 font-bold">{feature.phone}</span>
+                    )}
+                </span>
+            </div>
+        ))}
+    </div>
+);
+
 };
 
 export default FeatureBar;
