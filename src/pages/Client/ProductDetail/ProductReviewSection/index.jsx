@@ -20,8 +20,6 @@ export default function ProductReviewSection({ productName, skuId }) {
     purchased: false,
     star: null
   });
-
-  // Phần logic giữ nguyên, không có gì thay đổi
   const filteredReviews = reviews.filter((review) => {
     if (filters.hasMedia && (!review.media || review.media.length === 0)) return false;
     if (filters.purchased && !review.orderItemId) return false;
@@ -124,9 +122,9 @@ export default function ProductReviewSection({ productName, skuId }) {
           Đánh giá & Nhận xét <span className="text-primary">{productName}</span>
         </h2>
 
-        {/* === Phần Thống kê & Nút Viết Đánh giá === */}
+        
         <div className="flex flex-col md:flex-row gap-6 md:gap-8 mb-6">
-          {/* Cột điểm trung bình */}
+      
           <div className="flex-shrink-0 flex flex-col items-center md:items-start">
             {totalReviewsCount > 0 ? (
               <>
@@ -146,7 +144,7 @@ export default function ProductReviewSection({ productName, skuId }) {
             )}
           </div>
 
-          {/* Cột biểu đồ sao và nút */}
+        
           <div className="flex-grow flex flex-col-reverse md:flex-row justify-between w-full">
             <div className="w-full md:w-3/5 space-y-1 mt-4 md:mt-0">
               {[5, 4, 3, 2, 1].map((star) => {
@@ -178,7 +176,7 @@ export default function ProductReviewSection({ productName, skuId }) {
           </div>
         </div>
 
-        {/* === Phần Bộ lọc === */}
+
         <div className="mt-8 pt-6 border-t border-gray-200">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm font-medium text-gray-700 mr-2">Lọc theo:</span>
@@ -208,7 +206,7 @@ export default function ProductReviewSection({ productName, skuId }) {
           </div>
         </div>
 
-        {/* === Danh sách đánh giá === */}
+    
         <div id="review-list-section" className="mt-6">
           <div className="space-y-6">
             {visibleReviews.length > 0 ? (

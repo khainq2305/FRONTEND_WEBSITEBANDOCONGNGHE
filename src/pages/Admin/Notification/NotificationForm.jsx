@@ -42,12 +42,12 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
         newErrors.link = 'Link điều hướng không được để trống';
       } else if (
         !/^https:\/\/.+/.test(form.link.trim()) && // Không phải link ngoài
-        !/^\/[a-zA-Z0-9]/.test(form.link.trim()) // không phải link nội bộ
+        !/^\/[a-zA-Z0-9]/.test(form.link.trim()) // không phải link nội bộ.
       ) {
         newErrors.link = 'Link không hợp lệ! Phải bắt đầu bằng https:// hoặc /';
       }
     }
-
+//
     if (!form.startAt) newErrors.startAt = 'Vui lòng chọn ngày bắt đầu hiển thị';
 
     if (!editing && !form.imageFile && !preview) newErrors.image = 'Vui lòng chọn ảnh';
@@ -91,6 +91,7 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
       const newForm = {
         ...editing,
         startAt: formattedStartAt,
+        slug: editing.slug || '',
         userIds: [],
         imageFile: null
       };

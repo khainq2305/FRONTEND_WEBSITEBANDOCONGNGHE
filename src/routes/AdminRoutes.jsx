@@ -55,6 +55,8 @@ const CategoryAddd = Loadable(lazy(() => import('pages/Admin/CaterogyProduct/Cat
 const CategoryEdit = Loadable(lazy(() => import('pages/Admin/CaterogyProduct/CategoryEdit/CategoryEdit')));
 const NotificationPage = Loadable(lazy(() => import('pages/Admin/Notification')));
 const UserDetailPage = Loadable(lazy(() => import('pages/Admin/User/UserDetailDialog')));
+const NotificationCreatePage = Loadable(lazy(() => import('pages/Admin/Notification/NotificationCreatePage')));
+const NotificationEditPage = Loadable(lazy(() => import('pages/Admin/Notification/NotificationEditPage')));
 
 import { UserProvider } from '@/contexts/UserContext';
 
@@ -101,7 +103,11 @@ const AdminRoutes = {
 
     {
       path: 'notifications',
-      element: <NotificationPage />
+      children: [
+        { index: true, element: <NotificationPage /> },
+        { path: 'create', element: <NotificationCreatePage /> },
+        { path: 'edit/:slug', element: <NotificationEditPage /> }//
+      ]
     },
     {
       path: 'flash-sale',

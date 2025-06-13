@@ -1,5 +1,5 @@
 import { API_ENDPOINT } from '../../config/apiEndpoints';
-import { get, post, put } from '@/services/common/crud'; // Sửa lại chỗ này
+import { get, post, put } from '@/services/common/crud';
 
 const base = API_ENDPOINT.admin.newsCategory.base;
 
@@ -9,7 +9,7 @@ export const newsCategoryService = {
 
   getAll: (params) => {
   console.log('danh mục url đây:', `${base}${API_ENDPOINT.admin.newsCategory.getAll}`, params );
-  return get(`${base}${API_ENDPOINT.admin.newsCategory.getAll}`, params ); // ✅ Gửi query đúng chuẩn
+  return get(`${base}${API_ENDPOINT.admin.newsCategory.getAll}`, params ); 
 },
 
   create: (data) => {

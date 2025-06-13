@@ -81,7 +81,7 @@ const ProductCategorySection = () => {
                 {/* ======================================================= */}
                 {/* THAY ĐỔI Ở ĐÂY: Thêm bg-primary, rounded-full và padding */}
                 {/* ======================================================= */}
-                <div className="relative w-16 h-20 md:w-20 md:h-20 mb-2 rounded-xl bg-primary p-2">
+                <div className="relative w-16 h-20 md:w-20 md:h-20 mb-2 rounded-xl p-2">
                     {item.label && (
                         <span className={`
                             absolute -top-1 -right-1 z-10 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-md

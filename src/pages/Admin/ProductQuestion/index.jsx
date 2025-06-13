@@ -1,239 +1,292 @@
 import { useState, useEffect } from 'react';
 import {
-  Box, Typography, Paper, Table, TableHead, TableRow, TableCell,
-  TableBody, TableContainer, TextField,
-  IconButton, Chip, InputAdornment
+  Box,
+  Button,
+  Chip,
+  IconButton,
+  InputAdornment,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+  Menu,
+  MenuItem,
+  Avatar,
+  Tooltip,
 } from '@mui/material';
-import {
-  ExpandMore, Reply, Search,
-  Visibility, VisibilityOff
-} from '@mui/icons-material';
-import Toastify from 'components/common/Toastify';
-import Pagination from 'components/common/Pagination';
+import { Search, MoreVert } from '@mui/icons-material';
+import { productQuestionService } from '@/services/admin/productQuestionService';
+import Pagination from '@/components/common/Pagination';
+import Toastify from '@/components/common/Toastify';
+import LoaderAdmin from '@/components/common/Loader';
 import ReplyDialog from './ReplyDialog';
 import QuestionDetailDialog from './QuestionDetailDialog';
+import { useNavigate } from 'react-router-dom';
 
+/** Tabs trạng thái */
 const statusTabs = [
   { value: 'all', label: 'Tất cả' },
   { value: 'answered', label: 'Đã trả lời' },
   { value: 'unanswered', label: 'Chưa trả lời' },
-  { value: 'hidden', label: 'Đã ẩn' }
-];
-
-const mockQuestions = [
-  {
-    question_id: 1,
-    product_id: 101,
-    product_name: 'Smartphone X200',
-    fullname: 'Nguyễn Văn A',
-    email: 'nguyenvana@example.com',
-    content: 'Sản phẩm này còn hàng không?',
-    is_hidden: false,
-    created_at: '2024-05-01T10:00:00Z',
-    replies: []
-  },
-  {
-    question_id: 2,
-    product_id: 102,
-    product_name: 'Laptop Pro 15',
-    fullname: 'Trần Thị B',
-    email: 'tranthib@example.com',
-    content: 'Phí vận chuyển là bao nhiêu?',
-    is_hidden: false,
-    created_at: '2024-05-02T09:15:00Z',
-    replies: [
-      {
-        question_id: 3,
-        fullname: 'Admin',
-        content: 'Phí vận chuyển là 30.000đ bạn nhé.',
-        created_at: '2024-05-02T11:00:00Z',
-        is_admin_reply: true
-      }
-    ]
-  }
+  { value: 'hidden', label: 'Đã ẩn' },      // mới
 ];
 
 const ProductQuestions = () => {
   const [questions, setQuestions] = useState([]);
-  const [filteredQuestions, setFilteredQuestions] = useState([]);
-  const [selected, setSelected] = useState(null);
-  const [viewDetail, setViewDetail] = useState(null);
-  const [reply, setReply] = useState('');
-  const [page, setPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState('all');
-  const itemsPerPage = 5;
+  const [searchTerm, setSearchTerm] = useState('');
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [total, setTotal] = useState(0);
 
-  useEffect(() => {
-    setQuestions(mockQuestions);
-  }, []);
+  const [selected, setSelected] = useState(null);  // mở ReplyDialog
+  const [viewDetail, setViewDetail] = useState(null);  // mở QuestionDetailDialog
+  const [replyText, setReplyText] = useState('');
 
-  useEffect(() => {
-    let result = [...questions];
-    if (searchTerm) {
-      result = result.filter(q =>
-        q.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        q.product_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        q.content.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    if (status === 'answered') {
-      result = result.filter(q => q.replies.length > 0);
-    } else if (status === 'unanswered') {
-      result = result.filter(q => q.replies.length === 0);
-    } else if (status === 'hidden') {
-      result = result.filter(q => q.is_hidden);
-    }
-    setFilteredQuestions(result);
-    setPage(1);
-  }, [questions, searchTerm, status]);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [menuQuestion, setMenuQuestion] = useState(null);
+  const openMenu = Boolean(anchorEl);
 
-  const paginated = filteredQuestions.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+  const navigate = useNavigate();
 
-  const toggleVisibility = (id) => {
-    const updated = questions.map(q =>
-      q.question_id === id ? { ...q, is_hidden: !q.is_hidden } : q
-    );
-    setQuestions(updated);
-    Toastify.success('Đã cập nhật trạng thái câu hỏi');
-  };
-
-  const handleReply = () => {
-    if (!reply.trim()) return Toastify.error('Vui lòng nhập nội dung phản hồi');
-    const updated = questions.map(q => {
-      if (q.question_id === selected.question_id) {
-        const newReply = {
-          question_id: Date.now(),
-          fullname: 'Admin',
-          content: reply,
-          created_at: new Date().toISOString(),
-          is_admin_reply: true
-        };
-        return { ...q, replies: [...q.replies, newReply] };
-      }
-      return q;
-    });
-    setQuestions(updated);
-    setSelected(null);
-    setReply('');
-    Toastify.success('Đã gửi phản hồi');
-  };
-
-  const formatDateTime = (str) => new Date(str).toLocaleString('vi-VN');
-
+  /** Hiển thị Chip trạng thái */
   const getStatusChip = (q) => {
-    if (q.is_hidden) return <Chip label="Đã ẩn" size="small" color="error" />;
-    if (q.replies.length > 0) return <Chip label="Đã trả lời" size="small" color="success" />;
-    return <Chip label="Chưa trả lời" size="small" color="warning" />;
+    if (q.isHidden) {
+      return <Chip label="Đã ẩn" size="small" color="error" />;
+    }
+    const answered = (q.answers || []).length > 0;
+    return answered
+      ? <Chip label="Đã trả lời" size="small" color="success" />
+      : <Chip label="Chưa trả lời" size="small" color="warning" />;
   };
 
+  /** Lấy danh sách câu hỏi */
+  const fetchQuestions = async () => {
+    setLoading(true);
+    try {
+      const res = await productQuestionService.getAll();
+      const all = Array.isArray(res?.data) ? res.data : [];
+
+      // Chỉ giữ các câu trả lời top-level
+      const processed = all.map((q) => ({
+        ...q,
+        answers: (q.answers || []).filter((a) => a.parentId === null),
+      }));
+
+      // Lọc theo tab
+      let filtered = processed;
+      if (status === 'answered') {
+        filtered = processed.filter((q) => q.answers.length > 0 && !q.isHidden);
+      } else if (status === 'unanswered') {
+        filtered = processed.filter((q) => q.answers.length === 0 && !q.isHidden);
+      } else if (status === 'hidden') {
+        filtered = processed.filter((q) => q.isHidden);
+      }
+
+      // Lọc theo ô tìm kiếm
+      if (searchTerm.trim()) {
+        const key = searchTerm.toLowerCase();
+        filtered = filtered.filter(
+          (q) =>
+            q.content.toLowerCase().includes(key) ||
+            q.user?.fullName?.toLowerCase().includes(key) ||
+            q.product?.name?.toLowerCase().includes(key),
+        );
+      }
+
+      setTotal(filtered.length);
+      const start = (page - 1) * limit;
+      setQuestions(filtered.slice(start, start + limit));
+    } catch {
+      setQuestions([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* gọi lại khi thay đổi page/limit/status/search */
+  useEffect(() => {
+    fetchQuestions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, limit, status, searchTerm]);
+
+  /* menu hành động */
+  const handleMenuOpen = (e, question) => {
+    setAnchorEl(e.currentTarget);
+    setMenuQuestion(question);
+  };
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setMenuQuestion(null);
+  };
+
+  /* ------------------ render ------------------ */
   return (
     <Box sx={{ p: 2 }}>
-    
+      
+      {loading && <LoaderAdmin fullscreen />}
 
-      <Box sx={{ display: 'flex', gap: 4, borderBottom: '1px solid #eee', mb: 2 }}>
-        {statusTabs.map((tab) => (
-          <Box
-            key={tab.value}
-            onClick={() => setStatus(tab.value)}
-            sx={{
-              pb: 1, px: 1, cursor: 'pointer',
-              borderBottom: status === tab.value ? '2px solid red' : '2px solid transparent',
-              color: status === tab.value ? 'red' : 'black',
-              fontWeight: status === tab.value ? 600 : 400,
-              fontSize: 15
-            }}
-          >
-            {tab.label}
-          </Box>
-        ))}
-      </Box>
-
-      {/* Tìm kiếm và tổng câu hỏi ngang hàng */}
+      {/* Tiêu đề */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <TextField
-          size="small"
-          placeholder="Tìm kiếm sản phẩm, người hỏi..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <Search color="action" />
-              </InputAdornment>
-            )
-          }}
-          sx={{ width: 360 }}
-        />
-        <Typography variant="subtitle1" fontWeight={500}>
-          Tổng cộng: {filteredQuestions.length} câu hỏi
+        <Typography variant="h6" fontWeight={600}>
+          Hỏi &amp; Đáp Sản Phẩm
         </Typography>
       </Box>
 
+      {/* Tabs + search */}
+      <Box sx={{ bgcolor: 'white', borderRadius: 2, p: 2, mb: 2 }}>
+        <Box display="flex" gap={2} mb={2}>
+          {statusTabs.map((tab) => (
+            <Button
+              key={tab.value}
+              variant={status === tab.value ? 'contained' : 'text'}
+              onClick={() => {
+                setStatus(tab.value);
+                setPage(1);
+              }}
+              sx={{ borderRadius: 2, fontWeight: status === tab.value ? 600 : 400 }}
+            >
+              {tab.label}
+            </Button>
+          ))}
+        </Box>
+
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <TextField
+            size="small"
+            placeholder="Tìm kiếm…"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            sx={{ width: 300 }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Box>
+      </Box>
+
+      {/* Bảng danh sách */}
       <TableContainer component={Paper}>
         <Table>
           <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
             <TableRow>
-              <TableCell>STT</TableCell>
-              <TableCell>Sản phẩm</TableCell>
+              <TableCell>#</TableCell>
               <TableCell>Người hỏi</TableCell>
               <TableCell>Nội dung</TableCell>
-              <TableCell>Ngày hỏi</TableCell>
+              <TableCell>Sản phẩm</TableCell>
               <TableCell>Trạng thái</TableCell>
               <TableCell align="right">Hành động</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {paginated.map((q, idx) => (
-              <TableRow key={q.question_id} hover>
-                <TableCell>{(page - 1) * itemsPerPage + idx + 1}</TableCell>
-                <TableCell><Typography fontWeight={600}>{q.product_name}</Typography></TableCell>
-                <TableCell>
-                  <Typography>{q.fullname}</Typography>
-                  <Typography variant="caption" color="text.secondary">{q.email}</Typography>
-                </TableCell>
-                <TableCell>{q.content}</TableCell>
-                <TableCell>{formatDateTime(q.created_at)}</TableCell>
-                <TableCell>{getStatusChip(q)}</TableCell>
-                <TableCell align="right">
-                  <IconButton onClick={() => toggleVisibility(q.question_id)}>
-                    {q.is_hidden ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                  <IconButton onClick={() => setSelected(q)}><Reply /></IconButton>
-                  <IconButton onClick={() => setViewDetail(q)}><ExpandMore /></IconButton>
+            {questions.length > 0 ? (
+              questions.map((q, idx) => (
+                <TableRow key={q.id} hover>
+                  <TableCell>{(page - 1) * limit + idx + 1}</TableCell>
+
+                  {/* Người hỏi */}
+                  <TableCell>
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <Avatar sx={{ width: 32, height: 32 }}>
+                        {q.user?.fullName?.[0]?.toUpperCase() || '?'}
+                      </Avatar>
+                      <Box>
+                        <Typography fontWeight={600}>{q.user?.fullName || 'Ẩn danh'}</Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {q.user?.email}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </TableCell>
+
+                  {/* Nội dung */}
+                  <TableCell sx={{ maxWidth: 240 }}>
+                    <Tooltip title={q.content} arrow placement="top">
+                      <Typography noWrap>{q.content}</Typography>
+                    </Tooltip>
+                  </TableCell>
+
+                  <TableCell>{q.product?.name}</TableCell>
+                  <TableCell>{getStatusChip(q)}</TableCell>
+
+                  {/* Hành động */}
+                  <TableCell align="right">
+                    <IconButton onClick={(e) => handleMenuOpen(e, q)}>
+                      <MoreVert />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={6} align="center" sx={{ py: 5 }}>
+                  Không có dữ liệu
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </TableContainer>
 
-      <Box mt={3}>
+      {/* Pagination */}
+      {total > limit && (
         <Pagination
           currentPage={page}
-          totalItems={filteredQuestions.length}
-          itemsPerPage={itemsPerPage}
+          totalItems={total}
+          itemsPerPage={limit}
           onPageChange={setPage}
+          onPageSizeChange={(val) => {
+            setPage(1);
+            setLimit(val);
+          }}
         />
-      </Box>
+      )}
 
+      {/* Menu hành động */}
+      <Menu
+        anchorEl={anchorEl}
+        open={openMenu}
+        onClose={handleMenuClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <MenuItem
+          onClick={() => {
+            navigate(`/admin/product-question/${menuQuestion?.id}`);
+            handleMenuClose();
+          }}
+        >
+          Xem chi tiết
+        </MenuItem>
+      </Menu>
+
+      {/* Reply dialog */}
       <ReplyDialog
         open={Boolean(selected)}
         onClose={() => setSelected(null)}
-        onSubmit={handleReply}
+        onSubmit={() => { }}
         question={selected}
-        value={reply}
-        onChange={setReply}
+        value={replyText}
+        onChange={setReplyText}
       />
 
+      {/* Detail dialog */}
       <QuestionDetailDialog
         open={Boolean(viewDetail)}
         onClose={() => setViewDetail(null)}
         question={viewDetail}
-        formatDateTime={formatDateTime}
+        formatDateTime={(t) => new Date(t).toLocaleString('vi-VN')}
       />
-
-    
     </Box>
   );
 };

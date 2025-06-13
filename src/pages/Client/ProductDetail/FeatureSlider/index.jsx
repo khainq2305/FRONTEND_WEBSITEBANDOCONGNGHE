@@ -2,13 +2,9 @@
 import React from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { FreeMode, Navigation } from "swiper/modules";
-
-// Import CSS của Swiper
 import "swiper/css";
 import "swiper/css/free-mode";
 import "swiper/css/navigation";
-
-// Component Icon (giữ nguyên)
 const ChevronLeftIcon = (props) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" {...props}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
@@ -26,7 +22,6 @@ export default function FeatureSlider({ images = [], currentImage, onSelect }) {
     return null;
   }
 
-  // --- CSS classes cho nút điều hướng, đã được cập nhật ---
   const navButtonClasses = `
     absolute top-1/2 -translate-y-1/2 
     w-8 h-8 flex items-center justify-center
@@ -47,7 +42,7 @@ export default function FeatureSlider({ images = [], currentImage, onSelect }) {
           prevEl: '.image-swiper-button-prev',
         }}
         modules={[FreeMode, Navigation]}
-        // Bỏ padding ngang để các nút nằm đè lên ảnh một cách tự nhiên
+       
         className="py-2" 
       >
         {images.map((item, index) => (
@@ -71,11 +66,6 @@ export default function FeatureSlider({ images = [], currentImage, onSelect }) {
           </SwiperSlide>
         ))}
       </Swiper>
-
-      {/* --- CÁC NÚT ĐIỀU HƯỚNG ---
-        * Vị trí đã được đổi thành 'left-2' và 'right-2' để nằm gọn bên trong.
-        * Kích thước icon và nút đã được tinh chỉnh.
-      */}
       <button className={`image-swiper-button-prev ${navButtonClasses} left-2`}>
          <ChevronLeftIcon className="w-4 h-4 text-gray-700" />
       </button>

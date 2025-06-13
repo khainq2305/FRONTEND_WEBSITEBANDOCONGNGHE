@@ -1,171 +1,493 @@
-import React, { useState } from "react";
+"use client"
 
-// Icon Gửi (Send) - bạn có thể thay bằng SVG khác nếu muốn
-const SendIcon = ({ className }) => (
-  <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-    <path d="M3.105 3.105a1.5 1.5 0 011.722-.439l12.643 5.057a1.5 1.5 0 010 2.554L4.827 15.333A1.5 1.5 0 013 13.915V4.5a1.5 1.5 0 01.105-1.395zM4.5 5.32v8.146l9.293-3.718L4.5 5.32zm.163-.333a.75.75 0 00-.668.993l.003.006v8.028a.75.75 0 00.993.668l.006-.003 10.667-4.267a.75.75 0 000-1.273L4.663 4.987z" />
-  </svg>
-);
+import { useState, useEffect, useCallback } from "react"
+import { productQuestionService } from "@/services/client/productQuestionService"
+import { toast } from "react-toastify"
+import { Link } from "react-router-dom"
+import mascot from "@/assets/Client/images/Logo/snapedit_1749613755235.png"
+import { MessageCircle, Send, ChevronDown, ChevronUp, Clock, CornerDownRight } from "lucide-react"
 
-// Icon Đồng hồ (Clock)
-const ClockIcon = ({ className }) => (
-  <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-  </svg>
-);
+const formatTime = (time) => {
+  const t = new Date(time)
+  const diff = (Date.now() - t.getTime()) / 1000
+  if (diff < 60) return "Vừa xong"
+  if (diff < 3600) return `${Math.floor(diff / 60)} phút trước`
+  if (diff < 86400) return `${Math.floor(diff / 3600)} giờ trước`
+  if (diff < 604800) return `${Math.floor(diff / 86400)} ngày trước`
+  return t.toLocaleDateString("vi-VN")
+}
+const Avatar = ({ name, isOfficial }) => (
+  <div
+    className={`w-9 h-9 flex-shrink-0 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-sm ${
+      isOfficial ? "bg-gradient-to-br from-red-500 to-red-600" : "bg-gradient-to-br from-blue-500 to-blue-600"
+    }`}
+  >
+    {name?.[0]?.toUpperCase() || "?"}
+  </div>
+)
+const CommentBubble = ({ profile, content, isOfficial }) => (
+  <div className="flex flex-col min-w-0 max-w-[calc(100%-48px)]">
+    <div className={`rounded-lg p-2.5 text-sm max-w-full mb-0.5 ${isOfficial ? "bg-red-50" : "bg-gray-50"}`}>
+      <span className={`font-medium ${isOfficial ? "text-red-600" : "text-gray-800"}`}>
+        {isOfficial && <span className="inline-block w-3 h-3 bg-red-500 rounded-full mr-1.5"></span>}
+        {profile}
+      </span>
+      <p className="mt-1.5 text-gray-700 whitespace-pre-wrap break-words leading-relaxed">{content}</p>
+    </div>
+  </div>
+)
+const CommentActions = ({
+  commentId,
+  time,
+  onReply,
+  hasChildren,
+  areChildrenExpanded,
+  toggleChildrenExpansion,
+  childrenCount,
+  indent,
+}) => (
+  <>
+    <div className="flex items-center space-x-3 text-xs text-gray-500 mt-1" style={{ marginLeft: `${indent}px` }}>
+      <span className="flex items-center">
+        <Clock className="w-3 h-3 mr-1" />
+        {time}
+      </span>
+      <button onClick={onReply} className="hover:text-blue-600 hover:underline transition-colors flex items-center">
+        <MessageCircle className="w-3 h-3 mr-1" />
+        Trả lời
+      </button>
+    </div>
 
-// Icon Trả lời (Chat Bubble)
-const ReplyIcon = ({ className }) => (
-  <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 011.037-.443 48.282 48.282 0 005.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
-  </svg>
-);
-
-
-export default function ProductQA({ 
-    questions = [], // Nên truyền questions từ props của ProductDetail
-    totalQuestions = 0, // Nên truyền từ props
-    showAll, // Nên truyền từ props
-    setShowAll // Nên truyền từ props
-}) {
-  const [newQuestion, setNewQuestion] = useState("");
-  // const [showAll, setShowAll] = useState(false); // Bỏ state này nếu được truyền từ props
-
-  const visibleQuestions = showAll ? questions : questions.slice(0, 2);
-
-  const handleSendQuestion = () => {
-    if (newQuestion.trim() === "") {
-      alert("Vui lòng nhập câu hỏi của bạn.");
-      return;
-    }
-    // TODO: Xử lý logic gửi câu hỏi (ví dụ: gọi API)
-    console.log("Câu hỏi đã gửi:", newQuestion);
-    alert("Câu hỏi của bạn đã được gửi và sẽ được duyệt sớm!");
-    setNewQuestion(""); // Xóa nội dung textarea sau khi gửi
-  };
-
-  // Placeholder cho avatar người dùng hiện tại, bạn có thể thay bằng avatar thật
-  const currentUserAvatarPlaceholder = "U"; 
+    {hasChildren && (
+      <div className="flex items-center mt-1.5" style={{ marginLeft: `${indent}px` }}>
+        <button
+          onClick={() => toggleChildrenExpansion(commentId)}
+          className="text-red-600 hover:text-red-700 text-sm flex items-center space-x-1.5 transition-colors"
+        >
+          {areChildrenExpanded ? (
+            <>
+              <ChevronUp className="w-4 h-4" />
+              <span>Thu gọn phản hồi</span>
+            </>
+          ) : (
+            <>
+              <ChevronDown className="w-4 h-4" />
+              <span>Xem tất cả {childrenCount} phản hồi</span>
+            </>
+          )}
+        </button>
+      </div>
+    )}
+  </>
+)
+const ReplyInput = ({ input, setInput, onSend, onCancel }) => (
+  <div className="mt-2 mb-3">
+    <div className="relative">
+      <textarea
+        className="w-full border border-gray-300 rounded-lg py-2 px-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm pr-10"
+        rows={1}
+        placeholder="Nhập phản hồi..."
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+      />
+      <button
+        onClick={onSend}
+        className="absolute right-2 top-1/2 -translate-y-1/2 text-blue-600 hover:text-blue-700"
+        title="Gửi"
+      >
+        <Send className="w-5 h-5" />
+      </button>
+    </div>
+    <div className="flex justify-end mt-1.5">
+      <button onClick={onCancel} className="text-xs text-gray-500 hover:text-gray-700">
+        Hủy
+      </button>
+    </div>
+  </div>
+)
+const ReplyList = ({
+  replies = [],
+  questionId,
+  level = 0,
+  replyTo,
+  setReplyTo,
+  input,
+  setInput,
+  sendReply,
+  expandedComments,
+  toggleCommentExpansion,
+}) => {
+  if (!replies.length) return null
 
   return (
-    <div className="bg-white p-4 md:p-6 rounded-lg border border-gray-200 shadow-sm text-sm">
-      <h2 className="text-lg font-semibold text-gray-800 mb-4">Hỏi và đáp</h2>
+    <div className="mt-3">
+      {replies.map((r, index) => {
+        const hasNestedReplies = r.replies && r.replies.length > 0
+        const areNestedRepliesExpanded = expandedComments.includes(r.id)
 
-      {/* Khu vực nhập câu hỏi mới */}
-      <div className="flex items-start gap-3 mb-4 p-3 border border-gray-200 rounded-lg bg-gray-50">
-        <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-semibold text-sm flex-shrink-0">
-          {currentUserAvatarPlaceholder}
-        </div>
-        <div className="flex-1">
-          <textarea
-            className="w-full border border-gray-300 rounded-md p-2.5 text-sm resize-none focus:ring-primary focus:border-primary"
-            rows={3}
-            placeholder="CellphoneS sẽ trả lời trong 1 giờ (sau 22h, phản hồi vào sáng hôm sau). Một số thông tin có thể thay đổi, Quý khách hãy đặt câu hỏi để được cập nhật mới nhất."
-            value={newQuestion}
-            onChange={(e) => setNewQuestion(e.target.value)}
-          />
-          <button 
-            onClick={handleSendQuestion}
-            className="mt-2 bg-primary text-white px-4 py-2 rounded-md font-semibold hover:bg-opacity-80 transition-all text-xs flex items-center gap-1.5"
-            // Nếu có class hover-primary:
-            // className="mt-2 bg-primary text-white px-4 py-2 rounded-md font-semibold hover-primary transition-all text-xs flex items-center gap-1.5"
-          >
-            <SendIcon className="w-4 h-4" />
-            Gửi
-          </button>
-        </div>
-      </div>
-
-      {/* Danh sách hỏi đáp */}
-      {visibleQuestions.length > 0 ? (
-        <div className="space-y-4">
-          {visibleQuestions.map((qna, i) => (
-            <div
-              key={i}
-              className="border-t border-gray-200 pt-4" // Thêm border-t cho mỗi câu hỏi trừ câu đầu
-            >
-              {/* Câu hỏi */}
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                  {qna.user ? qna.user[0].toUpperCase() : "A"}
-                </div>
-                <div className="flex-1">
-                  <div className="flex justify-between items-center mb-0.5">
-                    <p className="font-semibold text-gray-800">{qna.user || "Ẩn danh"}</p>
-                    <div className="flex items-center text-xs text-gray-400">
-                      <ClockIcon className="w-3.5 h-3.5 mr-1" />
-                      <span>{qna.time}</span>
-                    </div>
-                  </div>
-                  <p className="mb-2 text-gray-700 leading-relaxed">{qna.question}</p>
-                  <button className="text-xs text-primary hover:underline flex items-center gap-1">
-                    <ReplyIcon className="w-3.5 h-3.5" />
-                    Trả lời
-                  </button>
-                </div>
+        return (
+          <div key={r.id} className="mb-4 last:mb-0">
+            <div className="flex items-start space-x-2 ml-4">
+              <div className="flex items-center mt-2">
+                <CornerDownRight className="w-4 h-4 text-gray-400" />
               </div>
+              <div className="flex items-start space-x-3 flex-1">
+                <Avatar name={r.user?.fullName} isOfficial={r.isOfficial} />
+                <CommentBubble
+                  profile={r.isOfficial ? "Quản trị viên" : r.user?.fullName || "Khách"}
+                  content={r.content}
+                  isOfficial={r.isOfficial}
+                />
+              </div>
+            </div>
 
-              {/* Trả lời của Admin */}
-              {qna.adminReply && (
-                <div className="mt-3 ml-11 pl-3 border-l-2 border-gray-200"> {/* Căn lề và thêm border trái */}
-                  <div className="flex items-start gap-3">
-                     <div className="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center font-semibold text-xs flex-shrink-0">
-                        QTV
-                     </div>
-                     <div className="flex-1">
-                        <div className="flex justify-between items-center mb-0.5">
-                           <p className="font-semibold text-red-600">Quản Trị Viên</p>
-                           {/* <p className="text-xs text-gray-400">{qna.adminReplyTime || qna.time}</p> */}
-                        </div>
-                        <p className="text-gray-700 leading-relaxed">{qna.adminReply}</p>
-                        <button className="text-xs text-primary hover:underline flex items-center gap-1 mt-1">
-                           <ReplyIcon className="w-3.5 h-3.5" />
-                           Trả lời
-                        </button>
-                     </div>
-                  </div>
+            <CommentActions
+              commentId={r.id}
+              time={formatTime(r.createdAt)}
+              onReply={() => setReplyTo({ qId: questionId, parentId: r.id })}
+              hasChildren={hasNestedReplies}
+              areChildrenExpanded={areNestedRepliesExpanded}
+              toggleChildrenExpansion={toggleCommentExpansion}
+              childrenCount={r.replies?.length || 0}
+              indent={56} 
+            />
+
+            {replyTo?.qId === questionId && replyTo.parentId === r.id && (
+              <div className="ml-14 mt-2">
+                <ReplyInput
+                  input={input}
+                  setInput={setInput}
+                  onSend={() => sendReply(questionId, r.id)}
+                  onCancel={() => setReplyTo(null)}
+                />
+              </div>
+            )}
+
+            {hasNestedReplies && areNestedRepliesExpanded && (
+              <div className="ml-6">
+                <ReplyList
+                  replies={r.replies}
+                  questionId={questionId}
+                  level={level + 1}
+                  replyTo={replyTo}
+                  setReplyTo={setReplyTo}
+                  input={input}
+                  setInput={setInput}
+                  sendReply={sendReply}
+                  expandedComments={expandedComments}
+                  toggleCommentExpansion={toggleCommentExpansion}
+                />
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+export default function ProductQA({
+  questions: initialQuestions = [],
+  showAll,
+  setShowAll,
+  productId,
+  user,
+  onQuestionsUpdate,
+}) {
+  const [questions, setQuestions] = useState(initialQuestions)
+  const [replyTo, setReplyTo] = useState(null)
+  const [input, setInput] = useState("")
+  const [cooldown, setCooldown] = useState(0)
+  const [expandedComments, setExpandedComments] = useState([])
+  useEffect(() => {
+    setQuestions(initialQuestions)
+  }, [initialQuestions])
+
+  useEffect(() => {
+    if (cooldown > 0) {
+      const timer = setTimeout(() => setCooldown((c) => c - 1), 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [cooldown])
+  const addNewQuestion = (newQuestion) => {
+    setQuestions((prev) => [newQuestion, ...prev])
+    if (onQuestionsUpdate) {
+      onQuestionsUpdate([newQuestion, ...questions])
+    }
+  }
+  const addReplyToQuestion = (questionId, newReply, parentId = null) => {
+    setQuestions((prev) =>
+      prev.map((q) => {
+        if (q.id === questionId) {
+          if (parentId === null) {
+        
+            return {
+              ...q,
+              answers: [...(q.answers || []), newReply],
+            }
+          } else {
+           
+            const updateNestedReplies = (replies) => {
+              return replies.map((reply) => {
+                if (reply.id === parentId) {
+                  return {
+                    ...reply,
+                    replies: [...(reply.replies || []), newReply],
+                  }
+                } else if (reply.replies && reply.replies.length > 0) {
+                  return {
+                    ...reply,
+                    replies: updateNestedReplies(reply.replies),
+                  }
+                }
+                return reply
+              })
+            }
+
+            return {
+              ...q,
+              answers: updateNestedReplies(q.answers || []),
+            }
+          }
+        }
+        return q
+      }),
+    )
+    if (onQuestionsUpdate) {
+      onQuestionsUpdate(questions)
+    }
+  }
+
+  const sendQuestion = useCallback(async () => {
+    if (!user) {
+      toast.warning("Bạn cần đăng nhập để gửi câu hỏi.")
+      return
+    }
+    if (!input.trim()) {
+      toast.warning("Vui lòng nhập câu hỏi.")
+      return
+    }
+    if (cooldown) {
+      toast.info(`Vui lòng chờ ${cooldown}s.`)
+      return
+    }
+
+    try {
+      const res = await productQuestionService.create({ productId, content: input.trim() })
+      toast.success(res.data.message || "Đã gửi câu hỏi!")
+      const newQuestion = {
+        id: res.data.question?.id || Date.now(), 
+        content: input.trim(),
+        user: user,
+        createdAt: new Date().toISOString(),
+        answers: [],
+      }
+
+      addNewQuestion(newQuestion)
+      setInput("")
+      setCooldown(30)
+
+
+    } catch (error) {
+      toast.error("Gửi thất bại.")
+      console.error("Error sending question:", error)
+    }
+  }, [input, cooldown, productId, user, questions, onQuestionsUpdate])
+
+  const sendReply = useCallback(
+    async (qId, parentId) => {
+      if (!user) {
+        toast.warning("Bạn cần đăng nhập để phản hồi.")
+        return
+      }
+      if (!input.trim()) {
+        toast.warning("Vui lòng nhập nội dung.")
+        return
+      }
+
+      try {
+        const res = await productQuestionService.reply({ questionId: qId, content: input.trim(), parentId })
+        toast.success(res.data.message || "Đã phản hồi!")
+
+    
+        const newReply = {
+          id: res.data.reply?.id || Date.now(), 
+          content: input.trim(),
+          user: user,
+          createdAt: new Date().toISOString(),
+          isOfficial: false,
+          replies: [],
+        }
+
+        addReplyToQuestion(qId, newReply, parentId)
+        setInput("")
+        setReplyTo(null)
+        setCooldown(30)
+
+        
+        if (!expandedComments.includes(qId)) {
+          setExpandedComments((prev) => [...prev, qId])
+        }
+
+        
+      } catch (error) {
+        toast.error("Phản hồi thất bại.")
+        console.error("Error sending reply:", error)
+      }
+    },
+    [input, user, expandedComments, onQuestionsUpdate],
+  )
+
+  const toggleCommentExpansion = useCallback((commentId) => {
+    setExpandedComments((prev) =>
+      prev.includes(commentId) ? prev.filter((id) => id !== commentId) : [...prev, commentId],
+    )
+  }, [])
+
+  const sorted = [...questions].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  const visible = showAll ? sorted : sorted.slice(0, 2)
+
+  return (
+    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+      <h3 className="text-xl font-bold mb-5 text-gray-800 flex items-center">
+        <MessageCircle className="w-5 h-5 mr-2 text-red-500" />
+        Hỏi và đáp
+      </h3>
+      {user ? (
+        <div className="flex flex-col md:flex-row items-start space-y-4 md:space-y-0 md:space-x-4 mb-8 p-5 bg-gradient-to-r from-blue-50 to-gray-50 rounded-xl border border-gray-200">
+          <div className="flex-shrink-0">
+            <img
+              src={mascot || "/placeholder.svg"}
+              alt="Mascot"
+              className="w-28 h-28 object-contain mx-auto md:mx-0 drop-shadow-md"
+            />
+          </div>
+          <div className="flex-1 w-full">
+            <h4 className="text-lg font-semibold text-gray-800 mb-2 text-center md:text-left">
+              Hãy đặt câu hỏi cho chúng tôi
+            </h4>
+            <p className="text-sm text-gray-600 mb-4 text-center md:text-left leading-relaxed">
+              CellphoneS sẽ phản hồi trong vòng 1 giờ. Nếu Quý khách gửi câu hỏi sau 22h, chúng tôi sẽ trả lời vào sáng
+              hôm sau. Thông tin có thể thay đổi theo thời gian, vui lòng đặt câu hỏi để nhận được cập nhật mới nhất!
+            </p>
+            <div className="relative">
+              <textarea
+                className="w-full border border-gray-300 rounded-lg py-3 px-4 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
+                rows={2}
+                placeholder="Viết câu hỏi của bạn tại đây..."
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                disabled={cooldown > 0}
+              />
+              <div className="flex justify-end mt-3">
+                <button
+                  onClick={sendQuestion}
+                  disabled={cooldown > 0}
+                  className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-6 py-2.5 rounded-lg disabled:opacity-50 text-base font-medium flex items-center justify-center space-x-2 transition-all duration-200 shadow-sm hover:shadow"
+                >
+                  <span>Gửi câu hỏi</span>
+                  <Send className="h-4 w-4 ml-1" />
+                </button>
+              </div>
+              {cooldown > 0 && (
+                <div className="flex items-center justify-end mt-2 text-xs text-gray-500">
+                  <Clock className="w-3 h-3 mr-1" />
+                  <span>Vui lòng chờ {cooldown}s</span>
                 </div>
               )}
             </div>
-          ))}
-
-          {/* Nút Xem thêm / Thu gọn */}
-          {questions.length > (visibleQuestions.length > 0 ? visibleQuestions.length : 2) && ( // Điều chỉnh điều kiện hiển thị
-            <div className="flex justify-center mt-6 pt-4 border-t border-gray-200">
-              <button
-                onClick={() => setShowAll(!showAll)}
-                className="flex items-center justify-center gap-1.5 text-xs text-gray-700 bg-gray-100 
-                           border border-gray-200 rounded-full px-5 py-2.5 shadow-sm 
-                           transition-colors duration-200 ease-in-out 
-                           hover:text-primary hover:border-primary hover:bg-blue-50"
-              >
-                <span>
-                  {showAll
-                    ? "Thu gọn câu hỏi"
-                    : `Xem thêm ${questions.length - visibleQuestions.length} câu hỏi`}
-                </span>
-                <svg
-                  className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                    showAll ? "rotate-180" : ""
-                  }`}
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </button>
-            </div>
-          )}
+          </div>
         </div>
       ) : (
-        <p className="text-gray-500 text-center py-4">Chưa có câu hỏi nào cho sản phẩm này.</p>
+        <div className="text-center p-6 bg-gray-50 border border-gray-200 rounded-xl mb-8">
+          <p className="text-gray-600 mb-3">Vui lòng đăng nhập để gửi câu hỏi.</p>
+          <Link
+            to="/login"
+            className="inline-block bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow"
+          >
+            Đăng nhập
+          </Link>
+        </div>
+      )}
+
+      <div className="space-y-4">
+        {visible.length > 0 ? (
+          visible.map((q) => {
+            const hasAnswers = q.answers && q.answers.length > 0
+            const areAnswersExpanded = expandedComments.includes(q.id)
+
+            return (
+              <div key={q.id} className="border-b border-gray-100 pb-3 last:border-0">
+                <div className="flex items-start space-x-3">
+                  <Avatar name={q.user?.fullName} isOfficial={false} />
+                  <CommentBubble profile={q.user?.fullName || "Ẩn danh"} content={q.content} isOfficial={false} />
+                </div>
+
+                <CommentActions
+                  commentId={q.id}
+                  time={formatTime(q.createdAt)}
+                  onReply={() => setReplyTo({ qId: q.id, parentId: null })}
+                  hasChildren={hasAnswers}
+                  areChildrenExpanded={areAnswersExpanded}
+                  toggleChildrenExpansion={toggleCommentExpansion}
+                  childrenCount={q.answers?.length || 0}
+                  indent={48}
+                />
+
+                {replyTo?.qId === q.id && replyTo.parentId === null && (
+                  <div className="ml-12">
+                    <ReplyInput
+                      input={input}
+                      setInput={setInput}
+                      onSend={() => sendReply(q.id, null)}
+                      onCancel={() => setReplyTo(null)}
+                    />
+                  </div>
+                )}
+
+                {hasAnswers && areAnswersExpanded && (
+                  <ReplyList
+                    replies={q.answers}
+                    questionId={q.id}
+                    level={1}
+                    replyTo={replyTo}
+                    setReplyTo={setReplyTo}
+                    input={input}
+                    setInput={setInput}
+                    sendReply={sendReply}
+                    expandedComments={expandedComments}
+                    toggleCommentExpansion={toggleCommentExpansion}
+                  />
+                )}
+              </div>
+            )
+          })
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            <MessageCircle className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+            <p>Chưa có câu hỏi nào. Hãy là người đầu tiên đặt câu hỏi!</p>
+          </div>
+        )}
+      </div>
+      {questions.length > 2 && (
+        <div className="text-center mt-6">
+          <button
+            onClick={() => setShowAll((s) => !s)}
+            className="inline-flex items-center px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors duration-200"
+          >
+            {showAll ? (
+              <>
+                <ChevronUp className="w-4 h-4 mr-1.5" />
+                Thu gọn
+              </>
+            ) : (
+              <>
+                <ChevronDown className="w-4 h-4 mr-1.5" />
+                Xem thêm {questions.length - visible.length} câu hỏi
+              </>
+            )}
+          </button>
+        </div>
       )}
     </div>
-  );
+  )
 }

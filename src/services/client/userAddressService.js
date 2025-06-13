@@ -7,7 +7,6 @@ const base = API_ENDPOINT.client.userAddress.base;
 export const userAddressService = {
   getList: () => {
     const url = `${base}${API_ENDPOINT.client.userAddress.list}`;
-    console.log("📦 Gọi getList địa chỉ với URL:", url);
     return get(url);
   },
   setDefault: (id) => put(`${base}/set-default/${id}`),

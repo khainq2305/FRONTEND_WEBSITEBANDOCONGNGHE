@@ -1,24 +1,9 @@
-import {
-  Table,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell,
-  TableContainer,
-  Paper,
-  Chip,
-  IconButton
-} from '@mui/material';
+import { Table, TableHead, TableBody, TableRow, TableCell, TableContainer, Paper, Chip, IconButton } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MoreActionsMenu from '../../../components/common/MoreActionsMenu';
 import { DndContext, closestCenter } from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy
-} from '@dnd-kit/sortable';
+import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import ImportExportIcon from '@mui/icons-material/ImportExport';
 import { toast } from 'react-toastify';
@@ -28,14 +13,12 @@ import { confirmDelete } from '../../../components/common/ConfirmDeleteDialog';
 import NotificationDetailDialog from './NotificationDetailDialog';
 
 const getStatusChip = (isActive) => (
-  <Chip
-    label={isActive ? 'Hoạt động' : 'Tạm tắt'}
-    color={isActive ? 'success' : 'default'}
-    size="small"
-  />
+  <Chip label={isActive ? 'Hoạt động' : 'Tạm tắt'} color={isActive ? 'success' : 'default'} size="small" />
 );
 
 function RowSortable({ item, index, selectedIds, onSelect, onEdit, onDelete, onView }) {
+  const navigate = useNavigate();
+
   const { setNodeRef, transform, transition, listeners, attributes } = useSortable({
     id: item.id,
     handle: true
@@ -69,10 +52,7 @@ function RowSortable({ item, index, selectedIds, onSelect, onEdit, onDelete, onV
           '—'
         )}
       </TableCell>
-      <TableCell
-        className="max-w-[300px] whitespace-nowrap overflow-hidden text-ellipsis"
-        title={item.title}
-      >
+      <TableCell className="max-w-[300px] whitespace-nowrap overflow-hidden text-ellipsis" title={item.title}>
         {item.title}
       </TableCell>
       <TableCell>{item.type}</TableCell>
@@ -81,7 +61,7 @@ function RowSortable({ item, index, selectedIds, onSelect, onEdit, onDelete, onV
         <div className="flex justify-end items-center gap-2">
           <MoreActionsMenu
             onView={() => onView(item)}
-            onEdit={() => onEdit(item)}
+            onEdit={() => navigate(`/admin/notifications/edit/${item.slug}`)} // đúng
             onDelete={() => onDelete(item)}
           />
         </div>
@@ -89,7 +69,7 @@ function RowSortable({ item, index, selectedIds, onSelect, onEdit, onDelete, onV
     </TableRow>
   );
 }
-
+//
 const NotificationTable = ({
   notifications = [],
   selectedIds = [],
@@ -188,11 +168,7 @@ const NotificationTable = ({
         </DndContext>
       </TableContainer>
 
-      <NotificationDetailDialog
-        open={openDetail}
-        onClose={() => setOpenDetail(false)}
-        data={detailData}
-      />
+      <NotificationDetailDialog open={openDetail} onClose={() => setOpenDetail(false)} data={detailData} />
     </>
   );
 };

@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import FeatureSlider from "../FeatureSlider"; // Đảm bảo đường dẫn này chính xác
+import FeatureSlider from "../FeatureSlider"; 
 
-// Icons (giữ nguyên)
 const WishlistHeartStyledIcon = ({ isFavoritedState, ...props }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
     fill={isFavoritedState ? "currentColor" : "white"}
@@ -59,16 +58,14 @@ export default function ProductImageSection({
 
   const showArrows = Array.isArray(allImages) && allImages.length > 1;
 
-  // --- BẮT ĐẦU SỬA LỖI ---
-  // Thay đổi cách hiển thị: Mặc định hơi mờ (opacity-60), khi hover vào vùng ảnh (`group`) thì hiện rõ (group-hover:opacity-100)
-  const arrowButtonBaseClasses = "absolute top-1/2 transform -translate-y-1/2 p-2.5 rounded-full shadow-lg focus:outline-none z-10 transition-opacity duration-200 ease-in-out opacity-60 group-hover:opacity-100";
   
-  // Nền mặc định hơi trong suốt để giao diện đẹp hơn
+  const arrowButtonBaseClasses = "absolute top-1/2 transform -translate-y-1/2 p-2.5 rounded-full shadow-lg focus:outline-none z-10 transition-opacity duration-200 ease-in-out opacity-60 group-hover:opacity-100";
+
   const arrowButtonDefaultAppearance = "bg-white/70 backdrop-blur-sm text-gray-800";
   
-  // Khi hover trực tiếp vào nút thì nền trắng đục
+  
   const arrowButtonHoverAppearance = "hover:bg-white";
-  // --- KẾT THÚC SỬA LỖI ---
+ 
 
   return (
     <div className={`md:sticky ${stickyTopOffset} md:z-10 min-w-0`}>

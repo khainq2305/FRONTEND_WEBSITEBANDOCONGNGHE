@@ -14,7 +14,7 @@ import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
 
 const InlinedProductCard = ({ id, name, price, oldPrice, discount, image, rating, soldCount, inStock, onAddToFavorites, onCompare, isFavorite }) => {
-    // ... code component này giữ nguyên, không thay đổi
+  
     const renderStars = (rate) => {
       const stars = [];
       const numRating = parseFloat(rate);
@@ -73,7 +73,7 @@ const InlinedProductCard = ({ id, name, price, oldPrice, discount, image, rating
     );
 };
 const CustomSlickArrow = (props) => {
-    // ... code component này giữ nguyên, không thay đổi
+    
     const { type, onClick, className, style } = props;
     return (
       <button
@@ -99,7 +99,7 @@ const RelatedProductsSlider = ({
   const [isLoading, setIsLoading] = useState(true);
   const { isFavorite, toggleFavorite } = useFavorites();
   
-  // ✅ Đặt ngưỡng để quyết định khi nào dùng slider
+
   const SLIDER_THRESHOLD = 5;
 
   useEffect(() => {
@@ -160,9 +160,8 @@ const RelatedProductsSlider = ({
     return null;
   }
   
-  // ✅ PHẦN LOGIC RENDER MỚI
+ 
   const renderContent = () => {
-    // Nếu có ít sản phẩm hơn ngưỡng, hiển thị dạng lưới (grid) bình thường
     if (products.length < SLIDER_THRESHOLD) {
       return (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
@@ -179,8 +178,6 @@ const RelatedProductsSlider = ({
         </div>
       );
     }
-
-    // Nếu có nhiều sản phẩm, mới dùng Slider
     return (
       <Slider {...productSliderSettings} ref={productSliderRef} className="fresh-slick-slider">
         {products.map(product => (

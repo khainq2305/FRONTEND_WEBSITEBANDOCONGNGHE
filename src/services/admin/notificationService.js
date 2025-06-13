@@ -3,9 +3,8 @@ import { get, post, put, del } from '../common/crud';
 import { API_ENDPOINT } from '../../config/apiEndpoints';
 
 const base = API_ENDPOINT.admin.notification.base;
-
+//
 export const notificationService = {
-  //Dùng API từ axios instance
   getUsers: async () => {
     try {
       const res = await API.get('/admin/users');
@@ -22,6 +21,7 @@ export const notificationService = {
   getById: (id) => get(`${base}${API_ENDPOINT.admin.notification.getById.replace(':id', id)}`),
 
   create: (formData) => post(`${base}${API_ENDPOINT.admin.notification.create}`, formData),
+  getBySlug: (slug) => get(`${base}/slug/${slug}`),
 
   update: (id, formData) =>
     API.put(`${base}${API_ENDPOINT.admin.notification.update.replace(':id', id)}`, formData, {

@@ -82,7 +82,7 @@ export const API_ENDPOINT = {
       calculateFee: '/calculate-fee',
       momoPay: '/momo',
       momoCallback: '/momo-callback',
-        vietqrPay: '/generate-vietqr', // ✅ sửa lại đúng route backend
+        vietqrPay: '/generate-vietqr', 
       cancel: (orderId) => `/${orderId}/cancel`,
 
     },
@@ -137,6 +137,12 @@ export const API_ENDPOINT = {
     listByIds: '/list',  
     top: '/top'          
   },
+   productQuestion: {
+      base: `${API_BASE_URL}/product-questions`,
+      create: '/create',
+      reply: '/reply',
+      getByProductId: (productId) => `/product/${productId}`,
+    },
   },
   admin: {
     product: {
@@ -335,6 +341,17 @@ export const API_ENDPOINT = {
       getSummary: '/summary',
       reply: (id) => `/${id}/reply`,
       getAll: ''
-    }
-  }
+    },
+     productQuestion: {
+      base: `${API_BASE_URL}/admin/product-questions`,
+      getAll: '/all',
+      getById: (id) => `/${id}`,
+      reply: (questionId) => `/reply/${questionId}`,
+      toggleVisibility: (answerId) => `/answer/${answerId}/toggle`,
+      toggleQuestionVisibility: (questionId) => `/${questionId}/toggle-visibility`,
+
+    },
+    
+  },
+   
 };
