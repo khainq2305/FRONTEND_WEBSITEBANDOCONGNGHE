@@ -57,6 +57,7 @@ const NotificationPage = Loadable(lazy(() => import('pages/Admin/Notification'))
 const UserDetailPage = Loadable(lazy(() => import('pages/Admin/User/UserDetailDialog')));
 const NotificationCreatePage = Loadable(lazy(() => import('pages/Admin/Notification/NotificationCreatePage')));
 const NotificationEditPage = Loadable(lazy(() => import('pages/Admin/Notification/NotificationEditPage')));
+const QuestionDetailPage = Loadable(lazy(() => import('pages/Admin/ProductQuestion/QuestionDetailPage/index.jsx')));
 
 import { UserProvider } from '@/contexts/UserContext';
 
@@ -253,7 +254,10 @@ const AdminRoutes = {
 
     {
       path: 'product-question',
-      element: <ProductQuestion />
+      children: [
+        { index: true, element: <ProductQuestion /> },
+        { path: ':id', element: <QuestionDetailPage /> }
+      ]
     },
     {
       path: '*',

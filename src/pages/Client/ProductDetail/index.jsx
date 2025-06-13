@@ -328,19 +328,18 @@ export default function ProductDetail() {
         </div>
 
         <div className="px-4 md:px-0 mt-6 space-y-6">
-          
-            <ProductReviewSection skuId={skuId} productName={productName} />
-            <div className="mt-8">
-              <ProductQA
-                questions={questions}
-                totalQuestions={questions.length}
-                showAll={showAll}
-                setShowAll={setShowAll}
-                productId={product?.id}
-                user={user}
-              />
-            </div>
-         
+          <ProductReviewSection skuId={skuId} productName={productName} />
+          <div className="mt-8">
+            <ProductQA
+              questions={questions}
+              totalQuestions={questions.length}
+              showAll={showAll}
+              setShowAll={setShowAll}
+              productId={product?.id}
+              user={user}
+            />
+          </div>
+
           <div />
         </div>
       </div>
