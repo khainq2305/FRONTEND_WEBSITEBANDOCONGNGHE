@@ -47,14 +47,22 @@ export const NewsRedirect = () => {
 
 // Redirect từ /news/:id sang /tin-tuc/:slug
 export const NewsDetailRedirect = () => {
-  const { id } = useParams();
+  const { id, slug } = useParams();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Trong thực tế, bạn có thể cần call API để lấy slug từ id
-    console.warn(`Old news URL accessed: /news/${id}`);
-    navigate('/tin-tuc', { replace: true });
-  }, [id, navigate]);
+    // Nếu URL có slug (từ /tin-noi-bat/:slug), redirect đến /tin-tuc/:slug
+    if (slug) {
+      console.log(`Redirecting from /tin-noi-bat/${slug} to /tin-tuc/${slug}`);
+      navigate(`/tin-tuc/${slug}`, { replace: true });
+    } 
+    // Nếu URL có id (từ /news/:id), cần logic chuyển đổi id -> slug
+    else if (id) {
+      // Tạm thời redirect về trang chủ tin tức, sau này có thể implement logic chuyển đổi id -> slug
+      console.warn(`Old news URL with ID accessed: /news/${id} - redirecting to /tin-tuc`);
+      navigate('/tin-tuc', { replace: true });
+    }
+  }, [id, slug, navigate]);
 
   return null;
 };
