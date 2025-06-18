@@ -11,7 +11,7 @@ const NotificationCreatePage = () => {
   };
 
   return (
-    <div>
+    <div className=''>
       <NotificationForm onSuccess={handleSuccess} onCancel={() => navigate('/admin/notifications')} />
     </div>
   );

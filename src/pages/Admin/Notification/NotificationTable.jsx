@@ -69,7 +69,7 @@ function RowSortable({ item, index, selectedIds, onSelect, onEdit, onDelete, onV
     </TableRow>
   );
 }
-//
+
 const NotificationTable = ({
   notifications = [],
   selectedIds = [],
@@ -158,7 +158,7 @@ const NotificationTable = ({
                 ) : (
                   <TableRow>
                     <TableCell colSpan={7} align="center">
-                      Không có dữ liệu.
+                      Không có dữ liệu
                     </TableCell>
                   </TableRow>
                 )}

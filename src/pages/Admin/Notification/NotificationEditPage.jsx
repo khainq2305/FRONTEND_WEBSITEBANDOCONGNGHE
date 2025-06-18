@@ -28,7 +28,7 @@ const NotificationEditPage = () => {
   if (loading) return <p className="p-6">Đang tải thông tin thông báo...</p>;
 
   return (
-    <div className="">
+    <div>
       <NotificationForm
         editing={editing}
         onSuccess={() => navigate('/admin/notifications')}

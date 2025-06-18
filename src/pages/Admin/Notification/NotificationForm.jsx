@@ -163,7 +163,7 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
       onSuccess();
     } catch (error) {
       const errMsg = error?.response?.data?.message || 'Đã xảy ra lỗi. Vui lòng thử lại.';
-      setErrors({ title: errMsg }); // ✅ gán lỗi vào trường title
+      setErrors({ title: errMsg }); // gán lỗi vào trường title đã tồn tại
     } finally {
       setLoading(false);
     }

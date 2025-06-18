@@ -57,7 +57,7 @@ const NotificationOrderListClient = () => {
           className={`text-sm ${hasUnread ? 'text-black font-medium' : 'text-gray-400'} cursor-pointer focus:outline-none`}
           style={{ background: 'transparent', border: 'none' }}
         >
-          Đánh dấu Đã đọc tất cả
+          Đánh dấu tất cả đã đọc
         </button>
       </div>
 
