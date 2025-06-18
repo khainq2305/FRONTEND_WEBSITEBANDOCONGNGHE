@@ -8,6 +8,7 @@ import AddressPageContent from './RenderDiaChiContent';
 import { authService } from '../../../services/client/authService';
 import FavoriteProductsPage from './FavoriteProductsPage';
 import NotificationListClient from './NotificationListClient';
+import NotificationOrderListClient from './NotificationOrderListClient';
 
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'; 
@@ -117,7 +118,12 @@ const UserProfilePage = () => {
   };
 
   const sidebarNavItems = [
-    { id: 'thong-bao', label: 'Thông Báo', icon: Bell, href: '#thong-bao', notification: true },
+    {
+  id: 'thong-bao', label: 'Thông Báo', icon: Bell, notification: true, subItems: [
+    { id: 'thong-bao-order', label: 'Cập Nhật Đơn Hàng', href: '#thong-bao-order' },
+    { id: 'thong-bao-system', label: 'Khuyến Mãi', href: '#thong-bao-system' },
+  ]
+},
     {
       id: 'tai-khoan', label: 'Tài Khoản Của Tôi', icon: User, subItems: [
         { id: 'ho-so', label: 'Hồ Sơ', href: '#ho-so' },
@@ -243,12 +249,20 @@ const UserProfilePage = () => {
             {activeTab === 'dia-chi' && <AddressPageContent />}
             {activeTab === 'doi-mat-khau' && <div className="bg-white dark:bg-gray-800 p-6 shadow-md rounded-md border border-gray-200 dark:border-gray-700"><h2 className="text-xl font-semibold dark:text-gray-100">Đổi Mật Khẩu</h2><p className="text-sm dark:text-gray-300">Nội dung trang Đổi Mật Khẩu...</p></div>}
 
-{activeTab === 'thong-bao' && (
+{activeTab === 'thong-bao-system' && (
   <div className="bg-white dark:bg-gray-800 p-6 shadow-md rounded-md border border-gray-200 dark:border-gray-700">
-    <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">Thông Báo</h2>
+    <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">Khuyến Mãi</h2>
     <NotificationListClient />
   </div>
 )}
+
+{activeTab === 'thong-bao-order' && (
+  <div className="bg-white dark:bg-gray-800 p-6 shadow-md rounded-md border border-gray-200 dark:border-gray-700">
+    <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">Cập Nhật Đơn Hàng</h2>
+    <NotificationOrderListClient />
+  </div>
+)}
+
             {activeTab === 'don-mua' && <RenderDonMuaContentTuyChinh />}
             {activeTab === 'kho-voucher' && <div className="bg-white dark:bg-gray-800 p-6 shadow-md rounded-md border border-gray-200 dark:border-gray-700"><h2 className="text-xl font-semibold dark:text-gray-100">Kho Voucher</h2><p className="text-sm dark:text-gray-300">Nội dung trang Kho Voucher...</p></div>}
             {activeTab === 'san-pham-yeu-thich' && <FavoriteProductsPage />}

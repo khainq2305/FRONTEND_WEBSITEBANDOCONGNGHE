@@ -1,11 +1,11 @@
-// src/pages/Client/NotificationListClient.jsx
+// src/pages/Client/NotificationOrderListClient.jsx
 import React, { useEffect, useState } from 'react';
 import { notificationService } from '@/services/client/notificationService';
 import dayjs from 'dayjs';
 import 'dayjs/locale/vi';
 dayjs.locale('vi');
 
-const NotificationListClient = () => {
+const NotificationOrderListClient = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const hasUnread = notifications.some((n) => !n.isRead);
@@ -13,7 +13,7 @@ const NotificationListClient = () => {
   const fetchNotifs = async () => {
     try {
       const res = await notificationService.getForUser();
-      const filtered = res.data.filter((n) => n.type === 'system');
+      const filtered = res.data.filter((n) => n.type === 'order');
       setNotifications(filtered);
     } catch (err) {
       console.error('Lỗi lấy thông báo:', err);
@@ -88,4 +88,4 @@ const NotificationListClient = () => {
   );
 };
 
-export default NotificationListClient;
+export default NotificationOrderListClient;

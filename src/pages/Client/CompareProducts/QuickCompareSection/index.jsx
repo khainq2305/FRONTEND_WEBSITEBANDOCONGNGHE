@@ -31,9 +31,9 @@ const QuickCompareSection = ({ products, sidebarWidthClass, productColumnMinWidt
       {/* Hàng dữ liệu ví dụ: "So sánh nhanh" */}
       <div className="flex border-t border-gray-300"> {/* Đường kẻ ngang trên hàng dữ liệu này */}
         {/* Ô Nhãn (Cột Sidebar) */}
-        <div className={`${sidebarWidthClass} flex-shrink-0 ${CELL_PADDING} text-left font-normal whitespace-nowrap border-r border-gray-300 bg-white flex items-center`}>
-            So sánh nhanh
-        </div>
+        {/* <div className={`${sidebarWidthClass} flex-shrink-0 ${CELL_PADDING} text-left font-normal whitespace-nowrap border-r border-gray-300 bg-white flex items-center`}>
+            So sánh nhanh 
+        </div> */}
         {/* Các Ô Giá Trị Sản Phẩm */}
         <div className="flex-grow grid grid-cols-3"> {/* Chia 3 cột cho sản phẩm */}
             {products.map((product, productIndex) => (

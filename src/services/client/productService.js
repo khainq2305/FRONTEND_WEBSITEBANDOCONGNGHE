@@ -47,5 +47,4 @@ getBySlug: (slug) => get(`${API_ENDPOINT.client.product.baseList}${API_ENDPOINT.
     const query = ids.join(",");
     return get(`/admin/product-compare?ids=${query}`);
   },
-
 };
