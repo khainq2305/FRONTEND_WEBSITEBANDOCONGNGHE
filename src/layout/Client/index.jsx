@@ -9,8 +9,11 @@ import FloatingContact from '../../pages/Client/FloatingContact';
 import { CategoryProvider } from '../../contexts/CategoryContext';
 import Toastify from '../../components/common/Toastify';
 import PopupBanner from '../../pages/Client/PopupBanner';
+import CompareBar from '@/components/common/CompareBar';
+
 const ClientLayout = () => {
   const location = useLocation();
+  const isComparePage = location.pathname.startsWith('/compare-products');
 
   const isAuthPage = [
     '/dang-nhap',

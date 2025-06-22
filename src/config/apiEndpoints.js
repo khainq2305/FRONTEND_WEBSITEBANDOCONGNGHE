@@ -77,6 +77,13 @@ export const API_ENDPOINT = {
 
       deleteMultiple: '/delete-multiple'
     },
+     chat: {
+      base: `${API_BASE_URL}/chatbox`,
+      send: '/',
+    },
+     systemSettings: {
+    base: `${API_BASE_URL}/system-settings`,
+  },
     order: {
       base: `${API_BASE_URL}/orders`,
       create: '/create',
@@ -175,6 +182,9 @@ export const API_ENDPOINT = {
     rolePermissions: {
         base: `${API_BASE_URL}/admin`,
       getAll: '/rolePermissions'
+    },
+      systemSettings: {
+      base: `${API_BASE_URL}/admin/system-settings`
     },
     Auth: {
       base: `${API_BASE_URL}/admin`,

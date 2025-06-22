@@ -24,9 +24,9 @@ const CategoryAdd = Loadable(lazy(() => import('pages/Admin/News/CategoryAdd')))
 const NewsCategoryEdit = Loadable(lazy(() => import('pages/Admin/News/CategoryEdit')));
 const ProductAddPage = Loadable(lazy(() => import('pages/Admin/Product/ProductAddPage')));
 const VariantValueList = Loadable(lazy(() => import('pages/Admin/VariantValue/index.jsx')));
-
+const VariantValueForm = Loadable(lazy(() => import('pages/Admin/VariantValue/VariantValueForm')));
 const AllCommentList = Loadable(lazy(() => import('pages/Admin/Comment/AllCommentList')));
-
+const ProductListPage = Loadable(lazy(() => import('pages/Admin/Product')));
 const VariantList = Loadable(lazy(() => import('pages/Admin/ProductVariants')));
 const VariantForm = Loadable(lazy(() => import('pages/Admin/ProductVariants/VariantForm')));
 const CouponForm = Loadable(lazy(() => import('pages/Admin/Coupon/CouponForm')));
@@ -42,15 +42,13 @@ const NotificationPage = Loadable(lazy(() => import('pages/Admin/Notification'))
 const CategoryList = Loadable(lazy(() => import('pages/Admin/CaterogyProduct/CategoryList/CategoryList')));
 const CategoryAddd = Loadable(lazy(() => import('pages/Admin/CaterogyProduct/CategoryAdd/CategoryAdd')));
 const CategoryEdit = Loadable(lazy(() => import('pages/Admin/CaterogyProduct/CategoryEdit/CategoryEdit')));
-const CommentList = Loadable(lazy(() => import('pages/Admin/Comment/CommentList')));
-const CommentDetail = Loadable(lazy(() => import('pages/Admin/Comment/CommentDetail')));
 const UserDetailPage = Loadable(lazy(() => import('pages/Admin/User/UserDetailDialog')));
 const NotificationCreatePage = Loadable(lazy(() => import('pages/Admin/Notification/NotificationCreatePage')));
 const NotificationEditPage = Loadable(lazy(() => import('pages/Admin/Notification/NotificationEditPage')));
 const QuestionDetailPage = Loadable(lazy(() => import('pages/Admin/ProductQuestion/QuestionDetailPage/index.jsx')));
-
+import RequireAuth from '@/components/Admin/RequireAuth';
 import { UserProvider } from '@/contexts/UserContext';
-
+const NotFound = Loadable(lazy(() => import('pages/Admin/NotFound')));
 const AdminRoutes = {
   path: '/admin',
   element: (
