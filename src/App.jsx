@@ -46,7 +46,7 @@ export default function App() {
   }, []);
   return (
     <GoogleOAuthProvider clientId={clientId}>
-      <SystemSettingProvider> {/* ✅ bọc bên ngoài các component dùng context */}
+      <SystemSettingProvider>
         <ThemeCustomization>
           <ScrollTop>
             <Toastify />

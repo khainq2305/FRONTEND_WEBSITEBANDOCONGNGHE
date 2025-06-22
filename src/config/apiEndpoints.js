@@ -77,29 +77,27 @@ export const API_ENDPOINT = {
 
       deleteMultiple: '/delete-multiple'
     },
-     chat: {
+    chat: {
       base: `${API_BASE_URL}/chatbox`,
-      send: '/',
+      send: '/'
     },
-     systemSettings: {
-    base: `${API_BASE_URL}/system-settings`,
-  },
+    systemSettings: {
+      base: `${API_BASE_URL}/system-settings`
+    },
     order: {
       base: `${API_BASE_URL}/orders`,
       create: '/create',
       calculateFee: '/calculate-fee',
       momoPay: '/momo',
-       reorder: (orderId) => `/${orderId}/reorder`, // ✅ thêm dòng này
+      reorder: (orderId) => `/${orderId}/reorder`,
       momoCallback: '/momo-callback',
-        zaloPay: '/zalopay',         // ✅ THÊM MỚI
-  vnpay: '/vnpay',             // ✅ THÊM MỚI
-        vietqrPay: '/generate-vietqr', 
-        markAsCompleted: (orderId) => `/${orderId}/mark-completed`,
-        return: '/return',
+      zaloPay: '/zalopay',
+      vnpay: '/vnpay',
+      vietqrPay: '/generate-vietqr',
+      markAsCompleted: (orderId) => `/${orderId}/mark-completed`,
+      return: '/return',
       cancel: (orderId) => `/${orderId}/cancel`,
-      lookup: (code, phone) => `/lookup?code=${code}&phone=${phone}`,
-
-
+      lookup: (code, phone) => `/lookup?code=${code}&phone=${phone}`
     },
     news: {
       base: `${API_BASE_URL}/tin-noi-bat`,
@@ -177,13 +175,12 @@ export const API_ENDPOINT = {
       ActForSubject: '/actions',
       getPermByRole: '/role',
       updatePerm: '/update'
-      
     },
     rolePermissions: {
-        base: `${API_BASE_URL}/admin`,
+      base: `${API_BASE_URL}/admin`,
       getAll: '/rolePermissions'
     },
-      systemSettings: {
+    systemSettings: {
       base: `${API_BASE_URL}/admin/system-settings`
     },
     Auth: {
@@ -191,14 +188,14 @@ export const API_ENDPOINT = {
       login: '/dang-nhap-dashboard',
       getUserInfo: '/account-info',
       logout: '/dang-xuat'
-     },
+    },
     dashboard: {
-      base: `${API_BASE_URL}/admin/dashboard`, 
+      base: `${API_BASE_URL}/admin/dashboard`,
       getStats: '/stats',
       getRevenueByDate: '/revenue-by-date',
       getOrdersByDate: '/orders-by-date',
       getTopSellingProducts: '/top-selling-products',
-      getFavoriteProducts: '/favorite-products',
+      getFavoriteProducts: '/favorite-products'
     },
     product: {
       base: `${API_BASE_URL}/admin`,
@@ -237,7 +234,7 @@ export const API_ENDPOINT = {
       forceDelete: '/force-delete/:id',
 
       restore: '/restore/:id',
-      restoreMany: '/restore-many',
+      restoreMany: '/restore-many'
     },
     category: {
       base: `${API_BASE_URL}/admin/categories`,
@@ -272,17 +269,15 @@ export const API_ENDPOINT = {
       base: `${API_BASE_URL}/admin`,
       list: '/order/list',
       getById: '/order/:id',
- updateStatus: (id) => `/order/${id}/status`,
-// ✅ THÊM MỚI CHO TRẢ HÀNG
-  getReturns: (orderId) => `/order/${orderId}/returns`,
-  updateReturnStatus: (id) => `/returns/${id}/status`,
-chooseReturnMethod: (id) => `/return/${id}/choose-method`,
-  // ✅ THÊM MỚI CHO HOÀN TIỀN
-  getRefunds: (orderId) => `/order/${orderId}/refunds`,
-  updateRefundStatus: (id) => `/refunds/${id}/status`,
-      cancel: '/order/:id/cancel',
-       
-
+      updateStatus: (id) => `/order/${id}/status`,
+      // ✅ THÊM MỚI CHO TRẢ HÀNG
+      getReturns: (orderId) => `/order/${orderId}/returns`,
+      updateReturnStatus: (id) => `/returns/${id}/status`,
+      chooseReturnMethod: (id) => `/return/${id}/choose-method`,
+      // ✅ THÊM MỚI CHO HOÀN TIỀN
+      getRefunds: (orderId) => `/order/${orderId}/refunds`,
+      updateRefundStatus: (id) => `/refunds/${id}/status`,
+      cancel: '/order/:id/cancel'
     },
     variant: {
       base: `${API_BASE_URL}/admin`,
@@ -428,6 +423,5 @@ chooseReturnMethod: (id) => `/return/${id}/choose-method`,
     }
   }
 };
-
 
 export const CLOUDINARY_BASE_URL = import.meta.env.VITE_CLOUDINARY_URL;
