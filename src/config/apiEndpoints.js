@@ -158,6 +158,14 @@ export const API_ENDPOINT = {
       login: '/dang-nhap-dashboard',
       getUserInfo: '/account-info',
       logout: '/dang-xuat'
+     },
+    dashboard: {
+      base: `${API_BASE_URL}/admin/dashboard`, 
+      getStats: '/stats',
+      getRevenueByDate: '/revenue-by-date',
+      getOrdersByDate: '/orders-by-date',
+      getTopSellingProducts: '/top-selling-products',
+      getFavoriteProducts: '/favorite-products',
     },
     product: {
       base: `${API_BASE_URL}/admin`,
