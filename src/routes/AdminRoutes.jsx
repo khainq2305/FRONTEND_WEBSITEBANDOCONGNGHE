@@ -2,22 +2,18 @@ import { lazy } from 'react';
 import Loadable from 'components/Admin/Loadable';
 import DashboardLayout from 'layout/Admin';
 
+// Load pages như cũ
 const DashboardDefault = Loadable(lazy(() => import('pages/Admin/Dashboard')));
-
 const OrderList = Loadable(lazy(() => import('pages/Admin/OrderList')));
 const OrderDetail = Loadable(lazy(() => import('pages/Admin/OrderDetail')));
 const UserList = Loadable(lazy(() => import('pages/Admin/User/UserList')));
 const UserAdd = Loadable(lazy(() => import('pages/Admin/User/UserAdd')));
-
 const CouponList = Loadable(lazy(() => import('pages/Admin/Coupon')));
-
 const Brand = Loadable(lazy(() => import('pages/Admin/Brand')));
 const BrandCreatePage = Loadable(lazy(() => import('pages/Admin/Brand/BrandCreatePage')));
 const BrandEditPage = Loadable(lazy(() => import('pages/Admin/Brand/BrandEditPage')));
-
 const ProductQuestion = Loadable(lazy(() => import('pages/Admin/ProductQuestion')));
 const ProductEditPage = Loadable(lazy(() => import('pages/Admin/Product/ProductEditPage')));
-
 const HisLog = Loadable(lazy(() => import('pages/Admin/HisLog')));
 const News = Loadable(lazy(() => import('pages/Admin/News/News')));
 const Add = Loadable(lazy(() => import('pages/Admin/News/Add')));
@@ -33,25 +29,21 @@ const AllCommentList = Loadable(lazy(() => import('pages/Admin/Comment/AllCommen
 
 const VariantList = Loadable(lazy(() => import('pages/Admin/ProductVariants')));
 const VariantForm = Loadable(lazy(() => import('pages/Admin/ProductVariants/VariantForm')));
-const ProductListPage = Loadable(lazy(() => import('pages/Admin/Product')));
-const VariantValueForm = Loadable(lazy(() => import('pages/Admin/VariantValue/VariantValueForm')));
 const CouponForm = Loadable(lazy(() => import('pages/Admin/Coupon/CouponForm')));
-
 const HighlightedCategoryItemList = Loadable(lazy(() => import('pages/Admin/HighlightedCategoryItem')));
 const HighlightedCategoryItemForm = Loadable(lazy(() => import('pages/Admin/HighlightedCategoryItem/HighlightedCategoryItemForm')));
 const HomeSectionList = Loadable(lazy(() => import('pages/Admin/HomeSection')));
 const HomeSectionFormPage = Loadable(lazy(() => import('pages/Admin/HomeSection/HomeSectionForm')));
 const FlashSaleList = Loadable(lazy(() => import('pages/Admin/FlashSale')));
 const FlashSaleForm = Loadable(lazy(() => import('pages/Admin/FlashSale/FlashSaleForm')));
-//
-const BannerForm = Loadable(lazy(() => import('pages/Admin/Banner/BannerForm')));
 const BannerList = Loadable(lazy(() => import('pages/Admin/Banner')));
-const NotFound = Loadable(lazy(() => import('pages/Admin/NotFound')));
-
+const BannerForm = Loadable(lazy(() => import('pages/Admin/Banner/BannerForm')));
+const NotificationPage = Loadable(lazy(() => import('pages/Admin/Notification')));
 const CategoryList = Loadable(lazy(() => import('pages/Admin/CaterogyProduct/CategoryList/CategoryList')));
 const CategoryAddd = Loadable(lazy(() => import('pages/Admin/CaterogyProduct/CategoryAdd/CategoryAdd')));
 const CategoryEdit = Loadable(lazy(() => import('pages/Admin/CaterogyProduct/CategoryEdit/CategoryEdit')));
-const NotificationPage = Loadable(lazy(() => import('pages/Admin/Notification')));
+const CommentList = Loadable(lazy(() => import('pages/Admin/Comment/CommentList')));
+const CommentDetail = Loadable(lazy(() => import('pages/Admin/Comment/CommentDetail')));
 const UserDetailPage = Loadable(lazy(() => import('pages/Admin/User/UserDetailDialog')));
 const NotificationCreatePage = Loadable(lazy(() => import('pages/Admin/Notification/NotificationCreatePage')));
 const NotificationEditPage = Loadable(lazy(() => import('pages/Admin/Notification/NotificationEditPage')));
@@ -62,31 +54,55 @@ import { UserProvider } from '@/contexts/UserContext';
 const AdminRoutes = {
   path: '/admin',
   element: (
-    <UserProvider>
+    <RequireAuth>
       <DashboardLayout />
-    </UserProvider>
+    </RequireAuth>
   ),
   children: [
+    { index: true, element: <DashboardDefault /> },
+    { path: 'dashboard/default', element: <DashboardDefault /> },
+    { path: 'users', element: <UserList /> },
+    { path: 'users/create', element: <UserAdd /> },
+    { path: 'users/:id', element: <UserDetailPage /> },
+    { path: 'orders', element: <OrderList /> },
+    { path: 'orders/:id', element: <OrderDetail /> },
+    { path: 'products', element: <ProductListPage /> },
+    { path: 'products/create', element: <ProductAddPage /> },
+    { path: 'products/edit/:slug', element: <ProductEditPage /> },
+    { path: 'product-question', element: <ProductQuestion /> },
     {
-      index: true,
-      element: <DashboardDefault />
+      path: 'product-variants',
+      children: [
+        { index: true, element: <VariantList /> },
+        { path: 'create', element: <VariantForm /> },
+        { path: 'edit/:variantId', element: <VariantForm /> }
+      ]
     },
     {
-      path: 'dashboard/default',
-      element: <DashboardDefault />
+      path: 'product-variants/:variantId/values',
+      children: [
+        { index: true, element: <VariantValueList /> },
+        { path: 'create', element: <VariantValueForm /> },
+        { path: 'edit/:valueId', element: <VariantValueForm /> }
+      ]
     },
-
+    {
+      path: 'brands',
+      children: [
+        { index: true, element: <Brand /> },
+        { path: 'create', element: <BrandCreatePage /> },
+        { path: 'edit/:id', element: <BrandEditPage /> }
+      ]
+    },
     {
       path: 'banners',
       children: [
         { index: true, element: <BannerList /> },
-
         { path: 'create', element: <BannerForm /> },
 
         { path: 'edit/:slug', element: <BannerForm /> }
       ]
     },
-
     {
       path: 'categories/list',
       element: <CategoryList />
@@ -153,24 +169,18 @@ const AdminRoutes = {
     { path: 'users/create', element: <UserAdd /> },
 
     { path: 'coupons', element: <CouponList /> },
+    { path: 'coupons/create', element: <CouponForm /> },
+    { path: 'coupons/edit/:id', element: <CouponForm /> },
+    { path: 'categories/list', element: <CategoryList /> },
+    { path: 'categories/addd', element: <CategoryAddd /> },
+    { path: 'categories/edit/:id', element: <CategoryEdit /> },
+    { path: 'notifications', element: <NotificationPage /> },
     {
-      path: 'coupons/create',
-      element: <CouponForm />
-    },
-    {
-      path: 'coupons/edit/:id',
-      element: <CouponForm />
-    },
-    {
-      path: 'products',
-      element: <ProductListPage />
-    },
-    {
-      path: 'product-variants/:variantId/values',
+      path: 'flash-sale',
       children: [
-        { index: true, element: <VariantValueList /> },
-        { path: 'create', element: <VariantValueForm /> },
-        { path: 'edit/:valueId', element: <VariantValueForm /> }
+        { index: true, element: <FlashSaleList /> },
+        { path: 'create', element: <FlashSaleForm /> },
+        { path: 'edit/:id', element: <FlashSaleForm /> }
       ]
     },
 

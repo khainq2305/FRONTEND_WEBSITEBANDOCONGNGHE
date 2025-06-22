@@ -21,6 +21,7 @@ export const getAllUsers = async ({ page = 1, limit = 10, search = '', status = 
   const res = await API.get(API_ENDPOINT.admin.user.users, {
     params: { page, limit, search, status }
   });
+  console.log('data', res.data)
   return res.data;
 };
 
@@ -55,6 +56,7 @@ export const createUser = async (data) => {
 };
 export const getUserById = async (id) => {
   const res = await API.get(`/users/${id}`);
+  console.log('🚀 ~ getUserById ~ res:', res);
   return res.data;
 };
 export const forceDeleteManyUsers = async (ids) => {

@@ -1,3 +1,4 @@
+import { subject } from '@casl/ability';
 import { API_BASE_URL } from '../constants/environment';
 
 export const API_ENDPOINT = {
@@ -153,7 +154,29 @@ export const API_ENDPOINT = {
     }
   },
   admin: {
-     Auth: {
+    // action: {
+    //   base: `${API_BASE_URL}/admin`,
+    //   getAll: '/action'
+    // },
+    // subject: {
+    //   base: `${API_BASE_URL}/admin`,
+    //   // getAll: '/subjects-all'
+    // },
+    permissions: {
+      base: `${API_BASE_URL}/admin/permissions`,
+      getAll: '/permissions',
+      getSubJect: '/subjects',
+      getMatrix: '/matrix',
+      ActForSubject: '/actions',
+      getPermByRole: '/role',
+      updatePerm: '/update'
+      
+    },
+    rolePermissions: {
+        base: `${API_BASE_URL}/admin`,
+      getAll: '/rolePermissions'
+    },
+    Auth: {
       base: `${API_BASE_URL}/admin`,
       login: '/dang-nhap-dashboard',
       getUserInfo: '/account-info',
@@ -193,7 +216,19 @@ export const API_ENDPOINT = {
       updateOrder: '/update-order',
       forceDelete: '/force-delete/:id'
     },
+    roles: {
+      base: `${API_BASE_URL}/admin/quan-ly-vai-tro`,
+      getAll: '',
+      create: '/',
+      getById: '/',
+      update: '',
+      delete: '',
+      deleteMany: '/delete-many',
+      forceDelete: '/force-delete/:id',
 
+      restore: '/restore/:id',
+      restoreMany: '/restore-many',
+    },
     category: {
       base: `${API_BASE_URL}/admin/categories`,
       getAll: '',
@@ -328,7 +363,9 @@ chooseReturnMethod: (id) => `/return/${id}/choose-method`,
     user: {
       base: `${API_BASE_URL}/admin`,
       users: '/users',
-      roles: '/roles'
+      roles: '/roles',
+      getById: '/users',
+      getByRole: '/by-role'
     },
     news: {
       base: `${API_BASE_URL}/admin/quan-ly-bai-viet`,

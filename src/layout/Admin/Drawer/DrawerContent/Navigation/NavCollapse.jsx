@@ -9,27 +9,37 @@ import Collapse from '@mui/material/Collapse';
 import Typography from '@mui/material/Typography';
 
 import NavItem from './NavItem';
+import useAuthStore from '@/stores/AuthStore'; // ✅ Lấy ability từ Zustand
 import { useGetMenuMaster } from 'api/menu';
 
-import { RightOutlined } from '@ant-design/icons';
-
-export default function NavCollapse({ menu, level }) {
+export default function NavCollapse({ menu, level, }) {
   const [open, setOpen] = useState(false);
   const { menuMaster } = useGetMenuMaster();
   const drawerOpen = menuMaster.isDashboardDrawerOpened;
+  const ability = useAuthStore((state) => state.ability);
+
+  // ✅ Tự gán nếu có allow
+  if (!menu.subject && !menu.action && menu.allow) {
+    menu.subject = menu.allow;
+    menu.action = 'read';
+  }
+
 
   const handleClick = () => {
     setOpen(!open);
   };
 
   const Icon = menu.icon;
-  const menuIcon = menu.icon ? (
-    <Icon
-      style={{
-        fontSize: drawerOpen ? '1rem' : '1.25rem',
-      }}
-    />
-  ) : null;
+  const menuIcon = Icon ? <Icon style={{ fontSize: drawerOpen ? '1rem' : '1.25rem' }} /> : null;
+
+  const navChildren = menu.children
+  ?.map((childItem) => {
+    if (!childItem.subject && !childItem.action && childItem.allow) {
+      childItem.subject = childItem.allow;
+      childItem.action = 'read';
+    }
+
+   // ✅ Không render nếu không có quyền
 
   const navChildren = menu.children?.map((childItem) => {
     switch (childItem.type) {
@@ -112,9 +122,9 @@ export default function NavCollapse({ menu, level }) {
       )}
     </>
   );
-}
+},
 
 NavCollapse.propTypes = {
   menu: PropTypes.object.isRequired,
   level: PropTypes.number.isRequired,
-};
+})}

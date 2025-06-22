@@ -1,36 +1,41 @@
-// File: Navigation.js (CẦN SỬA LẠI NHƯ SAU)
-
-import NavItem from './NavItem';
 import NavGroup from './NavGroup';
-import NavCollapse from './NavCollapse'; 
-import Typography from '@mui/material/Typography';
+import NavCollapse from './NavCollapse';
+import NavItem from './NavItem';
 import Box from '@mui/material/Box';
-import menuItem from '../../../Aside'; 
+
+import menuItem from '../../../Aside';
+import useAuthStore from '@/stores/AuthStore';
+import { buildVisibleMenu } from '@/utils/buildVisibleMenu';
+
 export default function Navigation() {
-const navGroups = (menuItem.items || []).map((item) => {
-  if (!item || !item.type) {
-    return (
-      <Typography key={Math.random()} variant="h6" color="error" align="center">
-        ⚠️ Invalid nav item
-      </Typography>
-    );
+  // Lấy cả ability và trạng thái loading từ store
+  const ability = useAuthStore((state) => state.ability);
+  const loading = useAuthStore((state) => state.loading);
+  console.log('nav ability', ability)
+  // ✅ BƯỚC BẢO VỆ QUAN TRỌNG NHẤT
+  // Nếu store đang loading hoặc chưa có ability, không render gì cả.
+  // Điều này đảm bảo buildVisibleMenu không bao giờ chạy với dữ liệu rỗng.
+  if (loading || !ability) {
+    // Bạn có thể trả về một component spinner quay quay ở đây nếu muốn
+    return null;
   }
 
-  if (item.type === 'group') {
-    return <NavGroup key={item.id} item={item} />;
-  } else if (item.type === 'item') {
-    return <NavItem key={item.id} item={item} level={1} />;
-  } else if (item.type === 'collapse') {
-    return <NavCollapse key={item.id} menu={item} level={1} />;
-  } else {
-    return (
-      <Typography key={item.id} variant="h6" color="error" align="center">
-        ❌ Unknown item type: {item.type}
-      </Typography>
-    );
-  }
-});
+  // --- Chỉ khi loading=false VÀ ability đã tồn tại, code dưới đây mới được chạy ---
 
+  const visibleMenuItems = buildVisibleMenu(menuItem.items, ability);
+
+  const navGroups = visibleMenuItems.map((item) => {
+    switch (item.type) {
+      case 'group':
+        return <NavGroup key={item.id} item={item} />;
+      case 'item':
+        return <NavItem key={item.id} item={item} level={1} />;
+      case 'collapse':
+        return <NavCollapse key={item.id} menu={item} level={1} />;
+      default:
+        return null;
+    }
+  });
 
   return <Box sx={{ pt: 2 }}>{navGroups}</Box>;
 }

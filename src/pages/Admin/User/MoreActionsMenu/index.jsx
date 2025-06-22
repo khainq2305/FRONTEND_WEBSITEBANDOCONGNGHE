@@ -7,7 +7,7 @@ import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useState } from 'react';
 
-const MoreActionsMenu = ({ user, isDeleted = false, onChangeStatus, onResetPassword, onViewDetail, onForceDelete }) => {
+const MoreActionsMenu = ({ user, isDeleted = false, onChangeStatus, onResetPassword, onViewDetail, onForceDelete, onView }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 
@@ -31,6 +31,10 @@ const MoreActionsMenu = ({ user, isDeleted = false, onChangeStatus, onResetPassw
           </MenuItem>
         ) : (
           <>
+          <MenuItem onClick={() => handleAction(() => onView(user))}>
+              <VisibilityIcon fontSize="small" sx={{ mr: 1 }} />
+              Bổ nhiệm
+            </MenuItem>
             <MenuItem onClick={() => handleAction(() => onViewDetail(user))}>
               <VisibilityIcon fontSize="small" sx={{ mr: 1 }} />
               Xem chi tiết

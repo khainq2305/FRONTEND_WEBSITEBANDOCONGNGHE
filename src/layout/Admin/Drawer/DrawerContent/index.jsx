@@ -5,6 +5,7 @@ import SimpleBar from 'components/Admin/third-party/SimpleBar'; // Your custom s
 // ==============================|| DRAWER CONTENT ||============================== //
 
 export default function DrawerContent() {
+  
   return (
     <SimpleBar
       sx={{

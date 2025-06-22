@@ -263,7 +263,51 @@ const pages = [
     type: 'item',
     url: '/admin/hislog',
     icon: icons.TableOutlined,
-    breadcrumbs: false
+    breadcrumbs: false,
+    action: 'read',
+    subject: 'ActivityLog'
+  },
+  {
+    id: 'roles',
+    title: 'Quản lý vai trò',
+    type: 'collapse',
+    url: '/admin/quan-ly-vai-tro',
+    icon: icons.TableOutlined,
+    breadcrumbs: false,
+    action: 'manage',
+    subject: 'all', 
+    children: [
+      {
+        id: 'role-list',
+        title: 'Phân quyền & Vai trò',
+        type: 'item',
+        url: '/admin/quan-ly-vai-tro/ma-tran-phan-quyen',
+        icon: icons.TableOutlined,
+        breadcrumbs: false,
+        action: 'read',
+        subject: 'Role'
+      },
+      {
+        id: 'role-manage',
+        title: 'Quản lý vai trò',
+        type: 'item',
+        url: '/admin/quan-ly-vai-tro/danh-sach-vai-tro',
+        icon: icons.FileTextOutlined,
+        breadcrumbs: false,
+        action: 'create',
+        subject: 'Role'
+      },
+      {
+        id: 'permission-manage',
+        title: 'Danh mục quyền',
+        type: 'item',
+        url: '/admin/quan-ly-vai-tro/danh-muc-quyen',
+        icon: icons.FileTextOutlined,
+        breadcrumbs: false,
+        action: 'create',
+        subject: 'Role'
+      }
+    ]
   }
 ];
 

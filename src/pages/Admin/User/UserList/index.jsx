@@ -27,7 +27,10 @@ import MUIPagination from 'components/common/Pagination';
 import Loader from 'components/common/Loader';
 import { getAllUsers, updateUserStatus, resetUserPassword, getDeletedUsers, forceDeleteManyUsers } from 'services/admin/userService';
 import { toast } from 'react-toastify';
-
+import { use } from 'react';
+import PromotionDialog from '../UserDetailDialog/PromotionDialog';
+import RoleSelectDialog from '../UserDetailDialog/PromotionDialog';
+import axios from 'axios';
 const TABS = [
   { label: 'Tất cả', value: '', key: 'all' },
   { label: 'Hoạt động', value: '1', key: 'active' },
@@ -43,7 +46,13 @@ const roleColors = {
   Marketing: 'warning',
   Content: 'primary'
 };
-
+const demoRoles = [
+  { id: 1, label: 'Admin' },
+  { id: 2, label: 'Nhân viên bán hàng' },
+  { id: 3, label: 'Chăm sóc khách hàng' },
+  { id: 4, label: 'Quản lý kho' },
+  { id: 5, label: 'Marketing' }
+];
 const convertRoleIdToLabel = (roleId) => {
   const map = {
     1: 'Quản trị viên',
@@ -71,7 +80,10 @@ const UserList = () => {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [statusCounts, setStatusCounts] = useState({ all: 0, active: 0, inactive: 0, deleted: 0 });
-
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedRoles, setSelectedRoles] = useState([]);
+  const [appliedRoles, setAppliedRoles] = useState([]); // Giá trị mặc định ban đầu
+  const [selectedUser, setSelectedUser] = useState(null);
   const itemsPerPage = 10;
 
   const fetchUsers = async () => {
@@ -202,6 +214,27 @@ const UserList = () => {
     navigate(`/admin/users/${user.id}`);
   };
 
+   /**
+    * 
+    * @function handleApplyRoles update roles
+    */
+  const handleApplyRoles = async (roles) => {
+  console.log('📤 Vai trò được chọn:', roles);
+  setSelectedRoles(roles);
+
+  try {
+    const response = await axios.put(
+      `http://localhost:5000/admin/users/${selectedUser.id}/roles`, // ✅ thay selectedUser.id nếu khác
+      { roleIds: roles },
+      { withCredentials: true } // ✅ gửi cookie
+    );
+
+    toast.success(response.data.message || 'Ok')
+  } catch (error) {
+    console.error('❌ Lỗi khi cập nhật vai trò:', error.response?.data || error.message);
+  }
+};
+
   return (
     <Box p={isMobile ? 2 : 3}>
       <Typography variant="h5" fontWeight="bold" mb={2}>
@@ -225,11 +258,11 @@ const UserList = () => {
           },
           '& .MuiTab-root.Mui-selected': {
             color: '#fff',
-            backgroundColor: '#000', 
+            backgroundColor: '#000',
             borderRadius: 4
           },
           '& .MuiTab-root:hover': {
-            backgroundColor: 'rgba(0, 0, 0, 0.05)', 
+            backgroundColor: 'rgba(0, 0, 0, 0.05)',
             color: '#000'
           }
         }}
@@ -368,6 +401,10 @@ const UserList = () => {
                         user={row}
                         isDeleted={tab === 3}
                         onChangeStatus={(newStatus) => handleStatusChange(row, newStatus)}
+                        onView={() => {
+                          setSelectedUser(row);
+                          setOpenDialog(true);
+                        }}
                         onResetPassword={handleResetPassword}
                         onViewDetail={handleViewDetail}
                         onForceDelete={() => handleForceDelete(row.id)}
@@ -396,6 +433,14 @@ const UserList = () => {
           )}
         </>
       )}
+      <RoleSelectDialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        onApply={handleApplyRoles}
+        roles={demoRoles}
+        defaultSelected={appliedRoles}
+        user={selectedUser}
+      />
     </Box>
   );
 };

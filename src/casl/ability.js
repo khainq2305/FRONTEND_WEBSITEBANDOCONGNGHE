@@ -1,13 +1,18 @@
-// src/casl/ability.js
 import { AbilityBuilder, createMongoAbility } from '@casl/ability';
 
-export const defineAbilitiesFor = (permissions = []) => {
-  const { can, rules } = new AbilityBuilder(createMongoAbility);
+export function buildAbilityFromPermissions(permissions) {
+  const { can, build } = new AbilityBuilder(createMongoAbility);
 
-  for (const perm of permissions) {
-    can(perm.action, perm.subject); // ví dụ: manage all
+  for (const { action, subject } of permissions) {
+    can(action, subject);
+
+    // 🔥 Nếu có 'manage', tự map thêm quyền phụ
+    if (action === 'manage') {
+      ['read', 'create', 'update', 'delete', 'access', 'export', 'approve'].forEach(act => {
+        can(act, subject === 'all' ? 'all' : subject);
+      });
+    }
   }
 
-  return createMongoAbility(rules);
-};
-
+  return build();
+}

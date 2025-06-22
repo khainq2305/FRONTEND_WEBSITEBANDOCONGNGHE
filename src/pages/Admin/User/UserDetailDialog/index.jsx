@@ -48,7 +48,7 @@ const UserFormDialog = ({ open, onClose, onSubmit, initialData = {}, asPage = fa
         toast.error('Không tải được danh sách vai trò');
       }
     };
-    fetchRoles();
+    // fetchRoles();
   }, []);
 
   const handleChange = (field, value) => {
