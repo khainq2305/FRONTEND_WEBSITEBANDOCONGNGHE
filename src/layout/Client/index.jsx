@@ -5,7 +5,7 @@ import Footer from './Footer';
 import AuthHeader from './AuthHeader';
 import Topbar from './Topbar';
 import BottomNavigationBar from './BottomNavigationBar';
-import FloatingContact from '../../pages/Client/FloatingContact'; // Đúng đường dẫn tới file bạn tạo
+import FloatingContact from '../../pages/Client/FloatingContact';
 import { CategoryProvider } from '../../contexts/CategoryContext';
 import Toastify from '../../components/common/Toastify';
 import PopupBanner from '../../pages/Client/PopupBanner';
@@ -19,7 +19,7 @@ const ClientLayout = () => {
     '/dat-lai-mat-khau',
     '/otp-verification',
     '/forgot-password-notice',
-    '/register-email-sent'
+    '/register-email-sent',
   ].includes(location.pathname);
 
  return (
