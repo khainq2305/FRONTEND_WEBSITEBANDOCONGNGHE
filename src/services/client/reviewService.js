@@ -21,12 +21,24 @@ export const reviewService = {
     return Array.isArray(res?.data?.reviews) ? res.data.reviews : [];
   },
 
-
   checkUserReview: (skuId) => {
+    return get(`${base}${API_ENDPOINT.client.review.check(skuId)}`, { withCredentials: true });
+  },
+update: (id, data) => {
+  const token = localStorage.getItem('token'); // ✅ lấy token từ localStorage
 
-    return get(
-        `${base}${API_ENDPOINT.client.review.check(skuId)}`, 
-        { withCredentials: true }
-    );
-  }
+  return fetch(`${base}/${id}`, {
+    method: 'PUT',
+    body: data,
+    headers: {
+      Authorization: `Bearer ${token}` // ✅ thêm token vào header
+    },
+    credentials: 'include'
+  }).then((res) => {
+    if (!res.ok) throw res;
+    return res.json();
+  });
+}
+
+
 };

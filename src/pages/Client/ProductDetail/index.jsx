@@ -357,18 +357,25 @@ const handleBuyNow = async (selectedLabel) => {
 
   const productName = product.name;
   const productRating = product.averageRating || 0;
-const productReviewCount = parseInt(product.reviewCount, 10) || 0;
+  const productReviewCount = product.reviews?.length || 0;
+  const selectedSku = product?.skus?.find((sku) => sku.id === skuId);
+  const isFavorited = selectedSku?.isFavorited ?? false;
+
   return (
     <div className="bg-gray-50">
       <Breadcrumb productName={productName} productCategory={product.category} />
       <div className="max-w-[1200px] mx-auto py-3 md:pt-1 md:pb-6 text-sm text-gray-800">
         <div className="px-4 md:px-0 grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-6 items-start mb-6">
           <ProductImageSection
+            key={skuId} // ⚠️ Bắt buộc re-render nếu skuId thay đổi
             mainImage={mainImage}
             setMainImage={setMainImage}
             allImages={imagesForSelectedVariant}
             productName={productName}
+            productId={product?.id}
+            skuId={skuId}
           />
+
           <ProductOptions
             productName={productName}
             onBuyNow={handleBuyNow}

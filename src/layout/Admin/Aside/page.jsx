@@ -241,26 +241,12 @@ const pages = [
     ]
   },
   {
-    id: 'comments',
+    id: 'all-comments',
     title: 'Bình luận',
-    type: 'collapse',
+    type: 'item',
+    url: '/admin/comments/all',
     icon: icons.MessageOutlined,
-    children: [
-      {
-        id: 'comment-list',
-        title: 'Đánh giá theo sản phẩm',
-        type: 'item',
-        url: '/admin/comments',
-        breadcrumbs: false
-      },
-      {
-        id: 'all-comments',
-        title: 'Tất cả bình luận',
-        type: 'item',
-        url: '/admin/comments/all',
-        breadcrumbs: false
-      }
-    ]
+    breadcrumbs: false
   },
 
   {

@@ -2,8 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { reviewService } from '../../../../services/client/reviewService';
 import { toast } from 'react-toastify';
 
-// --- SVG ICONS (Tích hợp sẵn, không cần cài đặt thêm) ---
-
 const StarIcon = ({ filled, onClick, onMouseEnter, onMouseLeave }) => (
   <svg
     onClick={onClick}
@@ -61,8 +59,8 @@ const SpinnerIcon = () => (
 const MAX_FILES = 5;
 const MAX_FILE_SIZE_MB = 10;
 
-export default function ReviewFormModal({ productName, skuId, show, onClose, onSuccess }) {
-  const [rating, setRating] = useState(0);
+export default function ReviewFormModal({ productName, skuId, show, onClose, onSuccess, editingReview }) {
+  const [rating, setRating] = useState(5);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState('');
   const [mediaFiles, setMediaFiles] = useState([]);
@@ -74,18 +72,25 @@ export default function ReviewFormModal({ productName, skuId, show, onClose, onS
   useEffect(() => {
     if (show) {
       document.body.style.overflow = 'hidden';
+
+      if (editingReview) {
+        setRating(editingReview.rating);
+        setComment(editingReview.content);
+        setMediaFiles(editingReview.media || []);
+      }
     } else {
       document.body.style.overflow = 'unset';
-      setRating(0);
+      setRating(5);
       setHoverRating(0);
       setComment('');
       setMediaFiles([]);
       setSubmitting(false);
     }
+
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [show]);
+  }, [show, editingReview]);
 
   if (!show) return null;
 
@@ -135,7 +140,14 @@ export default function ReviewFormModal({ productName, skuId, show, onClose, onS
     });
 
     try {
-      await reviewService.create(formData);
+      if (editingReview) {
+        await reviewService.update(editingReview.id, formData);
+        toast.success('Cập nhật đánh giá thành công!');
+      } else {
+        await reviewService.create(formData);
+        toast.success('Đánh giá thành công!');
+      }
+
       onSuccess();
       onClose();
     } catch (err) {

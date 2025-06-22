@@ -29,8 +29,6 @@ const NewsCategoryEdit = Loadable(lazy(() => import('pages/Admin/News/CategoryEd
 const ProductAddPage = Loadable(lazy(() => import('pages/Admin/Product/ProductAddPage')));
 const VariantValueList = Loadable(lazy(() => import('pages/Admin/VariantValue/index.jsx')));
 
-const CommentList = Loadable(lazy(() => import('pages/Admin/Comment/CommentList/index.jsx')));
-const CommentDetail = Loadable(lazy(() => import('pages/Admin/Comment/CommentDetail/index.jsx')));
 const AllCommentList = Loadable(lazy(() => import('pages/Admin/Comment/AllCommentList')));
 
 const VariantList = Loadable(lazy(() => import('pages/Admin/ProductVariants')));
@@ -239,14 +237,7 @@ const AdminRoutes = {
       path: 'danh-muc-bai-viet/chinh-sua-danh-muc/:slug',
       element: <NewsCategoryEdit />
     },
-    {
-      path: 'comments',
-      element: <CommentList />
-    },
-    {
-      path: 'comments/:productId',
-      element: <CommentDetail />
-    },
+
     {
       path: 'comments/all',
       element: <AllCommentList />

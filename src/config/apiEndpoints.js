@@ -20,8 +20,7 @@ export const API_ENDPOINT = {
       verificationCooldown: '/verification-cooldown',
       userInfo: '/user-info',
       updateProfile: '/update-profile',
-      changePassword: '/change-password',
-
+      changePassword: '/change-password'
     },
     shipping: {
       base: `${API_BASE_URL}/shipping`,
@@ -47,8 +46,7 @@ export const API_ENDPOINT = {
       base: `${API_BASE_URL}/product`,
       baseList: `${API_BASE_URL}`,
       getBySlug: (slug) => `/product/${slug}`,
-    getRelated: () => `/related`
-
+      getRelated: () => `/related`
     },
     highlightedCategory: {
       base: `${API_BASE_URL}`,
@@ -103,10 +101,11 @@ export const API_ENDPOINT = {
     },
     wishlist: {
       base: `${API_BASE_URL}/wishlist`,
-      list: '/',
+      list: '', // KHÔNG có slash
       add: (productId) => `/${productId}`,
       remove: (productId) => `/${productId}`
     },
+
     banner: {
       base: `${API_BASE_URL}`,
       getByType: (type) => `/banner?type=${type}`,
@@ -121,7 +120,7 @@ export const API_ENDPOINT = {
       base: `${API_BASE_URL}/review`,
       create: '/create',
       getBySku: (id) => `/sku/${id}`,
-      check: (skuId) => `/check/${skuId}`
+      check: (id) => `/check-can-review/${id}`
     },
     news: {
       base: `${API_BASE_URL}/tin-noi-bat`,
@@ -140,18 +139,18 @@ export const API_ENDPOINT = {
       delete: '/:id',
       deleteMany: '/delete-many'
     },
-     productView: {
-    base: `${API_BASE_URL}/productviews`, 
-    track: '/',        
-    listByIds: '/list',  
-    top: '/top'          
-  },
-   productQuestion: {
+    productView: {
+      base: `${API_BASE_URL}/productviews`,
+      track: '/',
+      listByIds: '/list',
+      top: '/top'
+    },
+    productQuestion: {
       base: `${API_BASE_URL}/product-questions`,
       create: '/create',
       reply: '/reply',
-      getByProductId: (productId) => `/product/${productId}`,
-    },
+      getByProductId: (productId) => `/product/${productId}`
+    }
   },
   admin: {
      Auth: {
@@ -361,23 +360,18 @@ chooseReturnMethod: (id) => `/return/${id}/choose-method`,
     },
     reviews: {
       base: `${API_BASE_URL}/admin/reviews`,
-      getAllByProductId: (productId) => `/product/${productId}`,
-      getSummary: '/summary',
       reply: (id) => `/${id}/reply`,
       getAll: ''
     },
-     productQuestion: {
+    productQuestion: {
       base: `${API_BASE_URL}/admin/product-questions`,
       getAll: '/all',
       getById: (id) => `/${id}`,
       reply: (questionId) => `/reply/${questionId}`,
       toggleVisibility: (answerId) => `/answer/${answerId}/toggle`,
-      toggleQuestionVisibility: (questionId) => `/${questionId}/toggle-visibility`,
-
-    },
-    
-  },
-   
+      toggleQuestionVisibility: (questionId) => `/${questionId}/toggle-visibility`
+    }
+  }
 };
 
 

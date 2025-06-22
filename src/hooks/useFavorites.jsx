@@ -19,16 +19,16 @@ const useFavorites = () => {
     fetchFavorites();
   }, []);
 
-const toggleFavorite = async (productId) => {
-  const id = parseInt(productId);
+const toggleFavorite = async (productId, skuId) => {
   try {
-    if (favorites.includes(id)) {
-      await wishlistService.remove(id);
-      setFavorites(prev => prev.filter(pid => pid !== id));
-      toast.success("Đã xóa khỏi yêu thích!");
+    const isInFavorites = favorites.some(fav => fav.productId === productId && fav.skuId === skuId);
+    if (isInFavorites) {
+      await wishlistService.remove(productId, skuId);
+      setFavorites(prev => prev.filter(fav => !(fav.productId === productId && fav.skuId === skuId)));
+      toast.success("Đã xoá khỏi yêu thích!");
     } else {
-      await wishlistService.add(id);
-      setFavorites(prev => [...prev, id]);
+      await wishlistService.add(productId, { skuId });
+      setFavorites(prev => [...prev, { productId, skuId }]);
       toast.success("Đã thêm vào yêu thích!");
     }
   } catch (err) {
@@ -36,6 +36,7 @@ const toggleFavorite = async (productId) => {
     toast.error("Có lỗi xảy ra khi cập nhật yêu thích!");
   }
 };
+
 
 
   const isFavorite = (productId) => favorites.includes(parseInt(productId));
