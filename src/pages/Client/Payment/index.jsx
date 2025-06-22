@@ -36,7 +36,8 @@ const CheckoutPage = () => {
         console.error('Lỗi parse selectedCartItems:', err);
       }
     }
-    const storedCoupon = localStorage.getItem('selectedCoupon');
+   const storedCoupon = localStorage.getItem('selectedCoupon') || localStorage.getItem('appliedCoupon');
+
     if (storedCoupon) {
       try {
         setSelectedCoupon(JSON.parse(storedCoupon));
@@ -118,6 +119,8 @@ const CheckoutPage = () => {
     { totalAmount: 0, discount: 0 }
   );
 
+
+
   return (
     <div className="bg-gray-100 max-w-[1200px] mx-auto min-h-screen ">
       <div className="max-w-7xl mx-auto mb-4">
@@ -134,8 +137,8 @@ const CheckoutPage = () => {
         </nav>
       </div>
 
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
-        <div className="lg:col-span-3 space-y-3 sm:space-y-4">
+<div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+        <div className="lg:col-span-8 space-y-3 sm:space-y-4">
           <div className="bg-white rounded-lg p-4 shadow-md border border-gray-200 text-xs sm:text-sm">
             <h2 className="font-semibold text-sm sm:text-base mb-3 sm:mb-4">Sản phẩm trong đơn ({productsInOrder.length})</h2>
             <div className="product-list-inner-box bg-gray-50 p-3 rounded-md space-y-3 sm:space-y-4">
@@ -156,7 +159,8 @@ const CheckoutPage = () => {
                       className="w-12 h-12 sm:w-14 sm:h-14 object-cover rounded"
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium leading-snug line-clamp-2">{product.name}</p>
+                    <p className="font-medium leading-snug line-clamp-2">{product.productName}</p>
+
                       {product.variant && (
                         <div className="mt-1 text-xs text-gray-600">
                           {product.variant.split(',').map((v, i) => (
@@ -195,14 +199,18 @@ const CheckoutPage = () => {
           <PaymentMethod selectedPaymentMethod={selectedPaymentMethod} setSelectedPaymentMethod={setSelectedPaymentMethod} />
         </div>
 
-        <div className="lg:col-span-2 lg:sticky lg:top-4 lg:h-fit">
-          <OrderSummary
-            totalAmount={totals.totalAmount}
-            discount={totals.discount}
-            shippingFee={shippingFee}
-            selectedPaymentMethod={selectedPaymentMethod}
-            selectedCoupon={selectedCoupon}
-          />
+       <div className="lg:col-span-4 lg:sticky lg:top-4 lg:h-fit">
+<OrderSummary
+  totalAmount={totals.totalAmount}
+  discount={totals.discount}
+  shippingFee={shippingFee}
+  selectedPaymentMethod={selectedPaymentMethod}
+  selectedCoupon={selectedCoupon}
+  // ❌ XÓA: onCheckout={onSubmitCheckout}
+  // để mặc định OrderSummary tự xử lý
+/>
+
+
         </div>
       </div>
     </div>

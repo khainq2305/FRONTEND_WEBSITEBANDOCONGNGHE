@@ -131,7 +131,10 @@
   color: #007AFF; /* Màu dot active */
   opacity: 1;
 }
-
+/* Căn chỉnh các slide của FreshProductSlider về bên trái */
+.fresh-slick-slider .slick-track {
+  justify-content: flex-start;
+}
 
 /* CSS cho tên sản phẩm bên trong InlinedProductCard */
 /* CSS cho tên sản phẩm bên trong InlinedProductCard */

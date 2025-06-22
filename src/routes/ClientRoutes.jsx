@@ -15,6 +15,7 @@ const VerifyEmailPage = Loadable(lazy(() => import('pages/Client/Auth/VerifyEmai
 const UserProfilePage = Loadable(lazy(() => import('pages/Client/Auth/UserProfilePage.jsx')));
 const CartPage = Loadable(lazy(() => import('pages/Client/Cart')));
 const CheckoutPage = Loadable(lazy(() => import('pages/Client/Payment')));
+
 const OrderConfirmation = Loadable(lazy(() => import('pages/Client/Payment/OrderConfirmation')));
 
 const News = Loadable(lazy(() => import('pages/Client/Blog')));
@@ -52,10 +53,8 @@ const ClientRoutes = {
     },
     { path: 'verify-email', element: <VerifyEmailPage /> },
     { path: 'user-profile', element: <UserProfilePage /> },
-    {
-      path: 'category/:id',
-      element: <ProductListByCategory />
-    },
+  { path: 'category/:slug', element: <ProductListByCategory /> },
+
     { path: 'product/:slug', element: <ProductDetail /> },
     { path: 'tin-noi-bat', element: <News /> },
     { path: 'tin-noi-bat/:slug', element: <NewsDetails /> },

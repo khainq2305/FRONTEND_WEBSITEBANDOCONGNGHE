@@ -90,7 +90,10 @@
     "preview": "vite preview",
     "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
     "lint:fix": "eslint --fix \"src/**/*.{js,jsx,ts,tsx}\"",
-    "prettier": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\""
+    "prettier": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\"",
+  "analyze": "source-map-explorer 'build/static/js/*.js'"
+
+
   },
   "eslintConfig": {
     "extends": [
@@ -136,6 +139,8 @@
     "prettier": "^3.2.5",
     "react-error-overlay": "^6.0.11",
     "sass": "^1.70.0",
-    "vite-plugin-style-import": "^2.0.0"
+    "source-map-explorer": "^2.5.3",
+    "vite-plugin-style-import": "^2.0.0",
+    "webpack-bundle-analyzer": "^4.10.2"
   }
 }

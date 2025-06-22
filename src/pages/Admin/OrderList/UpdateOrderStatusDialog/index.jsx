@@ -9,9 +9,9 @@ const statusOptions = [
   { value: 'confirmed', label: 'Đã xác nhận' },
   { value: 'shipping', label: 'Đang giao' },
   { value: 'delivered', label: 'Đã giao' },
-  { value: 'cancelled', label: 'Đã hủy' },
-  { value: 'refunded', label: 'Trả hàng/Hoàn tiền' },
+  { value: 'completed', label: 'Hoàn thành' }, // ✅ sửa lại tên hiển thị
 ];
+
 
 const UpdateOrderStatusDialog = ({ open, onClose, order, onConfirm }) => {
   const [status, setStatus] = useState('');

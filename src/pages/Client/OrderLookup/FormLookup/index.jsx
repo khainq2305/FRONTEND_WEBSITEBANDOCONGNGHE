@@ -55,7 +55,7 @@ const FormLookup = ({ onSubmit }) => {
                 <div className="pt-2 text-center md:text-left">
                     <button
                         type="submit"
-                        className="bg-red-600 text-white font-semibold px-6 py-2 rounded hover:bg-red-700 transition w-full"
+                        className="bg-primary text-white font-semibold px-6 py-2 rounded hover:bg-red-700 transition w-full"
                     >
                         Tra cứu đơn hàng
                     </button>

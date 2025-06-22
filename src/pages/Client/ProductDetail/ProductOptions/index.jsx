@@ -1,154 +1,282 @@
-import React from 'react';
-import { CheckCircleIcon } from '@heroicons/react/24/solid';
+import React, { useEffect } from 'react';
+import { CheckCircleIcon, CubeIcon, XCircleIcon, TagIcon } from '@heroicons/react/24/solid';
+import CountdownTimer from '../../Home/TwoRowMarketSlider/CountdownTimer';
 
 const StarRating = ({ rating, totalStars = 5 }) => (
-  <div className="flex items-center">
-    {[...Array(totalStars)].map((_, index) => {
-      const numRating = parseFloat(rating);
-      const starKey = `star-${index}`;
-      if (numRating >= index + 1) {
-        return (
-          <svg key={starKey} className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M9.049 2.293c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-          </svg>
-        );
-      }
-      return (
-        <svg key={starKey} className="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M9.049 2.293c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-        </svg>
-      );
-    })}
-  </div>
+    <div className="flex items-center">
+        {[...Array(totalStars)].map((_, index) => {
+            const numRating = parseFloat(rating);
+            const starKey = `star-${index}`;
+            if (numRating >= index + 1) {
+                return (
+                    <svg key={starKey} className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.293c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                );
+            }
+            return (
+                <svg key={starKey} className="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.293c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+            );
+        })}
+    </div>
 );
 
+const StockStatusBadge = ({ inStock }) => {
+    if (inStock) {
+        return (
+            <div className="inline-flex items-center gap-x-1.5 bg-green-100/60 text-green-700 font-semibold text-xs px-2 py-1 rounded-full border border-green-200">
+                <CubeIcon className="w-4 h-4" />
+                <span>Còn Hàng Giao Nhanh</span>
+            </div>
+        );
+    }
+    return (
+        <div className="inline-flex items-center gap-x-1.5 bg-gray-100 text-gray-500 font-semibold text-xs px-2 py-1 rounded-full border border-gray-200">
+            <XCircleIcon className="w-4 h-4" />
+            <span>Tạm hết hàng</span>
+        </div>
+    );
+};
+
 export default function ProductOptions({
-  productName,
-  rating,
-  reviewCount,
-  productOptionsData = [],
-  selectedOption,
-  setSelectedOption,
-  onAddToCart,
-  banners = []
+    productName,
+    rating,
+    reviewCount,
+    onBuyNow,
+    badge,
+    productOptionsData = [],
+    selectedOption,
+    setSelectedOption,
+    onAddToCart,
+    banners = []
 }) {
-  if (!productOptionsData || productOptionsData.length === 0) {
-    return <div className="text-gray-500 text-sm">Đang tải...</div>;
-  }
+    const renderBadge = () => {
+        if (!badge) return null;
+        const badgeImageMap = {
+            'GIAO NHANH': '/src/assets/Client/images/1717405144807-Left-Tag-Giao-Nhanh.webp',
+            'THU CŨ ĐỔI MỚI': '/src/assets/Client/images/1740550907303-Left-tag-TCDM (1).webp',
+            'TRẢ GÓP 0%': '/src/assets/Client/images/1717405144808-Left-Tag-Tra-Gop-0.webp',
+            'GIÁ TỐT': '/src/assets/Client/images/1732077440142-Left-tag-Bestprice-0.gif',
+        };
+        const upperCaseBadge = badge.toUpperCase();
+        let imageUrl = null;
+        if (upperCaseBadge.includes('GIAO NHANH')) imageUrl = badgeImageMap['GIAO NHANH'];
+        else if (upperCaseBadge.includes('THU CŨ')) imageUrl = badgeImageMap['THU CŨ ĐỔI MỚI'];
+        else if (upperCaseBadge.includes('TRẢ GÓP')) imageUrl = badgeImageMap['TRẢ GÓP 0%'];
+        else if (upperCaseBadge.includes('GIÁ TỐT') || upperCaseBadge.includes('BEST PRICE')) imageUrl = badgeImageMap['GIÁ TỐT'];
 
-  const current = productOptionsData.find((o) => o.label === selectedOption) || productOptionsData[0];
-  if (!current) return null;
-
-  const isCurrentInStock = current.inStock;
-
-  let discountAmount = 0;
-  let discountPercentage = 0;
-  if (current.numericOriginalPrice && current.numericPrice && current.numericOriginalPrice > current.numericPrice) {
-    discountAmount = current.numericOriginalPrice - current.numericPrice;
-    discountPercentage = Math.round((discountAmount / current.numericOriginalPrice) * 100);
-  }
-
-  return (
-    <div
-      className={`p-4 rounded-lg border border-gray-200 shadow-sm space-y-4 text-gray-800 md:sticky md:top-4 h-fit bg-gradient-to-b from-white via-white to-amber-50/20`}
-    >
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 leading-tight">{productName}</h1>
-        {reviewCount > 0 && (
-          <div className="flex items-center space-x-2 text-sm text-gray-600 mt-2">
-            <StarRating rating={rating} />
-            <span>({reviewCount} đánh giá)</span>
-          </div>
-        )}
-      </div>
-
-      <div className="space-y-2 rounded-lg bg-gray-100 p-4">
-        <div className="flex items-baseline gap-x-3">
-          <p className="text-red-600 font-bold text-3xl">{current.price}</p>
-          {current.originalPrice && <p className="text-lg line-through text-gray-500">{current.originalPrice}</p>}
-        </div>
-        {discountAmount > 0 && (
-          <div className="inline-block bg-red-100 text-red-700 font-bold text-sm px-2.5 py-1 rounded-md">
-            <span>
-              Giảm {discountAmount.toLocaleString('vi-VN')}đ (-{discountPercentage}%)
-            </span>
-          </div>
-        )}
-      </div>
-
-      <div>
-        <p className="font-semibold text-gray-700 mb-2">Chọn phiên bản:</p>
-        <div className="flex flex-wrap gap-3">
-          {productOptionsData.map((opt) => {
-            const isSelected = selectedOption === opt.label;
-
-            let swatch = null;
-            if (opt.colorCode) {
-              swatch = <div className="w-8 h-8 rounded-md border border-gray-300" style={{ backgroundColor: opt.colorCode }} />;
-            } else if (opt.imageUrl) {
-              swatch = <img src={opt.imageUrl} alt={opt.label} className="w-8 h-8 rounded-md object-cover border border-gray-300" />;
-            } else if (opt.variantImage) {
-              swatch = <img src={opt.variantImage} alt={opt.label} className="w-8 h-8 rounded-md object-cover border border-gray-300" />;
-            } else {
-              swatch = (
-                <div className="w-8 h-8 flex items-center justify-center text-xs border rounded-md bg-gray-100 font-semibold">
-                  {opt.label.charAt(0).toUpperCase()}
-                </div>
-              );
-            }
-
+        if (imageUrl) {
             return (
-              <button
-                key={opt.label}
-                onClick={() => setSelectedOption(opt.label)}
-                disabled={!opt.inStock}
-              
-                className={`rounded-lg px-3 py-2 flex flex-row items-center text-left transition-all duration-150 relative border-2
-                                ${isSelected ? 'border-primary bg-primary/5' : 'border-gray-300 bg-white'} 
-                                ${!opt.inStock ? 'opacity-50 cursor-not-allowed' : 'hover:border-primary'}`}
-              >
-                <div className="flex-shrink-0 mr-3">{swatch}</div>
-
-                <div className="flex flex-col">
-                  <span className={`font-semibold text-sm ${isSelected ? 'text-primary' : 'text-gray-800'}`}>{opt.label}</span>
-                  <div className={`font-bold mt-0.5 text-xs ${isSelected ? 'text-primary' : 'text-red-600'}`}>{opt.price}</div>
+                <div className="flex justify-start items-center h-[28px]">
+                    <img src={imageUrl} alt={`Huy hiệu ${badge}`} className="h-[24px] object-contain" loading="lazy" />
                 </div>
-
-                {isSelected && (
-                  <div className="absolute -top-2 -right-2 bg-white rounded-full">
-                    <CheckCircleIcon className="w-5 h-5 text-primary" />
-                  </div>
-                )}
-                {!opt.inStock && (
-                  <div className="absolute inset-0 bg-white/60 flex items-center justify-center rounded-lg">
-                    <span className="text-red-600 font-bold text-xs bg-red-100 px-2 py-0.5 rounded-full">Hết hàng</span>
-                  </div>
-                )}
-              </button>
             );
-          })}
+        }
+        return null;
+    };
+
+    if (!productOptionsData || productOptionsData.length === 0) {
+        return <div className="text-gray-500 text-sm">Đang tải...</div>;
+    }
+
+    const current = productOptionsData.find((o) => o.label === selectedOption) || productOptionsData[0];
+    if (!current) return null;
+
+    const isCurrentInStock = current.inStock;
+    let discountAmount = 0;
+    let discountPercentage = 0;
+    if (current.numericOriginalPrice && current.numericPrice && current.numericOriginalPrice > current.numericPrice) {
+        discountAmount = current.numericOriginalPrice - current.numericPrice;
+        discountPercentage = Math.round((discountAmount / current.numericOriginalPrice) * 100);
+    }
+
+    // Tự động chọn SKU còn hàng tiếp theo nếu tùy chọn hiện tại hết hàng hoặc không hợp lệ
+    useEffect(() => {
+        if (productOptionsData.length > 0) {
+            const currentlySelected = productOptionsData.find(opt => opt.label === selectedOption);
+
+            // Nếu tùy chọn hiện tại không tồn tại HOẶC đã hết hàng
+            if (!currentlySelected || !currentlySelected.inStock) {
+                // Tìm tùy chọn đầu tiên còn hàng
+                const firstAvailableOption = productOptionsData.find(opt => opt.inStock);
+
+                if (firstAvailableOption) {
+                    setSelectedOption(firstAvailableOption.label);
+                }
+                // Nếu tất cả đều hết hàng, giữ nguyên tùy chọn hiện tại (sẽ vẫn là hết hàng)
+            }
+        }
+    }, [productOptionsData, selectedOption, setSelectedOption]);
+
+    // Kiểm tra xem tất cả các tùy chọn đều hết hàng hay không
+    const areAllOptionsOutOfStock = productOptionsData.length > 0 && productOptionsData.every(opt => !opt.inStock);
+
+
+    return (
+        <div className={`p-4 rounded-lg border border-gray-200 shadow-sm space-y-4 text-gray-800 md:sticky md:top-4 h-fit bg-gradient-to-b from-white via-white to-amber-50/20`}>
+            <div>
+                <h1 className="text-2xl font-bold text-gray-900 leading-tight">{productName}</h1>
+                <div className="mt-2 space-y-2">
+                    {reviewCount > 0 && (
+                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                            <StarRating rating={rating} />
+                            <span className="font-bold text-gray-800">{parseFloat(rating).toFixed(1)}</span>
+                            <span className="text-gray-400">|</span>
+                            <a href="#reviews" className="hover:underline">{reviewCount} Đánh giá</a>
+                        </div>
+                    )}
+                    <div className="flex items-center gap-x-2">
+                        {renderBadge()}
+                        {/* Chỉ hiển thị StockStatusBadge nếu ít nhất một tùy chọn còn hàng */}
+                        {!areAllOptionsOutOfStock && <StockStatusBadge inStock={isCurrentInStock} />}
+                    </div>
+                </div>
+            </div>
+
+
+<div className="space-y-1 pt-2">
+  {current.flashSaleInfo ? (
+    <div className="rounded-md bg-gradient-to-r from-yellow-300 to-yellow-400 p-4 flex justify-between items-center shadow-inner">
+      {/* Giá ưu đãi */}
+      <div>
+        <div className="flex items-center gap-1 text-black font-bold text-sm mb-1">
+          <img
+            src="/src/assets/Client/images/flash-sale.png"
+            alt="🔥"
+            className="h-4 w-4"
+          />
+          <span>Giá ưu đãi</span>
+        </div>
+        <div className="text-red-700 font-extrabold text-3xl">
+          {current.price}
         </div>
       </div>
 
-
-      <div className="space-y-2 pt-2">
-        <button
-          disabled={!isCurrentInStock}
-          className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-semibold text-base transition-all duration-150 flex flex-col items-center justify-center disabled:bg-gray-400 disabled:cursor-not-allowed"
-        >
-          <span>{isCurrentInStock ? 'MUA NGAY' : 'Sản phẩm đã hết hàng'}</span>
-          {isCurrentInStock && <span className="text-xs font-normal mt-0.5 opacity-90">Giao hàng tận nơi</span>}
-        </button>
-        <button
-          onClick={() => onAddToCart(selectedOption)}
-          disabled={!isCurrentInStock}
-          className="hover:opacity-90 w-full bg-primary text-white hover:bg-secondary font-semibold text-base py-2 rounded-lg transition-all duration-150 disabled:bg-gray-400 disabled:cursor-not-allowed flex flex-col items-center justify-center"
-        >
-          <span>Thêm vào giỏ hàng</span>
-
-          {isCurrentInStock && <span className="text-xs font-normal mt-0.5 opacity-90">Xem lại và thanh toán sau</span>}
-        </button>
+      {/* Countdown + chú thích */}
+      <div className="text-right space-y-1">
+        <p className="text-xs font-medium text-white">Ưu đãi kết thúc sau</p>
+        <CountdownTimer expiryTimestamp={current.flashSaleInfo.endTime} />
+        <p className="text-xs text-white/90">Số lượng có hạn</p>
       </div>
     </div>
-  );
+  ) : (
+    <>
+      <div className="flex items-baseline gap-x-3">
+        <p className="text-red-600 font-bold text-2xl">{current.price}</p>
+        {current.originalPrice && (
+          <p className="text-base line-through text-gray-500">
+            {current.originalPrice}
+          </p>
+        )}
+      </div>
+      {discountAmount > 0 && (
+        <div className="inline-flex items-center gap-x-1.5 bg-amber-100/60 text-red-600 font-semibold text-sm px-2.5 py-1 rounded-md">
+          <TagIcon className="w-4 h-4" />
+          <span>
+            Giảm {discountAmount.toLocaleString("vi-VN")}đ (-{discountPercentage}
+            %)
+          </span>
+        </div>
+      )}
+    </>
+  )}
+</div>
+
+
+
+
+            <div>
+                <p className="font-semibold text-gray-700 mb-2">Chọn phiên bản:</p>
+                <div className="flex flex-wrap gap-3">
+                    {productOptionsData.map((opt) => {
+                        const isSelected = selectedOption === opt.label;
+                        let swatch = null;
+                        // Điều chỉnh class cho swatch: áp dụng grayscale
+                        if (opt.colorCode) {
+                            swatch = <div className={`w-8 h-8 rounded-md border border-gray-300 ${!opt.inStock ? 'grayscale' : ''}`} style={{ backgroundColor: opt.colorCode }} />;
+                        } else if (opt.imageUrl) {
+                            swatch = <img src={opt.imageUrl} alt={opt.label} className={`w-8 h-8 rounded-md object-cover border border-gray-300 ${!opt.inStock ? 'grayscale' : ''}`} />;
+                        } else if (opt.variantImage) {
+                            swatch = <img src={opt.variantImage} alt={opt.label} className={`w-8 h-8 rounded-md object-cover border border-gray-300 ${!opt.inStock ? 'grayscale' : ''}`} />;
+                        } else {
+                            swatch = <div className={`w-8 h-8 flex items-center justify-center text-xs border rounded-md bg-gray-100 font-semibold ${!opt.inStock ? 'grayscale' : ''}`}>{opt.label.charAt(0).toUpperCase()}</div>;
+                        }
+                        return (
+                            <button
+                                key={opt.label}
+                                onClick={() => setSelectedOption(opt.label)}
+                                disabled={!opt.inStock} // Vẫn disabled nút nếu hết hàng
+                                className={`rounded-lg px-3 py-2 flex flex-row items-center text-left transition-all duration-150 relative border-2
+                                            ${isSelected && opt.inStock ? 'border-primary bg-primary/5' : ''}
+                                            ${!isSelected && opt.inStock ? 'border-gray-300 bg-white hover:border-primary' : ''}
+                                            ${!opt.inStock ? 'cursor-not-allowed border-gray-300 bg-gray-50' : ''} /* Viền xám đơn sắc khi hết hàng */
+                                `}
+                            >
+                                {/* Nội dung bên trong nút (swatch, label, price) */}
+                                <div className="flex-shrink-0 mr-3">{swatch}</div>
+                                <div className="flex flex-col">
+                                    {/* ✅ Chữ label: màu xám đậm hơn khi hết hàng */}
+                                    <span className={`font-semibold text-sm ${isSelected && opt.inStock ? 'text-primary' : (opt.inStock ? 'text-gray-800' : 'text-gray-600')}`}>
+                                        {opt.label}
+                                    </span>
+                                    <div className="flex items-center gap-1"> {/* Bọc giá và chữ "Hết hàng" vào một flex container */}
+                                        {/* ✅ Giá: gạch ngang và màu xám đậm hơn khi hết hàng */}
+                                        <div className={`font-bold mt-0.5 text-xs ${isSelected && opt.inStock ? 'text-primary' : (opt.inStock ? 'text-red-600' : 'text-gray-600')} ${!opt.inStock ? 'line-through' : ''}`}>
+                                            {opt.price}
+                                        </div>
+                                        {/* ✅ Chữ "(Hết hàng)" ngay sau giá, màu xám nhạt, rất nhỏ */}
+                                        {!opt.inStock && (
+                                            <span className="text-gray-400 text-[10px] font-normal mt-0.5 whitespace-nowrap">
+                                                (Hết hàng)
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                                {/* Dấu tích cho ô đã chọn - Chỉ hiển thị nếu selected và còn hàng, đảm bảo z-index cao nhất */}
+                                {isSelected && opt.inStock && (
+                                    <div className="absolute -top-2 -right-2 bg-white rounded-full z-30">
+                                        <CheckCircleIcon className="w-5 h-5 text-primary" />
+                                    </div>
+                                )}
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+
+            <div className="space-y-2 pt-2">
+                {areAllOptionsOutOfStock ? (
+                    <button
+                        disabled={true} // Luôn disabled khi tất cả hết hàng
+                        className="w-full bg-gray-600 hover:bg-gray-700 text-white py-2 rounded-lg font-semibold text-base transition-all duration-150 flex flex-col items-center justify-center disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    >
+                        <span>LIÊN HỆ</span>
+                        <span className="text-xs font-normal mt-0.5 opacity-90">Để biết thông tin về hàng về</span>
+                    </button>
+                ) : (
+                    <>
+                        <button
+                            disabled={!isCurrentInStock}
+                            onClick={() => onBuyNow(selectedOption)}
+                            className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-semibold text-base transition-all duration-150 flex flex-col items-center justify-center disabled:bg-gray-400 disabled:cursor-not-allowed"
+                        >
+                            <span>{isCurrentInStock ? 'MUA NGAY' : 'Sản phẩm đã hết hàng'}</span>
+                            {isCurrentInStock && (
+                                <span className="text-xs font-normal mt-0.5 opacity-90">
+                                    Giao hàng tận nơi
+                                </span>
+                            )}
+                        </button>
+
+                        <button onClick={() => onAddToCart(selectedOption)} disabled={!isCurrentInStock} className="hover:opacity-90 w-full bg-primary text-white hover:bg-secondary font-semibold text-base py-2 rounded-lg transition-all duration-150 disabled:bg-gray-400 disabled:cursor-not-allowed flex flex-col items-center justify-center">
+                            <span>Thêm vào giỏ hàng</span>
+                            {isCurrentInStock && <span className="text-xs font-normal mt-0.5 opacity-90">Xem lại và thanh toán sau</span>}
+                        </button>
+                    </>
+                )}
+            </div>
+        </div>
+    );
 }

@@ -7,6 +7,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { orderService } from '../../../services/admin/orderService'; // ✅ Đúng đường dẫn
+import OrderReturnRefund from './OrderReturnRefund';
 
 const statusLabels = {
   pending: 'Chờ xác nhận',
@@ -162,6 +163,7 @@ const phone = order.shippingAddress?.phone || order.User?.phone || '—';
           </Typography>
         </Box>
       </Paper>
+      <OrderReturnRefund />  {/* ✅ Chèn ở đây */}
     </Box>
   );
 };

@@ -107,7 +107,16 @@ const RegisterEmailSentNotice = () => {
 
     setResendButtonLoading(true);
     setLoading(true);
+
     try {
+      const checkResponse = await authService.checkVerificationStatus(email);
+      if (checkResponse.data.verified) {
+        setIsVerified(true);
+        toast.success('Tài khoản đã xác thực!');
+        navigate('/dang-nhap');
+        return;
+      }
+
       await authService.resendVerificationLink({ email });
       toast.success('Đã gửi lại liên kết đến email của bạn.');
       setInitialResendCooldownSec(10);

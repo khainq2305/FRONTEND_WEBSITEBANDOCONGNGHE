@@ -69,34 +69,34 @@ const ForgotPasswordNotice = () => {
     }
   };
 
-  const handleResendEmail = async () => {
-    if (resendLoading || lockTime > 0 || resendTimeout > 0 || verified) {
+ const handleResendEmail = async () => {
+  if (resendLoading || lockTime > 0 || resendTimeout > 0 || verified) {
+    toast.error('Không thể gửi lại liên kết.');
+    return;
+  }
+
+  setResendLoading(true);
+  setLoading(true);
+
+  try {
+    await authService.forgotPassword({ email });
+    await checkStatus(); // cập nhật lại cooldown từ backend
+    toast.success('Đã gửi lại liên kết đến email của bạn.');
+  } catch (error) {
+    if (error.response?.data?.resendCooldown) {
+      setResendTimeout(Math.ceil(error.response.data.resendCooldown / 1000));
+      toast.error(error.response.data.message);
+    } else {
       toast.error('Không thể gửi lại liên kết.');
-      return;
     }
+  } finally {
+    setTimeout(() => {
+      setResendLoading(false);
+      setLoading(false);
+    }, 300);
+  }
+};
 
-    setResendLoading(true);
-    setLoading(true);
-
-    try {
-      const response = await authService.forgotPassword({ email });
-      const { resendCooldown } = response.data;
-      setResendTimeout(Math.ceil(resendCooldown / 1000));
-      toast.success('Đã gửi lại liên kết đến email của bạn.');
-    } catch (error) {
-      if (error.response?.data?.resendCooldown) {
-        setResendTimeout(Math.ceil(error.response.data.resendCooldown / 1000));
-        toast.error(error.response.data.message);
-      } else {
-        toast.error('Không thể gửi lại liên kết.');
-      }
-    } finally {
-      setTimeout(() => {
-        setResendLoading(false);
-        setLoading(false);
-      }, 300);
-    }
-  };
 
   const formatLockTime = (milliseconds) => {
     const seconds = Math.floor(milliseconds / 1000);

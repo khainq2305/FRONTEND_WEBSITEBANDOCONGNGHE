@@ -2,10 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { authService } from '../../../../services/client/authService';
-import GradientButton from '../../../../components/Client/GradientButton'; // điều chỉnh path nếu cần
+import GradientButton from '../../../../components/Client/GradientButton';
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 
 const ChangePasswordTab = () => {
   const [hasPassword, setHasPassword] = useState(true);
+  const [isLocked, setIsLocked] = useState(false);
+  const [lockRemainingTime, setLockRemainingTime] = useState(null);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     register,
@@ -13,17 +19,26 @@ const ChangePasswordTab = () => {
     formState: { errors, isSubmitting },
     getValues,
     reset,
-  } = useForm();
+  } = useForm({
+    mode: 'onChange'
+  });
 
-  // ✅ Kiểm tra user có mật khẩu không
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const res = await authService.getUserInfo();
         const user = res?.data?.user;
-
-        // ✅ Sử dụng hasPassword từ server
         setHasPassword(user?.hasPassword || false);
+
+        if (user?.lockedUntil) {
+          const lockedTime = new Date(user.lockedUntil).getTime();
+          const now = Date.now();
+          const remaining = Math.max(0, Math.ceil((lockedTime - now) / 1000));
+          if (remaining > 0) {
+            setIsLocked(true);
+            setLockRemainingTime(remaining);
+          }
+        }
       } catch (err) {
         console.error('Lỗi kiểm tra mật khẩu:', err);
       }
@@ -31,22 +46,52 @@ const ChangePasswordTab = () => {
     fetchUser();
   }, []);
 
+  useEffect(() => {
+    if (!isLocked || lockRemainingTime == null) return;
+
+    const interval = setInterval(() => {
+      setLockRemainingTime((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setIsLocked(false);
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isLocked, lockRemainingTime]);
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    if (mins > 0) return `${mins} phút ${secs} giây`;
+    return `${secs} giây`;
+  };
+
   const onSubmit = async (data) => {
     try {
-      const payload = hasPassword
-        ? data
-        : { newPassword: data.newPassword };
-
-      console.log('[DEBUG PAYLOAD gửi lên]', payload);
-
+      const payload = hasPassword ? data : { newPassword: data.newPassword };
       await authService.changePassword(payload);
       toast.success(hasPassword ? 'Đổi mật khẩu thành công!' : 'Thiết lập mật khẩu thành công!');
       reset();
     } catch (error) {
-      console.error('[CHANGE PASSWORD ERROR]', error.response?.data);
-      toast.error(error.response?.data?.message || 'Thao tác thất bại. Vui lòng thử lại.');
+      const errMsg = error.response?.data?.message || 'Thao tác thất bại. Vui lòng thử lại.';
+
+      if (errMsg.includes('Vui lòng thử lại sau')) {
+        const secondsMatch = errMsg.match(/sau (\d+) giây/);
+        if (secondsMatch) {
+          const seconds = parseInt(secondsMatch[1]);
+          setIsLocked(true);
+          setLockRemainingTime(seconds);
+        }
+        return;
+      }
+      toast.error(errMsg);
     }
   };
+
 
   return (
     <div className="bg-white p-6 rounded-md shadow border border-gray-200">
@@ -56,36 +101,81 @@ const ChangePasswordTab = () => {
       <p className="text-sm text-gray-500 mb-4">
         Để bảo mật tài khoản, vui lòng không chia sẻ mật khẩu cho người khác
       </p>
-      <hr className="mb-5" />
+      <hr className="mb-5 border-t border-gray-200 dark:border-gray-700" />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         {hasPassword && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu hiện tại</label>
-            <input
-              type="password"
-              {...register('currentPassword', { required: 'Vui lòng nhập mật khẩu hiện tại' })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm outline-none focus:ring focus:ring-sky-200"
-            />
+            <div className="relative">
+              <input
+                type={showCurrentPassword ? 'text' : 'password'}
+                {...register('currentPassword', {
+                  required: 'Vui lòng nhập mật khẩu hiện tại'
+                })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm outline-none focus:ring focus:ring-sky-200 pr-10"
+                disabled={isLocked}
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                aria-label="Hiện/Ẩn mật khẩu"
+              >
+                {showCurrentPassword ? (
+                  <EyeSlashIcon className="h-5 w-5" />
+                ) : (
+                  <EyeIcon className="h-5 w-5" />
+                )}
+              </button>
+            </div>
             {errors.currentPassword && (
               <p className="text-red-500 text-xs mt-1">{errors.currentPassword.message}</p>
+            )}
+            {isLocked && lockRemainingTime != null && (
+              <p className="text-red-500 text-xs mt-1">
+                Bạn đã nhập sai quá nhiều lần. Vui lòng thử lại sau <strong>{formatTime(lockRemainingTime)}</strong>.
+              </p>
             )}
           </div>
         )}
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu mới</label>
-          <input
-            type="password"
-            {...register('newPassword', {
-              required: 'Vui lòng nhập mật khẩu mới',
-              validate: (value) =>
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/.test(value) ||
-  'Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.'
-
-            })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm outline-none focus:ring focus:ring-sky-200"
-          />
+          <div className="relative">
+            <input
+              type={showNewPassword ? 'text' : 'password'}
+              {...register('newPassword', {
+                validate: {
+                  required: (value) => {
+                    if (hasPassword && !getValues('currentPassword')) return true;
+                    return !!value || 'Vui lòng nhập mật khẩu mới';
+                  },
+                  complexity: (value) => {
+                    if (!value) return true;
+                    return (
+                      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/.test(value) ||
+                      'Mật khẩu phải có ít nhất 8 ký tự, gồm chữ hoa, thường, số và ký tự đặc biệt.'
+                    );
+                  },
+                },
+              })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm outline-none focus:ring focus:ring-sky-200 pr-10"
+              disabled={isLocked}
+            />
+            <button
+              type="button"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+              onClick={() => setShowNewPassword(!showNewPassword)}
+              aria-label="Hiện/Ẩn mật khẩu mới"
+            >
+              {showNewPassword ? (
+                <EyeSlashIcon className="h-5 w-5" />
+              ) : (
+                <EyeIcon className="h-5 w-5" />
+              )}
+            </button>
+          </div>
           {errors.newPassword && (
             <p className="text-red-500 text-xs mt-1">{errors.newPassword.message}</p>
           )}
@@ -93,29 +183,46 @@ const ChangePasswordTab = () => {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Xác nhận mật khẩu mới</label>
-          <input
-            type="password"
-            {...register('confirmPassword', {
-              required: 'Vui lòng xác nhận mật khẩu',
-              validate: (value) =>
-                value === getValues('newPassword') || 'Mật khẩu xác nhận không khớp',
-            })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm outline-none focus:ring focus:ring-sky-200"
-          />
+          <div className="relative">
+            <input
+              type={showConfirmPassword ? 'text' : 'password'}
+              {...register('confirmPassword', {
+                validate: {
+                  required: (value) => {
+                    if (hasPassword && !getValues('currentPassword')) return true;
+                    return !!value || 'Vui lòng xác nhận mật khẩu';
+                  },
+                  match: (value) => {
+                    if (!value) return true;
+                    return value === getValues('newPassword') || 'Mật khẩu xác nhận không khớp';
+                  },
+                },
+              })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm outline-none focus:ring focus:ring-sky-200 pr-10"
+              disabled={isLocked}
+            />
+            <button
+              type="button"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              aria-label="Hiện/Ẩn mật khẩu xác nhận"
+            >
+              {showConfirmPassword ? (
+                <EyeSlashIcon className="h-5 w-5" />
+              ) : (
+                <EyeIcon className="h-5 w-5" />
+              )}
+            </button>
+          </div>
           {errors.confirmPassword && (
             <p className="text-red-500 text-xs mt-1">{errors.confirmPassword.message}</p>
           )}
         </div>
 
         <div>
-       
-<GradientButton
-  type="submit"
-  disabled={isSubmitting}
-  size="compact" // hoặc "compact", "large" nếu bạn có style tương ứng
->
-  {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
-</GradientButton>
+          <GradientButton type="submit" disabled={isSubmitting || isLocked} size="compact">
+            {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+          </GradientButton>
         </div>
       </form>
     </div>

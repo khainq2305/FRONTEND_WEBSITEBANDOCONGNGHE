@@ -31,7 +31,7 @@ const AuthHeader = () => {
             <img
               src="src/assets/Client/images/Logo/logo.svg"
               alt="Logo"
-              className="h-15 sm:h-[50px] w-auto" 
+              className="h-18 sm:h-[50px] w-[160px]" 
             />
           </Link>
          

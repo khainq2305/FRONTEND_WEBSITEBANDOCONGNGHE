@@ -5,6 +5,8 @@ import { authService } from "services/client/authService";
 import { Eye, EyeOff } from "lucide-react";
 import { toast } from "react-toastify";
 import Loader from "components/common/Loader"; 
+import { XCircle } from "lucide-react";
+
 const ResetPasswordPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -61,8 +63,8 @@ useEffect(() => {
 
     let validationErrors = {};
 
-    if (!newPassword.trim()) {
-      validationErrors.newPassword = "Mật khẩu không được để trống!";
+if (!newPassword || newPassword.trim().length === 0) {
+  validationErrors.newPassword = "Mật khẩu không được để trống!";
     } else if (!validatePassword(newPassword)) {
       validationErrors.newPassword =
         "Mật khẩu phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt!";
@@ -79,7 +81,8 @@ useEffect(() => {
 
     setLoading(true);
     try {
-      await authService.resetPassword({ token, newPassword });
+   await authService.resetPassword({ token, newPassword, confirmPassword });
+
       toast.success("Đặt lại mật khẩu thành công! Vui lòng đăng nhập.");
       setTimeout(() => navigate("/dang-nhap"), 2000); 
     } catch (err) {
@@ -120,14 +123,15 @@ useEffect(() => {
             type={showPassword ? "text" : "password"}
             placeholder="Nhập mật khẩu mới của bạn"
             value={newPassword}
-            onChange={(e) => {
-              setNewPassword(e.target.value);
-              if (errors?.newPassword) {
-                const updatedErrors = { ...errors };
-                delete updatedErrors.newPassword;
-                
-              }
-            }}
+           onChange={(e) => {
+  setNewPassword(e.target.value);
+  if (errors?.newPassword) {
+    const updatedErrors = { ...errors };
+    delete updatedErrors.newPassword;
+    setErrors(updatedErrors); // 👈 THÊM DÒNG NÀY
+  }
+}}
+
             className={`w-full px-4 py-3 border rounded-md text-sm
               ${ errors?.newPassword
                 ? "border-red-500 focus:ring-red-300"
@@ -165,14 +169,15 @@ useEffect(() => {
             type={showConfirmPassword ? "text" : "password"}
             placeholder="Xác nhận lại mật khẩu mới"
             value={confirmPassword}
-            onChange={(e) => {
-              setConfirmPassword(e.target.value);
-              if (errors?.confirmPassword) {
-                const updatedErrors = { ...errors };
-                delete updatedErrors.confirmPassword;
-     
-              }
-            }}
+          onChange={(e) => {
+  setConfirmPassword(e.target.value);
+  if (errors?.confirmPassword) {
+    const updatedErrors = { ...errors };
+    delete updatedErrors.confirmPassword;
+    setErrors(updatedErrors); // 👈 THÊM DÒNG NÀY
+  }
+}}
+
             className={`w-full px-4 py-3 border rounded-md text-sm
               ${ errors?.confirmPassword
                 ? "border-red-500 focus:ring-red-300"

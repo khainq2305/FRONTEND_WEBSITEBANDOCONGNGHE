@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+
 import { toast } from 'react-toastify';
 
 // Import các component con và service
@@ -16,6 +17,7 @@ import { cartService } from '../../../services/client/cartService';
 import { bannerService } from '../../../services/client/bannerService';
 import { productViewService } from '../../../services/client/productViewService';
 import { productQuestionService } from '@/services/client/productQuestionService';
+import Loader from '../../../components/common/Loader'; // điều chỉnh lại path nếu khác
 
 const HomeIcon = (props) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" {...props}>
@@ -82,18 +84,6 @@ const Breadcrumb = ({ productName, productCategory }) => {
   );
 };
 
-const ProductTitleHeader = ({ productName, rating, reviewCount }) => (
-  <div className="px-4 md:px-0 pt-2 md:pt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-4 md:mb-6">
-    <h1 className="text-2xl md:text-3xl font-bold text-gray-800">{productName}</h1>
-    {reviewCount > 0 && (
-      <div className="flex items-center space-x-1 text-sm text-gray-600 flex-shrink-0">
-        <StarRating rating={rating} />
-        <span>({reviewCount} đánh giá)</span>
-      </div>
-    )}
-  </div>
-);
-
 const ProductDescription = ({ description }) => {
   if (!description) {
     return null;
@@ -107,6 +97,7 @@ const ProductDescription = ({ description }) => {
 };
 export default function ProductDetail() {
   const { slug } = useParams();
+  const navigate = useNavigate(); // ✅ THÊM DÒNG NÀY
   const [product, setProduct] = useState(null);
   const [selectedOption, setSelectedOption] = useState('');
   const [mainImage, setMainImage] = useState('');
@@ -117,66 +108,91 @@ export default function ProductDetail() {
   const [questions, setQuestions] = useState([]);
   const [showAll, setShowAll] = useState(false);
   const [user, setUser] = useState(null);
-  useEffect(() => {
-    const fetchProductData = async () => {
-      if (!slug) return;
-      try {
-        const response = await productService.getBySlug(slug);
-        const fetchedProduct = response.data.product;
+// Trong ProductDetail.jsx, thay thế useEffect fetchProductData hiện tại bằng đoạn sau:
 
-        if (!fetchedProduct) {
-          setProduct(null);
-          return;
-        }
-        setProduct(fetchedProduct);
-
-        const options = (fetchedProduct.skus || [])
-          .filter((sku) => sku.skuCode && (sku.price || sku.originalPrice))
-          .map((sku) => {
-            const vals = (sku.variantValues || []).map((vv) => vv.variantValue?.value).filter(Boolean);
-            const label = vals.length > 0 ? vals.join(' - ') : sku.skuCode;
-            const colorVV = (sku.variantValues || []).find((vv) => vv.variantValue?.variant?.name.toLowerCase().includes('màu'));
-
-            const numericSalePrice = parseFloat(sku.price ?? 0);
-            const numericOriginalPrice = parseFloat(sku.originalPrice ?? 0);
-            const finalPrice = numericSalePrice > 0 ? numericSalePrice : numericOriginalPrice;
-            const strikethroughPrice = numericOriginalPrice > finalPrice ? numericOriginalPrice : null;
-
-            return {
-              skuId: sku.id,
-              label: label,
-              price: finalPrice > 0 ? finalPrice.toLocaleString('vi-VN') + '₫' : 'Liên hệ',
-              originalPrice: strikethroughPrice ? strikethroughPrice.toLocaleString('vi-VN') + '₫' : null,
-              numericPrice: finalPrice,
-              numericOriginalPrice: numericOriginalPrice,
-              variantImage: sku.ProductMedia?.[0]?.mediaUrl || null,
-              colorCode: colorVV ? colorVV.variantValue.colorCode : null,
-              imageUrl: colorVV ? colorVV.variantValue.imageUrl : null,
-              inStock: sku.stock > 0
-            };
-          });
-
-        setProductOptionsData(options);
-
-        if (options.length > 0) {
-          setSelectedOption(options[0].label);
-        }
-
-        if (fetchedProduct.id) {
-          bannerService
-            .getByProductId(fetchedProduct.id)
-            .then((bannerRes) => setProductDetailBanners(bannerRes?.data?.data || []))
-            .catch((err) => console.error('Lỗi lấy banner:', err));
-        }
-      } catch (error) {
-        console.error('Lỗi khi lấy chi tiết sản phẩm:', error);
-        toast.error('Không thể tải thông tin sản phẩm.');
+useEffect(() => {
+  const fetchProductData = async () => {
+    if (!slug) return;
+    try {
+      const response = await productService.getBySlug(slug);
+      console.log('➤ API trả về product:', response.data.product);
+      const fetchedProduct = response.data.product;
+      if (!fetchedProduct) {
         setProduct(null);
+        return;
       }
-    };
+      setProduct(fetchedProduct);
 
-    fetchProductData();
-  }, [slug]);
+      // Build options, kèm flashSaleInfo
+      const options = (fetchedProduct.skus || [])
+        .filter(sku => sku.skuCode && (sku.price || sku.originalPrice))
+        .map(sku => {
+          // Label và giá như trước
+          const vals = (sku.variantValues || [])
+            .map(vv => vv.variantValue?.value)
+            .filter(Boolean);
+          const label = vals.length > 0 ? vals.join(' - ') : sku.skuCode;
+          const numericSalePrice = parseFloat(sku.price ?? 0);
+          const numericOriginalPrice = parseFloat(sku.originalPrice ?? 0);
+          const finalPrice = numericSalePrice > 0 ? numericSalePrice : numericOriginalPrice;
+          const strikethroughPrice = numericOriginalPrice > finalPrice ? numericOriginalPrice : null;
+
+          // Lấy flash sale từ relation trên backend (FlashSaleItem hoặc flashSaleItem)
+       // SỬA THÀNH:
+const activeFlashSaleItem = sku.flashSaleSkus?.[0] ?? null;
+const flashSaleInfo = activeFlashSaleItem
+  ? {
+      endTime: activeFlashSaleItem.flashSale.endTime,
+      quantity: activeFlashSaleItem.quantity
+    }
+  : null;
+
+
+          // Trả về object option bao gồm flashSaleInfo
+          return {
+            skuId: sku.id,
+            label,
+            price: finalPrice > 0
+              ? finalPrice.toLocaleString('vi-VN') + '₫'
+              : 'Liên hệ',
+            originalPrice: strikethroughPrice
+              ? strikethroughPrice.toLocaleString('vi-VN') + '₫'
+              : null,
+            numericPrice: finalPrice,
+            numericOriginalPrice,
+            variantImage: sku.ProductMedia?.[0]?.mediaUrl || null,
+            colorCode: (sku.variantValues || [])
+              .find(vv => vv.variantValue?.variant?.name.toLowerCase().includes('màu'))
+              ?.variantValue.colorCode || null,
+            imageUrl: (sku.variantValues || [])
+              .find(vv => vv.variantValue?.variant?.name.toLowerCase().includes('màu'))
+              ?.variantValue.imageUrl || null,
+            inStock: sku.stock > 0,
+            flashSaleInfo,    // ← Thêm trường này
+          };
+        });
+
+      setProductOptionsData(options);
+      if (options.length > 0) {
+        setSelectedOption(options[0].label);
+      }
+
+      // Lấy banner nếu cần
+      if (fetchedProduct.id) {
+        bannerService
+          .getByProductId(fetchedProduct.id)
+          .then(res => setProductDetailBanners(res.data.data || []))
+          .catch(err => console.error('Lỗi lấy banner:', err));
+      }
+    } catch (error) {
+      console.error('Lỗi khi lấy chi tiết sản phẩm:', error);
+      toast.error('Không thể tải thông tin sản phẩm.');
+      setProduct(null);
+    }
+  };
+
+  fetchProductData();
+}, [slug]);
 
   useEffect(() => {
     if (!product || !selectedOption) return;
@@ -243,55 +259,105 @@ export default function ProductDetail() {
 
     cartService
       .addToCart({ skuId: matchedOption.skuId, quantity: 1 })
-      .then(() => {
-        if (toast.isActive('add-to-cart-success-toast')) {
-          toast.dismiss('add-to-cart-success-toast');
-        }
-        toast(
-          ({ closeToast }) => (
-            <AddToCartSuccessToast
-              closeToast={closeToast}
-              productName={product.name}
-              productImage={matchedOption.variantImage || mainImage || product?.thumbnail}
-              productPrice={matchedOption.price}
-            />
-          ),
-          {
-            toastId: 'add-to-cart-success-toast',
-            autoClose: 3000,
-            hideProgressBar: true,
-            closeOnClick: false,
-            pauseOnHover: true,
-            draggable: true,
-            closeButton: false,
+     .then((res) => {
+  window.dispatchEvent(new Event('cartUpdated'));
 
-            style: {
-              background: 'transparent',
-              boxShadow: 'none',
-              padding: 0
-            },
+  const backendMsg = res?.data?.message || '';
+  const showExtraNotice = backendMsg.includes('vượt quá giới hạn');
 
-            bodyStyle: {
-              padding: 0
-            }
-          }
-        );
-      })
-      .catch((err) => {
-        const message = err.response?.data?.message || 'Thêm vào giỏ hàng thất bại!';
-        toast.warn(message);
-        console.error('Lỗi addToCart:', err);
-      });
-  };
-
-  if (!product) {
-    return <div className="flex items-center justify-center h-screen">Đang tải sản phẩm...</div>;
+  if (toast.isActive('add-to-cart-success-toast')) {
+    toast.dismiss('add-to-cart-success-toast');
   }
+
+  toast(
+    ({ closeToast }) => (
+      <AddToCartSuccessToast
+        closeToast={closeToast}
+        productName={product.name}
+        productImage={matchedOption.variantImage || mainImage || product?.thumbnail}
+        productPrice={matchedOption.price}
+        extraMessage={showExtraNotice ? backendMsg : null} // 👈 truyền thông báo nếu có
+      />
+    ),
+    {
+      toastId: 'add-to-cart-success-toast',
+      autoClose: 4000,
+      hideProgressBar: true,
+      closeOnClick: false,
+      pauseOnHover: true,
+      draggable: true,
+      closeButton: false,
+      style: { background: 'transparent', boxShadow: 'none', padding: 0 },
+      bodyStyle: { padding: 0 }
+    }
+  );
+})
+
+    .catch((err) => {
+  const backendMsg = err?.response?.data?.message;
+  if (backendMsg?.includes('giới hạn Flash Sale')) {
+    toast.info(backendMsg); // 👉 hiện thông báo nhẹ nhàng nếu là thông báo hướng dẫn
+  } else {
+    toast.warn(backendMsg || 'Thêm vào giỏ hàng thất bại!');
+  }
+  console.error('Lỗi addToCart:', err);
+});
+  };
+const handleBuyNow = async (selectedLabel) => {
+  const matchedOption = productOptionsData.find((opt) => opt.label === selectedLabel);
+
+  if (!matchedOption) {
+    toast.error('Vui lòng chọn phân loại sản phẩm!');
+    return;
+  }
+
+  try {
+    await cartService.addToCart({ skuId: matchedOption.skuId, quantity: 1 });
+
+    const cartRes = await cartService.getCart();
+    const addedItem = cartRes.data?.cartItems?.find(item => item.skuId === matchedOption.skuId);
+    if (addedItem) {
+      await cartService.updateSelected({
+        cartItemId: addedItem.id,
+        isSelected: true
+      });
+    }
+
+    // ✅ Dispatch sự kiện để header lắng nghe và cập nhật số lượng
+    window.dispatchEvent(new Event('cartUpdated'));
+
+    localStorage.setItem("selectedCartItems", JSON.stringify([
+      {
+        skuId: matchedOption.skuId,
+        quantity: 1,
+        price: matchedOption.numericOriginalPrice,
+        finalPrice: matchedOption.numericPrice,
+        productName: product.name,
+        productSlug: product.slug,
+        image: matchedOption.variantImage || product.thumbnail,
+        variantDisplay: matchedOption.label,
+        stock: 999
+      }
+    ]));
+
+    navigate('/checkout');
+  } catch (error) {
+    const message = error?.response?.data?.message || 'Thêm sản phẩm thất bại!';
+    toast.warn(message);
+  }
+};
+;
+
+
+
+ if (!product) {
+  return <Loader fullscreen />;
+}
+
 
   const productName = product.name;
   const productRating = product.averageRating || 0;
-  const productReviewCount = product.reviews?.length || 0;
-
+const productReviewCount = parseInt(product.reviewCount, 10) || 0;
   return (
     <div className="bg-gray-50">
       <Breadcrumb productName={productName} productCategory={product.category} />
@@ -305,7 +371,9 @@ export default function ProductDetail() {
           />
           <ProductOptions
             productName={productName}
+            onBuyNow={handleBuyNow}
             rating={productRating}
+                badge={product?.badge} // ✅ THÊM DÒNG NÀY
             reviewCount={productReviewCount}
             productOptionsData={productOptionsData}
             selectedOption={selectedOption}

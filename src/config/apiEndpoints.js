@@ -74,6 +74,8 @@ export const API_ENDPOINT = {
       list: '/my-cart',
       updateQuantity: '/update-quantity',
       deleteItem: (id) => `/item/${id}`,
+      updateSelected: '/update-selected',
+
       deleteMultiple: '/delete-multiple'
     },
     order: {
@@ -81,9 +83,16 @@ export const API_ENDPOINT = {
       create: '/create',
       calculateFee: '/calculate-fee',
       momoPay: '/momo',
+       reorder: (orderId) => `/${orderId}/reorder`, // ✅ thêm dòng này
       momoCallback: '/momo-callback',
+        zaloPay: '/zalopay',         // ✅ THÊM MỚI
+  vnpay: '/vnpay',             // ✅ THÊM MỚI
         vietqrPay: '/generate-vietqr', 
+        markAsCompleted: (orderId) => `/${orderId}/mark-completed`,
+        return: '/return',
       cancel: (orderId) => `/${orderId}/cancel`,
+      lookup: (code, phone) => `/lookup?code=${code}&phone=${phone}`,
+
 
     },
     news: {
@@ -211,8 +220,17 @@ export const API_ENDPOINT = {
       base: `${API_BASE_URL}/admin`,
       list: '/order/list',
       getById: '/order/:id',
-      updateStatus: '/order/:id/status',
-      cancel: '/order/:id/cancel'
+ updateStatus: (id) => `/order/${id}/status`,
+// ✅ THÊM MỚI CHO TRẢ HÀNG
+  getReturns: (orderId) => `/order/${orderId}/returns`,
+  updateReturnStatus: (id) => `/returns/${id}/status`,
+chooseReturnMethod: (id) => `/return/${id}/choose-method`,
+  // ✅ THÊM MỚI CHO HOÀN TIỀN
+  getRefunds: (orderId) => `/order/${orderId}/refunds`,
+  updateRefundStatus: (id) => `/refunds/${id}/status`,
+      cancel: '/order/:id/cancel',
+       
+
     },
     variant: {
       base: `${API_BASE_URL}/admin`,
@@ -361,3 +379,6 @@ export const API_ENDPOINT = {
   },
    
 };
+
+
+export const CLOUDINARY_BASE_URL = import.meta.env.VITE_CLOUDINARY_URL;

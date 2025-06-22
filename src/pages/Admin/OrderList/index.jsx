@@ -12,6 +12,7 @@ import Toastify from 'components/common/Toastify';
 import CancelOrderDialog from './CancelOrderDialog';
 import UpdateOrderStatusDialog from './UpdateOrderStatusDialog';
 import HighlightText from '../../../components/Admin/HighlightText';
+import { toast } from 'react-toastify'; // ✅ import đúng
 
 import { useNavigate } from 'react-router-dom';
 import { orderService } from '../../../services/admin/orderService';
@@ -46,15 +47,14 @@ const MoreActionsMenu = ({ actions }) => {
     </>
   );
 };
-
 const statusTabs = [
   { value: '', label: 'Tất cả', color: 'gray' },
-  { value: 'pending', label: 'Chờ xác nhận', color: '#ff9800' },     // cam
-  { value: 'confirmed', label: 'Đã xác nhận', color: '#2196f3' },   // xanh dương
-  { value: 'shipping', label: 'Đang giao', color: '#3f51b5' },      // tím
-  { value: 'delivered', label: 'Đã giao', color: '#4caf50' },       // xanh lá
-  { value: 'cancelled', label: 'Đã hủy', color: '#f44336' },        // đỏ
-  { value: 'refunded', label: 'Trả hàng/Hoàn tiền', color: '#9e9e9e' } // xám
+  { value: 'pending', label: 'Chờ xác nhận', color: '#ff9800' },
+  { value: 'confirmed', label: 'Đã xác nhận', color: '#2196f3' },
+  { value: 'shipping', label: 'Đang giao', color: '#3f51b5' },
+  { value: 'delivered', label: 'Đã giao', color: '#4caf50' },
+  { value: 'completed', label: 'Hoàn thành', color: '#009688' }, // ✅ thêm dòng này
+  { value: 'cancelled', label: 'Đã hủy', color: '#f44336' }
 ];
 
 
@@ -91,7 +91,7 @@ setTotalPages(data.totalPages || 1);
 
   } catch (err) {
     console.error('Lỗi fetch orders:', err);
-    Toastify.error('Không tải được danh sách đơn hàng');
+   toast.error('Không tải được danh sách đơn hàng');
   } finally {
     setLoading(false);
   }
@@ -115,6 +115,31 @@ setTotalPages(data.totalPages || 1);
     setSelectedOrder(order);
     setUpdateStatusDialogOpen(true);
   };
+const handleUpdateStatus = async (newStatus) => {
+  try {
+    await orderService.updateStatus(selectedOrder.id, newStatus);
+    const statusMap = {
+  pending: 'Chờ xác nhận',
+  confirmed: 'Đã xác nhận',
+  shipping: 'Đang giao',
+  delivered: 'Đã giao',
+  completed: 'Hoàn thành',
+  cancelled: 'Đã hủy'
+};
+
+toast.success(`Đã cập nhật trạng thái đơn ${selectedOrder?.code} thành "${statusMap[newStatus] || newStatus}"`);
+
+    setUpdateStatusDialogOpen(false);
+    loadOrders();
+  } catch (err) {
+    console.error('Lỗi cập nhật trạng thái:', err);
+
+    // 👉 Bắt message cụ thể từ backend trả về (ví dụ: không được quay lại trạng thái cũ)
+    const message = err?.response?.data?.message || 'Cập nhật trạng thái thất bại';
+    toast.error(message); // ✅ hiển thị đúng nội dung lỗi
+  }
+};
+
 
   const getStatusChip = (orderStatus) => {
     const map = {
@@ -270,23 +295,28 @@ setTotalPages(data.totalPages || 1);
         open={cancelDialogOpen}
         onClose={() => setCancelDialogOpen(false)}
         order={selectedOrder}
-        onConfirm={(reason) => {
-          Toastify.success(`Đã hủy đơn ${selectedOrder?.code} với lý do: ${reason}`);
-          setCancelDialogOpen(false);
-          loadOrders();
-        }}
+       onConfirm={async (reason) => {
+  try {
+    await orderService.cancel(selectedOrder.id, reason);
+    toast.success(`Đã hủy đơn ${selectedOrder?.code} với lý do: ${reason}`);
+    setCancelDialogOpen(false);
+    loadOrders();
+  } catch (err) {
+    console.error('Lỗi huỷ đơn:', err);
+    const message = err?.response?.data?.message || 'Huỷ đơn thất bại';
+    toast.error(message);
+  }
+}}
+
       />
 
       <UpdateOrderStatusDialog
-        open={updateStatusDialogOpen}
-        onClose={() => setUpdateStatusDialogOpen(false)}
-        order={selectedOrder}
-        onConfirm={(newStatus) => {
-          Toastify.success(`Đã cập nhật trạng thái đơn ${selectedOrder?.code} thành "${newStatus}"`);
-          setUpdateStatusDialogOpen(false);
-          loadOrders();
-        }}
-      />
+  open={updateStatusDialogOpen}
+  onClose={() => setUpdateStatusDialogOpen(false)}
+  order={selectedOrder}
+  onConfirm={handleUpdateStatus}
+/>
+
     </Box>
   );
 };

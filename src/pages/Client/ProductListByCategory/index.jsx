@@ -13,6 +13,9 @@ import { wishlistService } from '../../../services/client/wishlistService';
 import { bannerService } from '../../../services/client/bannerService';
 import { toast } from 'react-toastify';
 import Loader from '../../../components/common/Loader';
+// ✅ Cách đúng – để React tự re-render khi slug thay đổi
+
+
 import { formatCurrencyVND } from '../../../utils/formatCurrency';
 import { useParams } from 'react-router-dom';
 const ITEMS_PER_PAGE = 20;
@@ -33,23 +36,25 @@ export default function ProductListByCategory() {
     const [categoryId, setCategoryId] = useState(null);
 const [categoryInfo, setCategoryInfo] = useState({ id: null, name: 'Danh mục', description: null }); 
     const sortBarRef = useRef();
-    const slug = window.location.pathname.split('/').pop();
+   const { slug } = useParams();
+   const fetchCategoryName = async () => {
+  try {
+    const res = await categoryService.getBySlug(slug);
+    const cat = res.data;
 
-    const fetchCategoryName = async () => {
-        try {
-            const res = await categoryService.getBySlug(slug);
-            const cat = res.data;
-         // Gộp 3 dòng trên thành 1 dòng setCategoryInfo này
-setCategoryInfo({
-    id: cat.id,
-    name: cat.parent?.name || cat.name || 'Danh mục',
-    description: cat.description || null // Thêm description vào đây
-});
-        } catch (err) {
-            console.error('❌ Không lấy được tên danh mục:', err);
-            setCategoryName('Danh mục');
-        }
-    };
+    setCategoryId(cat.id); // ✅ THÊM DÒNG NÀY – QUAN TRỌNG
+
+    setCategoryInfo({
+      id: cat.id,
+      name: cat.parent?.name || cat.name || 'Danh mục',
+      description: cat.description || null
+    });
+  } catch (err) {
+    console.error('❌ Không lấy được tên danh mục:', err);
+    setCategoryName('Danh mục');
+  }
+};
+
 
     const fetchCategoryBanners = async () => {
   if (!categoryId) return;
@@ -92,88 +97,79 @@ setCategoryInfo({
     };
 
   // ProductListByCategory.jsx
+// Trong ProductListByCategory.jsx
+// ProductListByCategory.jsx
+// Trong ProductListByCategory.jsx
 const fetchProducts = async (page = 1) => {
-  if (!slug) return;
-  setLoading(true);
+    if (!slug) return;
+    setLoading(true);
 
-  try {
-    /** 1. Gọi API */
-    const res = await productService.getByCategory({
-      slug,
-      page,
-      limit: ITEMS_PER_PAGE,
-      brand: filters.brand,
-      stock: filters.stock,
-      priceRange: filters.price,
-      sort: sortOption,
-    });
+    try {
+      const res = await productService.getByCategory({
+        slug,
+        page,
+        limit: ITEMS_PER_PAGE,
+        brand: filters.brand,
+        stock: filters.stock,
+        priceRange: filters.price,
+        sort: sortOption,
+      });
 
-    /** 2. Chuẩn hoá dữ liệu cho UI */
-    const formatted = (res.data.products || []).map((item) => {
-      const sku               = item.skus?.[0] || {};           // SKU chính
-      const priceNum          = sku.price ?? null;              // null nếu ko có
-      const originalPriceNum  = sku.originalPrice ?? null;
+      // Debug: xem server trả về cái gì
+      console.log('🛠️ raw API products:', res.data.products);
 
-      /* ----- Tính giá hiển thị & % giảm ----- */
-      let displayPrice   = null;   // giá chính
-      let displayOld     = null;   // giá gạch ngang
-      let discountPct    = null;   // badge %
+// Trong ProductListByCategory.jsx, bên trong fetchProducts
+const formatted = (res.data.products || []).map(item => {
+    const sku = item.skus?.[0] || {};
+    const flash = sku.flashSaleSkus?.find(f => f.isActive);
 
-      if (priceNum && priceNum > 0) {               // có giá bán
-        displayPrice = formatCurrencyVND(priceNum);
+    const priceNum = Number(flash?.salePrice || sku.price) || 0;
+    const oldPriceNum = Number(sku.originalPrice ?? sku.price) || 0; 
+    const originalPriceNum = Number(sku.originalPrice ?? sku.price) || 0; // Giữ cái này nếu bạn dùng nó riêng cho flash sale
 
-        if (originalPriceNum && originalPriceNum > priceNum) {
-          displayOld  = formatCurrencyVND(originalPriceNum);
-          discountPct = Math.round(
-            ((originalPriceNum - priceNum) / originalPriceNum) * 100
-          );
-        }
-      } else if (originalPriceNum) {                // chỉ có giá gốc
-        displayPrice = formatCurrencyVND(originalPriceNum);
-      }
+    // SỬA DÒNG NÀY ĐỂ TÍNH PHẦN TRĂM GIẢM GIÁ ĐÚNG
+    let calculatedDiscount = 0;
+    const comparePriceForDiscount = (flash && flash.salePrice) ? oldPriceNum : oldPriceNum; // Nếu có flash sale, dùng oldPriceNum (giá gốc) để so sánh; nếu không, vẫn dùng oldPriceNum
 
-      return {
+    if (comparePriceForDiscount > priceNum && comparePriceForDiscount > 0) {
+        calculatedDiscount = Math.round(((comparePriceForDiscount - priceNum) / comparePriceForDiscount) * 100);
+    }
+
+    return {
         id: item.id,
         name: item.name,
         slug: item.slug,
+        badge: item.badge,
+        image: item.image || item.thumbnail,
+    
+        priceNum,
+        oldPriceNum, // Vẫn dùng oldPriceNum để truyền xuống component hiển thị gạch ngang
+        originalPriceNum, // Giữ lại nếu ProductCard cần nó cho logic đặc biệt của Flash Sale
+        discount: calculatedDiscount, // <-- Gán phần trăm giảm giá đã tính đúng
+        rating: item.averageRating,
+        inStock: item.inStock,
+        soldCount: item.soldCount,
+        skus: item.skus,
+    };
+});
 
-        /* ảnh đại diện – ưu tiên ảnh SKU, fallback thumbnail sản phẩm */
-        image:
-          sku.ProductMedia?.[0]?.mediaUrl ||
-          sku.media?.[0]?.mediaUrl ||
-          item.thumbnail,
+      setProducts(formatted);
+      setTotalItems(res.data.totalItems);
+      setPaginationEnabled(res.data.paginationEnabled);
+    } catch (err) {
+      console.error("❌ Lỗi gọi API:", err);
+      setProducts([]);
+      setTotalItems(0);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        /* thông tin giá đã chuẩn hoá */
-        price:      displayPrice,          // luôn có 1 con số để in
-        oldPrice:   displayOld,            // null nếu không cần gạch ngang
-        priceNum:   priceNum ?? originalPriceNum ?? 0,
-        oldPriceNum: originalPriceNum ?? 0,
-        discount:   discountPct,           // null nếu không giảm
-
-        rating:      item.averageRating || 0,
-        inStock:     sku.stock > 0,
-        soldCount:   item.soldCount ?? 0,
-        isFavorite:  favorites.includes(item.id),
-      };
-    });
-
-    /** 3. Cập nhật state */
-    setProducts(formatted);
-    setTotalItems(res.data.totalItems);
-    setPaginationEnabled(res.data.paginationEnabled);
-  } catch (err) {
-    console.error("❌ Lỗi gọi API:", err);
-    setProducts([]);
-    setTotalItems(0);
-  } finally {
-    setLoading(false);
-  }
-};
-
-    useEffect(() => {
-        fetchCategoryName();
-        fetchFavorites();
-    }, [slug]);
+useEffect(() => {
+  if (!slug) return; // ✅ Đảm bảo slug tồn tại rồi mới gọi API
+  fetchCategoryName();
+  fetchFavorites();
+}, [slug]);
 
     useEffect(() => {
         fetchCategoryBanners();

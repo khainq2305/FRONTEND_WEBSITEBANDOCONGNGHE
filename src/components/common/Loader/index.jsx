@@ -6,11 +6,11 @@ import loadingAnimation from "../../../assets/Client/animations/loader.json";
 const Loader = ({ fullscreen }) => {
   useEffect(() => {
     if (fullscreen) {
-      document.body.style.overflow = "hidden"; // ✅ Khóa cuộn khi Loader xuất hiện
+      document.body.style.overflow = "hidden"; 
     }
 
     return () => {
-      document.body.style.overflow = "auto"; // ✅ Mở lại cuộn khi Loader biến mất
+      document.body.style.overflow = "auto"; 
     };
   }, [fullscreen]);
 

@@ -45,65 +45,82 @@ const CartItem = ({ item, isChecked, onToggleChecked, onQuantityChange }) => {
         }
     };
 
-    const handleQuantityChange = async (delta) => {
-        const newQty = quantity + delta;
-        if (isUpdating || newQty < 1) return;
-        if (newQty > item.stock) {
-            if (toast.isActive("cart-stock-warn")) {
-                toast.dismiss("cart-stock-warn");
-            }
-            toast.warn(`Chỉ còn ${item.stock} sản phẩm trong kho.`, {
-                toastId: "cart-stock-warn",
-                position: "top-right",
-            });
-            return;
-        }
+   const handleQuantityChange = async (delta) => {
+  const newQty = quantity + delta;
+  if (isUpdating || newQty < 1) return;
 
-        try {
-            setIsUpdating(true);
-            await cartService.updateQuantity({
-                cartItemId: item.id,
-                quantity: newQty,
-            });
-            setQuantity(newQty);
-            if (toast.isActive("cart-update-success")) {
-                toast.dismiss("cart-update-success");
-            }
-            toast.success("Cập nhật số lượng thành công.", {
-                toastId: "cart-update-success",
-                position: "top-right",
-            });
-            if (onQuantityChange) onQuantityChange();
-        } catch (error) {
-            console.error("Lỗi cập nhật số lượng:", error);
-            const msg = error.response?.data?.message || "Không thể cập nhật số lượng sản phẩm.";
-            if (toast.isActive("cart-update-error")) {
-                toast.dismiss("cart-update-error");
-            }
-            toast.warn(msg, {
-                toastId: "cart-update-error",
-                position: "top-right",
-            });
-        } finally {
-            setIsUpdating(false);
-        }
-    };
+  if (newQty > item.stock) {
+    toast.dismiss("cart-stock-warn");
+    toast.warn(`Chỉ còn ${item.stock} sản phẩm trong kho.`, {
+      toastId: "cart-stock-warn",
+      position: "top-right",
+    });
+    return;
+  }
+
+  try {
+    setIsUpdating(true);
+    const res = await cartService.updateQuantity({
+      cartItemId: item.id,
+      quantity: newQty,
+    });
+
+    setQuantity(newQty);
+
+    toast.dismiss("cart-update-success");
+    toast.success(res?.data?.message || "Cập nhật số lượng thành công.", {
+      toastId: "cart-update-success",
+      position: "top-right",
+    });
+
+    if (onQuantityChange) onQuantityChange();
+  } catch (error) {
+    console.error("Lỗi cập nhật số lượng:", error);
+    const msg = error.response?.data?.message || "Không thể cập nhật số lượng sản phẩm.";
+    toast.dismiss("cart-update-error");
+    toast.warn(msg, {
+      toastId: "cart-update-error",
+      position: "top-right",
+    });
+  } finally {
+    setIsUpdating(false);
+  }
+};
+
 
     return (
-        // ✅ THÊM LẠI CLASS LÀM MỜ SẢN PHẨM HẾT HÀNG
-        <div className={`bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col ${isOutOfStock ? 'opacity-60 bg-gray-50' : ''}`}>
+        <div className={`bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col ${isOutOfStock ? 'bg-gray-50' : ''}`}>
             <div className="flex items-center justify-between flex-wrap gap-2 p-3 sm:p-4">
-                {/* Checkbox */}
-                <div
-                    className={`w-5 h-5 flex items-center justify-center rounded-sm transition border ${
-                        isChecked && !isOutOfStock ? "bg-primary border-primary" : "bg-white border-gray-500"
-                    } ${
-                        isOutOfStock ? "cursor-not-allowed bg-gray-200" : "cursor-pointer"
-                    }`}
-                    onClick={isOutOfStock ? null : onToggleChecked}
-                >
-                    {isChecked && !isOutOfStock && <span className="text-white text-xs font-bold">✓</span>}
-                </div>
+                {/* Conditional rendering for Checkbox or "HẾT" text only */}
+                {isOutOfStock ? (
+                    // Hiển thị chữ "HẾT" thuần túy ở vị trí checkbox
+                    <span className="text-red-600 font-bold text-sm flex-shrink-0" style={{ minWidth: '24px', textAlign: 'center' }}>
+                        HẾT
+                    </span>
+                ) : (
+                    // Checkbox bình thường
+                    <div
+                        className={`w-5 h-5 flex items-center justify-center rounded-sm transition border ${
+                            isChecked ? "bg-primary border-primary" : "bg-white border-gray-500"
+                        } cursor-pointer text-xs font-bold flex-shrink-0`}
+                        onClick={async () => {
+                            try {
+                                await cartService.updateSelected({
+                                    cartItemId: item.id,
+                                    isSelected: !isChecked,
+                                });
+                                onToggleChecked(); // vẫn gọi để cập nhật UI
+                            } catch (err) {
+                                toast.error("Không thể cập nhật trạng thái chọn!", {
+                                    position: "top-right",
+                                });
+                                console.error("Lỗi update isSelected:", err);
+                            }
+                        }}
+                    >
+                        {isChecked && <span>✓</span>}
+                    </div>
+                )}
                 
                 {/* Image */}
                 <img
@@ -113,16 +130,20 @@ const CartItem = ({ item, isChecked, onToggleChecked, onQuantityChange }) => {
                         e.target.onerror = null;
                         e.target.src = "https://mucinmanhtai.com/wp-content/themes/BH-WebChuan-032320/assets/images/default-thumbnail-400.jpg";
                     }}
-                    className="w-16 h-16 sm:w-20 sm:h-20 rounded object-cover ml-3 mr-3"
+                    className={`w-16 h-16 sm:w-20 sm:h-20 rounded object-cover ml-3 mr-3 ${isOutOfStock ? 'grayscale opacity-80' : ''}`}
                 />
 
                 {/* Info */}
                 <div className="flex-1 min-w-0 space-y-2">
-                    <h3 className="text-sm md:text-base max-w-[270px] font-medium text-gray-800 line-clamp-2">
+                    <h3 
+                        className={`text-sm md:text-base max-w-[270px] font-medium text-gray-800 line-clamp-2 ${isOutOfStock ? 'text-gray-500 opacity-60' : ''}`}
+                    >
                         {item.productName}
                     </h3>
                     {item.variantValues?.length > 0 && (
-                        <div className="text-xs text-gray-600">
+                        <div 
+                            className={`text-xs text-gray-600 ${isOutOfStock ? 'text-gray-400 opacity-60' : ''}`}
+                        >
                             {item.variantValues.map((v, i) => (
                                 <div key={i}>
                                     <span className="font-medium">{v.variant}:</span> {v.value}
@@ -134,11 +155,15 @@ const CartItem = ({ item, isChecked, onToggleChecked, onQuantityChange }) => {
 
                 {/* Price */}
                 <div className="text-right">
-                    <div className="text-red-600 font-bold text-sm md:text-base">
+                    <div 
+                        className={`text-red-600 font-bold text-sm md:text-base ${isOutOfStock ? 'text-gray-500 line-through opacity-60' : ''}`}
+                    >
                         {formatCurrencyVND(item.finalPrice)}
                     </div>
                     {item.finalPrice < item.price && (
-                        <div className="line-through text-gray-400 text-xs">
+                        <div 
+                            className={`line-through text-gray-400 text-xs ${isOutOfStock ? 'text-gray-400 opacity-60' : ''}`}
+                        >
                             {formatCurrencyVND(item.price)}
                         </div>
                     )}
@@ -147,11 +172,12 @@ const CartItem = ({ item, isChecked, onToggleChecked, onQuantityChange }) => {
                 {/* Quantity & Delete */}
                 <div className="flex items-center justify-end gap-2">
                     {isOutOfStock ? (
-                        <div className="text-red-600 font-semibold text-sm px-4">
+                        // ✅ Đã thêm lại dòng "Hết hàng" ở đây, cạnh nút xóa
+                        <div className="text-red-600 font-semibold text-sm px-4 whitespace-nowrap flex-shrink-0">
                             Hết hàng
                         </div>
                     ) : (
-                        <div className="border rounded flex shadow-sm">
+                        <div className="border rounded flex shadow-sm flex-shrink-0">
                             <button
                                 className="w-8 h-8 border-r border-gray-300 text-gray-400 hover:bg-gray-100 disabled:opacity-50"
                                 onClick={() => handleQuantityChange(-1)}
@@ -175,7 +201,7 @@ const CartItem = ({ item, isChecked, onToggleChecked, onQuantityChange }) => {
                         </div>
                     )}
                     <button
-                        className="text-gray-400 hover:text-red-600 p-1 transition disabled:opacity-50"
+                        className="text-gray-400 hover:text-red-600 p-1 transition"
                         onClick={handleDeleteItem}
                         title="Xóa"
                     >

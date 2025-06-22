@@ -9,6 +9,12 @@ const SuccessModal = ({ message, onClose, duration = 3000 }) => {
 
     return () => clearTimeout(timer);
   }, [onClose, duration]);
+useEffect(() => {
+  document.body.style.overflow = 'hidden';
+  return () => {
+    document.body.style.overflow = 'auto';
+  };
+}, []);
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-4">

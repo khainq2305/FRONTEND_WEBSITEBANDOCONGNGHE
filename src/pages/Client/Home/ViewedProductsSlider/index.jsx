@@ -76,36 +76,32 @@ const ViewedProductsSlider = () => {
         }
     };
 
-    const getPriceJsx = (product) => {
-        if (!product.skus || product.skus.length === 0) {
-            return <p className="text-sm text-red-600 font-semibold">Liên hệ</p>;
-        }
-        const firstSku = product.skus[0];
-        const salePrice = firstSku.price;
-        const originalPrice = firstSku.originalPrice;
-        if (salePrice && parseFloat(salePrice) > 0) {
-            return (
-                <div className="flex items-baseline gap-x-2">
-                    <p className="text-sm text-red-600 font-semibold">
-                        {parseFloat(salePrice).toLocaleString('vi-VN')}₫
-                    </p>
-                    {originalPrice && parseFloat(originalPrice) > parseFloat(salePrice) ? (
-                        <p className="text-xs text-gray-500 line-through">
-                            {parseFloat(originalPrice).toLocaleString('vi-VN')}₫
-                        </p>
-                    ) : null}
-                </div>
-            );
-        }
-        if (originalPrice && parseFloat(originalPrice) > 0) {
-            return (
-                <p className="text-sm text-red-600 font-semibold">
-                    {parseFloat(originalPrice).toLocaleString('vi-VN')}₫
-                </p>
-            );
-        }
-        return <p className="text-sm text-red-600 font-semibold">Liên hệ</p>;
-    };
+ // trong ViewedProductsSlider
+const getPriceJsx = (product) => {
+  const sale = parseFloat(product.price) || 0;
+  const orig = parseFloat(product.originalPrice) || 0;
+  if (sale === 0 && orig === 0) return <p className="italic">Liên hệ</p>;
+  if (sale > 0) {
+    const hasDiscount = orig > sale;
+    return (
+      <div>
+        <span className="text-red-600 font-semibold">
+          {sale.toLocaleString('vi-VN')}₫
+        </span>
+        {hasDiscount && (
+          <span className="line-through ml-1 text-gray-500">
+            {orig.toLocaleString('vi-VN')}₫
+          </span>
+        )}
+      </div>
+    );
+  }
+  return (
+    <span className="text-red-600 font-semibold">
+      {orig.toLocaleString('vi-VN')}₫
+    </span>
+  );
+};
 
     const numProducts = products.length;
 

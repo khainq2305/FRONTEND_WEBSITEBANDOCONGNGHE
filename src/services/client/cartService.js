@@ -11,6 +11,7 @@ export const cartService = {
   updateQuantity: (data) => put(`${base}${API_ENDPOINT.client.cart.updateQuantity}`, data),
 
   deleteItem: (id) => del(`${base}${API_ENDPOINT.client.cart.deleteItem(id)}`),
+updateSelected: (data) => put(`${base}${API_ENDPOINT.client.cart.updateSelected}`, data),
 
   deleteMultiple: (ids) => post(`${base}${API_ENDPOINT.client.cart.deleteMultiple}`, { cartItemIds: ids })
 };

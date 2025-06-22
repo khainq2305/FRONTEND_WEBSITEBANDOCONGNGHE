@@ -515,6 +515,8 @@ const ProfileContent = () => {
       </div>
 
       <SuccessModal isOpen={showSuccessModal} message={successModalMessage} onClose={() => setShowSuccessModal(false)} />
+        {isSubmitting && <Loader fullscreen />}
+
     </>
   );
 };

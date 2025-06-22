@@ -48,7 +48,9 @@ export default function CancelOrderDialog({ isOpen, onClose, orderId, onSuccess 
   return (
     <Dialog open={isOpen} onClose={handleClose} className="relative z-50">
       {/* Lớp nền mờ */}
-      <div className="fixed inset-0 bg-black/40" aria-hidden="true" />
+      {loading && <Loader fullscreen={true} />}
+
+      
 
       {/* Dialog content */}
       <div className="fixed inset-0 flex w-screen items-center justify-center p-4">

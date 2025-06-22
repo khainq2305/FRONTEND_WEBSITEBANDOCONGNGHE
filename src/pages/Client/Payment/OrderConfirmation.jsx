@@ -18,7 +18,8 @@ const OrderConfirmation = () => {
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
 
-const orderCode = searchParams.get('orderCode')
+const orderCode = searchParams.get('orderCode') || searchParams.get('orderId');
+
 const location = useLocation();
 const qrUrl = new URLSearchParams(location.search).get("qr");
 
@@ -70,16 +71,16 @@ const qrUrl = new URLSearchParams(location.search).get("qr");
         );
     }
 
-    const {
-        products = [],
-        userAddress,
-        paymentMethod,
-        totalPrice,
-        discount = 0,
-        shippingFee = 0,
-        finalPrice,
-        id,
-    } = order;
+   const {
+  products = [],
+  userAddress,
+  paymentMethod,
+  totalPrice,
+  couponDiscount = 0,   // ✅ Đổi tên từ "discount" thành "couponDiscount"
+  shippingFee = 0,
+  finalPrice,
+  id,
+} = order;
 
     const customer = {
         name: userAddress?.fullName || "Chưa có tên",
@@ -91,14 +92,15 @@ const qrUrl = new URLSearchParams(location.search).get("qr");
         time: order?.deliveryTime || "Thời gian sẽ được nhân viên xác nhận khi gọi điện",
     };
 
-    const summary = {
-       orderId: order?.orderCode || '',
-        total: totalPrice,
-        discount,
-        deliveryFee: shippingFee,
-        amountDue: finalPrice,
-        points: Math.floor((finalPrice - shippingFee) / 10000),
-    };
+  const summary = {
+  orderId: order?.orderCode || '',
+  total: totalPrice,
+  discount: couponDiscount,  // ✅ dùng đúng tên trường
+  deliveryFee: shippingFee,
+  amountDue: finalPrice,
+  points: Math.floor((finalPrice - shippingFee) / 10000),
+};
+
 
     return (
         <div className="bg-gray-50 py-8">

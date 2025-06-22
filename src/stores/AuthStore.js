@@ -12,7 +12,6 @@ const useAuthStore = create(
 
       fetchUserInfo: async () => {
         if (get().user) {
-          // ✅ đã có user → bỏ qua gọi API
           set({ loading: false });
           return;
         }
