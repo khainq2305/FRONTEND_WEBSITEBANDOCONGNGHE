@@ -35,6 +35,7 @@ const ClientLayout = () => {
 
     <main>
       <Outlet />
+      {!isComparePage && <CompareBar /> }
     </main>
 
     <Footer />

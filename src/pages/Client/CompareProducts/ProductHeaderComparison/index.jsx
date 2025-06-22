@@ -1,13 +1,13 @@
 // src/components/ProductHeaderComparison/index.jsx
 import React from 'react';
 
-// --- Định nghĩa các Component Icon trực tiếp trong file này (GIỮ NGUYÊN NHƯ BẠN GỬI) ---
-const StarIconSolid = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3 text-yellow-400">
-    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-  </svg>
-);
-
+// const ProductHeaderComparison = ({ products = [], onRemoveProduct, onAddProduct, sidebarWidthClass, productColumnClasses ,showOnlyDifferences,        // ✅ thêm dòng này
+//   onToggleDifferences }) => {
+//   const columnsToRender = [...products];
+//   while (columnsToRender.length < 3) {
+//     columnsToRender.push(null); 
+//   }
+//   }
 const FanSpeedIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-gray-500 mx-auto">
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a5.25 5.25 0 0 1 0 10.5m0-10.5a5.25 5.25 0 0 0 0 10.5m0-10.5V4.5m0 15V19.5m0-15a5.25 5.25 0 0 1 5.25 5.25m-5.25-5.25a5.25 5.25 0 0 0-5.25 5.25m10.5 0a5.25 5.25 0 0 1-5.25 5.25m5.25-5.25a5.25 5.25 0 0 0-5.25 5.25M12 9.75a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
@@ -90,31 +90,34 @@ const ProductCard = ({ product }) => (
 // --- Component Chính của File này ---
 const ProductHeaderComparison = ({ products, showOnlyDifferences, onToggleDifferences, sidebarWidthClass }) => {
   return (
-    // Luôn sử dụng flex-row để giữ 2 cột trên mọi kích thước màn hình
-    <div className="flex flex-row border-b border-gray-300">
-      {/* Cột Sidebar Trái */}
-      <div className={`${sidebarWidthClass} flex-shrink-0 p-3 border-r border-gray-300`}> {/* Luôn có border-r */}
-        <h1 className="text-[13px] font-medium text-gray-700 mb-1">
-          So sánh sản phẩm
-        </h1>
-        <div className="text-[10.5px] text-gray-600 leading-relaxed space-y-0.5 mb-2.5">
-          {products.map((p, index) => (
-            <div key={p.id} className="flex">
-              <span className="font-normal">{p.nameForSidebar}</span>
-              {index < products.length - 1 && <span className="text-gray-300 ml-1">&</span>}
-            </div>
+    <div className="flex border-b border-gray-300">
+      {/* Sidebar cột nhãn */}
+      <div className={`${sidebarWidthClass} flex-shrink-0 border-r border-gray-300 bg-white p-2`}>
+        <span className="text-xm text-gray-700 block mb-2">So sánh sản phẩm</span>
+
+        <div className="text-[12px] uppercase font-semibold text-gray-800 leading-snug">
+          {products.map((p, idx) => (
+            <span key={p.id}>
+              {p.name}
+              {idx < products.length - 1 && (
+                <span className="mx-1 text-gray-500">
+                  <br /> & <br />
+                </span>
+              )}
+            </span>
           ))}
         </div>
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id="view-diff-top"
-            className="w-3 h-3 mr-1.5 accent-[#1a73e8] border-gray-400 rounded-sm focus:ring-2 focus:ring-[#1a73e8]/50"
-            checked={showOnlyDifferences}
-            onChange={onToggleDifferences}
-          />
-          <label htmlFor="view-diff-top" className="text-[10.5px] text-[#1a73e8] cursor-pointer hover:underline">
-            Chỉ xem điểm khác biệt
+
+        {/* Checkbox: chỉ xem điểm khác biệt */}
+        <div className="mt-2">
+          <label className="flex items-center space-x-2 text-xs text-gray-700">
+            <input
+              type="checkbox"
+              checked={showOnlyDifferences}
+              onChange={onToggleDifferences}
+              className="w-4 h-4 rounded border-gray-300 focus:ring-0"
+            />
+            <span>Chỉ xem điểm khác biệt</span>
           </label>
         </div>
       </div>
@@ -145,5 +148,4 @@ const ProductHeaderComparison = ({ products, showOnlyDifferences, onToggleDiffer
     </div>
   );
 };
-
 export default ProductHeaderComparison;

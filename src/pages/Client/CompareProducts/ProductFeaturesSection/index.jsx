@@ -51,5 +51,4 @@ const ProductFeaturesSection = ({ products, featureOrder, showOnlyDifferences, g
     </div>
   );
 };
-
 export default ProductFeaturesSection;

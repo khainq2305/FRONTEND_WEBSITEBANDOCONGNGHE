@@ -121,6 +121,55 @@ const featureOrderArray = [
 
 function CompareProducts() { // Đổi tên component cha
   const [showOnlyDifferences, setShowOnlyDifferences] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [productIds, setProductIds] = useState([]);
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  const sidebarWidthClass = 'w-full lg:w-[230px] lg:min-w-[200px]';
+  const productColumnClasses = 'flex-1 min-w-0';
+
+  const handleRemoveProduct = (idToRemove) => {
+    const updatedIds = productIds.filter((id) => id !== idToRemove.toString());
+    if (updatedIds.length === 0) {
+      localStorage.removeItem('compareIds');
+      window.location.href = '/';
+    } else {
+      setProductIds(updatedIds);
+      localStorage.setItem('compareIds', JSON.stringify(updatedIds));
+      setSearchParams({ ids: updatedIds.join(',') });
+    }
+  };
+  useEffect(() => {
+    console.log('✅ specs từ API:', specs);
+  }, [specs]);
+
+  useEffect(() => {
+    const ids = searchParams.get('ids');
+    if (!ids) {
+      const saved = JSON.parse(localStorage.getItem('compareIds') || '[]');
+      if (saved.length > 0) {
+        window.location.href = `/compare-products?ids=${saved.join(',')}`;
+        return;
+      } else {
+        toast.error('Không có sản phẩm nào để so sánh');
+        setLoading(false);
+        return;
+      }
+    }
+
+    const idList = ids.split(',');
+    setProductIds(idList);
+    localStorage.setItem('compareIds', JSON.stringify(idList));
+
+    productService
+      .getCompareByIds(idList)
+      .then((res) => {
+        setProducts(res.data.products || []);
+        setSpecs(res.data.specs || []);
+      })
+      .catch(() => toast.error('Không thể tải dữ liệu so sánh'))
+      .finally(() => setLoading(false));
+  }, [searchParams]);
 
   const handleToggleDifferences = () => {
     setShowOnlyDifferences(!showOnlyDifferences);
@@ -146,14 +195,68 @@ function CompareProducts() { // Đổi tên component cha
     return value || '-';
   };
 
-  const sidebarWidthClass = "w-full lg:w-[230px] lg:min-w-[200px]";
-  const productColumnClasses = "flex-1 min-w-0"; // Cho phép cột co lại nếu cần trong grid
+  // const sidebarWidthClass = "w-full lg:w-[230px] lg:min-w-[200px]";
+  // const productColumnClasses = "flex-1 min-w-0"; // Cho phép cột co lại nếu cần trong grid
 
   return (
     <div className="bg-[#f3f4f6] min-h-screen py-3 px-2 text-xs font-['Roboto',_sans-serif]">
-      <div className="container mx-auto max-w-[1200px] bg-white shadow-sm rounded-md overflow-hidden border border-gray-300">
-        <ProductHeaderComparison
-          products={productsDataArray}
+      <div className="container mx-auto max-w-screen-xl bg-white border-gray-300">
+        <div className="sticky top-0 z-10 bg-white shadow-sm">
+          <ProductHeaderComparison
+            products={products}
+            specs={specs} // ✅ THÊM DÒNG NÀY
+            onAddProduct={() => setShowAddModal(true)} // ✅ truyền đúng hàm mở modal
+            onRemoveProduct={handleRemoveProduct}
+            sidebarWidthClass={sidebarWidthClass}
+            productColumnClasses={productColumnClasses}
+            showOnlyDifferences={showOnlyDifferences} // ✅ truyền trạng thái
+            onToggleDifferences={handleToggleDifferences}
+          />
+        </div>
+
+        <QuickCompareSection products={products} sidebarWidthClass={sidebarWidthClass} productColumnMinWidthClass={productColumnClasses} />
+
+        {/* {specs.filter(getFilteredSpecs).map((spec) => (
+          <div key={spec.specKey} className="flex border-t border-gray-300">
+            <div
+              className={`${sidebarWidthClass} flex-shrink-0 py-2 px-2.5 text-left whitespace-nowrap font-medium border-r border-gray-300 bg-gray-50`}
+            >
+              {spec.specKey}
+            </div>
+            <div className="flex-grow grid grid-cols-3">
+              {columnsToRender.map((product, idx) => (
+                <div
+                  key={`${spec.specKey}-${product?.id || 'empty-' + idx}`}
+                  className={`py-2 px-2.5 text-center ${productColumnClasses} ${idx < 2 ? 'border-r border-gray-300' : ''}`}
+                >
+                  {product?.id ? spec.values[product.id] || '-' : '-'}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))} */}
+        {showAddModal && (
+          <AddCompareProductModal
+            onClose={() => setShowAddModal(false)}
+            onProductSelect={(product) => {
+              const updatedIds = [...productIds, product.id];
+              setProductIds(updatedIds);
+              localStorage.setItem('compareIds', JSON.stringify(updatedIds));
+              setSearchParams({ ids: updatedIds.join(',') });
+              setShowAddModal(false);
+            }}
+          />
+        )}
+
+        <ProductFeaturesSection
+          products={products.map((p) => ({
+            ...p,
+            features: specs.reduce((acc, spec) => {
+              acc[spec.specKey] = spec.values?.[p.id] || '-';
+              return acc;
+            }, {})
+          }))}
+          featureOrder={specs.map((s) => s.specKey)}
           showOnlyDifferences={showOnlyDifferences}
           onToggleDifferences={handleToggleDifferences}
           sidebarWidthClass={sidebarWidthClass}
