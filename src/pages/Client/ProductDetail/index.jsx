@@ -367,7 +367,7 @@ const handleBuyNow = async (selectedLabel) => {
       <div className="max-w-[1200px] mx-auto py-3 md:pt-1 md:pb-6 text-sm text-gray-800">
         <div className="px-4 md:px-0 grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-6 items-start mb-6">
           <ProductImageSection
-            key={skuId} // ⚠️ Bắt buộc re-render nếu skuId thay đổi
+            key={skuId} 
             mainImage={mainImage}
             setMainImage={setMainImage}
             allImages={imagesForSelectedVariant}
@@ -380,7 +380,7 @@ const handleBuyNow = async (selectedLabel) => {
             productName={productName}
             onBuyNow={handleBuyNow}
             rating={productRating}
-                badge={product?.badge} // ✅ THÊM DÒNG NÀY
+                badge={product?.badge} 
             reviewCount={productReviewCount}
             productOptionsData={productOptionsData}
             selectedOption={selectedOption}

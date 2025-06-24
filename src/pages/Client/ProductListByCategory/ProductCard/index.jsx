@@ -12,20 +12,20 @@ export default function ProductCard({
   oldPrice,
   priceNum,
   oldPriceNum,
-  originalPriceNum, // ✅ dùng cho flash sale
+  originalPriceNum,
   discount,
   image,
   onCompare,
   badge,
-  skus,
+  skus
 }) {
-const calculateSavings = () => {
-  if (!isNaN(priceNum) && !isNaN(originalPriceNum) && originalPriceNum > priceNum) {
-    const diff = originalPriceNum - priceNum;
-    return formatCurrencyVND(diff);
-  }
-  return null;
-};
+  const calculateSavings = () => {
+    if (!isNaN(priceNum) && !isNaN(originalPriceNum) && originalPriceNum > priceNum) {
+      const diff = originalPriceNum - priceNum;
+      return formatCurrencyVND(diff);
+    }
+    return null;
+  };
 
   const renderBadge = () => {
     if (!badge) return <div className="mb-2 h-[28px]"></div>;
@@ -34,7 +34,7 @@ const calculateSavings = () => {
       'GIAO NHANH': '/src/assets/Client/images/1717405144807-Left-Tag-Giao-Nhanh.webp',
       'THU CŨ ĐỔI MỚI': '/src/assets/Client/images/1740550907303-Left-tag-TCDM (1).webp',
       'TRẢ GÓP 0%': '/src/assets/Client/images/1717405144808-Left-Tag-Tra-Gop-0.webp',
-      'GIÁ TỐT': '/src/assets/Client/images/1732077440142-Left-tag-Bestprice-0.gif',
+      'GIÁ TỐT': '/src/assets/Client/images/1732077440142-Left-tag-Bestprice-0.gif'
     };
 
     const upperCaseBadge = badge.toUpperCase();
@@ -43,17 +43,11 @@ const calculateSavings = () => {
     if (upperCaseBadge.includes('GIAO NHANH')) imageUrl = badgeImageMap['GIAO NHANH'];
     else if (upperCaseBadge.includes('THU CŨ')) imageUrl = badgeImageMap['THU CŨ ĐỔI MỚI'];
     else if (upperCaseBadge.includes('TRẢ GÓP')) imageUrl = badgeImageMap['TRẢ GÓP 0%'];
-    else if (upperCaseBadge.includes('GIÁ TỐT') || upperCaseBadge.includes('BEST PRICE'))
-      imageUrl = badgeImageMap['GIÁ TỐT'];
+    else if (upperCaseBadge.includes('GIÁ TỐT') || upperCaseBadge.includes('BEST PRICE')) imageUrl = badgeImageMap['GIÁ TỐT'];
 
     return imageUrl ? (
       <div className="flex justify-start items-center mb-2 h-[28px]">
-        <img
-          src={imageUrl}
-          alt={`Huy hiệu ${badge}`}
-          className="h-[24px] object-contain"
-          loading="lazy"
-        />
+        <img src={imageUrl} alt={`Huy hiệu ${badge}`} className="h-[24px] object-contain" loading="lazy" />
       </div>
     ) : (
       <div className="mb-2 h-[28px]"></div>
@@ -67,9 +61,7 @@ const calculateSavings = () => {
   return (
     <div className="w-full h-full flex flex-col border border-gray-200/70 rounded-lg overflow-hidden shadow-sm bg-white p-2.5 sm:p-3 relative transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1 group">
       {discount && (
-        <div className="absolute top-0 left-0 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-br-lg z-40">
-          -{discount}%
-        </div>
+        <div className="absolute top-0 left-0 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-br-lg z-40">-{discount}%</div>
       )}
 
       <Link to={`/product/${slug}`} className="block">
@@ -105,49 +97,30 @@ const calculateSavings = () => {
       </Link>
 
       <div className="mt-auto flex flex-col flex-grow justify-end">
-<div className="product-card-price text-sm mb-1">
-  {typeof priceNum === 'number' && priceNum > 0 ? (
-    <>
-      <span className="text-red-600 font-bold">
-        {formatCurrencyVND(priceNum)}
-      </span>
+        <div className="product-card-price text-sm mb-1">
+          {typeof priceNum === 'number' && priceNum > 0 ? (
+            <>
+              <span className="text-red-600 font-bold">{formatCurrencyVND(priceNum)}</span>
 
-      {/* Ưu tiên hiển thị originalPrice nếu đang flash sale */}
-      {originalPriceNum && originalPriceNum > priceNum ? (
-        <span className="text-gray-400 text-[10px] sm:text-xs line-through ml-1.5">
-          {formatCurrencyVND(originalPriceNum)}
-        </span>
-      ) : oldPriceNum && oldPriceNum > priceNum ? (
-        <span className="text-gray-400 text-[10px] sm:text-xs line-through ml-1.5">
-          {formatCurrencyVND(oldPriceNum)}
-        </span>
-      ) : null}
-    </>
-  ) : (
-    <span className="text-gray-500 italic">Liên hệ</span>
-  )}
-</div>
-
-
-
-
-
-
-
-
-
-        {/* Tiết kiệm */}
-        <div className="min-h-[20px] sm:min-h-[22px]">
-          {savings && <div className="text-green-600">Tiết kiệm {savings}</div>}
+             
+              {originalPriceNum && originalPriceNum > priceNum ? (
+                <span className="text-gray-400 text-[10px] sm:text-xs line-through ml-1.5">{formatCurrencyVND(originalPriceNum)}</span>
+              ) : oldPriceNum && oldPriceNum > priceNum ? (
+                <span className="text-gray-400 text-[10px] sm:text-xs line-through ml-1.5">{formatCurrencyVND(oldPriceNum)}</span>
+              ) : null}
+            </>
+          ) : (
+            <span className="text-gray-500 italic">Liên hệ</span>
+          )}
         </div>
 
-        {/* Placeholder rating và soldCount */}
+        <div className="min-h-[20px] sm:min-h-[22px]">{savings && <div className="text-green-600 text-xs">Tiết kiệm {savings}</div>}</div>
+
         <div className="flex justify-between items-center text-[10px] sm:text-xs mb-1.5 sm:mb-2 min-h-[16px] sm:min-h-[18px]">
           <div className="min-h-[14px] sm:min-h-[16px]"></div>
           <div className="min-h-[14px] sm:min-h-[16px]"></div>
         </div>
 
-        {/* Hành động */}
         <div className="product-card-actions flex items-center justify-between min-h-[26px] pt-1 mt-1">
           <button
             onClick={(e) => {
@@ -166,15 +139,11 @@ const calculateSavings = () => {
 
           {isProductTotallyOutOfStock ? (
             <div className="flex items-center gap-1">
-              <span className="text-red-500 font-semibold text-[10px] sm:text-xs leading-none whitespace-nowrap">
-                Hết hàng
-              </span>
+              <span className="text-red-500 font-semibold text-[10px] sm:text-xs leading-none whitespace-nowrap">Hết hàng</span>
             </div>
           ) : (
             <div className="flex items-center gap-1">
-              <span className="text-green-600 font-semibold text-[10px] sm:text-xs leading-none whitespace-nowrap">
-                Còn hàng
-              </span>
+              <span className="text-green-600 font-semibold text-[10px] sm:text-xs leading-none whitespace-nowrap">Còn hàng</span>
               <img src={InStockIcon} alt="Còn hàng" className="w-4 h-4 object-contain" />
             </div>
           )}

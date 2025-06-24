@@ -1,59 +1,55 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Store, PackageOpen } from 'lucide-react';
+import { Search, PackageOpen } from 'lucide-react';
 import { orderService } from '../../../services/client/orderService';
 import Loader from '../../../components/common/Loader';
 import HighlightText from '../../../components/Admin/HighlightText';
 import { formatCurrencyVND } from '../../../utils/formatCurrency';
-import ReturnOrderDialog from '../Auth/ReturnOrderDialog.jsx'; // THÊM Ở ĐẦU FILE
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 
-import CancelOrderDialog from './CancelOrderDialog'; // ✅ import ở đầu file
-
+import CancelOrderDialog from './CancelOrderDialog';
 import ReturnMethodDialog from './ReturnMethodDialog';
 
 // --- Component con để render một đơn hàng ---
 const OrderItem = ({ order, searchTerm, refetchOrders }) => {
-const [showReturnDialog, setShowReturnDialog] = useState(false); // ✅
-const [openReturnMethodDialog, setOpenReturnMethodDialog] = useState(false);
-const navigate = useNavigate();
+    const [showReturnDialog, setShowReturnDialog] = useState(false);
+    const [openReturnMethodDialog, setOpenReturnMethodDialog] = useState(false);
+    const navigate = useNavigate();
 
-const handleReorder = async () => {
-  try {
-    await orderService.reorder(order.id);
-    toast.success('Đã thêm sản phẩm vào giỏ hàng!');
-    navigate('/cart');
-  } catch (err) {
-    console.error('Lỗi khi mua lại:', err);
-    toast.error('Không thể mua lại đơn hàng!');
-  }
-};
+    const handleReorder = async () => {
+        try {
+            await orderService.reorder(order.id);
+            toast.success('Đã thêm sản phẩm vào giỏ hàng!');
+            navigate('/cart');
+        } catch (err) {
+            console.error('Lỗi khi mua lại:', err);
+            toast.error('Không thể mua lại đơn hàng!');
+        }
+    };
 
-    const [showCancelDialog, setShowCancelDialog] = useState(false); // ✅ khai báo state
+    const [showCancelDialog, setShowCancelDialog] = useState(false);
     return (
         <div className="bg-white mb-3 sm:mb-4 border border-gray-200 rounded-sm">
             {/* Header */}
-           {/* Header */}
-<div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 flex justify-between items-center">
- <div className="flex flex-col">
-  <span className="text-xs text-gray-500">Mã đơn hàng</span>
-  <h4 className="text-sm font-semibold text-gray-800">
-    <HighlightText
-      text={order.orderCode}
-      highlight={searchTerm}
-    />
-  </h4>
-</div>
+            <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 flex justify-between items-center">
+                <div className="flex flex-col">
+                    <span className="text-xs text-gray-500">Mã đơn hàng</span>
+                    <h4 className="text-sm font-semibold text-gray-800">
+                        <HighlightText
+                            text={order.orderCode}
+                            highlight={searchTerm}
+                        />
+                    </h4>
+                </div>
 
-  <div className="flex items-center">
-    <span
-      className={`text-xs sm:text-sm font-semibold uppercase ${order.statusColor || 'text-primary'}`}
-    >
-      {order.statusText}
-    </span>
-  </div>
-</div>
-
+                <div className="flex items-center">
+                    <span
+                        className={`text-xs sm:text-sm font-semibold uppercase ${order.statusColor || 'text-primary'}`}
+                    >
+                        {order.statusText}
+                    </span>
+                </div>
+            </div>
 
             {/* Products */}
             {order.products.map((product, index) => (
@@ -85,86 +81,85 @@ const handleReorder = async () => {
 
             {/* ✅ CẬP NHẬT LẠI CÁC NÚT BẤM */}
             <div className="px-4 sm:px-6 py-3 sm:py-4 flex flex-wrap justify-end items-center gap-2">
-               {order.buttons.includes('Hủy đơn') && (
-  <>
-    <button
-      className="text-sm bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-sm"
-      onClick={() => setShowCancelDialog(true)}
-    >
-      Hủy đơn
-    </button>
-   <CancelOrderDialog
-  isOpen={showCancelDialog}
-  onClose={() => setShowCancelDialog(false)}
-  orderId={order.id}
-  onSuccess={() => {
-    refetchOrders(); // ✅ gọi lại để cập nhật UI ngay
-  }}
-/>
+                {order.buttons.includes('Hủy đơn') && (
+                    <>
+                        <button
+                            className="text-sm bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-sm"
+                            onClick={() => setShowCancelDialog(true)}
+                        >
+                            Hủy đơn
+                        </button>
+                        <CancelOrderDialog
+                            isOpen={showCancelDialog}
+                            onClose={() => setShowCancelDialog(false)}
+                            orderId={order.id}
+                            onSuccess={() => {
+                                refetchOrders(); // ✅ gọi lại để cập nhật UI ngay
+                            }}
+                        />
+                    </>
+                )}
+                {order.buttons.includes('Mua Lại') && (
+                    <button
+                        className="text-sm bg-primary hover:bg-secondary text-white px-4 sm:px-5 py-1.5 sm:py-2 rounded-sm transition-colors"
+                        onClick={handleReorder}
+                    >
+                        Mua Lại
+                    </button>
+                )}
 
-  </>
-)}
-            {order.buttons.includes('Mua Lại') && (
-  <button
-    className="text-sm bg-primary hover:bg-secondary text-white px-4 sm:px-5 py-1.5 sm:py-2 rounded-sm transition-colors"
-    onClick={handleReorder}
-  >
-    Mua Lại
-  </button>
-)}
+                {order.buttons.includes('Trả hàng/Hoàn tiền') && (
+                    <>
+                     <button
+                            className="text-sm bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 sm:px-5 py-1.5 sm:py-2 rounded-sm transition-colors"
+                            onClick={() => navigate('/return-order', { // ✅ THAY ĐỔI TẠI ĐÂY
+                                state: {
+                                    orderId: order.id,
+                                    orderPaymentMethodCode: order.paymentMethod?.code,
+                                    orderProducts: order.products, // Truyền danh sách sản phẩm
+                                }
+                            })}
+                        >
+                            Trả hàng/Hoàn tiền
+                        </button>
+                                          </>
+                )}
+                {order.buttons.includes('Đã nhận hàng') && (
+                    <button
+                        className="text-sm bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-sm"
+                        onClick={async () => {
+                            try {
+                                await orderService.markAsCompleted(order.id);
+                                toast.success('Đã xác nhận đã nhận hàng!');
+                                refetchOrders(); // cập nhật lại danh sách đơn hàng
+                            } catch (err) {
+                                console.error('Lỗi xác nhận đã nhận hàng:', err);
+                                toast.error('Không thể xác nhận đơn hàng.');
+                            }
+                        }}
+                    >
+                        Đã nhận hàng
+                    </button>
+                )}
 
-              {order.buttons.includes('Trả hàng/Hoàn tiền') && (
-  <>
-    <button
-      className="text-sm bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 sm:px-5 py-1.5 sm:py-2 rounded-sm transition-colors"
-      onClick={() => setShowReturnDialog(true)}
-    >
-      Trả hàng/Hoàn tiền
-    </button>
-    <ReturnOrderDialog
-      isOpen={showReturnDialog}
-      onClose={() => setShowReturnDialog(false)}
-      orderId={order.id}
-      onSuccess={refetchOrders}
-    />
-  </>
-)}
-{order.buttons.includes('Đã nhận hàng') && (
-  <button
-    className="text-sm bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-sm"
-    onClick={async () => {
-      try {
-        await orderService.markAsCompleted(order.id);
-        toast.success('Đã xác nhận đã nhận hàng!');
-        refetchOrders(); // cập nhật lại danh sách đơn hàng
-      } catch (err) {
-        console.error('Lỗi xác nhận đã nhận hàng:', err);
-        toast.error('Không thể xác nhận đơn hàng.');
-      }
-    }}
-  >
-    Đã nhận hàng
-  </button>
-)}
+                {order.buttons.includes("Chọn cách hoàn hàng") && (
+                    <>
+                        <button
+                            className="text-sm bg-white border border-blue-500 text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-sm transition-colors"
+                            onClick={() => setOpenReturnMethodDialog(true)}
+                        >
+                            Chọn cách hoàn hàng
+                        </button>
+                        <ReturnMethodDialog
+                            open={openReturnMethodDialog}
+                           orderPaymentMethodCode={order.paymentMethodCode}
 
-{order.buttons.includes("Chọn cách hoàn hàng") && (
-
-  <>
-    <button
-      className="text-sm bg-white border border-blue-500 text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-sm transition-colors"
-      onClick={() => setOpenReturnMethodDialog(true)}
-    >
-      Chọn cách hoàn hàng
-    </button>
-    <ReturnMethodDialog
-      open={openReturnMethodDialog}
-      onClose={() => setOpenReturnMethodDialog(false)}
-      returnRequestId={order.returnRequest.id}
-      onSuccess={refetchOrders}
-    />
-  </>
-)}
-
+                            onClose={() => setOpenReturnMethodDialog(false)}
+                            returnRequestId={order.returnRequest.id}
+                            onSuccess={refetchOrders}
+                        />
+                    </>
+                )}
             </div>
         </div>
     );
@@ -186,59 +181,59 @@ const RenderDonMuaContent = () => {
             let buttons = [];
 
             // ✅ CẬP NHẬT LOGIC
-          switch (order.status) {
-  case 'pending':
-    statusText = 'CHỜ XÁC NHẬN';
-    statusColor = 'text-blue-500';
-    buttons.push('Hủy đơn');
-    break;
-  case 'confirmed':
-    statusText = 'ĐÃ XÁC NHẬN';
-    statusColor = 'text-yellow-600';
-    buttons.push('Hủy đơn');
-    break;
-  case 'shipping':
-    statusText = 'ĐANG GIAO';
-    statusColor = 'text-cyan-500';
-    // ❌ Không thêm nút hủy
-    break;
-    case 'delivered':
-  statusText = 'ĐÃ GIAO';
-  statusColor = 'text-green-500';
-  buttons.push('Đã nhận hàng');
-  break;
+            switch (order.status) {
+                case 'pending':
+                    statusText = 'CHỜ XÁC NHẬN';
+                    statusColor = 'text-blue-500';
+                    buttons.push('Hủy đơn');
+                    break;
+                case 'confirmed':
+                    statusText = 'ĐÃ XÁC NHẬN';
+                    statusColor = 'text-yellow-600';
+                    buttons.push('Hủy đơn');
+                    break;
+                case 'shipping':
+                    statusText = 'ĐANG GIAO';
+                    statusColor = 'text-cyan-500';
+                    // ❌ Không thêm nút hủy
+                    break;
+                case 'delivered':
+                    statusText = 'ĐÃ GIAO';
+                    statusColor = 'text-green-500';
+                    buttons.push('Đã nhận hàng');
+                    break;
 
- case 'completed':
-  statusText = 'HOÀN THÀNH';
-  statusColor = 'text-green-600';
+                case 'completed':
+                    statusText = 'HOÀN THÀNH';
+                    statusColor = 'text-green-600';
 
-  // Nếu chưa có yêu cầu trả hàng thì mới hiển thị nút "Trả hàng/Hoàn tiền"
-  if (!order.returnRequest) {
-    buttons.push('Mua Lại', 'Trả hàng/Hoàn tiền');
-  } else if (order.returnRequest.status === 'approved') {
-    // Nếu đã được admin duyệt, hiện nút chọn phương thức hoàn hàng
-    buttons.push('Chọn cách hoàn hàng');
-  } else {
-    // Nếu có returnRequest nhưng chưa được duyệt, chỉ hiển thị 'Mua Lại'
-    buttons.push('Mua Lại');
-  }
-  break;
+                    // Nếu chưa có yêu cầu trả hàng thì mới hiển thị nút "Trả hàng/Hoàn tiền"
+                    if (!order.returnRequest) {
+                        buttons.push('Mua Lại', 'Trả hàng/Hoàn tiền');
+                    } else if (order.returnRequest.status === 'approved') {
+                        // Nếu đã được admin duyệt, hiện nút chọn phương thức hoàn hàng
+                        buttons.push('Chọn cách hoàn hàng');
+                    } else {
+                        // Nếu có returnRequest nhưng chưa được duyệt, chỉ hiển thị 'Mua Lại'
+                        buttons.push('Mua Lại');
+                    }
+                    break;
 
-  case 'cancelled':
-    statusText = 'ĐÃ HỦY';
-    statusColor = 'text-red-500';
-    buttons.push('Mua Lại'); // ❌ Không có hủy đơn
-    break;
-  default:
-    statusText = 'KHÔNG RÕ';
-}
+                case 'cancelled':
+                    statusText = 'ĐÃ HỦY';
+                    statusColor = 'text-red-500';
+                    buttons.push('Mua Lại'); // ❌ Không có hủy đơn
+                    break;
+                default:
+                    statusText = 'KHÔNG RÕ';
+            }
 
 
             return {
                 id: order.id,
                 status: order.status,
                 statusText,
-                orderCode: order.orderCode,      // ← thêm dòng này
+                orderCode: order.orderCode,
                 statusColor,
                 products: order.products.map(p => ({
                     skuId: p.skuId,
@@ -251,128 +246,129 @@ const RenderDonMuaContent = () => {
                 })),
                 totalAmount: order.finalPrice,
                 buttons,
-                  returnRequest: order.returnRequest || null, // ✅ THÊM DÒNG NÀY VÔ ĐÂY
+                paymentMethod: order.paymentMethod || null,
+paymentMethodCode: order.paymentMethod?.code || null,
+
+                returnRequest: order.returnRequest || null,
             };
         });
     };
 
-const fetchOrders = async () => {
-  try {
-    setLoading(true);
-    const response = await orderService.getUserOrders();
-    if (response && response.data?.data) {
-      const mappedData = mapApiDataToView(response.data.data);
-      setOrders(mappedData);
-    }
-  } catch (error) {
-    console.error("Lỗi khi tải lịch sử mua hàng:", error);
-    setOrders([]);
-  } finally {
-    setLoading(false);
-  }
-};
+    const fetchOrders = async () => {
+        try {
+            setLoading(true);
+            const response = await orderService.getUserOrders();
+            
+console.log("📦 API data:", response.data?.data);
+            if (response && response.data?.data) {
+                const mappedData = mapApiDataToView(response.data.data);
+                setOrders(mappedData);
+            }
+        } catch (error) {
+            console.error("Lỗi khi tải lịch sử mua hàng:", error);
+            setOrders([]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-useEffect(() => {
-  fetchOrders();
-}, []);
-
-
-// File: RenderDonMuaContent.js
-
-// ✅ BƯỚC 1: CẬP NHẬT LẠI MẢNG DỮ LIỆU CỦA TAB (THEO PHONG CÁCH OUTLINE)
-const purchaseTabs = [
-  {
-    id: 'all',
-    label: 'Tất cả',
-    activeClasses: 'bg-slate-800 text-white border-slate-800',
-    inactiveClasses: 'text-slate-600 border-slate-300 hover:bg-slate-100 hover:border-slate-400',
-  },
-  {
-    id: 'pending',
-    label: 'Chờ xác nhận',
-    activeClasses: 'bg-blue-600 text-white border-blue-600',
-    inactiveClasses: 'text-blue-600 border-blue-300 hover:bg-blue-50 hover:border-blue-500',
-  },
-  {
-    id: 'confirmed',
-    label: 'Đã xác nhận',
-    activeClasses: 'bg-amber-500 text-white border-amber-500',
-    inactiveClasses: 'text-amber-600 border-amber-300 hover:bg-amber-50 hover:border-amber-500',
-  },
-  {
-    id: 'shipping',
-    label: 'Đang giao',
-    activeClasses: 'bg-cyan-500 text-white border-cyan-500',
-    inactiveClasses: 'text-cyan-600 border-cyan-300 hover:bg-cyan-50 hover:border-cyan-500',
-  },
-  {
-    id: 'delivered',
-    label: 'Đã giao', // ✅ BỔ SUNG
-    activeClasses: 'bg-green-500 text-white border-green-500',
-    inactiveClasses: 'text-green-600 border-green-300 hover:bg-green-50 hover:border-green-500',
-  },
-  {
-    id: 'completed',
-    label: 'Hoàn thành',
-    activeClasses: 'bg-emerald-600 text-white border-emerald-600',
-    inactiveClasses: 'text-emerald-600 border-emerald-300 hover:bg-emerald-50 hover:border-emerald-500',
-  },
-  {
-    id: 'return',
-    label: 'Trả hàng/Hoàn tiền', // ✅ BỔ SUNG
-    activeClasses: 'bg-purple-600 text-white border-purple-600',
-    inactiveClasses: 'text-purple-600 border-purple-300 hover:bg-purple-50 hover:border-purple-500',
-  },
-  {
-    id: 'cancelled',
-    label: 'Đã hủy',
-    activeClasses: 'bg-red-600 text-white border-red-600',
-    inactiveClasses: 'text-red-600 border-red-300 hover:bg-red-50 hover:border-red-500',
-  },
-];
+    useEffect(() => {
+        fetchOrders();
+    }, []);
 
 
+    const purchaseTabs = [
+        {
+            id: 'all',
+            label: 'Tất cả',
+            activeClasses: 'bg-slate-800 text-white border-slate-800',
+            inactiveClasses: 'text-slate-600 border-slate-300 hover:bg-slate-100 hover:border-slate-400',
+        },
+        {
+            id: 'pending',
+            label: 'Chờ xác nhận',
+            activeClasses: 'bg-blue-600 text-white border-blue-600',
+            inactiveClasses: 'text-blue-600 border-blue-300 hover:bg-blue-50 hover:border-blue-500',
+        },
+        {
+            id: 'confirmed',
+            label: 'Đã xác nhận',
+            activeClasses: 'bg-amber-500 text-white border-amber-500',
+            inactiveClasses: 'text-amber-600 border-amber-300 hover:bg-amber-50 hover:border-amber-500',
+        },
+        {
+            id: 'shipping',
+            label: 'Đang giao',
+            activeClasses: 'bg-cyan-500 text-white border-cyan-500',
+            inactiveClasses: 'text-cyan-600 border-cyan-300 hover:bg-cyan-50 hover:border-cyan-500',
+        },
+        {
+            id: 'delivered',
+            label: 'Đã giao',
+            activeClasses: 'bg-green-500 text-white border-green-500',
+            inactiveClasses: 'text-green-600 border-green-300 hover:bg-green-50 hover:border-green-500',
+        },
+        {
+            id: 'completed',
+            label: 'Hoàn thành',
+            activeClasses: 'bg-emerald-600 text-white border-emerald-600',
+            inactiveClasses: 'text-emerald-600 border-emerald-300 hover:bg-emerald-50 hover:border-emerald-500',
+        },
+        {
+            id: 'return',
+            label: 'Trả hàng/Hoàn tiền',
+            activeClasses: 'bg-purple-600 text-white border-purple-600',
+            inactiveClasses: 'text-purple-600 border-purple-300 hover:bg-purple-50 hover:border-purple-500',
+        },
+        {
+            id: 'cancelled',
+            label: 'Đã hủy',
+            activeClasses: 'bg-red-600 text-white border-red-600',
+            inactiveClasses: 'text-red-600 border-red-300 hover:bg-red-50 hover:border-red-500',
+        },
+    ];
 
-const filteredOrders = orders.filter(order => {
-  const statusMatch = activePurchaseTab === 'all' || order.status === activePurchaseTab;
-  const term = searchTerm.toLowerCase();
-  const searchTermMatch =
-    !term ||
-    // tìm theo mã đơn hàng
-    (order.orderCode && order.orderCode.toLowerCase().includes(term)) ||
-    // tìm theo ID nội bộ (nếu vẫn muốn)
-    order.id.toString().includes(term) ||
-    // tìm theo tên sản phẩm
-    order.products.some(p => p.name.toLowerCase().includes(term));
-  return statusMatch && searchTermMatch;
-});
+
+    const filteredOrders = orders.filter(order => {
+        const statusMatch = activePurchaseTab === 'all' || order.status === activePurchaseTab;
+        const term = searchTerm.toLowerCase();
+        const searchTermMatch =
+            !term ||
+            // tìm theo mã đơn hàng
+            (order.orderCode && order.orderCode.toLowerCase().includes(term)) ||
+            // tìm theo ID nội bộ (nếu vẫn muốn)
+            order.id.toString().includes(term) ||
+            // tìm theo tên sản phẩm
+            order.products.some(p => p.name.toLowerCase().includes(term));
+        return statusMatch && searchTermMatch;
+    });
 
 
     if (loading) {
-  return <Loader fullscreen={true} />;
-}
+        return <Loader fullscreen={true} />;
+    }
 
 
     return (
         <div className="w-full">
             {/* Nav Tabs */}
-     
-<div className="bg-white border-b border-gray-200 sticky top-0 z-10 py-2 shadow-sm">
-    <nav className="flex space-x-2 sm:space-x-3 overflow-x-auto whitespace-nowrap hide-scrollbar px-4 sm:px-6">
-        {purchaseTabs.map(tab => (
-            <button
-                key={tab.id}
-                onClick={() => setActivePurchaseTab(tab.id)}
-                className={`
-                    px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 ease-in-out border
-                    ${activePurchaseTab === tab.id ? tab.activeClasses : tab.inactiveClasses}
-                `}
-            >
-                {tab.label}
-            </button>
-        ))}
-    </nav>
-</div>
+            <div className="bg-white border-b border-gray-200 sticky top-0 z-10 py-2 shadow-sm">
+                <nav className="flex space-x-2 overflow-x-auto whitespace-nowrap hide-scrollbar px-4 sm:px-6">
+                    {purchaseTabs.map(tab => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActivePurchaseTab(tab.id)}
+                            // Thay đổi padding và font size để trông hợp lý hơn
+                            className={`
+                                px-3 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 ease-in-out border
+                                ${activePurchaseTab === tab.id ? tab.activeClasses : tab.inactiveClasses}
+                            `}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
+                </nav>
+            </div>
             {/* Search Bar */}
             <div className="my-3 sm:my-4 px-0">
                 <div className="relative mx-0 sm:mx-0">

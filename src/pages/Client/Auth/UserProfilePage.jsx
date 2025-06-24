@@ -1,25 +1,25 @@
 // src/pages/UserProfilePage.jsx
 import React, { useState, useEffect } from 'react';
-import { User, Edit3, Bell, Ticket, FileText, Heart  } from 'lucide-react';
+import { User, ShoppingBag, MapPin, Eye, Ticket, Heart } from 'lucide-react';
 
 import ProfileContent from './ProfileContent';
 import RenderDonMuaContentTuyChinh from './PurchaseHistoryPage';
 import AddressPageContent from './RenderDiaChiContent';
-import { authService } from '../../../services/client/authService';
+import { authService }from '../../../services/client/authService';
 import FavoriteProductsPage from './FavoriteProductsPage';
 import ChangePasswordTab from './ChangePasswordTab';
 
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'; 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const UserProfilePage = () => {
   const [activeTab, setActiveTab] = useState(() => {
-    return window.location.hash.replace('#', '') || 'ho-so';
+    return window.location.hash.replace('#', '') || 'thong-tin-tai-khoan';
   });
 
   const [sidebarUserInfo, setSidebarUserInfo] = useState({
     initial: '?',
     displayName: 'Đang tải...',
+    email: 'Đang tải...', // ✅ THÊM FIELD EMAIL VÀO STATE
     avatarUrl: null,
   });
   const [isSidebarLoading, setIsSidebarLoading] = useState(true);
@@ -43,8 +43,9 @@ const UserProfilePage = () => {
           }
 
           setSidebarUserInfo({
-            initial: apiUser.fullName ? apiUser.fullName.charAt(0).toUpperCase() : '?',
+            initial: apiUser.fullName ? apiUser.fullName.charAt(0).toUpperCase() : (apiUser.email ? apiUser.email.charAt(0).toUpperCase() : '?'), // ✅ Lấy initial từ email nếu không có fullName
             displayName: apiUser.fullName || apiUser.email || 'Tài khoản',
+            email: apiUser.email || 'Không có email', // ✅ GÁN EMAIL TỪ API
             avatarUrl: finalAvatarUrl,
           });
         } else {
@@ -52,6 +53,7 @@ const UserProfilePage = () => {
           setSidebarUserInfo({
             initial: '!',
             displayName: 'Lỗi dữ liệu',
+            email: 'Lỗi tải email', // ✅ SET EMAIL KHI CÓ LỖI
             avatarUrl: null,
           });
         }
@@ -60,6 +62,7 @@ const UserProfilePage = () => {
         setSidebarUserInfo({
           initial: '!',
           displayName: 'Lỗi tải',
+          email: 'Lỗi tải email', // ✅ SET EMAIL KHI CÓ LỖI
           avatarUrl: null,
         });
       } finally {
@@ -72,7 +75,7 @@ const UserProfilePage = () => {
   useEffect(() => {
     const onHashChange = () => {
       const tabFromHash = window.location.hash.replace('#', '');
-      setActiveTab(tabFromHash || 'ho-so');
+      setActiveTab(tabFromHash || 'thong-tin-tai-khoan');
     };
 
     window.addEventListener('hashchange', onHashChange);
@@ -97,6 +100,7 @@ const UserProfilePage = () => {
         setSidebarUserInfo((prev) => ({
           ...prev,
           displayName: updatedUserFromEvent.fullName || prev.displayName,
+          email: updatedUserFromEvent.email || prev.email, // ✅ CẬP NHẬT EMAIL KHI PROFILE UPDATE
           initial: updatedUserFromEvent.fullName ? updatedUserFromEvent.fullName.charAt(0).toUpperCase() : prev.initial,
         }));
       }
@@ -117,29 +121,20 @@ const UserProfilePage = () => {
   };
 
   const sidebarNavItems = [
-    { id: 'thong-bao', label: 'Thông Báo', icon: Bell, href: '#thong-bao', notification: true },
-    {
-      id: 'tai-khoan', label: 'Tài Khoản Của Tôi', icon: User, subItems: [
-        { id: 'ho-so', label: 'Hồ Sơ', href: '#ho-so' },
-        { id: 'dia-chi', label: 'Địa Chỉ', href: '#dia-chi' },
-        { id: 'doi-mat-khau', label: 'Đổi Mật Khẩu', href: '#doi-mat-khau' },
-      ]
-    },
-    { id: 'don-mua', label: 'Đơn Mua', icon: FileText, href: '#don-mua' },
-    { id: 'kho-voucher', label: 'Kho Voucher', icon: Ticket, href: '#kho-voucher', iconColor: 'text-red-500'}, // Giữ màu đỏ cho voucher
-    { id: 'san-pham-yeu-thich', label: 'Sản Phẩm Yêu Thích', icon: Heart, href: '#san-pham-yeu-thich' },
-
+    { id: 'thong-tin-tai-khoan', label: 'Thông tin tài khoản', icon: User, href: '#thong-tin-tai-khoan' },
+    { id: 'quan-ly-don-hang', label: 'Quản lý đơn hàng', icon: ShoppingBag, href: '#quan-ly-don-hang' },
+    { id: 'so-dia-chi', label: 'Sổ địa chỉ', icon: MapPin, href: '#so-dia-chi' },
+    { id: 'san-pham-da-xem', label: 'Sản phẩm đã xem', icon: Eye, href: '#san-pham-da-xem' },
+    { id: 'kho-voucher', label: 'Kho voucher', icon: Ticket, href: '#kho-voucher', iconColor: 'text-red-500' },
+    { id: 'san-pham-yeu-thich', label: 'Sản phẩm yêu thích', icon: Heart, href: '#san-pham-yeu-thich' },
   ];
 
   const renderSidebarContent = () => {
-    const isParentActive = (item) => item.subItems && item.subItems.some(sub => sub.id === activeTab);
-
     return (
-      // Thêm class `bg-white dark:bg-gray-800` cho sidebar nếu muốn nó có nền riêng và hỗ trợ dark mode
       <div className="w-[250px] flex-shrink-0 border-r border-gray-200 dark:border-gray-700 h-screen overflow-y-auto sticky top-0 bg-white dark:bg-gray-850">
         <div className="px-4 pb-4 pt-6">
-          <div className="flex items-center mb-3 pl-1">
-            {/* Sử dụng class bg-primary cho nền avatar */}
+          {/* Thông tin user trên sidebar */}
+          <div className="flex items-center mb-6 pl-1 border-b border-gray-200 dark:border-gray-700 pb-4">
             <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center mr-2.5 flex-shrink-0 overflow-hidden">
               {sidebarUserInfo.avatarUrl ? (
                 <img src={sidebarUserInfo.avatarUrl} alt="Avatar" className="w-full h-full rounded-full object-cover" />
@@ -151,70 +146,39 @@ const UserProfilePage = () => {
               <p className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
                 {isSidebarLoading ? 'Đang tải...' : sidebarUserInfo.displayName}
               </p>
-              {/* Thay hover:text-orange-500 bằng hover:text-sky-500 (gần với var(--primary-color)) */}
-              <a
-                href="#sua-ho-so" 
-                onClick={(e) => { e.preventDefault(); handleTabClick('ho-so'); }}
-                className="text-xs text-gray-500 dark:text-gray-400 hover:text-sky-500 dark:hover:text-sky-400 flex items-center"
-              >
-                <Edit3 size={14} className="mr-1 flex-shrink-0" />
-                <span className="truncate">Sửa Hồ Sơ</span>
-              </a>
+              {/* ✅ HIỂN THỊ EMAIL THẬT CỦA USER */}
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                {isSidebarLoading ? '...' : sidebarUserInfo.email}
+              </p>
             </div>
           </div>
           <nav>
             <ul>
               {sidebarNavItems.map(item => {
-                const parentIsActive = isParentActive(item);
                 const itemIsActive = activeTab === item.id;
-                // Sử dụng text-primary cho màu icon active
                 const currentIconColor = itemIsActive ? 'text-primary' : (item.iconColor || 'text-gray-600 dark:text-gray-400');
+                
                 return (
-                  <li key={item.id} className="mb-0">
-                    {item.subItems ? (
-                      <>
-                        {/* Sử dụng text-primary khi parent active, hover:text-sky-500 */}
-                        <div className={`flex items-center py-2.5 px-3 rounded-md text-sm relative ${parentIsActive ? 'text-primary' : 'text-gray-800 dark:text-gray-200 hover:text-sky-500 dark:hover:text-sky-400'}`}>
-                          {item.icon && <item.icon size={18} className={`mr-3 flex-shrink-0 ${parentIsActive ? 'text-primary' : item.iconColor || 'text-gray-600 dark:text-gray-400'}`} strokeWidth={parentIsActive ? 2.5 : 2} />}
-                          <span className={`truncate ${parentIsActive ? 'font-medium' : ''}`}>{item.label}</span>
+                  <li key={item.id} className="mb-0.5">
+                    <a
+                      href={item.href}
+                      onClick={(e) => { e.preventDefault(); handleTabClick(item.id); }}
+                      className={`flex items-center py-2.5 px-3 rounded-md text-sm transition-colors duration-150 relative
+                        ${itemIsActive ? 'bg-gray-100 dark:bg-gray-700 text-primary font-medium' : 'text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'}
+                      `}
+                    >
+                      {/* Icon */}
+                      {item.icon && (
+                        <div className="relative mr-3 flex-shrink-0">
+                          <item.icon size={18} className={`${currentIconColor}`} strokeWidth={itemIsActive ? 2.5 : 2} />
+                          {/* Dấu chấm thông báo (nếu có) */}
+                          {item.id === 'thong-bao' && item.notification && (
+                            <span className="absolute top-[1px] right-[1px] block h-1.5 w-1.5 transform translate-x-1/2 -translate-y-1/2 rounded-full bg-red-500 ring-1 ring-white dark:ring-gray-800"></span>
+                          )}
                         </div>
-                        <ul className="pl-[2.3rem] mt-0.5 mb-1 space-y-0.5">
-                          {item.subItems.map(subItem => (
-                            <li key={subItem.id} className="relative">
-                              <a
-                                href={subItem.href}
-                                onClick={(e) => { e.preventDefault(); handleTabClick(subItem.id); }}
-                                // Sử dụng text-primary khi active, hover:text-sky-500. Thêm dark mode cho text
-                                className={`block py-[7px] px-0 rounded-md text-sm hover:text-sky-500 dark:hover:text-sky-400 truncate ${activeTab === subItem.id ? 'text-primary font-medium' : 'text-gray-700 dark:text-gray-300'}`}
-                              >
-                                {/* Sử dụng bg-primary cho thanh chỉ báo active */}
-                                {activeTab === subItem.id && <span className="absolute left-[-1.1rem] top-0 bottom-0 w-[3px] bg-primary rounded-r-sm"></span>}
-                                {subItem.label}
-                              </a>
-                            </li>
-                          ))}
-                        </ul>
-                      </>
-                    ) : (
-                      <a
-                        href={item.href}
-                        onClick={(e) => { e.preventDefault(); handleTabClick(item.id); }}
-                        // Sử dụng text-primary khi active, hover:text-sky-500
-                        className={`flex items-center py-2.5 px-3 rounded-md text-sm transition-colors duration-150 relative ${itemIsActive ? 'text-primary font-medium' : 'text-gray-800 dark:text-gray-200 hover:text-sky-500 dark:hover:text-sky-400'}`}
-                      >
-                        {/* Sử dụng bg-primary cho thanh chỉ báo active */}
-                        {itemIsActive && <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-primary rounded-r-sm"></span>}
-                        {item.icon && (
-                          <div className="relative mr-3">
-                            <item.icon size={18} className={`flex-shrink-0 ${currentIconColor}`} strokeWidth={itemIsActive ? 2.5 : 2} />
-                            {item.id === 'thong-bao' && item.notification && (
-                              <span className="absolute top-[1px] right-[1px] block h-1.5 w-1.5 transform translate-x-1/2 -translate-y-1/2 rounded-full bg-red-500 ring-1 ring-white dark:ring-gray-800"></span>
-                            )}
-                          </div>
-                        )}
-                        <span className="truncate">{item.label}</span>
-                      </a>
-                    )}
+                      )}
+                      <span className="truncate">{item.label}</span>
+                    </a>
                   </li>
                 );
               })}
@@ -238,27 +202,24 @@ const UserProfilePage = () => {
         <div className="flex flex-row">
           {renderSidebarContent()}
           <div className="flex-1 min-w-0 lg:pl-8 md:pl-6 pl-2">
-            {activeTab === 'ho-so' && <ProfileContent /> }
-            {activeTab === 'ngan-hang' && <EmptyContent title="Ngân Hàng" />}
-            {activeTab === 'dia-chi' && <AddressPageContent />}
-          {activeTab === 'doi-mat-khau' && <ChangePasswordTab />}
-            {activeTab === 'thong-bao' && <div className="bg-white dark:bg-gray-800 p-6 shadow-md rounded-md border border-gray-200 dark:border-gray-700"><h2 className="text-xl font-semibold dark:text-gray-100">Thông Báo</h2><p className="text-sm dark:text-gray-300">Nội dung trang Thông Báo...</p></div>}
-            {activeTab === 'don-mua' && <RenderDonMuaContentTuyChinh />}
+            {activeTab === 'thong-tin-tai-khoan' && <ProfileContent />}
+            {activeTab === 'quan-ly-don-hang' && <RenderDonMuaContentTuyChinh />}
+            {activeTab === 'so-dia-chi' && <AddressPageContent />}
+            {activeTab === 'san-pham-da-xem' && <EmptyContent title="Sản phẩm đã xem" />}
             {activeTab === 'kho-voucher' && <div className="bg-white dark:bg-gray-800 p-6 shadow-md rounded-md border border-gray-200 dark:border-gray-700"><h2 className="text-xl font-semibold dark:text-gray-100">Kho Voucher</h2><p className="text-sm dark:text-gray-300">Nội dung trang Kho Voucher...</p></div>}
             {activeTab === 'san-pham-yeu-thich' && <FavoriteProductsPage />}
-
+            {activeTab === 'doi-mat-khau' && <ChangePasswordTab />}
           </div>
         </div>
       </div>
       <style jsx global>{`
         body {
           font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
-          color: #333; /* Màu chữ mặc định cho body */
+          color: #333;
         }
-        /* Lớp .dark sẽ được thêm vào <html> hoặc <body> để kích hoạt dark mode */
         .dark body {
-            color: #E5E7EB; /* Màu chữ xám nhạt cho dark mode */
-            background-color: #111827; /* Màu nền tối cho body trong dark mode */
+            color: #E5E7EB;
+            background-color: #111827;
         }
 
         .form-radio-custom {
@@ -266,7 +227,7 @@ const UserProfilePage = () => {
           -webkit-appearance: none;
           width: 18px;
           height: 18px;
-          border: 1.5px solid #BDBDBD; /* Màu border xám cho light mode */
+          border: 1.5px solid #BDBDBD;
           border-radius: 50%;
           outline: none;
           cursor: pointer;
@@ -275,21 +236,17 @@ const UserProfilePage = () => {
           transition: border-color 0.2s ease;
         }
         .dark .form-radio-custom {
-            border-color: #4B5563; /* Màu border xám đậm hơn cho dark mode */
+            border-color: #4B5563;
         }
 
         .form-radio-custom:checked {
-          /* Sử dụng màu chủ đạo từ biến CSS */
           border-color: var(--primary-color);
         }
-        /* Không cần .dark ở đây vì var(--primary-color) sẽ tự áp dụng */
-
         .form-radio-custom:checked::before {
           content: '';
           display: block;
           width: 10px; 
           height: 10px; 
-          /* Sử dụng màu chủ đạo từ biến CSS */
           background-color: var(--primary-color);
           border-radius: 50%;
           position: absolute;
@@ -299,7 +256,6 @@ const UserProfilePage = () => {
         }
         
         .form-radio-custom:focus-visible {
-            /* RGB của #1CA7EC là 28, 167, 236 */
             box-shadow: 0 0 0 2px rgba(28, 167, 236, 0.3);
         }
 
@@ -311,7 +267,7 @@ const UserProfilePage = () => {
             padding-right: 2.5rem;
         }
         .dark select.appearance-none {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239CA3AF' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E"); /* Đổi màu fill SVG cho dark mode nếu cần */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239CA3AF' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
         }
 
         /* Thanh cuộn cho sidebar (và các khu vực khác dùng overflow-y-auto) */
@@ -319,13 +275,11 @@ const UserProfilePage = () => {
           width: 6px; 
         }
         .overflow-y-auto::-webkit-scrollbar-thumb {
-          /* Tùy chọn: Sử dụng màu chủ đạo cho thanh cuộn */
-          /* background-color: var(--primary-color); */
-          background-color: #D1D5DB; /* Hoặc giữ màu xám mặc định */
+          background-color: #D1D5DB;
           border-radius: 3px;
         }
         .dark .overflow-y-auto::-webkit-scrollbar-thumb {
-            background-color: #4B5563; /* Màu thanh cuộn cho dark mode */
+            background-color: #4B5563;
         }
         .overflow-y-auto::-webkit-scrollbar-thumb:hover {
           background-color: #9CA3AF;

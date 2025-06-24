@@ -23,13 +23,16 @@ const NewsDetails = Loadable(lazy(() => import('pages/Client/BlogDetail')));
 
 const OrderLookup = Loadable(lazy(() => import('pages/Client/OrderLookup')));
 const ProductComparison = Loadable(lazy(() => import('pages/Client/CompareProducts')));
+
+const ReturnOrderPage = Loadable(lazy(() => import('pages/Client/Auth/ReturnOrderDialog'))); 
+
 const ClientRoutes = {
   path: '/',
   element: <ClientLayout />,
   children: [
     { index: true, element: <HomePage /> },
 
-    ,
+  
     {
       path: 'dang-nhap',
       element: <SignPage />
@@ -53,7 +56,7 @@ const ClientRoutes = {
     },
     { path: 'verify-email', element: <VerifyEmailPage /> },
     { path: 'user-profile', element: <UserProfilePage /> },
-  { path: 'category/:slug', element: <ProductListByCategory /> },
+    { path: 'category/:slug', element: <ProductListByCategory /> },
 
     { path: 'product/:slug', element: <ProductDetail /> },
     { path: 'tin-noi-bat', element: <News /> },
@@ -65,7 +68,10 @@ const ClientRoutes = {
     { path: 'news', element: <News /> },
     { path: 'news/:id', element: <NewsDetails /> },
     { path: 'orderlookup', element: <OrderLookup /> },
-    { path: 'compare-products', element: <ProductComparison /> }
+    { path: 'compare-products', element: <ProductComparison /> },
+
+    // ✅ THÊM ROUTE MỚI CHO TRANG TRẢ HÀNG
+    { path: 'return-order', element: <ReturnOrderPage /> }
   ]
 };
 

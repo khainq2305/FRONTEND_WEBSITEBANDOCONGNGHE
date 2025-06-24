@@ -467,7 +467,7 @@ const Header = () => {
                         </li>
                         <li>
                           <Link
-                            to="/don-mua"
+                            to="/user-profile#quan-ly-don-hang"
                             className="block px-4 py-2.5 text-primary-focus hover-primary hover:text-white transition-colors duration-150"
                           >
                             Đơn Mua

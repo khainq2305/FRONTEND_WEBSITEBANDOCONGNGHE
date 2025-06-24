@@ -80,7 +80,7 @@ const ForgotPasswordNotice = () => {
 
   try {
     await authService.forgotPassword({ email });
-    await checkStatus(); // cập nhật lại cooldown từ backend
+    await checkStatus(); 
     toast.success('Đã gửi lại liên kết đến email của bạn.');
   } catch (error) {
     if (error.response?.data?.resendCooldown) {

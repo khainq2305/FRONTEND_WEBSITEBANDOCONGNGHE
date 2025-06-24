@@ -3,13 +3,10 @@
 import React from 'react';
 
 export default function Description({ content }) {
-  // Nếu không có content hoặc content là một chuỗi rỗng thì không hiển thị gì cả.
+
   if (!content) {
     return null;
   }
-
-  // Sử dụng một plugin của Tailwind để tự động style cho nội dung HTML
-  // Class `prose` sẽ tự động định dạng các thẻ h2, p, ul, li... một cách đẹp mắt.
   return (
     <>
     <div

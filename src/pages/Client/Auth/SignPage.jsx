@@ -105,10 +105,36 @@ const AuthPage = () => {
       setIsLoading(false);
     }
   };
+  const handleFacebookLogin = async () => {
+    try {
+      setIsLoading(true);
+      window.FB.login(
+        async function (response) {
+          if (response.authResponse) {
+            const { accessToken, userID } = response.authResponse;
+
+            const res = await authService.loginWithFacebook({ accessToken, userID });
+            const { token, user } = res.data;
+
+            localStorage.setItem('token', token);
+            localStorage.setItem('user', JSON.stringify(user));
+            navigate('/');
+          } else {
+            alert('Đăng nhập Facebook bị hủy hoặc thất bại.');
+          }
+          setIsLoading(false);
+        },
+        { scope: 'email' }
+      );
+    } catch (err) {
+      console.error('Đăng nhập Facebook lỗi:', err);
+      alert(err?.response?.data?.message || 'Đăng nhập Facebook thất bại!');
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="flex min-h-screen">
-
       {isLoading && (
         <div
           style={{
@@ -131,7 +157,6 @@ const AuthPage = () => {
         </div>
       )}
 
-     
       <div
         className="hidden bg-primary-gradient lg:flex w-1/2 relative overflow-hidden text-white flex-col justify-center items-center p-10"
         style={{
@@ -150,7 +175,6 @@ const AuthPage = () => {
         </div>
       </div>
 
-      
       <div className="flex flex-col justify-center items-center w-full lg:w-1/2 p-8">
         <div className="bg-light shadow-md rounded-lg p-6 w-full max-w-md">
           <h2 className="text-2xl font-bold mb-4 text-center text-primary">{isLogin ? 'Đăng nhập' : 'Đăng ký'}</h2>
@@ -288,9 +312,17 @@ const AuthPage = () => {
           <div className="mt-6 text-center text-neutral-color">Hoặc đăng nhập bằng</div>
           <div className="flex justify-center items-center gap-4 mt-4">
             <GoogleLogin onSuccess={handleGoogleLogin} onError={() => alert('Đăng nhập Google thất bại!')} />
-            <button className="flex items-center gap-2 px-4 py-2 border rounded hover:bg-gray-100 transition">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/b/b9/2023_Facebook_icon.svg" alt="Facebook" className="w-6 h-6" />
-              Facebook
+            <button
+              type="button"
+              onClick={handleFacebookLogin}
+              className="flex items-center justify-center gap-3 px-4 py-2 border border-[#dadce0] rounded-md bg-white hover:bg-gray-100 text-sm font-normal text-[#3c4043] shadow-md w-full"
+            >
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png"
+                alt="Facebook"
+                className="w-5 h-5"
+              />
+              Đăng nhập bằng Facebook
             </button>
           </div>
         </div>

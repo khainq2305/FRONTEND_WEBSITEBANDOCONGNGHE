@@ -19,7 +19,7 @@ export default function ProductList({
                 <div className="text-center py-10 text-gray-500">Không tìm thấy sản phẩm nào.</div>
             ) : (
                 <>
-                    {/* ⭐ QUAY TRỞ LẠI LAYOUT GRID ĐỂ CÁC SẢN PHẨM LUÔN CĂN TRÁI */}
+         
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                         {products.map((item) => (
                             <ProductCard

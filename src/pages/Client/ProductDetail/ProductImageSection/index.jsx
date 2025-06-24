@@ -49,7 +49,7 @@ export default function ProductImageSection({
   const [isFavorited, setIsFavorited] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // 🟡 Load lại trạng thái yêu thích từ API
+
   useEffect(() => {
     const checkFavorite = async () => {
       try {

@@ -52,9 +52,9 @@ const NotFound = Loadable(lazy(() => import('pages/Admin/NotFound')));
 const AdminRoutes = {
   path: '/admin',
   element: (
-    <RequireAuth>
+   
       <DashboardLayout />
-    </RequireAuth>
+  
   ),
   children: [
     { index: true, element: <DashboardDefault /> },
