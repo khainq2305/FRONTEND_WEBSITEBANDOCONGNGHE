@@ -69,8 +69,6 @@ const ClientRoutes = {
     { path: 'news/:id', element: <NewsDetails /> },
     { path: 'orderlookup', element: <OrderLookup /> },
     { path: 'compare-products', element: <ProductComparison /> },
-
-    // ✅ THÊM ROUTE MỚI CHO TRANG TRẢ HÀNG
     { path: 'return-order', element: <ReturnOrderPage /> }
   ]
 };

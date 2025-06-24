@@ -127,7 +127,6 @@ export default function ProductListByCategory() {
   useEffect(() => {
     if (!slug) return;
     fetchCategoryName();
-    fetchFavorites();
   }, [slug]);
 
   useEffect(() => {
