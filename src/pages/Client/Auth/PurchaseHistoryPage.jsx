@@ -10,11 +10,13 @@ import { useNavigate } from 'react-router-dom';
 import CancelOrderDialog from './CancelOrderDialog';
 import ReturnMethodDialog from './ReturnMethodDialog';
 
-// --- Component con để render một đơn hàng ---
 const OrderItem = ({ order, searchTerm, refetchOrders }) => {
     const [showReturnDialog, setShowReturnDialog] = useState(false);
     const [openReturnMethodDialog, setOpenReturnMethodDialog] = useState(false);
     const navigate = useNavigate();
+    const [showAllProducts, setShowAllProducts] = useState(false);
+
+    const productsToShowInitially = 2;
 
     const handleReorder = async () => {
         try {
@@ -29,12 +31,11 @@ const OrderItem = ({ order, searchTerm, refetchOrders }) => {
 
     const [showCancelDialog, setShowCancelDialog] = useState(false);
     return (
-        <div className="bg-white mb-3 sm:mb-4 border border-gray-200 rounded-sm">
-            {/* Header */}
-            <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 flex justify-between items-center">
+        <div className="bg-white dark:bg-gray-800 mb-3 sm:mb-4 border border-gray-200 dark:border-gray-700 rounded-sm">
+            <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
                 <div className="flex flex-col">
-                    <span className="text-xs text-gray-500">Mã đơn hàng</span>
-                    <h4 className="text-sm font-semibold text-gray-800">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Mã đơn hàng</span>
+                    <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-100">
                         <HighlightText
                             text={order.orderCode}
                             highlight={searchTerm}
@@ -51,40 +52,48 @@ const OrderItem = ({ order, searchTerm, refetchOrders }) => {
                 </div>
             </div>
 
-            {/* Products */}
-            {order.products.map((product, index) => (
-                <div key={`${order.id}-${product.skuId}-${index}`} className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 flex">
-                    <img src={product.imageUrl} alt={product.name} className="w-20 h-20 object-cover rounded-sm border border-gray-200 mr-3 sm:mr-4 flex-shrink-0" />
+            {order.products.slice(0, showAllProducts ? order.products.length : productsToShowInitially).map((product, index) => (
+                <div key={`${order.id}-${product.skuId}-${index}`} className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-gray-700 flex">
+                    <img src={product.imageUrl} alt={product.name} className="w-20 h-20 object-cover rounded-sm border border-gray-200 dark:border-gray-600 mr-3 sm:mr-4 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-800 mb-1 line-clamp-2">
+                        <p className="text-sm text-gray-800 dark:text-gray-100 mb-1 line-clamp-2">
                             <HighlightText text={product.name} highlight={searchTerm} />
                         </p>
-                        {product.variation && <p className="text-xs text-gray-500 mb-1">Phân loại hàng: {product.variation}</p>}
-                        <p className="text-xs text-gray-700">x{product.quantity}</p>
+                        {product.variation && <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Phân loại hàng: {product.variation}</p>}
+                        <p className="text-xs text-gray-700 dark:text-gray-300">x{product.quantity}</p>
                     </div>
                     <div className="text-right ml-3 sm:ml-4 flex-shrink-0">
                         {product.originalPrice && (
-                            <span className="text-xs text-gray-500 line-through mr-1.5">{formatCurrencyVND(product.originalPrice)}</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400 line-through mr-1.5">{formatCurrencyVND(product.originalPrice)}</span>
                         )}
-                        <span className="text-sm text-primary">{formatCurrencyVND(product.price)}</span>
+                        <span className="text-sm text-red-500 dark:text-red-400">{formatCurrencyVND(product.price)}</span> {/* Changed to text-red-500 */}
                     </div>
                 </div>
             ))}
 
-            {/* Footer */}
-            <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 text-right">
+            {order.products.length > productsToShowInitially && (
+                <div className="px-4 sm:px-6 py-2 bg-gray-50 dark:bg-gray-700 text-center border-b border-gray-200 dark:border-gray-700">
+                    <button
+                        onClick={() => setShowAllProducts(!showAllProducts)}
+                        className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-500 font-medium"
+                    >
+                        {showAllProducts ? `Thu gọn (${order.products.length} sản phẩm)` : `Xem thêm (${order.products.length - productsToShowInitially} sản phẩm)`}
+                    </button>
+                </div>
+            )}
+
+            <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 dark:bg-gray-700 text-right">
                 <div className="flex justify-end items-center mb-2">
-                    <span className="text-sm text-gray-800">Thành tiền:</span>
-                    <span className="text-lg sm:text-xl font-semibold text-primary ml-2">{formatCurrencyVND(order.totalAmount)}</span>
+                    <span className="text-sm text-gray-800 dark:text-gray-100">Thành tiền:</span>
+                    <span className="text-lg sm:text-xl font-semibold text-red-500 dark:text-red-400 ml-2">{formatCurrencyVND(order.totalAmount)}</span> {/* Changed to text-red-500 */}
                 </div>
             </div>
 
-            {/* ✅ CẬP NHẬT LẠI CÁC NÚT BẤM */}
             <div className="px-4 sm:px-6 py-3 sm:py-4 flex flex-wrap justify-end items-center gap-2">
                 {order.buttons.includes('Hủy đơn') && (
                     <>
                         <button
-                            className="text-sm bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-sm"
+                            className="text-sm bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-sm transition-colors dark:bg-red-700 dark:hover:bg-red-600"
                             onClick={() => setShowCancelDialog(true)}
                         >
                             Hủy đơn
@@ -94,14 +103,14 @@ const OrderItem = ({ order, searchTerm, refetchOrders }) => {
                             onClose={() => setShowCancelDialog(false)}
                             orderId={order.id}
                             onSuccess={() => {
-                                refetchOrders(); // ✅ gọi lại để cập nhật UI ngay
+                                refetchOrders();
                             }}
                         />
                     </>
                 )}
                 {order.buttons.includes('Mua Lại') && (
                     <button
-                        className="text-sm bg-primary hover:bg-secondary text-white px-4 sm:px-5 py-1.5 sm:py-2 rounded-sm transition-colors"
+                        className="text-sm bg-primary hover:bg-secondary text-white px-4 sm:px-5 py-1.5 sm:py-2 rounded-sm transition-colors dark:bg-primary-dark dark:hover:bg-secondary-dark"
                         onClick={handleReorder}
                     >
                         Mua Lại
@@ -110,28 +119,28 @@ const OrderItem = ({ order, searchTerm, refetchOrders }) => {
 
                 {order.buttons.includes('Trả hàng/Hoàn tiền') && (
                     <>
-                     <button
-                            className="text-sm bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 sm:px-5 py-1.5 sm:py-2 rounded-sm transition-colors"
-                            onClick={() => navigate('/return-order', { // ✅ THAY ĐỔI TẠI ĐÂY
+                        <button
+                            className="text-sm bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 sm:px-5 py-1.5 sm:py-2 rounded-sm transition-colors dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                            onClick={() => navigate('/return-order', {
                                 state: {
                                     orderId: order.id,
                                     orderPaymentMethodCode: order.paymentMethod?.code,
-                                    orderProducts: order.products, // Truyền danh sách sản phẩm
+                                    orderProducts: order.products,
                                 }
                             })}
                         >
                             Trả hàng/Hoàn tiền
                         </button>
-                                          </>
+                    </>
                 )}
                 {order.buttons.includes('Đã nhận hàng') && (
                     <button
-                        className="text-sm bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-sm"
+                        className="text-sm bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-sm transition-colors dark:bg-green-800 dark:hover:bg-green-700"
                         onClick={async () => {
                             try {
                                 await orderService.markAsCompleted(order.id);
                                 toast.success('Đã xác nhận đã nhận hàng!');
-                                refetchOrders(); // cập nhật lại danh sách đơn hàng
+                                refetchOrders();
                             } catch (err) {
                                 console.error('Lỗi xác nhận đã nhận hàng:', err);
                                 toast.error('Không thể xác nhận đơn hàng.');
@@ -145,14 +154,14 @@ const OrderItem = ({ order, searchTerm, refetchOrders }) => {
                 {order.buttons.includes("Chọn cách hoàn hàng") && (
                     <>
                         <button
-                            className="text-sm bg-white border border-blue-500 text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-sm transition-colors"
+                            className="text-sm bg-white border border-blue-500 text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-sm transition-colors dark:bg-gray-800 dark:border-blue-600 dark:text-blue-400 dark:hover:bg-blue-900"
                             onClick={() => setOpenReturnMethodDialog(true)}
                         >
                             Chọn cách hoàn hàng
                         </button>
                         <ReturnMethodDialog
                             open={openReturnMethodDialog}
-                           orderPaymentMethodCode={order.paymentMethodCode}
+                            orderPaymentMethodCode={order.paymentMethodCode}
 
                             onClose={() => setOpenReturnMethodDialog(false)}
                             returnRequestId={order.returnRequest.id}
@@ -165,22 +174,19 @@ const OrderItem = ({ order, searchTerm, refetchOrders }) => {
     );
 };
 
-// ... Phần còn lại của component RenderDonMuaContent giữ nguyên như cũ ...
 const RenderDonMuaContent = () => {
     const [activePurchaseTab, setActivePurchaseTab] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
 
-
     const mapApiDataToView = (apiOrders) => {
         if (!apiOrders || !Array.isArray(apiOrders)) return [];
         return apiOrders.map(order => {
             let statusText = '';
-            let statusColor = 'text-primary'; // Mặc định là màu primary
+            let statusColor = 'text-primary';
             let buttons = [];
 
-            // ✅ CẬP NHẬT LOGIC
             switch (order.status) {
                 case 'pending':
                     statusText = 'CHỜ XÁC NHẬN';
@@ -195,7 +201,6 @@ const RenderDonMuaContent = () => {
                 case 'shipping':
                     statusText = 'ĐANG GIAO';
                     statusColor = 'text-cyan-500';
-                    // ❌ Không thêm nút hủy
                     break;
                 case 'delivered':
                     statusText = 'ĐÃ GIAO';
@@ -206,15 +211,11 @@ const RenderDonMuaContent = () => {
                 case 'completed':
                     statusText = 'HOÀN THÀNH';
                     statusColor = 'text-green-600';
-
-                    // Nếu chưa có yêu cầu trả hàng thì mới hiển thị nút "Trả hàng/Hoàn tiền"
                     if (!order.returnRequest) {
                         buttons.push('Mua Lại', 'Trả hàng/Hoàn tiền');
                     } else if (order.returnRequest.status === 'approved') {
-                        // Nếu đã được admin duyệt, hiện nút chọn phương thức hoàn hàng
                         buttons.push('Chọn cách hoàn hàng');
                     } else {
-                        // Nếu có returnRequest nhưng chưa được duyệt, chỉ hiển thị 'Mua Lại'
                         buttons.push('Mua Lại');
                     }
                     break;
@@ -222,12 +223,32 @@ const RenderDonMuaContent = () => {
                 case 'cancelled':
                     statusText = 'ĐÃ HỦY';
                     statusColor = 'text-red-500';
-                    buttons.push('Mua Lại'); // ❌ Không có hủy đơn
+                    buttons.push('Mua Lại');
+                    break;
+                case 'return_requested':
+                    statusText = 'YÊU CẦU TRẢ HÀNG';
+                    statusColor = 'text-purple-600';
+                    buttons.push('Mua Lại');
+                    break;
+                case 'return_approved':
+                    statusText = 'ĐÃ DUYỆT TRẢ HÀNG';
+                    statusColor = 'text-purple-700';
+                    buttons.push('Chọn cách hoàn hàng');
+                    break;
+                case 'returned':
+                    statusText = 'ĐÃ HOÀN TIỀN/HÀNG';
+                    statusColor = 'text-indigo-600';
+                    buttons.push('Mua Lại');
+                    break;
+                case 'return_rejected':
+                    statusText = 'TỪ CHỐI TRẢ HÀNG';
+                    statusColor = 'text-gray-500';
+                    buttons.push('Mua Lại');
                     break;
                 default:
                     statusText = 'KHÔNG RÕ';
+                    statusColor = 'text-gray-400';
             }
-
 
             return {
                 id: order.id,
@@ -247,8 +268,7 @@ const RenderDonMuaContent = () => {
                 totalAmount: order.finalPrice,
                 buttons,
                 paymentMethod: order.paymentMethod || null,
-paymentMethodCode: order.paymentMethod?.code || null,
-
+                paymentMethodCode: order.paymentMethod?.code || null,
                 returnRequest: order.returnRequest || null,
             };
         });
@@ -258,8 +278,7 @@ paymentMethodCode: order.paymentMethod?.code || null,
         try {
             setLoading(true);
             const response = await orderService.getUserOrders();
-            
-console.log("📦 API data:", response.data?.data);
+
             if (response && response.data?.data) {
                 const mappedData = mapApiDataToView(response.data.data);
                 setOrders(mappedData);
@@ -281,52 +300,53 @@ console.log("📦 API data:", response.data?.data);
         {
             id: 'all',
             label: 'Tất cả',
-            activeClasses: 'bg-slate-800 text-white border-slate-800',
-            inactiveClasses: 'text-slate-600 border-slate-300 hover:bg-slate-100 hover:border-slate-400',
+            activeClasses: 'text-primary border-b-2 border-primary font-bold',
+            inactiveClasses: 'text-gray-600 dark:text-gray-300 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600',
         },
         {
-            id: 'pending',
-            label: 'Chờ xác nhận',
-            activeClasses: 'bg-blue-600 text-white border-blue-600',
-            inactiveClasses: 'text-blue-600 border-blue-300 hover:bg-blue-50 hover:border-blue-500',
+            id: 'await_payment',
+            label: 'Chờ thanh toán',
+            activeClasses: 'text-yellow-600 border-b-2 border-yellow-600 font-bold',
+            inactiveClasses: 'text-gray-600 dark:text-gray-300 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600',
         },
         {
-            id: 'confirmed',
-            label: 'Đã xác nhận',
-            activeClasses: 'bg-amber-500 text-white border-amber-500',
-            inactiveClasses: 'text-amber-600 border-amber-300 hover:bg-amber-50 hover:border-amber-500',
+            id: 'processing',
+            label: 'Đang xử lý',
+            activeClasses: 'text-blue-600 border-b-2 border-blue-600 font-bold',
+            inactiveClasses: 'text-gray-600 dark:text-gray-300 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600',
         },
         {
             id: 'shipping',
-            label: 'Đang giao',
-            activeClasses: 'bg-cyan-500 text-white border-cyan-500',
-            inactiveClasses: 'text-cyan-600 border-cyan-300 hover:bg-cyan-50 hover:border-cyan-500',
+            label: 'Vận chuyển',
+            activeClasses: 'text-cyan-500 border-b-2 border-cyan-500 font-bold',
+            inactiveClasses: 'text-gray-600 dark:text-gray-300 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600',
         },
         {
             id: 'delivered',
             label: 'Đã giao',
-            activeClasses: 'bg-green-500 text-white border-green-500',
-            inactiveClasses: 'text-green-600 border-green-300 hover:bg-green-50 hover:border-green-500',
+            activeClasses: 'text-green-500 border-b-2 border-green-500 font-bold',
+            inactiveClasses: 'text-gray-600 dark:text-gray-300 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600',
         },
         {
             id: 'completed',
             label: 'Hoàn thành',
-            activeClasses: 'bg-emerald-600 text-white border-emerald-600',
-            inactiveClasses: 'text-emerald-600 border-emerald-300 hover:bg-emerald-50 hover:border-emerald-500',
+            activeClasses: 'text-emerald-600 border-b-2 border-emerald-600 font-bold',
+            inactiveClasses: 'text-gray-600 dark:text-gray-300 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600',
         },
         {
             id: 'return',
             label: 'Trả hàng/Hoàn tiền',
-            activeClasses: 'bg-purple-600 text-white border-purple-600',
-            inactiveClasses: 'text-purple-600 border-purple-300 hover:bg-purple-50 hover:border-purple-500',
+            activeClasses: 'text-purple-600 border-b-2 border-purple-600 font-bold',
+            inactiveClasses: 'text-gray-600 dark:text-gray-300 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600',
         },
         {
             id: 'cancelled',
             label: 'Đã hủy',
-            activeClasses: 'bg-red-600 text-white border-red-600',
-            inactiveClasses: 'text-red-600 border-red-300 hover:bg-red-50 hover:border-red-500',
+            activeClasses: 'text-red-600 border-b-2 border-red-600 font-bold',
+            inactiveClasses: 'text-gray-600 dark:text-gray-300 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600',
         },
     ];
+
 
 
     const filteredOrders = orders.filter(order => {
@@ -334,11 +354,8 @@ console.log("📦 API data:", response.data?.data);
         const term = searchTerm.toLowerCase();
         const searchTermMatch =
             !term ||
-            // tìm theo mã đơn hàng
             (order.orderCode && order.orderCode.toLowerCase().includes(term)) ||
-            // tìm theo ID nội bộ (nếu vẫn muốn)
             order.id.toString().includes(term) ||
-            // tìm theo tên sản phẩm
             order.products.some(p => p.name.toLowerCase().includes(term));
         return statusMatch && searchTermMatch;
     });
@@ -351,16 +368,14 @@ console.log("📦 API data:", response.data?.data);
 
     return (
         <div className="w-full">
-            {/* Nav Tabs */}
-            <div className="bg-white border-b border-gray-200 sticky top-0 z-10 py-2 shadow-sm">
+            <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10 py-2 shadow-sm">
                 <nav className="flex space-x-2 overflow-x-auto whitespace-nowrap hide-scrollbar px-4 sm:px-6">
                     {purchaseTabs.map(tab => (
                         <button
                             key={tab.id}
                             onClick={() => setActivePurchaseTab(tab.id)}
-                            // Thay đổi padding và font size để trông hợp lý hơn
                             className={`
-                                px-3 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 ease-in-out border
+                                px-4 py-2 text-sm font-semibold transition-all duration-200 ease-in-out flex-shrink-0
                                 ${activePurchaseTab === tab.id ? tab.activeClasses : tab.inactiveClasses}
                             `}
                         >
@@ -369,29 +384,32 @@ console.log("📦 API data:", response.data?.data);
                     ))}
                 </nav>
             </div>
-            {/* Search Bar */}
             <div className="my-3 sm:my-4 px-0">
                 <div className="relative mx-0 sm:mx-0">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <Search size={18} className="text-gray-400" />
                     </div>
-                    <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Tìm kiếm theo ID đơn hàng hoặc Tên sản phẩm" className="block w-full bg-white border-y sm:border-x border-gray-200 text-gray-900 text-sm focus:ring-sky-300 focus:border-sky-400 py-2.5 pl-10 pr-3 sm:rounded-sm" />
+                    <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Tìm kiếm theo ID đơn hàng hoặc Tên sản phẩm" className="block w-full bg-white border-y sm:border-x border-gray-200 text-gray-900 text-sm focus:ring-sky-300 focus:border-sky-400 py-2.5 pl-10 pr-3 sm:rounded-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400" />
                 </div>
             </div>
-            {/* Orders List */}
             <div className="px-0">
                 {filteredOrders.length > 0 ? (
                     filteredOrders.map(order => <OrderItem key={order.id} order={order} searchTerm={searchTerm} refetchOrders={fetchOrders} />)
                 ) : (
-                    <div className="text-center py-16 text-gray-500 bg-white rounded-sm border border-gray-200">
+                    <div className="text-center py-16 text-gray-500 bg-white rounded-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400">
                         <PackageOpen size={48} className="mx-auto mb-3 text-gray-400" />
                         Không tìm thấy đơn hàng nào phù hợp.
                     </div>
                 )}
             </div>
             <style jsx global>{`
-                .hide-scrollbar::-webkit-scrollbar { display: none; }
-                .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+                .hide-scrollbar::-webkit-scrollbar {
+                    display: none;
+                }
+                .hide-scrollbar {
+                    -ms-overflow-style: none;
+                    scrollbar-width: none;
+                }
             `}</style>
         </div>
     );

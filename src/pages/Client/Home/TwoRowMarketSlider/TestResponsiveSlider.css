@@ -14,14 +14,24 @@
   box-sizing: border-box;
 }
 
-.two-row-slick-slider .slick-slide > div { 
-  height: 100%;
-  display: flex; 
-  box-sizing: border-box;
+
+.two-row-slick-slider .slick-slide > div {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;     /* ✅ canh trái trục dọc */
+  justify-content: flex-start !important; /* ✅ canh trái trục ngang */
 }
+
+.two-row-slick-slider .slick-track {
+  display: flex !important;
+  justify-content: flex-start !important; /* ✅ bắt track dính trái */
+  align-items: flex-start !important;     /* ✅ bắt track đừng giữa */
+}
+
 
 .two-row-slick-slider .slick-slide > div > .flex.flex-col { 
     width: 100% !important; 
+    
     box-sizing: border-box !important;
 }
 .two-row-slick-slider .product-card-item {
@@ -116,3 +126,7 @@
     height: calc(2 * 1.35em); 
   }
 }
+
+
+
+

@@ -132,11 +132,11 @@ const AddressPageContent = () => {
       shippingService
         .getProvinces()
         .then((res) => {
-          setProvinceList(res || []); // Ensure res is an array
+          setProvinceList(res || []); 
         })
         .catch((err) => {
-          console.error('❌ Lỗi gọi API getProvinces:', err);
-          setProvinceList([]); // Set to empty array on error
+          console.error('Lỗi gọi API getProvinces:', err);
+          setProvinceList([]); 
         });
     }
   }, [showAddressModal]);
@@ -145,10 +145,10 @@ const AddressPageContent = () => {
     const fetchAddresses = async () => {
       try {
         const res = await userAddressService.getList();
-        setAddresses(sortAddresses(res.data.data || [])); // Sort initial list
+        setAddresses(sortAddresses(res.data.data || [])); 
       } catch (err) {
-        console.error('❌ Lỗi khi lấy địa chỉ:', err);
-        setAddresses([]); // Set to empty array on error
+        console.error('Lỗi khi lấy địa chỉ:', err);
+        setAddresses([]); 
       }
     };
     fetchAddresses();
@@ -403,7 +403,7 @@ const AddressPageContent = () => {
     setShowAddressModal(false);
     setEditingAddress(null);
     setShowLocationPicker(false);
-    setFormData(initialFormState); // Reset form when closing modal
+    setFormData(initialFormState); 
   };
 
   const handleOpenNewAddressModal = () => {
@@ -411,7 +411,7 @@ const AddressPageContent = () => {
     setFormData(initialFormState);
     setShowAddressModal(true);
     setShowLocationPicker(false);
-    setDistrictList([]); // Clear district and ward lists for new address
+    setDistrictList([]); 
     setWardList([]);
   };
 
@@ -629,7 +629,7 @@ const AddressPageContent = () => {
                       />
                     </div>
 
-                    {/* Hiển thị lỗi cụ thể */}
+                   
                     {(formErrors.city || formErrors.district || formErrors.ward) && (
                       <div className="mt-1 space-y-0.5">
                         {formErrors.city && <p className="block text-xs text-red-500 mt-1">{formErrors.city}</p>}

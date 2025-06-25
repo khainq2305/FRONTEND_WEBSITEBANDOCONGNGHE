@@ -190,7 +190,7 @@ export default function SortBar({ sticky, currentFilters, onApplyFilters, curren
         </div>
       )}
 
-      {/* Sắp xếp */}
+      
       <div className="flex items-center gap-x-3 gap-y-2 flex-wrap pt-3 border-t border-gray-200">
         <span className="font-semibold text-sm sm:text-[15px] mr-1 text-gray-800">Sắp xếp theo:</span>
         {[

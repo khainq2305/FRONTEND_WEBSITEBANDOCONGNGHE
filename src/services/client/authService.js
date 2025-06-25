@@ -16,7 +16,7 @@ export const authService = {
     post(`${base}${API_ENDPOINT.client.auth.google}`, data, {
       withCredentials: true
     }),
-changePassword: (data) => put(`${base}${API_ENDPOINT.client.auth.changePassword}`, data),
+  changePassword: (data) => put(`${base}${API_ENDPOINT.client.auth.changePassword}`, data),
   loginWithFacebook: (data, config = {}) => post(`${base}${API_ENDPOINT.client.auth.facebook}`, data, config),
 
   verifyEmail: (token) => get(`${base}${API_ENDPOINT.client.auth.verifyEmail}?token=${token}`),

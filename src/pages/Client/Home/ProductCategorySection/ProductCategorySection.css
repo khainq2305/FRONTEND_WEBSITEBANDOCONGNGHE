@@ -35,28 +35,15 @@
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   transition: opacity 0.2s ease-in-out, background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out; /* Cập nhật transition */
   color: var(--primary-color, #1CA7EC) !important;
-
-  /* === THAY ĐỔI Ở ĐÂY: Mũi tên ẩn mặc định, chỉ hiện khi hover wrapper === */
-  opacity: 0; /* Mũi tên sẽ ẩn đi theo mặc định */
-  pointer-events: none; /* Không cho phép tương tác khi đang ẩn */
-  /* === KẾT THÚC THAY ĐỔI === */
+  opacity: 0; 
+  pointer-events: none; 
 }
-
-/* === THÊM RULE MỚI / ĐIỀU CHỈNH LOGIC HOVER === */
-/* Hiển thị mũi tên (nếu không bị disabled) khi di chuột vào .category-slider-wrapper */
 .category-slider-wrapper:hover .slick-arrow:not(.slick-disabled) {
   opacity: 1;
   pointer-events: auto;
 }
-/* === KẾT THÚC PHẦN THÊM RULE MỚI === */
-
-/* Khối @media cũ dùng để hiển thị mũi tên khi hover .group đã được bạn ghi chú lại hoặc xóa, điều đó tốt.
-   Logic hover mới ở trên sẽ thay thế nó và áp dụng cho việc hover trực tiếp vào khu vực slider.
-*/
-
-/* GIỮ NGUYÊN: Kiểu cho mũi tên khi bị VÔ HIỆU HÓA (slick-disabled) */
 .category-slider-wrapper .slick-arrow.slick-disabled {
-  opacity: 0.3 !important; /* Mũi tên sẽ mờ đi đáng kể khi không thể cuộn */
+  opacity: 0.3 !important; 
   pointer-events: none !important;
   cursor: default !important;
   background-color: #f3f4f6 !important;
@@ -64,7 +51,6 @@
   color: #9ca3af !important;
 }
 
-/* GIỮ NGUYÊN: Kiểu khi HOVER vào bản thân mũi tên (khi nó đang hiển thị và không bị vô hiệu hóa) */
 .category-slider-wrapper .slick-arrow:hover:not(.slick-disabled) {
   background-color: var(--primary-color, #1CA7EC) !important;
   border-color: var(--primary-color, #1CA7EC) !important;
@@ -77,5 +63,5 @@
 
 .category-slider-wrapper .slick-prev:before,
 .category-slider-wrapper .slick-next:before {
-  display: none !important; /* Quan trọng: để sử dụng icon từ lucide-react */
+  display: none !important; 
 }

@@ -175,7 +175,6 @@ export default function ProductReviewSection({ productName, skuId }) {
               })}
             </div>
 
-            {/* ✅ Chỉ hiện nếu được quyền đánh giá */}
             {canReview && (
               <div className="flex-shrink-0 text-center md:text-right">
                 <button
@@ -235,14 +234,13 @@ export default function ProductReviewSection({ productName, skuId }) {
                     <div>
                       <p className="font-semibold text-gray-900">{review.user?.fullName || 'Người dùng'}</p>
                       {/* ✅ Hiển thị biến thể nếu có */}
-{review.sku.variantValues
-  .map((vv) =>
-    vv.variantValue?.variant?.name && vv.variantValue?.value
-      ? `${vv.variantValue.variant.name}: ${vv.variantValue.value}`
-      : 'Thuộc tính không xác định'
-  )
-  .join(', ')}
-
+                      {review.sku.variantValues
+                        .map((vv) =>
+                          vv.variantValue?.variant?.name && vv.variantValue?.value
+                            ? `${vv.variantValue.variant.name}: ${vv.variantValue.value}`
+                            : 'Thuộc tính không xác định'
+                        )
+                        .join(', ')}
 
                       {review.orderItemId && (
                         <p className="text-xs text-green-600 flex items-center gap-1 mt-0.5">
@@ -302,7 +300,6 @@ export default function ProductReviewSection({ productName, skuId }) {
                     return null;
                   })()}
 
-                  {/* ✅ Phản hồi từ admin nếu có */}
                   {review.replyContent && (
                     <div className="mt-4 ml-4 md:ml-8 pl-4 border-l-2 border-primary border-opacity-50">
                       <div className="bg-gray-50 p-4 rounded-xl">
@@ -327,7 +324,6 @@ export default function ProductReviewSection({ productName, skuId }) {
           </div>
         </div>
 
-        {/* === Nút Xem thêm / Thu gọn === */}
         <div className="flex items-center justify-center gap-4 mt-8 pt-6 border-t border-gray-200">
           {filteredReviews.length > visibleCount && (
             <button

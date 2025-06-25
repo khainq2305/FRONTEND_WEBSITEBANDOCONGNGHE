@@ -43,8 +43,6 @@ API.interceptors.response.use(
           window.location.href = '/dang-nhap';
         }, 200);
       }
-
-      // 👉 nếu đang ở trang /dang-nhap thì KHÔNG REDIRECT, KHÔNG F5, chỉ reject
     }
 
     return Promise.reject(err);

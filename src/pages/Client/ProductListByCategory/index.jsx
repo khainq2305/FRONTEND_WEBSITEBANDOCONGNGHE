@@ -13,7 +13,6 @@ import { wishlistService } from '../../../services/client/wishlistService';
 import { bannerService } from '../../../services/client/bannerService';
 import { toast } from 'react-toastify';
 import Loader from '../../../components/common/Loader';
-// ✅ Cách đúng – để React tự re-render khi slug thay đổi
 
 import { formatCurrencyVND } from '../../../utils/formatCurrency';
 import { useParams } from 'react-router-dom';

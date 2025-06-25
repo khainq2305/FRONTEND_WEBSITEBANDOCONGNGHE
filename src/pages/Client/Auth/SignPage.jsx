@@ -4,8 +4,8 @@ import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { authService } from 'services/client/authService';
 import Loader from 'components/common/Loader';
-import { GoogleLogin } from '@react-oauth/google';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { useGoogleLogin } from '@react-oauth/google';
 
 import GradientButton from '../../../components/Client/GradientButton';
 
@@ -85,56 +85,49 @@ const AuthPage = () => {
     }
   };
 
-  const handleGoogleLogin = async (credentialResponse) => {
-    try {
-      setIsLoading(true);
-      const response = await authService.loginWithGoogle({ token: credentialResponse.credential }, { withCredentials: true });
-      console.log('🔎 Đăng nhập Google response:', response.data);
+  // const handleGoogleLogin = async (credentialResponse) => {
+  //   try {
+  //     setIsLoading(true);
+  //     const response = await authService.loginWithGoogle({ token: credentialResponse.credential }, { withCredentials: true });
+  //     console.log('🔎 Đăng nhập Google response:', response.data);
 
-      const { token, user } = response.data;
+  //     const { token, user } = response.data;
 
-      if (user.fullName) {
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
+  //     if (user.fullName) {
+  //       localStorage.setItem('token', token);
+  //       localStorage.setItem('user', JSON.stringify(user));
+  //     }
+  //     navigate('/');
+  //   } catch (err) {
+  //     console.error('Đăng nhập Google thất bại:', err);
+  //     alert(err?.response?.data?.message || 'Đăng nhập Google thất bại!');
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+  const googleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        setIsLoading(true);
+        const response = await authService.loginWithGoogle({ token: tokenResponse.access_token }, { withCredentials: true });
+        const { token, user } = response.data;
+        if (user.fullName) {
+          localStorage.setItem('token', token);
+          localStorage.setItem('user', JSON.stringify(user));
+        }
+        navigate('/');
+      } catch (err) {
+        console.error('Đăng nhập Google thất bại:', err);
+        alert(err?.response?.data?.message || 'Đăng nhập Google thất bại!');
+      } finally {
+        setIsLoading(false);
       }
-      navigate('/');
-    } catch (err) {
-      console.error('Đăng nhập Google thất bại:', err);
-      alert(err?.response?.data?.message || 'Đăng nhập Google thất bại!');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  const handleFacebookLogin = async () => {
-    try {
-      setIsLoading(true);
-      window.FB.login(
-        async function (response) {
-          if (response.authResponse) {
-            const { accessToken, userID } = response.authResponse;
-
-            const res = await authService.loginWithFacebook({ accessToken, userID });
-            const { token, user } = res.data;
-
-            localStorage.setItem('token', token);
-            localStorage.setItem('user', JSON.stringify(user));
-            navigate('/');
-          } else {
-            alert('Đăng nhập Facebook bị hủy hoặc thất bại.');
-          }
-          setIsLoading(false);
-        },
-        { scope: 'email' }
-      );
-    } catch (err) {
-      console.error('Đăng nhập Facebook lỗi:', err);
-      alert(err?.response?.data?.message || 'Đăng nhập Facebook thất bại!');
-      setIsLoading(false);
-    }
-  };
+    },
+    onError: () => alert('Đăng nhập Google thất bại!')
+  });
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex flex-col lg:flex-row min-h-screen">
       {isLoading && (
         <div
           style={{
@@ -175,7 +168,7 @@ const AuthPage = () => {
         </div>
       </div>
 
-      <div className="flex flex-col justify-center items-center w-full lg:w-1/2 p-8">
+      <div className="flex flex-col justify-center items-center w-full p-6 sm:p-10 md:p-16 lg:w-1/2">
         <div className="bg-light shadow-md rounded-lg p-6 w-full max-w-md">
           <h2 className="text-2xl font-bold mb-4 text-center text-primary">{isLogin ? 'Đăng nhập' : 'Đăng ký'}</h2>
           {errorMessage && (
@@ -192,7 +185,9 @@ const AuthPage = () => {
                   {...register('fullName', { required: 'Vui lòng nhập họ và tên.' })}
                   placeholder="Họ và Tên"
                   className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 ${
-                    errors.fullName ? 'border-red-500 focus:ring-red-500' : 'border-primary focus:ring-primary'
+                    errors.fullName
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                      : 'border-gray-300 focus:border-primary focus:ring-primary'
                   }`}
                 />
                 {errors.fullName && <p className="text-red-500 text-sm mt-0.5">{errors.fullName.message}</p>}
@@ -211,7 +206,9 @@ const AuthPage = () => {
                 })}
                 placeholder="Email"
                 className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 ${
-                  errors.email ? 'border-red-500 focus:ring-red-500' : 'border-primary focus:ring-primary'
+                  errors.email
+                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                    : 'border-gray-300 focus:border-primary focus:ring-primary'
                 }`}
               />
               {errors.email && <p className="text-red-500 text-sm mt-0.5">{errors.email.message}</p>}
@@ -232,7 +229,9 @@ const AuthPage = () => {
                     })
                   })}
                   className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 pr-10 ${
-                    errors.password ? 'border-red-500 focus:ring-red-500' : 'border-primary focus:ring-primary'
+                    errors.password
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                      : 'border-gray-300 focus:border-primary focus:ring-primary'
                   }`}
                   placeholder="Mật khẩu"
                 />
@@ -258,7 +257,9 @@ const AuthPage = () => {
                       validate: (value) => value === watch('password') || 'Mật khẩu không khớp.'
                     })}
                     className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 pr-10 ${
-                      errors.confirmPassword ? 'border-red-500 focus:ring-red-500' : 'border-primary focus:ring-primary'
+                      errors.confirmPassword
+                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                        : 'border-gray-300 focus:border-primary focus:ring-primary'
                     }`}
                     placeholder="Xác nhận mật khẩu"
                   />
@@ -309,20 +310,31 @@ const AuthPage = () => {
             )}
           </div>
 
-          <div className="mt-6 text-center text-neutral-color">Hoặc đăng nhập bằng</div>
-          <div className="flex justify-center items-center gap-4 mt-4">
-            <GoogleLogin onSuccess={handleGoogleLogin} onError={() => alert('Đăng nhập Google thất bại!')} />
+          <div className="relative flex items-center py-5">
+            <div className="flex-grow border-t border-gray-300"></div>
+            <span className="flex-shrink text-neutral-color mx-4">Hoặc đăng nhập bằng</span>
+            <div className="flex-grow border-t border-gray-300"></div>
+          </div>
+          <div className="flex justify-center items-center gap-4">
             <button
-              type="button"
-              onClick={handleFacebookLogin}
-              className="flex items-center justify-center gap-3 px-4 py-2 border border-[#dadce0] rounded-md bg-white hover:bg-gray-100 text-sm font-normal text-[#3c4043] shadow-md w-full"
+              onClick={() => googleLogin()}
+              className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100 shadow"
             >
-              <img
-                src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png"
-                alt="Facebook"
-                className="w-5 h-5"
-              />
-              Đăng nhập bằng Facebook
+              <img src="src/assets/Client/images/auth/Google__G__logo.svg.webp" alt="Google" className="w-7 h-7 object-cover" />
+            </button>
+
+            <button
+              onClick={() => facebookLogin()}
+              className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100 shadow"
+            >
+              <img src="src/assets/Client/images/auth/2021_Facebook_icon.svg.webp" alt="Facebook" className="w-7 h-7 object-cover" />
+            </button>
+
+            <button
+              onClick={() => appleLogin()}
+              className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100 shadow"
+            >
+              <img src="src/assets/Client/images/auth/747.png" alt="Apple" className="w-7 h-7 object-cover" />
             </button>
           </div>
         </div>

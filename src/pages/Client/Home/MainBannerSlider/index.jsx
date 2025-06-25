@@ -29,7 +29,7 @@ const MainBannerSlider = () => {
   useEffect(() => {
     const fetchBanners = async () => {
       try {
-        const res = await bannerService.getByType('slider-footer'); // hoặc 'main' nếu DB bạn đặt vậy
+        const res = await bannerService.getByType('slider-footer'); 
         setBanners(res?.data?.data || []);
       } catch (err) {
         console.error('Lỗi lấy banner chính:', err);
@@ -58,7 +58,7 @@ const MainBannerSlider = () => {
   };
 
  return (
-  // ✅ SỬA LẠI CHIỀU CAO TỐI ĐA Ở ĐÂY
+  
   <div className="main-banner-slider-wrapper group relative w-full mx-auto my-4 rounded-lg overflow-hidden max-h-[250px]">
     <Slider {...settings} ref={sliderRef} className="main-banner-slick-slider h-full">
       {banners.map((banner) => (
@@ -68,8 +68,8 @@ const MainBannerSlider = () => {
               src={banner.imageUrl}
               alt={banner.altText || banner.title || 'Banner'}
               className="w-full h-full object-cover"
-              // ✅ VÀ SỬA LẠI CHIỀU CAO TỐI ĐA Ở ĐÂY
-              style={{ maxHeight: '250px', height: '100%' }}
+              
+              style={{ maxHeight: '250px', height: '390px' }}
             />
           </a>
         </div>

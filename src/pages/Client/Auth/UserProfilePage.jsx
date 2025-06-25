@@ -1,13 +1,13 @@
-// src/pages/UserProfilePage.jsx
-import React, { useState, useEffect } from 'react';
-import { User, ShoppingBag, MapPin, Eye, Ticket, Heart } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { User, ShoppingBag, MapPin, Eye, Ticket, Heart, ChevronDown, X } from 'lucide-react';
 
 import ProfileContent from './ProfileContent';
 import RenderDonMuaContentTuyChinh from './PurchaseHistoryPage';
 import AddressPageContent from './RenderDiaChiContent';
-import { authService }from '../../../services/client/authService';
+import { authService } from '../../../services/client/authService';
 import FavoriteProductsPage from './FavoriteProductsPage';
 import ChangePasswordTab from './ChangePasswordTab';
+import Breadcrumb from '../../../components/common/Breadcrumb';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -19,10 +19,13 @@ const UserProfilePage = () => {
   const [sidebarUserInfo, setSidebarUserInfo] = useState({
     initial: '?',
     displayName: 'Đang tải...',
-    email: 'Đang tải...', // ✅ THÊM FIELD EMAIL VÀO STATE
-    avatarUrl: null,
+    email: 'Đang tải...',
+    avatarUrl: null
   });
   const [isSidebarLoading, setIsSidebarLoading] = useState(true);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     const fetchSidebarUserInfo = async () => {
@@ -43,27 +46,32 @@ const UserProfilePage = () => {
           }
 
           setSidebarUserInfo({
-            initial: apiUser.fullName ? apiUser.fullName.charAt(0).toUpperCase() : (apiUser.email ? apiUser.email.charAt(0).toUpperCase() : '?'), // ✅ Lấy initial từ email nếu không có fullName
+            fullName: apiUser.fullName || '',
+            initial: apiUser.fullName
+              ? apiUser.fullName.charAt(0).toUpperCase()
+              : apiUser.email
+                ? apiUser.email.charAt(0).toUpperCase()
+                : '?',
             displayName: apiUser.fullName || apiUser.email || 'Tài khoản',
-            email: apiUser.email || 'Không có email', // ✅ GÁN EMAIL TỪ API
-            avatarUrl: finalAvatarUrl,
+            email: apiUser.email || 'Không có email',
+            avatarUrl: finalAvatarUrl
           });
         } else {
-          console.error("❌ Lỗi fetch thông tin cho sidebar: Dữ liệu user không hợp lệ.", response);
+          console.error('Lỗi fetch thông tin cho sidebar: Dữ liệu user không hợp lệ.', response);
           setSidebarUserInfo({
             initial: '!',
             displayName: 'Lỗi dữ liệu',
-            email: 'Lỗi tải email', // ✅ SET EMAIL KHI CÓ LỖI
-            avatarUrl: null,
+            email: 'Lỗi tải email',
+            avatarUrl: null
           });
         }
       } catch (error) {
-        console.error("❌ Lỗi fetch thông tin cho sidebar (catch):", error);
+        console.error('Lỗi fetch thông tin cho sidebar (catch):', error);
         setSidebarUserInfo({
           initial: '!',
           displayName: 'Lỗi tải',
-          email: 'Lỗi tải email', // ✅ SET EMAIL KHI CÓ LỖI
-          avatarUrl: null,
+          email: 'Lỗi tải email',
+          avatarUrl: null
         });
       } finally {
         setIsSidebarLoading(false);
@@ -76,13 +84,33 @@ const UserProfilePage = () => {
     const onHashChange = () => {
       const tabFromHash = window.location.hash.replace('#', '');
       setActiveTab(tabFromHash || 'thong-tin-tai-khoan');
+      if (isDropdownOpen) {
+        setIsDropdownOpen(false);
+      }
     };
 
     window.addEventListener('hashchange', onHashChange);
     return () => {
       window.removeEventListener('hashchange', onHashChange);
     };
-  }, []);
+  }, [isDropdownOpen]);
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isDropdownOpen]);
 
   useEffect(() => {
     const handleAvatarUpdate = (event) => {
@@ -90,7 +118,7 @@ const UserProfilePage = () => {
       setSidebarUserInfo((prev) => ({
         ...prev,
         avatarUrl: newAvatarUrl,
-        initial: newAvatarUrl ? (prev.displayName.charAt(0).toUpperCase() || '?') : (prev.displayName.charAt(0).toUpperCase() || '?')
+        initial: newAvatarUrl ? prev.displayName.charAt(0).toUpperCase() || '?' : prev.displayName.charAt(0).toUpperCase() || '?'
       }));
     };
 
@@ -100,24 +128,25 @@ const UserProfilePage = () => {
         setSidebarUserInfo((prev) => ({
           ...prev,
           displayName: updatedUserFromEvent.fullName || prev.displayName,
-          email: updatedUserFromEvent.email || prev.email, // ✅ CẬP NHẬT EMAIL KHI PROFILE UPDATE
-          initial: updatedUserFromEvent.fullName ? updatedUserFromEvent.fullName.charAt(0).toUpperCase() : prev.initial,
+          email: updatedUserFromEvent.email || prev.email,
+          initial: updatedUserFromEvent.fullName ? updatedUserFromEvent.fullName.charAt(0).toUpperCase() : prev.initial
         }));
       }
     };
 
-    window.addEventListener("avatarUpdated", handleAvatarUpdate);
-    window.addEventListener("profileUpdated", handleProfileUpdate);
+    window.addEventListener('avatarUpdated', handleAvatarUpdate);
+    window.addEventListener('profileUpdated', handleProfileUpdate);
 
     return () => {
-      window.removeEventListener("avatarUpdated", handleAvatarUpdate);
-      window.removeEventListener("profileUpdated", handleProfileUpdate);
+      window.removeEventListener('avatarUpdated', handleAvatarUpdate);
+      window.removeEventListener('profileUpdated', handleProfileUpdate);
     };
   }, []);
 
   const handleTabClick = (tabId) => {
     setActiveTab(tabId);
     window.location.hash = tabId;
+    setIsDropdownOpen(false);
   };
 
   const sidebarNavItems = [
@@ -125,16 +154,23 @@ const UserProfilePage = () => {
     { id: 'quan-ly-don-hang', label: 'Quản lý đơn hàng', icon: ShoppingBag, href: '#quan-ly-don-hang' },
     { id: 'so-dia-chi', label: 'Sổ địa chỉ', icon: MapPin, href: '#so-dia-chi' },
     { id: 'san-pham-da-xem', label: 'Sản phẩm đã xem', icon: Eye, href: '#san-pham-da-xem' },
-    { id: 'kho-voucher', label: 'Kho voucher', icon: Ticket, href: '#kho-voucher', iconColor: 'text-red-500' },
     { id: 'san-pham-yeu-thich', label: 'Sản phẩm yêu thích', icon: Heart, href: '#san-pham-yeu-thich' },
+    { id: 'doi-mat-khau', label: 'Đổi mật khẩu', icon: Eye, href: '#doi-mat-khau' }
   ];
+  const breadcrumbItems = [
+    { label: 'Trang chủ', href: '/' },
+    {
+      label: sidebarNavItems.find((item) => item.id === activeTab)?.label || 'Tài khoản',
+      href: window.location.hash || '#thong-tin-tai-khoan'
+    }
+  ];
+  const DesktopSidebar = () => {
+    const HEADER_HEIGHT_PX = 64;
 
-  const renderSidebarContent = () => {
     return (
-      <div className="w-[250px] flex-shrink-0 border-r border-gray-200 dark:border-gray-700 h-screen overflow-y-auto sticky top-0 bg-white dark:bg-gray-850">
-        <div className="px-4 pb-4 pt-6">
-          {/* Thông tin user trên sidebar */}
-          <div className="flex items-center mb-6 pl-1 border-b border-gray-200 dark:border-gray-700 pb-4">
+      <div className={`w-[250px] flex-shrink-0 dark:border-gray-700 h-screen overflow-y-auto sticky top-[${HEADER_HEIGHT_PX}px] dark:bg-gray-850 hidden lg:block`}>
+        <div className="pb-4 pt-6">
+          <div className="flex items-center pl-1 dark:border-gray-700 ">
             <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center mr-2.5 flex-shrink-0 overflow-hidden">
               {sidebarUserInfo.avatarUrl ? (
                 <img src={sidebarUserInfo.avatarUrl} alt="Avatar" className="w-full h-full rounded-full object-cover" />
@@ -143,35 +179,37 @@ const UserProfilePage = () => {
               )}
             </div>
             <div className="overflow-hidden">
-              <p className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
-                {isSidebarLoading ? 'Đang tải...' : sidebarUserInfo.displayName}
-              </p>
-              {/* ✅ HIỂN THỊ EMAIL THẬT CỦA USER */}
-              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                {isSidebarLoading ? '...' : sidebarUserInfo.email}
+              <p className="text-xs text-gray-500 dark:text-gray-400">Tài khoản của</p>
+              <p className="font-medium text-base text-gray-900 dark:text-gray-100 truncate">
+                {isSidebarLoading ? 'Đang tải...' : sidebarUserInfo.fullName || '---'}
               </p>
             </div>
           </div>
           <nav>
             <ul>
-              {sidebarNavItems.map(item => {
+              {sidebarNavItems.map((item) => {
                 const itemIsActive = activeTab === item.id;
-                const currentIconColor = itemIsActive ? 'text-primary' : (item.iconColor || 'text-gray-600 dark:text-gray-400');
-                
+                const currentIconColor = itemIsActive ? 'text-primary' : item.iconColor || 'text-gray-600 dark:text-gray-400';
+
                 return (
-                  <li key={item.id} className="mb-0.5">
+                  <li key={item.id} className={`mb-0.5 ${item.id === 'thong-tin-tai-khoan' ? 'mt-4' : ''}`}>
                     <a
                       href={item.href}
-                      onClick={(e) => { e.preventDefault(); handleTabClick(item.id); }}
-                      className={`flex items-center py-2.5 px-3 rounded-md text-sm transition-colors duration-150 relative
-                        ${itemIsActive ? 'bg-gray-100 dark:bg-gray-700 text-primary font-medium' : 'text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleTabClick(item.id);
+                      }}
+                      className={`flex items-center py-2.5 px-3 rounded-md text-sm transition-all duration-200 relative
+                        ${
+                          itemIsActive
+                            ? 'bg-white border-l-4 border-primary text-primary font-semibold'
+                            : 'text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
+                        }
                       `}
                     >
-                      {/* Icon */}
                       {item.icon && (
                         <div className="relative mr-3 flex-shrink-0">
                           <item.icon size={18} className={`${currentIconColor}`} strokeWidth={itemIsActive ? 2.5 : 2} />
-                          {/* Dấu chấm thông báo (nếu có) */}
                           {item.id === 'thong-bao' && item.notification && (
                             <span className="absolute top-[1px] right-[1px] block h-1.5 w-1.5 transform translate-x-1/2 -translate-y-1/2 rounded-full bg-red-500 ring-1 ring-white dark:ring-gray-800"></span>
                           )}
@@ -188,25 +226,105 @@ const UserProfilePage = () => {
       </div>
     );
   };
+  const MobileUserDropdown = () => {
+    return (
+      <div className="relative w-full lg:hidden mb-4" ref={dropdownRef}>
+        <button
+          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          className="flex items-center justify-between w-full p-3 bg-white dark:bg-gray-800 rounded-md shadow-sm border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          aria-expanded={isDropdownOpen}
+        >
+          <div className="flex items-center">
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center mr-2 flex-shrink-0 overflow-hidden">
+              {sidebarUserInfo.avatarUrl ? (
+                <img src={sidebarUserInfo.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-white text-sm font-semibold">{isSidebarLoading ? '...' : sidebarUserInfo.initial}</span>
+              )}
+            </div>
+            <div className="text-left overflow-hidden">
+              <p className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
+                {isSidebarLoading ? 'Đang tải...' : sidebarUserInfo.displayName}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                {isSidebarLoading ? 'Đang tải...' : sidebarUserInfo.email}
+              </p>
+            </div>
+          </div>
+          <ChevronDown
+            size={20}
+            className={`text-gray-600 dark:text-gray-400 transform transition-transform ${isDropdownOpen ? 'rotate-180' : 'rotate-0'}`}
+          />
+        </button>
+
+        {isDropdownOpen && (
+          <div className="absolute top-full left-0 mt-2 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 z-30">
+            <nav>
+              <ul>
+                {sidebarNavItems.map((item) => {
+                  const itemIsActive = activeTab === item.id;
+                  const currentIconColor = itemIsActive ? 'text-primary' : item.iconColor || 'text-gray-600 dark:text-gray-400';
+
+                  return (
+                    <li key={item.id} className="mb-0.5 last:mb-0">
+                      <a
+                        href={item.href}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleTabClick(item.id);
+                        }}
+                        className={`flex items-center py-2.5 px-3 rounded-md text-sm transition-all duration-200 relative
+                          ${
+                            itemIsActive
+                              ? 'bg-primary-100 dark:bg-primary-900 text-primary font-semibold'
+                              : 'text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
+                          }
+                        `}
+                      >
+                        {item.icon && (
+                          <div className="relative mr-3 flex-shrink-0">
+                            <item.icon size={18} className={`${currentIconColor}`} strokeWidth={itemIsActive ? 2.5 : 2} />
+                            {item.id === 'thong-bao' && item.notification && (
+                              <span className="absolute top-[1px] right-[1px] block h-1.5 w-1.5 transform translate-x-1/2 -translate-y-1/2 rounded-full bg-red-500 ring-1 ring-white dark:ring-gray-800"></span>
+                            )}
+                          </div>
+                        )}
+                        <span className="truncate">{item.label}</span>
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </nav>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const EmptyContent = ({ title }) => (
-    <div className="bg-white dark:bg-gray-800 p-6 shadow-md rounded-md border border-gray-200 dark:border-gray-700">
+    <div className="bg-white dark:bg-gray-800 p-6 shadow-md rounded-md border border-gray-200 dark:border-700">
       <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">{title}</h2>
       <p className="text-sm text-gray-600 dark:text-gray-300">Nội dung cho mục này hiện không có sẵn hoặc đã được loại bỏ.</p>
     </div>
   );
 
   return (
-    <div className="bg-[#F5F5F5] dark:bg-gray-900 min-h-screen pt-5">
+    <div className="bg-[#F5F5F5] min-h-screen">
       <div className="max-w-[1200px] mx-auto font-sans">
+        <div className="mb-3 pt-4 sm:pt-4 lg:pt-0">
+          <Breadcrumb items={breadcrumbItems} />
+        </div>
+        <MobileUserDropdown />
+
         <div className="flex flex-row">
-          {renderSidebarContent()}
-          <div className="flex-1 min-w-0 lg:pl-8 md:pl-6 pl-2">
+          <DesktopSidebar />
+
+          <div className="flex-1 min-w-0 lg:pl-8 md:pl-6 pl-0 pb-8">
             {activeTab === 'thong-tin-tai-khoan' && <ProfileContent />}
             {activeTab === 'quan-ly-don-hang' && <RenderDonMuaContentTuyChinh />}
             {activeTab === 'so-dia-chi' && <AddressPageContent />}
             {activeTab === 'san-pham-da-xem' && <EmptyContent title="Sản phẩm đã xem" />}
-            {activeTab === 'kho-voucher' && <div className="bg-white dark:bg-gray-800 p-6 shadow-md rounded-md border border-gray-200 dark:border-gray-700"><h2 className="text-xl font-semibold dark:text-gray-100">Kho Voucher</h2><p className="text-sm dark:text-gray-300">Nội dung trang Kho Voucher...</p></div>}
             {activeTab === 'san-pham-yeu-thich' && <FavoriteProductsPage />}
             {activeTab === 'doi-mat-khau' && <ChangePasswordTab />}
           </div>
@@ -214,12 +332,14 @@ const UserProfilePage = () => {
       </div>
       <style jsx global>{`
         body {
-          font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
+          font-family:
+            -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+            'WenQuanYi Micro Hei', sans-serif;
           color: #333;
         }
         .dark body {
-            color: #E5E7EB;
-            background-color: #111827;
+          color: #e5e7eb;
+          background-color: #111827;
         }
 
         .form-radio-custom {
@@ -227,16 +347,16 @@ const UserProfilePage = () => {
           -webkit-appearance: none;
           width: 18px;
           height: 18px;
-          border: 1.5px solid #BDBDBD;
+          border: 1.5px solid #bdbdbd;
           border-radius: 50%;
           outline: none;
           cursor: pointer;
           position: relative;
-          top: 0.1em; 
+          top: 0.1em;
           transition: border-color 0.2s ease;
         }
         .dark .form-radio-custom {
-            border-color: #4B5563;
+          border-color: #4b5563;
         }
 
         .form-radio-custom:checked {
@@ -245,8 +365,8 @@ const UserProfilePage = () => {
         .form-radio-custom:checked::before {
           content: '';
           display: block;
-          width: 10px; 
-          height: 10px; 
+          width: 10px;
+          height: 10px;
           background-color: var(--primary-color);
           border-radius: 50%;
           position: absolute;
@@ -254,41 +374,41 @@ const UserProfilePage = () => {
           left: 50%;
           transform: translate(-50%, -50%);
         }
-        
+
         .form-radio-custom:focus-visible {
-            box-shadow: 0 0 0 2px rgba(28, 167, 236, 0.3);
+          box-shadow: 0 0 0 2px rgba(28, 167, 236, 0.3);
         }
 
         select.appearance-none {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23757575' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 0.75rem center;
-            background-size: 0.75em;
-            padding-right: 2.5rem;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23757575' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: right 0.75rem center;
+          background-size: 0.75em;
+          padding-right: 2.5rem;
         }
         .dark select.appearance-none {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239CA3AF' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239CA3AF' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
         }
 
-        /* Thanh cuộn cho sidebar (và các khu vực khác dùng overflow-y-auto) */
+        /* Scrollbar styles for sidebar (and other overflow-y-auto areas) */
         .overflow-y-auto::-webkit-scrollbar {
-          width: 6px; 
+          width: 6px;
         }
         .overflow-y-auto::-webkit-scrollbar-thumb {
-          background-color: #D1D5DB;
+          background-color: #d1d5db;
           border-radius: 3px;
         }
         .dark .overflow-y-auto::-webkit-scrollbar-thumb {
-            background-color: #4B5563;
+          background-color: #4b5563;
         }
         .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-          background-color: #9CA3AF;
+          background-color: #9ca3af;
         }
         .dark .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-            background-color: #6B7280;
+          background-color: #6b7280;
         }
         .overflow-y-auto::-webkit-scrollbar-track {
-          background-color: transparent; 
+          background-color: transparent;
         }
       `}</style>
     </div>

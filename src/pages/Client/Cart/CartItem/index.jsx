@@ -91,14 +91,14 @@ const CartItem = ({ item, isChecked, onToggleChecked, onQuantityChange }) => {
     return (
         <div className={`bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col ${isOutOfStock ? 'bg-gray-50' : ''}`}>
             <div className="flex items-center justify-between flex-wrap gap-2 p-3 sm:p-4">
-                {/* Conditional rendering for Checkbox or "HẾT" text only */}
+               
                 {isOutOfStock ? (
-                    // Hiển thị chữ "HẾT" thuần túy ở vị trí checkbox
+                 
                     <span className="text-red-600 font-bold text-sm flex-shrink-0" style={{ minWidth: '24px', textAlign: 'center' }}>
                         HẾT
                     </span>
                 ) : (
-                    // Checkbox bình thường
+                  
                     <div
                         className={`w-5 h-5 flex items-center justify-center rounded-sm transition border ${
                             isChecked ? "bg-primary border-primary" : "bg-white border-gray-500"
@@ -109,7 +109,7 @@ const CartItem = ({ item, isChecked, onToggleChecked, onQuantityChange }) => {
                                     cartItemId: item.id,
                                     isSelected: !isChecked,
                                 });
-                                onToggleChecked(); // vẫn gọi để cập nhật UI
+                                onToggleChecked(); 
                             } catch (err) {
                                 toast.error("Không thể cập nhật trạng thái chọn!", {
                                     position: "top-right",
@@ -122,7 +122,7 @@ const CartItem = ({ item, isChecked, onToggleChecked, onQuantityChange }) => {
                     </div>
                 )}
                 
-                {/* Image */}
+             
                 <img
                     src={item.image || "https://mucinmanhtai.com/wp-content/themes/BH-WebChuan-032320/assets/images/default-thumbnail-400.jpg"}
                     alt={item.productName}
@@ -133,7 +133,7 @@ const CartItem = ({ item, isChecked, onToggleChecked, onQuantityChange }) => {
                     className={`w-16 h-16 sm:w-20 sm:h-20 rounded object-cover ml-3 mr-3 ${isOutOfStock ? 'grayscale opacity-80' : ''}`}
                 />
 
-                {/* Info */}
+             
                 <div className="flex-1 min-w-0 space-y-2">
                     <h3 
                         className={`text-sm md:text-base max-w-[270px] font-medium text-gray-800 line-clamp-2 ${isOutOfStock ? 'text-gray-500 opacity-60' : ''}`}
@@ -153,26 +153,25 @@ const CartItem = ({ item, isChecked, onToggleChecked, onQuantityChange }) => {
                     )}
                 </div>
 
-                {/* Price */}
-                <div className="text-right">
-                    <div 
-                        className={`text-red-600 font-bold text-sm md:text-base ${isOutOfStock ? 'text-gray-500 line-through opacity-60' : ''}`}
-                    >
-                        {formatCurrencyVND(item.finalPrice)}
-                    </div>
-                    {item.finalPrice < item.price && (
-                        <div 
-                            className={`line-through text-gray-400 text-xs ${isOutOfStock ? 'text-gray-400 opacity-60' : ''}`}
-                        >
-                            {formatCurrencyVND(item.price)}
-                        </div>
-                    )}
-                </div>
+           
+               <div className="text-right">
+  {/* Giá gốc gạch */}
+  {item.originalPrice > item.finalPrice && (
+    <p className="text-gray-400 text-xs line-through">
+      {formatCurrencyVND(item.originalPrice)}
+    </p>
+  )}
+  {/* Giá bán */}
+  <p className="text-red-600 font-bold text-sm md:text-base">
+    {formatCurrencyVND(item.finalPrice)}
+  </p>
+</div>
 
-                {/* Quantity & Delete */}
+
+               
                 <div className="flex items-center justify-end gap-2">
                     {isOutOfStock ? (
-                        // ✅ Đã thêm lại dòng "Hết hàng" ở đây, cạnh nút xóa
+                    
                         <div className="text-red-600 font-semibold text-sm px-4 whitespace-nowrap flex-shrink-0">
                             Hết hàng
                         </div>

@@ -75,8 +75,6 @@ const ViewedProductsSlider = () => {
             localStorage.removeItem('viewed_products');
         }
     };
-
- // trong ViewedProductsSlider
 const getPriceJsx = (product) => {
   const sale = parseFloat(product.price) || 0;
   const orig = parseFloat(product.originalPrice) || 0;

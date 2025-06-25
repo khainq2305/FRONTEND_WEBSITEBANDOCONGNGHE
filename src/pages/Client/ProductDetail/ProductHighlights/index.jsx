@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 
-
 const TocIcon = ({ className }) => (
   <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
@@ -15,7 +14,11 @@ export default function ProductHighlights({ data }) {
   }
 
   const collapsedItemCount = 1;
-  const canExpand = data.detailedSections.length > collapsedItemCount && data.detailedSections[0]?.content.length > 500; // Ví dụ: chỉ hiện nút khi có nhiều hơn 1 section hoặc section đầu tiên đủ dài
+
+  const canExpand =
+    data.detailedSections.length > collapsedItemCount ||
+    (data.detailedSections.length > 0 && data.detailedSections[0]?.content.length > 500);
+
   const itemsToShow = isExpanded ? data.detailedSections : data.detailedSections.slice(0, collapsedItemCount);
 
   return (
@@ -50,10 +53,10 @@ export default function ProductHighlights({ data }) {
 
       <div
         className={`
-        prose prose-sm max-w-none text-gray-700 leading-relaxed 
-        transition-all duration-300 ease-in-out
-        ${!isExpanded && canExpand ? 'max-h-[500px] overflow-hidden relative' : ''}
-      `}
+          prose prose-sm max-w-none text-gray-700 leading-relaxed 
+          transition-all duration-300 ease-in-out
+          ${!isExpanded && canExpand ? 'max-h-[500px] overflow-hidden relative' : ''}
+        `}
       >
         {itemsToShow.map((section, index) => (
           <div key={index} id={`section-${index}`}>
@@ -77,6 +80,7 @@ export default function ProductHighlights({ data }) {
             )}
           </div>
         ))}
+
         {!isExpanded && canExpand && (
           <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
         )}
@@ -86,7 +90,7 @@ export default function ProductHighlights({ data }) {
         <div className="mt-6 text-center">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="bg-white text-primary border border-primary px-6 py-2.5 rounded-md font-semibold hover:bg-blue-50 text-sm transition-colors duration-150"
+            className="text-primary text-sm font-medium hover:underline focus:outline-none p-0 bg-transparent"
           >
             {isExpanded ? 'Thu gọn' : 'Xem thêm nội dung'}
           </button>

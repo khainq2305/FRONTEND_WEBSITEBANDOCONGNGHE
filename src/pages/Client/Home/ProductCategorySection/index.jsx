@@ -1,5 +1,3 @@
-// DÁN TOÀN BỘ CODE NÀY VÀO FILE ProductCategorySection.js
-
 import React, { useEffect, useState, useRef } from 'react';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
@@ -11,9 +9,26 @@ const ProductCategorySection = () => {
   const [categoriesData, setCategoriesData] = useState([]);
   const sliderRef = useRef(null);
 
-  const ITEMS_PER_ROW = 10;
+  const getItemsPerRow = () => {
+    if (window.innerWidth >= 1280) return 10;
+    if (window.innerWidth >= 1024) return 8;
+    if (window.innerWidth >= 768) return 6;
+    if (window.innerWidth >= 640) return 5;
+    return 4;
+  };
+
   const NUM_ROWS = 2;
-  const THRESHOLD_FOR_SLIDER = ITEMS_PER_ROW * NUM_ROWS;
+
+  const [currentItemsPerRow, setCurrentItemsPerRow] = useState(getItemsPerRow());
+
+  useEffect(() => {
+    const handleResize = () => {
+      setCurrentItemsPerRow(getItemsPerRow());
+    };
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -34,8 +49,12 @@ const ProductCategorySection = () => {
     fetchData();
   }, []);
 
-  const displayedCategoriesForStaticGrid = categoriesData.slice(0, THRESHOLD_FOR_SLIDER);
+  const THRESHOLD_FOR_SLIDER = currentItemsPerRow * NUM_ROWS;
   const shouldUseSlider = categoriesData.length > THRESHOLD_FOR_SLIDER;
+
+  // Define displayedCategoriesForStaticGrid here
+  const displayedCategoriesForStaticGrid = categoriesData.slice(0, THRESHOLD_FOR_SLIDER);
+
 
   const CustomSliderArrow = ({ className, onClick, type }) => (
     <button type="button" className={`${className} custom-arrow`} onClick={onClick} aria-label={type === 'prev' ? 'Previous' : 'Next'}>
@@ -52,24 +71,25 @@ const ProductCategorySection = () => {
     arrows: true,
     prevArrow: <CustomSliderArrow type="prev" />,
     nextArrow: <CustomSliderArrow type="next" />,
-    slidesToShow: ITEMS_PER_ROW,
-    slidesToScroll: ITEMS_PER_ROW,
+    slidesToShow: currentItemsPerRow,
+    slidesToScroll: currentItemsPerRow,
     responsive: [
-      { breakpoint: 1280, settings: { slidesToShow: 10, slidesToScroll: 10 } },
-      { breakpoint: 1024, settings: { slidesToShow: 8, slidesToScroll: 8 } },
-      { breakpoint: 768, settings: { slidesToShow: 6, slidesToScroll: 6 } },
-      { breakpoint: 640, settings: { slidesToShow: 5, slidesToScroll: 5 } },
-      { breakpoint: 480, settings: { slidesToShow: 4, slidesToScroll: 4 } }
+      { breakpoint: 1280, settings: { slidesToShow: 10, slidesToScroll: 10, infinite: categoriesData.length > 10 * NUM_ROWS } },
+      { breakpoint: 1024, settings: { slidesToShow: 8, slidesToScroll: 8, infinite: categoriesData.length > 8 * NUM_ROWS } },
+      { breakpoint: 768, settings: { slidesToShow: 6, slidesToScroll: 6, infinite: categoriesData.length > 6 * NUM_ROWS } },
+      { breakpoint: 640, settings: { slidesToShow: 5, slidesToScroll: 5, infinite: categoriesData.length > 5 * NUM_ROWS } },
+      { breakpoint: 480, settings: { slidesToShow: 4, slidesToScroll: 4, infinite: categoriesData.length > 4 * NUM_ROWS } },
+      { breakpoint: 320, settings: { slidesToShow: 3, slidesToScroll: 3, infinite: categoriesData.length > 3 * NUM_ROWS } }
     ]
   };
 
   const CategoryItem = ({ item }) => {
     const itemClasses = `
-            text-center p-3 text-gray-800 no-underline bg-transparent
-            flex flex-col items-center justify-start h-full group
-            transition-all duration-300 ease-in-out rounded-xl
-            hover:shadow-lg hover:bg-white hover:-translate-y-1.5
-        `;
+      text-center p-2.5 text-gray-800 no-underline bg-transparent
+      flex flex-col items-center justify-start h-full group
+      transition-all duration-300 ease-in-out rounded-xl
+      hover:shadow-lg hover:bg-white hover:-translate-y-1.5
+    `;
 
     return (
       <a href={item.slug ? `/category/${item.slug}` : '#'} className={itemClasses} title={item.name}>
@@ -77,9 +97,9 @@ const ProductCategorySection = () => {
           {item.label && (
             <span
               className={`
-                            absolute -top-1 -right-1 z-10 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-md
-                            ${item.label === 'hot' ? 'bg-rose-500' : item.label === 'new' ? 'bg-cyan-500' : 'bg-amber-500'}
-                        `}
+                absolute -top-1 -right-1 z-10 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-md
+                ${item.label === 'hot' ? 'bg-rose-500' : item.label === 'new' ? 'bg-cyan-500' : 'bg-amber-500'}
+              `}
             >
               {item.label === 'hot' ? 'HOT' : item.label === 'new' ? 'MỚI' : 'NỔI BẬT'}
             </span>
@@ -92,14 +112,7 @@ const ProductCategorySection = () => {
           />
         </div>
         <span
-          className="text-xs md:text-sm leading-tight text-center font-medium"
-          style={{
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-            height: '2.5em'
-          }}
+          className="category-item-title text-xs md:text-sm leading-tight text-center font-medium"
         >
           {item.title}
         </span>
@@ -108,22 +121,22 @@ const ProductCategorySection = () => {
   };
 
   return (
-    <div className="w-full bg-gray-50 rounded-xl shadow-sm overflow-hidden">
+    <div className="w-full bg-gray-50 rounded-xl shadow-sm overflow-hidden category-section-container">
       <div className="p-2 md:p-4">
         {shouldUseSlider ? (
           <div className="category-slider-wrapper">
-            <Slider {...sliderSettings}>
+            <Slider {...sliderSettings} ref={sliderRef}>
               {categoriesData.map((category) => (
-                <div key={category.id} className="p-1 h-full">
+                <div key={category.id} className="p-1 h-full category-slide-item">
                   <CategoryItem item={category} />
                 </div>
               ))}
             </Slider>
           </div>
         ) : (
-          <div className="flex flex-wrap -m-1">
+          <div className="flex flex-wrap -m-1 category-static-grid">
             {displayedCategoriesForStaticGrid.map((item) => (
-              <div key={item.id} className="w-1/4 sm:w-1/5 md:w-1/8 lg:w-1/10 p-1">
+              <div key={item.id} className="p-1 category-grid-item">
                 <CategoryItem item={item} />
               </div>
             ))}
