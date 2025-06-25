@@ -52,7 +52,7 @@ function a11yProps(index) {
 export default function Profile() {
   const { user } = useAuthStore();
   const theme = useTheme();
-
+  console.log('user la',user)
   const anchorRef = useRef(null);
   const [open, setOpen] = useState(false);
   const handleToggle = () => {

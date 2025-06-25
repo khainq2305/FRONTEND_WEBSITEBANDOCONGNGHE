@@ -4,7 +4,7 @@ import { AuthService } from '@/services/admin/AuthService';
 import { buildAbilityFromPermissions } from '@/casl/ability';
 import { encrypt, decrypt } from '@/utils/cryptoHelper';
 
-  /**
+/**
  * @hook useAuthStore
  * Quản lý trạng thái người dùng (user, loading, ability)
  *
@@ -30,10 +30,9 @@ const useAuthStore = create(
 
         try {
           const res = await AuthService.getUserInfo();
-          const user = res.data;
+          const user = res?.data?.data;
 
-          // ✅ Ép rõ ràng roles và canAccess
-          user.roles = user.roles?.map(r => ({
+          user.roles = user.roles?.map((r) => ({
             id: r.id,
             name: r.name,
             description: r.description,
@@ -43,15 +42,15 @@ const useAuthStore = create(
           const ability = buildAbilityFromPermissions(user.permissions || []);
           set({ user, ability });
         } catch (err) {
-          console.error('Lỗi fetchUserInfo:', err);
           set({ user: null, ability: null });
         } finally {
           set({ loading: false });
         }
       },
 
-      login: (userInfo) => {
-        userInfo.roles = userInfo.roles?.map(r => ({
+      login: (userInfo, token) => {
+        console.log('token', token);
+        userInfo.roles = userInfo.roles?.map((r) => ({
           id: r.id,
           name: r.name,
           description: r.description,
@@ -60,6 +59,9 @@ const useAuthStore = create(
 
         const ability = buildAbilityFromPermissions(userInfo.permissions || []);
         set({ user: userInfo, ability });
+        if (token) {
+          localStorage.setItem('token', token);
+        }
       },
 
       logout: async () => {
@@ -79,22 +81,22 @@ const useAuthStore = create(
       partialize: (state) => state,
       storage: {
         getItem: (name) => {
-  const raw = localStorage.getItem(name);
-  if (!raw) return null;
-  try {
-    const parsed = JSON.parse(decrypt(raw));
-    // Patch lại roles nếu thiếu canAccess
-    if (parsed?.user?.roles) {
-      parsed.user.roles = parsed.user.roles.map(r => ({
-        ...r,
-        canAccess: r.canAccess ?? false
-      }));
-    }
-    return parsed;
-  } catch {
-    return null;
-  }
-},
+          const raw = localStorage.getItem(name);
+          if (!raw) return null;
+          try {
+            const parsed = JSON.parse(decrypt(raw));
+            // Patch lại roles nếu thiếu canAccess
+            if (parsed?.user?.roles) {
+              parsed.user.roles = parsed.user.roles.map((r) => ({
+                ...r,
+                canAccess: r.canAccess ?? false
+              }));
+            }
+            return parsed;
+          } catch {
+            return null;
+          }
+        },
         setItem: (name, value) => {
           const encrypted = encrypt(JSON.stringify(value));
           localStorage.setItem(name, encrypted);

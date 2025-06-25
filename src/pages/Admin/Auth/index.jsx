@@ -8,13 +8,14 @@ import { AuthService } from '@/services/admin/AuthService';
 import useAuthStore from '@/stores/AuthStore';
 import { toast } from 'react-toastify';
 import useTurnstile from '@/hook/useTurnstile'; // ✅ custom hook
+import { da } from 'date-fns/locale';
 
 const LoginAdmin = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isLogin = location.pathname === '/dang-nhap-dashboard';
 
-  const { login, user, loading, logout } = useAuthStore();
+  const { login, user, loading, token, logout } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -40,7 +41,7 @@ const LoginAdmin = () => {
   }, [isLoading]);
 
   const onSubmit = async (data) => {
-    if (!cfToken) {
+    if (cfToken) {
       toast.error('Vui lòng xác minh bảo mật');
       return;
     }
@@ -49,23 +50,28 @@ const LoginAdmin = () => {
       setIsLoading(true);
       setErrorMessage('');
 
-      await AuthService.login({ ...data, cfToken });
+      const isLogin  = await AuthService.login({ ...data, cfToken });
+      const token = isLogin.data.token;
 
+       console.log('token', token)
+
+      debugger;
       const res = await AuthService.getUserInfo();
       const userInfo = res.data.data;
-      if (!userInfo) throw new Error('Không thể lấy thông tin người dùng.');
+      console.log('user info ', userInfo)
+      if (!userInfo) throw new Error('Không thể lấy thông tin người dùng hihi.');
 
-      console.log('userInfo laf :',userInfo)
+      // console.log('userInfo laf :',userInfo)
       const hasAccess = userInfo.roles?.some((role) => role.canAccess);
       console.log('hasAccess laf :',hasAccess)
-      debugger;
+
       if (!hasAccess) {
         logout();        
         toast.error('Bạn không có quyền truy cập trang này.');
         return navigate('/403', { replace: true });
       }
 
-      login(userInfo);
+      login(userInfo, token);
       navigate('/admin');
     } catch (err) {
       const message = err?.response?.data?.message || err.message || 'Đăng nhập thất bại!';
