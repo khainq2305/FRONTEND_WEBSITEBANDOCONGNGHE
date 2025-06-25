@@ -41,10 +41,10 @@ const LoginAdmin = () => {
   }, [isLoading]);
 
   const onSubmit = async (data) => {
-    if (cfToken) {
-      toast.error('Vui lòng xác minh bảo mật');
-      return;
-    }
+    // if (cfToken) {
+    //   toast.error('Vui lòng xác minh bảo mật');
+    //   return;
+    // }
 
     try {
       setIsLoading(true);

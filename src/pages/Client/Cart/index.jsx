@@ -175,7 +175,7 @@ const totals = selectedItems.reduce(
 
       {cartItems.length > 0 ? (
         <div className="flex flex-col lg:flex-row gap-6">
-          <section className="w-full lg:w-2/3">
+           <section className="w-full lg:w-[70%]">   
             <div className="bg-white rounded-md p-3 sm:p-4 border border-gray-200">
               <div className="flex items-center h-11 mb-3 sm:mb-4">
                 <div onClick={toggleAll} className="flex items-center gap-2 cursor-pointer pl-3 sm:pl-4 flex-grow">
@@ -214,7 +214,7 @@ const totals = selectedItems.reduce(
             </div>
           </section>
 
-          <aside className="w-full lg:w-1/3 lg:sticky lg:top-35 self-start h-fit mt-6 lg:mt-0">
+     <aside className="w-full lg:w-[30%] lg:sticky lg:top-35 self-start h-fit mt-6 lg:mt-0">
             <CartSummary
               hasSelectedItems={hasSelectedItems}
               selectedItems={selectedItems}

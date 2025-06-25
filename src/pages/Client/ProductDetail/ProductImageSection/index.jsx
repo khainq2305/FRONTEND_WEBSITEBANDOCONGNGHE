@@ -126,18 +126,7 @@ export default function ProductImageSection({
             <WishlistHeartStyledIcon isFavoritedState={isFavorited} className="w-7 h-7" />
           </button>
 
-          <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 z-20">
-            <button
-              onClick={handleFavoriteToggle}
-              disabled={loading}
-              className={`flex items-center gap-1 px-3 py-1.5 text-sm rounded-full font-medium border shadow 
-                ${isFavorited ? 'bg-red-100 text-red-600 border-red-300' : 'bg-white text-gray-600 border-gray-300'} 
-                hover:bg-red-200 transition`}
-            >
-              <WishlistHeartStyledIcon isFavoritedState={isFavorited} className="w-4 h-4" />
-              {isFavorited ? 'Đã yêu thích' : 'Yêu thích'}
-            </button>
-          </div>
+         
 
           {showArrows && (
             <>

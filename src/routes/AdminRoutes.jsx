@@ -47,16 +47,16 @@ const NotificationCreatePage = Loadable(lazy(() => import('pages/Admin/Notificat
 const NotificationEditPage = Loadable(lazy(() => import('pages/Admin/Notification/NotificationEditPage')));
 const QuestionDetailPage = Loadable(lazy(() => import('pages/Admin/ProductQuestion/QuestionDetailPage/index.jsx')));
 import RequireAuth from '@/components/Admin/RequireAuth';
+const RoleIndex = Loadable(lazy(() => import('pages/Admin/Role/index')));
+const RoleManagement = Loadable(lazy(() => import('pages/Admin/Role/RoleManagement')));
 import { UserProvider } from '@/contexts/UserContext';
 const NotFound = Loadable(lazy(() => import('pages/Admin/NotFound')));
 const AdminRoutes = {
   path: '/admin',
   element: (
-   <RequireAuth>
-    <DashboardLayout />
-   </RequireAuth>
-      
-  
+    <RequireAuth>
+      <DashboardLayout />
+    </RequireAuth>
   ),
   children: [
     { index: true, element: <DashboardDefault /> },
@@ -121,7 +121,7 @@ const AdminRoutes = {
       children: [
         { index: true, element: <NotificationPage /> },
         { path: 'create', element: <NotificationCreatePage /> },
-        { path: 'edit/:slug', element: <NotificationEditPage /> }//
+        { path: 'edit/:slug', element: <NotificationEditPage /> } //
       ]
     },
     {
@@ -247,7 +247,8 @@ const AdminRoutes = {
       path: 'danh-muc-bai-viet/chinh-sua-danh-muc/:slug',
       element: <NewsCategoryEdit />
     },
-
+    { path: 'quan-ly-vai-tro/ma-tran-phan-quyen', element: <RoleIndex /> },
+    { path: 'quan-ly-vai-tro/danh-sach-vai-tro', element: <RoleManagement /> },
     {
       path: 'comments/all',
       element: <AllCommentList />
