@@ -11,7 +11,6 @@ const Add = () => {
     try {
       const res = await newsService.create(data); // ✅ Gán vào biến
       console.log('du lieu gui len',data)
-      debugger
       toast.success(res.data.message || 'Thêm bài viết thành công');
       navigate('/admin/quan-ly-bai-viet');
     } catch (err) {

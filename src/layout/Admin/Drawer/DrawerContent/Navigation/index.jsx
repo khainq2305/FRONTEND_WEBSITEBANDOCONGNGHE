@@ -12,11 +12,8 @@ export default function Navigation() {
   const ability = useAuthStore((state) => state.ability);
   const loading = useAuthStore((state) => state.loading);
   console.log('nav ability', ability)
-  // ✅ BƯỚC BẢO VỆ QUAN TRỌNG NHẤT
-  // Nếu store đang loading hoặc chưa có ability, không render gì cả.
-  // Điều này đảm bảo buildVisibleMenu không bao giờ chạy với dữ liệu rỗng.
+
   if (loading || !ability) {
-    // Bạn có thể trả về một component spinner quay quay ở đây nếu muốn
     return null;
   }
 

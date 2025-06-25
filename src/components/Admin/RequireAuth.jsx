@@ -12,7 +12,6 @@ import { toast } from 'react-toastify';
  */
 const RequireAuth = ({ children }) => {
   const { user, loading, } = useAuthStore();
-  console.log('user la', user)
   
   if (loading) return <LoaderAdmin />;
 
