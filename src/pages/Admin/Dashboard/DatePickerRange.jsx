@@ -1,33 +1,56 @@
 "use client"
 
 import { useState } from "react"
-import { Box, Button, Popover } from "@mui/material"
+import { Box, Button, Popover, TextField, Stack } from "@mui/material"
 import { CalendarToday } from "@mui/icons-material"
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns"
-import { LocalizationProvider } from "@mui/x-date-pickers-pro"
-import { StaticDateRangePicker } from "@mui/x-date-pickers-pro/StaticDateRangePicker"
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider"
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker"
 
-export default function DatePickerRange({ dateRange, setDateRange }) {
+export default function DateTimeRangePicker({ dateRange, setDateRange }) {
   const [anchorEl, setAnchorEl] = useState(null)
+  const [tempRange, setTempRange] = useState({ from: null, to: null })
 
-  const handleClick = (event) => setAnchorEl(event.currentTarget)
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget)
+    setTempRange(dateRange)
+  }
+
   const handleClose = () => setAnchorEl(null)
 
-  const formatDate = (date) => (date ? new Date(date).toLocaleDateString("vi-VN") : "")
+  const formatDateTime = (date) =>
+    date
+      ? new Date(date).toLocaleString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+      : ""
 
   const open = Boolean(anchorEl)
-  const id = open ? "date-range-popover" : undefined
+  const id = open ? "date-time-range-popover" : undefined
 
-  const handleDateRangeChange = (newDateRange) => {
-    if (newDateRange[0] && newDateRange[1]) {
-      const adjustedEndDate = new Date(newDateRange[1])
-      adjustedEndDate.setHours(23, 59, 59, 999)
-      setDateRange({ from: newDateRange[0], to: adjustedEndDate })
-      handleClose()
-    } else {
-      setDateRange({ from: newDateRange[0], to: null })
-    }
+  const handleClear = () => {
+    setTempRange({ from: null, to: null })
   }
+
+  const handleCancel = () => handleClose()
+
+  const handleOk = () => {
+    if (tempRange.from && tempRange.to) {
+      const adjustedEndDate = new Date(tempRange.to)
+      adjustedEndDate.setSeconds(59, 999)
+      setDateRange({ from: tempRange.from, to: adjustedEndDate })
+    } else {
+      setDateRange(tempRange)
+    }
+    handleClose()
+  }
+
+  const today = new Date()
+  const minDate = new Date("2023-01-01")
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -56,10 +79,11 @@ export default function DatePickerRange({ dateRange, setDateRange }) {
         >
           {dateRange?.from
             ? dateRange.to
-              ? `${formatDate(dateRange.from)} - ${formatDate(dateRange.to)}`
-              : `${formatDate(dateRange.from)} - Đang chọn...`
-            : "Chọn khoảng ngày"}
+              ? `${formatDateTime(dateRange.from)} - ${formatDateTime(dateRange.to)}`
+              : `${formatDateTime(dateRange.from)} - Đang chọn...`
+            : "Chọn ngày & giờ"}
         </Button>
+
         <Popover
           id={id}
           open={open}
@@ -72,18 +96,36 @@ export default function DatePickerRange({ dateRange, setDateRange }) {
               borderRadius: 3,
               boxShadow: "0 8px 32px rgba(0, 0, 0, 0.12)",
               border: "1px solid rgba(0, 0, 0, 0.08)",
+              p: 2,
+              width: 360,
             },
           }}
         >
-          <Box p={2}>
-            <StaticDateRangePicker
-              value={[dateRange.from, dateRange.to]}
-              onChange={handleDateRangeChange}
-              slotProps={{
-                actionBar: { actions: ["clear", "cancel", "accept"] },
-              }}
+          <Stack spacing={2}>
+            <DateTimePicker
+              label="Từ ngày"
+              value={tempRange.from}
+              onChange={(newValue) => setTempRange((prev) => ({ ...prev, from: newValue }))}
+              disableFuture
+              minDateTime={minDate}
+              maxDateTime={today}
+              renderInput={(params) => <TextField fullWidth {...params} />}
             />
-          </Box>
+            <DateTimePicker
+              label="Đến ngày"
+              value={tempRange.to}
+              onChange={(newValue) => setTempRange((prev) => ({ ...prev, to: newValue }))}
+              disableFuture
+              minDateTime={minDate}
+              maxDateTime={today}
+              renderInput={(params) => <TextField fullWidth {...params} />}
+            />
+            <Box display="flex" justifyContent="flex-end" gap={1}>
+              <Button onClick={handleClear} color="secondary">Clear</Button>
+              <Button onClick={handleCancel} color="inherit">Cancel</Button>
+              <Button onClick={handleOk} variant="contained" color="primary">OK</Button>
+            </Box>
+          </Stack>
         </Popover>
       </Box>
     </LocalizationProvider>

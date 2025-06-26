@@ -1,9 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
-import { Box, Typography, CircularProgress } from "@mui/material"
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts"
+import { Box, Typography, CircularProgress, Avatar } from "@mui/material"
+import { TrendingUp } from "@mui/icons-material"
 import { dashboardService } from "@/services/admin/dashboardService"
+
+const COLORS = ["#1e3a8a", "#3b82f6", "#60a5fa", "#93c5fd", "#dbeafe"]
 
 export default function TopProductsChart({ dateRange }) {
   const [data, setData] = useState([])
@@ -19,10 +22,17 @@ export default function TopProductsChart({ dateRange }) {
           from: dateRange.from?.toISOString(),
           to: dateRange.to?.toISOString(),
         })
-        setData(apiData)
+
+        if (Array.isArray(apiData)) {
+          setData(apiData)
+        } else {
+          console.warn("API không trả về mảng:", apiData)
+          setData([])
+        }
       } catch (e) {
         console.error("Lỗi khi lấy top sản phẩm bán chạy:", e)
-        setError("Không thể tải biểu đồ sản phẩm bán chạy. Vui lòng thử lại sau.")
+        setError("Không thể tải biểu đồ sản phẩm bán chạy.")
+        setData([])
       } finally {
         setLoading(false)
       }
@@ -33,12 +43,13 @@ export default function TopProductsChart({ dateRange }) {
   if (loading)
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight={300}>
-        <CircularProgress sx={{ color: "#f57c00" }} />
-        <Typography variant="body1" sx={{ ml: 2, color: "text.secondary" }}>
+        <CircularProgress sx={{ color: "#1e3a8a" }} />
+        <Typography variant="body1" sx={{ ml: 2 }}>
           Đang tải biểu đồ...
         </Typography>
       </Box>
     )
+
   if (error)
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight={300}>
@@ -47,6 +58,7 @@ export default function TopProductsChart({ dateRange }) {
         </Typography>
       </Box>
     )
+
   if (!Array.isArray(data) || data.length === 0) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight={300}>
@@ -56,32 +68,112 @@ export default function TopProductsChart({ dateRange }) {
       </Box>
     )
   }
-
+  const totalSold = data.reduce((sum, item) => sum + (item?.sold || 0), 0)
+  const chartData = data.map((item, index) => ({
+    name: item?.name || "Không có tên",
+    value: item?.sold || 0,
+    percentage: totalSold > 0 ? Math.round(((item?.sold || 0) / totalSold) * 100) : 0,
+    fullName: item?.name || "Không có tên",
+    revenue: item?.revenue || 0,
+    image: item?.image || "",
+    variant: item?.variant || "Không có biến thể",
+    color: COLORS[index % COLORS.length],
+  }))
+  const formatCurrency = (amount) =>
+    new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(amount || 0)
+  const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload
+      return (
+        <Box
+          sx={{
+            backgroundColor: "white",
+            p: 2.5,
+            borderRadius: 3,
+            boxShadow: "0 12px 40px rgba(0,0,0,0.15)",
+            border: "1px solid rgba(30, 58, 138, 0.2)",
+            minWidth: 220,
+          }}
+        >
+          <Box display="flex" alignItems="center" gap={2} mb={1.5}>
+            <Avatar src={data.image} alt={data.fullName} variant="rounded" sx={{ width: 48, height: 48 }} />
+            <Box>
+              <Typography variant="body1" fontWeight="700" color="#333">
+                {data.fullName}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {data.variant}
+              </Typography>
+            </Box>
+          </Box>
+          <Box display="flex" alignItems="center" gap={1} mb={1}>
+            <TrendingUp sx={{ color: "#1e3a8a", fontSize: 18 }} />
+            <Typography variant="body2" fontWeight="600" color="#1e3a8a">
+              {data.value} sản phẩm đã bán
+            </Typography>
+          </Box>
+          <Typography variant="body2" fontWeight="600" color="#666">
+            {data.percentage}% tổng số lượng bán
+          </Typography>
+          <Typography variant="body2" fontWeight="600" color="#2e7d32">
+            Doanh thu: {formatCurrency(data.revenue)}
+          </Typography>
+        </Box>
+      )
+    }
+    return null
+  }
   return (
-    <Box sx={{ p: 2 }}>
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={data} layout="horizontal" margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-          <defs>
-            <linearGradient id="topProductsGradient" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="5%" stopColor="#f57c00" stopOpacity={0.8} />
-              <stop offset="95%" stopColor="#ffb74d" stopOpacity={0.6} />
-            </linearGradient>
-          </defs>
-          <XAxis type="number" stroke="#666" fontSize={12} />
-          <YAxis dataKey="name" type="category" width={120} fontSize={12} stroke="#666" />
-          <Tooltip
-            formatter={(value) => [value, "Đã bán"]}
-            contentStyle={{
-              backgroundColor: "rgba(255, 255, 255, 0.95)",
-              border: "none",
-              borderRadius: "12px",
-              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.12)",
-              backdropFilter: "blur(10px)",
-            }}
-          />
-          <Bar dataKey="sold" fill="url(#topProductsGradient)" radius={[0, 8, 8, 0]} />
-        </BarChart>
-      </ResponsiveContainer>
+    <Box sx={{ height: "100%", display: "flex", flexDirection: "column", p: 3 }}>
+      <Box sx={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <Box sx={{ width: "60%", height: "100%" }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={chartData}
+                cx="50%"
+                cy="50%"
+                outerRadius={120}
+                paddingAngle={0}
+                dataKey="value"
+                stroke="#fff"
+                strokeWidth={2}
+              >
+                {chartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip content={<CustomTooltip />} />
+            </PieChart>
+          </ResponsiveContainer>
+        </Box>
+        <Box sx={{ width: "40%", pl: 3 }}>
+          {chartData.map((entry, index) => (
+            <Box key={index} display="flex" alignItems="center" gap={1.5} mb={1.5}>
+              <Box
+                sx={{
+                  width: 16,
+                  height: 16,
+                  backgroundColor: entry.color,
+                  borderRadius: 1,
+                  flexShrink: 0,
+                }}
+              />
+              <Box flex={1}>
+                <Typography variant="body2" fontWeight="500" color="#333" sx={{ lineHeight: 1.2 }}>
+                  {entry.name.length > 25 ? entry.name.substring(0, 25) + "..." : entry.name}
+                </Typography>
+              </Box>
+              <Typography variant="body2" fontWeight="700" color={entry.color}>
+                {entry.percentage}%
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      </Box>
     </Box>
   )
 }

@@ -12,7 +12,6 @@ import {
   Paper,
   Avatar,
   Typography,
-  Chip,
   CircularProgress,
 } from "@mui/material"
 import { Favorite } from "@mui/icons-material"
@@ -84,7 +83,7 @@ export default function FavoriteProductsTable({ dateRange }) {
         },
       }}
     >
-      <Table stickyHeader>
+      <Table>
         <TableHead>
           <TableRow>
             <TableCell
@@ -96,26 +95,6 @@ export default function FavoriteProductsTable({ dateRange }) {
               }}
             >
               Sản phẩm
-            </TableCell>
-            <TableCell
-              sx={{
-                fontWeight: 600,
-                backgroundColor: "#f8f9fa",
-                borderBottom: "2px solid #e0e0e0",
-                fontSize: "0.875rem",
-              }}
-            >
-              Danh mục
-            </TableCell>
-            <TableCell
-              sx={{
-                fontWeight: 600,
-                backgroundColor: "#f8f9fa",
-                borderBottom: "2px solid #e0e0e0",
-                fontSize: "0.875rem",
-              }}
-            >
-              Giá
             </TableCell>
             <TableCell
               align="right"
@@ -131,7 +110,7 @@ export default function FavoriteProductsTable({ dateRange }) {
           </TableRow>
         </TableHead>
         <TableBody>
-          {products.map((product, index) => (
+          {products.map((product) => (
             <TableRow
               key={product.id}
               sx={{
@@ -170,24 +149,6 @@ export default function FavoriteProductsTable({ dateRange }) {
                     {product.name}
                   </Typography>
                 </Box>
-              </TableCell>
-              <TableCell>
-                <Chip
-                  label={product.category}
-                  size="small"
-                  variant="outlined"
-                  sx={{
-                    borderColor: "#e91e63",
-                    color: "#e91e63",
-                    backgroundColor: "rgba(233, 30, 99, 0.08)",
-                    fontWeight: 500,
-                  }}
-                />
-              </TableCell>
-              <TableCell>
-                <Typography variant="body2" color="text.secondary">
-                  -
-                </Typography>
               </TableCell>
               <TableCell align="right">
                 <Box display="flex" alignItems="center" justifyContent="flex-end" gap={1}>

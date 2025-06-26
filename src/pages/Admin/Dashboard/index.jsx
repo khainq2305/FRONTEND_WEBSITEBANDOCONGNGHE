@@ -1,6 +1,7 @@
+// index.jsx
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import {
   Box,
   Typography,
@@ -22,9 +23,15 @@ import StatsCards from "./StatsCards"
 import RevenueChart from "./RevenueChart"
 import OrdersChart from "./OrdersChart"
 import TopProductsChart from "./TopProductsChart"
-import FavoriteProductsChart from "./FavoriteProductsChart"
+import FavoriteProductsChart from "././FavoriteProductsChart"
 import TopProductsTable from "./TopProductsTable"
 import FavoriteProductsTable from "./FavoriteProductsTable"
+
+import html2canvas from "html2canvas"
+import jsPDF from "jspdf"
+import * as XLSX from "xlsx"
+import { saveAs } from "file-saver"
+import { dashboardService } from "@/services/admin/dashboardService"
 
 export default function Dashboard() {
   const [dateRange, setDateRange] = useState({
@@ -32,6 +39,7 @@ export default function Dashboard() {
     to: new Date(),
   })
   const [timeFilter, setTimeFilter] = useState("7days")
+  const dashboardContentRef = useRef(null)
 
   const handleTimeFilterChange = (event) => {
     const value = event.target.value
@@ -58,34 +66,147 @@ export default function Dashboard() {
     }
   }
 
-  const handleExportPDF = () => {
-    console.log("Exporting PDF with date range:", dateRange)
-    alert("Xuất PDF thành công!")
-  }
+  const handleExportPDF = async () => {
+    if (!dashboardContentRef.current) {
+      alert("Không tìm thấy nội dung để xuất PDF.");
+      return;
+    }
 
-  const handleExportExcel = () => {
-    console.log("Exporting Excel with date range:", dateRange)
-    alert("Xuất Excel thành công!")
+    try {
+      const content = dashboardContentRef.current;
+      content.classList.add("exporting");
+      const buttonsToHide = document.querySelectorAll(".hide-on-pdf");
+      buttonsToHide.forEach((btn) => (btn.style.display = "none"));
+      window.scrollTo(0, 0);
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      const canvas = await html2canvas(content, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const imgWidth = 210;
+      const pageHeight = 297;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save("dashboard_report.pdf");
+      alert("✅ Xuất PDF thành công!");
+    } catch (error) {
+      console.error("❌ Lỗi khi xuất PDF:", error);
+      alert("Đã xảy ra lỗi khi xuất PDF. Vui lòng thử lại.");
+    } finally {
+      dashboardContentRef.current.classList.remove("exporting");
+      document.querySelectorAll(".hide-on-pdf").forEach((btn) => (btn.style.display = "flex"));
+    }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      const params = {
+        from: dateRange.from ? dateRange.from.toISOString() : "",
+        to: dateRange.to ? dateRange.to.toISOString() : "",
+      }
+
+      const statsData = await dashboardService.getStats(params)
+      const ordersData = await dashboardService.getOrdersByDate({
+        from: dateRange?.from?.toISOString().split("T")[0],
+        to: dateRange?.to?.toISOString().split("T")[0],
+      })
+      const revenueData = await dashboardService.getRevenueByDate({
+        from: dateRange?.from?.toISOString().split("T")[0],
+        to: dateRange?.to?.toISOString().split("T")[0],
+      })
+      const topSellingProductsData = await dashboardService.getTopSellingProducts(params)
+      const favoriteProductsData = await dashboardService.getFavoriteProducts(params)
+
+      const workbook = XLSX.utils.book_new()
+
+      const statsSheetData = [
+        ["Thống kê", "Giá trị", "Thay đổi so với kỳ trước (%)"],
+        ["Tổng doanh thu", statsData.totalRevenue, statsData.revenueChange],
+        ["Tổng đơn hàng", statsData.totalOrders, statsData.ordersChange],
+        ["Đơn hàng bị hủy", statsData.cancelledOrders, statsData.cancelledChange],
+        ["Người dùng mới", statsData.newUsers, statsData.usersChange],
+        ["Trung bình đánh giá", statsData.averageRating, statsData.ratingChange],
+      ]
+      const statsWorksheet = XLSX.utils.aoa_to_sheet(statsSheetData)
+      XLSX.utils.book_append_sheet(workbook, statsWorksheet, "Tổng quan")
+
+      const revenueSheetData = [
+        ["Ngày", "Doanh thu"],
+        ...revenueData.map((item) => [item.date, item.revenue]),
+      ]
+      const revenueWorksheet = XLSX.utils.aoa_to_sheet(revenueSheetData)
+      XLSX.utils.book_append_sheet(workbook, revenueWorksheet, "Doanh thu theo ngày")
+
+      const ordersSheetData = [
+        ["Ngày", "Số đơn hàng"],
+        ...ordersData.map((item) => [item.date, item.orders]),
+      ]
+      const ordersWorksheet = XLSX.utils.aoa_to_sheet(ordersSheetData)
+      XLSX.utils.book_append_sheet(workbook, ordersWorksheet, "Đơn hàng theo ngày")
+
+      const topSellingProductsSheetData = [
+        ["Tên sản phẩm", "Biến thể", "Số lượng bán", "Doanh thu"],
+        ...topSellingProductsData.map((item) => [item.name, item.variant, item.sold, item.revenue]),
+      ]
+      const topSellingWorksheet = XLSX.utils.aoa_to_sheet(topSellingProductsSheetData)
+      XLSX.utils.book_append_sheet(workbook, topSellingWorksheet, "Sản phẩm bán chạy")
+
+      const favoriteProductsSheetData = [
+        ["Tên sản phẩm", "Lượt yêu thích"],
+        ...favoriteProductsData.map((item) => [item.name, item.wishlistCount]),
+      ]
+      const favoriteWorksheet = XLSX.utils.aoa_to_sheet(favoriteProductsSheetData)
+      XLSX.utils.book_append_sheet(workbook, favoriteWorksheet, "Sản phẩm yêu thích")
+
+      const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" })
+      const dataBlob = new Blob([excelBuffer], { type: "application/octet-stream" })
+      saveAs(dataBlob, "dashboard_report.xlsx")
+
+      alert("Xuất Excel thành công!")
+    } catch (error) {
+      console.error("Lỗi khi xuất Excel:", error)
+      alert("Đã xảy ra lỗi khi xuất Excel. Vui lòng thử lại.")
+    }
   }
 
   return (
     <Box
       sx={{
         minHeight: "100vh",
-        bgcolor: "#f0f2f5", // Changed to a light grey for subtle background difference
+        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
         py: 4,
       }}
     >
       <Container maxWidth="xl">
         {/* Header */}
         <Paper
-          elevation={2}
+          elevation={0}
           sx={{
             p: 4,
             mb: 4,
             borderRadius: 4,
-            bgcolor: "white", // Set to white
-            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
+            background: "rgba(255, 255, 255, 0.95)",
+            backdropFilter: "blur(10px)",
+            border: "1px solid rgba(255, 255, 255, 0.2)",
+            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
           }}
         >
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
@@ -122,7 +243,7 @@ export default function Dashboard() {
                 </Typography>
               </Box>
             </Box>
-            <Box display="flex" gap={2}>
+            <Box display="flex" gap={2} className="hide-on-pdf"> {/* Thêm class để ẩn khi xuất PDF */}
               <Button
                 variant="outlined"
                 startIcon={<PictureAsPdf />}
@@ -169,7 +290,7 @@ export default function Dashboard() {
           </Box>
 
           {/* Time Filter Controls */}
-          <Box display="flex" alignItems="center" gap={3} flexWrap="wrap">
+          <Box display="flex" alignItems="center" gap={3} flexWrap="wrap" className="hide-on-pdf"> {/* Thêm class để ẩn khi xuất PDF */}
             <Box display="flex" alignItems="center" gap={1}>
               <CalendarToday fontSize="small" sx={{ color: "primary.main" }} />
               <Typography variant="body1" fontWeight="600" color="text.primary">
@@ -202,250 +323,269 @@ export default function Dashboard() {
           </Box>
         </Paper>
 
-        {/* Stats Cards */}
-        <Box mb={4}>
-          <StatsCards dateRange={dateRange} />
+        {/* Nội dung Dashboard được bọc trong Box với ref để xuất PDF */}
+        <Box ref={dashboardContentRef}>
+          {/* Stats Cards */}
+          <Box mb={4}>
+            <StatsCards dateRange={dateRange} />
+          </Box>
+
+          {/* Charts Section - EQUAL HEIGHT */}
+          <Grid container spacing={4} mb={4}>
+            <Grid item xs={12} lg={8}>
+              <Card
+                sx={{
+                  borderRadius: 4,
+                  background: "rgba(255, 255, 255, 0.95)",
+                  backdropFilter: "blur(10px)",
+                  border: "1px solid rgba(255, 255, 255, 0.2)",
+                  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+                  height: 520,
+                  display: "flex",
+                  flexDirection: "column",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 12px 40px rgba(0, 0, 0, 0.15)",
+                  },
+                }}
+              >
+                <CardHeader
+                  title={
+                    <Typography variant="h6" component="h2" fontWeight="600" color="text.primary">
+                      📈 Biểu đồ doanh thu theo ngày
+                    </Typography>
+                  }
+                  subheader={
+                    <Typography variant="body2" color="text.secondary">
+                      Theo dõi xu hướng doanh thu hàng ngày
+                    </Typography>
+                  }
+                  sx={{ pb: 1, flexShrink: 0 }}
+                />
+                <CardContent sx={{ pt: 0, flex: 1, display: "flex", flexDirection: "column" }}>
+                  <Box sx={{ flex: 1, minHeight: 0 }}>
+                    <RevenueChart dateRange={dateRange} />
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} lg={4}>
+              <Card
+                sx={{
+                  borderRadius: 4,
+                  background: "rgba(255, 255, 255, 0.95)",
+                  backdropFilter: "blur(10px)",
+                  border: "1px solid rgba(255, 255, 255, 0.2)",
+                  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+                  height: 520,
+                  display: "flex",
+                  flexDirection: "column",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 12px 40px rgba(0, 0, 0, 0.15)",
+                  },
+                }}
+              >
+                <CardHeader
+                  title={
+                    <Typography variant="h6" component="h2" fontWeight="600" color="text.primary">
+                      📦 Số lượng đơn hàng theo ngày
+                    </Typography>
+                  }
+                  subheader={
+                    <Typography variant="body2" color="text.secondary">
+                      Thống kê đơn hàng hàng ngày
+                    </Typography>
+                  }
+                  sx={{ pb: 1, flexShrink: 0 }}
+                />
+                <CardContent sx={{ pt: 0, flex: 1, display: "flex", flexDirection: "column" }}>
+                  <Box sx={{ flex: 1, minHeight: 0 }}>
+                    <OrdersChart dateRange={dateRange} />
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+
+          {/* Top Products Charts Section */}
+          <Grid container spacing={4} mb={4}>
+            <Grid item xs={12} md={6}>
+              <Card
+                sx={{
+                  borderRadius: 4,
+                  background: "rgba(255, 255, 255, 0.95)",
+                  backdropFilter: "blur(10px)",
+                  border: "1px solid rgba(255, 255, 255, 0.2)",
+                  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+                  height: 500,
+                  display: "flex",
+                  flexDirection: "column",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 12px 40px rgba(0, 0, 0, 0.15)",
+                  },
+                }}
+              >
+                <CardHeader
+                  title={
+                    <Typography variant="h6" component="h2" fontWeight="600" color="text.primary">
+                      🔥 Top 5 sản phẩm bán chạy
+                    </Typography>
+                  }
+                  subheader={
+                    <Typography variant="body2" color="text.secondary">
+                      Thống kê theo số lượng bán ra
+                    </Typography>
+                  }
+                  sx={{ pb: 1, flexShrink: 0 }}
+                />
+                <CardContent sx={{ pt: 0, flex: 1, display: "flex", flexDirection: "column" }}>
+                  <Box sx={{ flex: 1, minHeight: 0 }}>
+                    <TopProductsChart dateRange={dateRange} />
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Card
+                sx={{
+                  borderRadius: 4,
+                  background: "rgba(255, 255, 255, 0.95)",
+                  backdropFilter: "blur(10px)",
+                  border: "1px solid rgba(255, 255, 255, 0.2)",
+                  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+                  height: 500,
+                  display: "flex",
+                  flexDirection: "column",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 12px 40px rgba(0, 0, 0, 0.15)",
+                  },
+                }}
+              >
+                <CardHeader
+                  title={
+                    <Typography variant="h6" component="h2" fontWeight="600" color="text.primary">
+                      ❤️ Top 5 sản phẩm được yêu thích
+                    </Typography>
+                  }
+                  subheader={
+                    <Typography variant="body2" color="text.secondary">
+                      Thống kê theo lượt wishlist
+                    </Typography>
+                  }
+                  sx={{ pb: 1, flexShrink: 0 }}
+                />
+                <CardContent sx={{ pt: 0, flex: 1, display: "flex", flexDirection: "column" }}>
+                  <Box sx={{ flex: 1, minHeight: 0 }}>
+                    <FavoriteProductsChart dateRange={dateRange} />
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+
+          {/* Top Products Tables - EQUAL HEIGHT */}
+          <Grid container spacing={4}>
+            <Grid item xs={12} md={6}>
+              <Card
+                sx={{
+                  borderRadius: 4,
+                  background: "rgba(255, 255, 255, 0.95)",
+                  backdropFilter: "blur(10px)",
+                  border: "1px solid rgba(255, 255, 255, 0.2)",
+                  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+                  height: 500,
+                  display: "flex",
+                  flexDirection: "column",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 12px 40px rgba(0, 0, 0, 0.15)",
+                  },
+                }}
+              >
+                <CardHeader
+                  title={
+                    <Typography variant="h6" component="h2" fontWeight="600" color="text.primary">
+                      📊 Bảng sản phẩm bán chạy
+                    </Typography>
+                  }
+                  subheader={
+                    <Typography variant="body2" color="text.secondary">
+                      Chi tiết sản phẩm có doanh số cao nhất
+                    </Typography>
+                  }
+                  sx={{ pb: 1, flexShrink: 0 }}
+                />
+                <CardContent
+                  sx={{
+                    p: 0,
+                    flex: 1,
+                    overflow: "hidden",
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                >
+                  <Box sx={{ flex: 1, overflow: "auto" }}>
+                    <TopProductsTable dateRange={dateRange} />
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Card
+                sx={{
+                  borderRadius: 4,
+                  background: "rgba(255, 255, 255, 0.95)",
+                  backdropFilter: "blur(10px)",
+                  border: "1px solid rgba(255, 255, 255, 0.2)",
+                  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+                  height: 500,
+                  display: "flex",
+                  flexDirection: "column",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 12px 40px rgba(0, 0, 0, 0.15)",
+                  },
+                }}
+              >
+                <CardHeader
+                  title={
+                    <Typography variant="h6" component="h2" fontWeight="600" color="text.primary">
+                      💖 Bảng sản phẩm được yêu thích
+                    </Typography>
+                  }
+                  subheader={
+                    <Typography variant="body2" color="text.secondary">
+                      Chi tiết sản phẩm có nhiều lượt wishlist nhất
+                    </Typography>
+                  }
+                  sx={{ pb: 1, flexShrink: 0 }}
+                />
+                <CardContent
+                  sx={{
+                    p: 0,
+                    flex: 1,
+                    overflow: "hidden",
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                >
+                  <Box sx={{ flex: 1, overflow: "auto" }}>
+                    <FavoriteProductsTable dateRange={dateRange} />
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
         </Box>
-
-        {/* Charts Section - EQUAL HEIGHT */}
-        <Grid container spacing={4} mb={4}>
-          <Grid item xs={12} lg={8}>
-            <Card
-              sx={{
-                borderRadius: 4,
-                bgcolor: "white", // Set to white
-                boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
-                height: 520,
-                display: "flex",
-                flexDirection: "column",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  transform: "translateY(-2px)",
-                  boxShadow: "0 8px 30px rgba(0, 0, 0, 0.1)",
-                },
-              }}
-            >
-              <CardHeader
-                title={
-                  <Typography variant="h6" component="h2" fontWeight="600" color="text.primary">
-                    📈 Biểu đồ doanh thu theo ngày
-                  </Typography>
-                }
-                subheader={
-                  <Typography variant="body2" color="text.secondary">
-                    Theo dõi xu hướng doanh thu hàng ngày
-                  </Typography>
-                }
-                sx={{ pb: 1, flexShrink: 0 }}
-              />
-              <CardContent sx={{ pt: 0, flex: 1, display: "flex", flexDirection: "column" }}>
-                <Box sx={{ flex: 1, minHeight: 0 }}>
-                  <RevenueChart dateRange={dateRange} />
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} lg={4}>
-            <Card
-              sx={{
-                borderRadius: 4,
-                bgcolor: "white", // Set to white
-                boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
-                height: 520, // SAME FIXED HEIGHT
-                display: "flex",
-                flexDirection: "column",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  transform: "translateY(-2px)",
-                  boxShadow: "0 8px 30px rgba(0, 0, 0, 0.1)",
-                },
-              }}
-            >
-              <CardHeader
-                title={
-                  <Typography variant="h6" component="h2" fontWeight="600" color="text.primary">
-                    📦 Số lượng đơn hàng theo ngày
-                  </Typography>
-                }
-                subheader={
-                  <Typography variant="body2" color="text.secondary">
-                    Thống kê đơn hàng hàng ngày
-                  </Typography>
-                }
-                sx={{ pb: 1, flexShrink: 0 }}
-              />
-              <CardContent sx={{ pt: 0, flex: 1, display: "flex", flexDirection: "column" }}>
-                <Box sx={{ flex: 1, minHeight: 0 }}>
-                  <OrdersChart dateRange={dateRange} />
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-
-        {/* Top Products Charts */}
-        <Grid container spacing={4} mb={4}>
-          <Grid item xs={12} md={6}>
-            <Card
-              sx={{
-                borderRadius: 4,
-                bgcolor: "white", // Set to white
-                boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
-                height: 450,
-                display: "flex",
-                flexDirection: "column",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  transform: "translateY(-2px)",
-                  boxShadow: "0 8px 30px rgba(0, 0, 0, 0.1)",
-                },
-              }}
-            >
-              <CardHeader
-                title={
-                  <Typography variant="h6" component="h2" fontWeight="600" color="text.primary">
-                    🔥 Top 5 sản phẩm bán chạy
-                  </Typography>
-                }
-                subheader={
-                  <Typography variant="body2" color="text.secondary">
-                    Thống kê theo số lượng bán ra
-                  </Typography>
-                }
-                sx={{ pb: 1 }}
-              />
-              <CardContent sx={{ height: "calc(100% - 80px)", overflow: "auto", pt: 0 }}>
-                <TopProductsChart dateRange={dateRange} />
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Card
-              sx={{
-                borderRadius: 4,
-                bgcolor: "white", // Set to white
-                boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
-                height: 450,
-                display: "flex",
-                flexDirection: "column",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  transform: "translateY(-2px)",
-                  boxShadow: "0 8px 30px rgba(0, 0, 0, 0.1)",
-                },
-              }}
-            >
-              <CardHeader
-                title={
-                  <Typography variant="h6" component="h2" fontWeight="600" color="text.primary">
-                    ❤️ Top 5 sản phẩm được yêu thích
-                  </Typography>
-                }
-                subheader={
-                  <Typography variant="body2" color="text.secondary">
-                    Thống kê theo lượt wishlist
-                  </Typography>
-                }
-                sx={{ pb: 1 }}
-              />
-              <CardContent sx={{ height: "calc(100% - 80px)", overflow: "auto", pt: 0 }}>
-                <FavoriteProductsChart dateRange={dateRange} />
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-
-        {/* Top Products Tables - EQUAL HEIGHT */}
-        <Grid container spacing={4}>
-          <Grid item xs={12} md={6}>
-            <Card
-              sx={{
-                borderRadius: 4,
-                bgcolor: "white", // Set to white
-                boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
-                height: 500, // FIXED HEIGHT
-                display: "flex",
-                flexDirection: "column",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  transform: "translateY(-2px)",
-                  boxShadow: "0 8px 30px rgba(0, 0, 0, 0.1)",
-                },
-              }}
-            >
-              <CardHeader
-                title={
-                  <Typography variant="h6" component="h2" fontWeight="600" color="text.primary">
-                    📊 Bảng sản phẩm bán chạy
-                  </Typography>
-                }
-                subheader={
-                  <Typography variant="body2" color="text.secondary">
-                    Chi tiết sản phẩm có doanh số cao nhất
-                  </Typography>
-                }
-                sx={{ pb: 1, flexShrink: 0 }}
-              />
-              <CardContent
-                sx={{
-                  p: 0,
-                  flex: 1,
-                  overflow: "hidden",
-                  display: "flex",
-                  flexDirection: "column",
-                }}
-              >
-                <Box sx={{ flex: 1, overflow: "auto" }}>
-                  <TopProductsTable dateRange={dateRange} />
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Card
-              sx={{
-                borderRadius: 4,
-                bgcolor: "white", // Set to white
-                boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
-                height: 500, // FIXED HEIGHT - SAME AS LEFT TABLE
-                display: "flex",
-                flexDirection: "column",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  transform: "translateY(-2px)",
-                  boxShadow: "0 8px 30px rgba(0, 0, 0, 0.1)",
-                },
-              }}
-            >
-              <CardHeader
-                title={
-                  <Typography variant="h6" component="h2" fontWeight="600" color="text.primary">
-                    💖 Bảng sản phẩm được yêu thích
-                  </Typography>
-                }
-                subheader={
-                  <Typography variant="body2" color="text.secondary">
-                    Chi tiết sản phẩm có nhiều lượt wishlist nhất
-                  </Typography>
-                }
-                sx={{ pb: 1, flexShrink: 0 }}
-              />
-              <CardContent
-                sx={{
-                  p: 0,
-                  flex: 1,
-                  overflow: "hidden",
-                  display: "flex",
-                  flexDirection: "column",
-                }}
-              >
-                <Box sx={{ flex: 1, overflow: "auto" }}>
-                  <FavoriteProductsTable dateRange={dateRange} />
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
       </Container>
     </Box>
   )
