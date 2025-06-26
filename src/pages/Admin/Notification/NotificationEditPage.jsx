@@ -1,3 +1,4 @@
+// src/pages/Admin/Notification/NotificationEditPage.jsx
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import NotificationForm from './NotificationForm';
@@ -23,12 +24,11 @@ const NotificationEditPage = () => {
     };
     fetchData();
   }, [slug, navigate]);
-//
+
   if (loading) return <p className="p-6">Đang tải thông tin thông báo...</p>;
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <h1 className="text-2xl font-semibold mb-6">Chỉnh sửa thông báo</h1>
+    <div>
       <NotificationForm
         editing={editing}
         onSuccess={() => navigate('/admin/notifications')}

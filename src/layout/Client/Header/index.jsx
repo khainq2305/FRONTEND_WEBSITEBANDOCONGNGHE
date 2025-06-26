@@ -15,8 +15,10 @@ import { notificationService } from '../../../services/client/notificationServic
 import Loader from '../../../components/common/Loader'; // <-- 1. IMPORT LOADER VÀO ĐÂY
 
 import FeatureBar from './FeatureBar';
+import useAuthStore from '@/stores/AuthStore';
 
 const Header = () => {
+  const {user} = useAuthStore()
   const navigate = useNavigate();
   const [userInfo, setUserInfo] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -42,12 +44,18 @@ const Header = () => {
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const res = await notificationService.getForUser();
-        setNotifications(res.data || []);
-      } catch (err) {
-        console.error('Lỗi lấy thông báo:', err);
-        setNotifications([]);
-      }
+  const res = await notificationService.getForUser();
+  setNotifications(res.data || []);
+} catch (err) {
+  if (err.response?.status === 401) {
+    setNotifications([]); // ✅ Dùng [] thay vì null
+  } else {
+    console.error('Lỗi lấy thông báo:', err);
+    setNotifications([]); // ✅ fallback an toàn
+  }
+}
+
+
     };
 
     fetchNotifications();
@@ -393,9 +401,11 @@ const Header = () => {
                   ref={notificationButtonRef}
                 >
                   <button
-                    className="flex flex-col items-center justify-center p-2 rounded-lg hover-primary transition-all text-center w-[70px] h-[56px]"
-                    onClick={handleNotificationToggle}
-                  >
+                  className="flex flex-col items-center justify-center p-2 rounded-lg hover-primary transition-all text-center w-[70px] h-[56px]"
+                  onClick={handleNotificationToggle}
+                  aria-haspopup="true"
+                  aria-expanded={isNotificationDropdownOpen}
+                >
                     <Bell className="w-6 h-6" strokeWidth={1.5} color="#fff" />
                     <span className="text-white text-[10px] font-medium leading-tight mt-1">Thông báo</span>
                   </button>
@@ -405,6 +415,7 @@ const Header = () => {
                         isOpen={isNotificationDropdownOpen}
                         notifications={notifications}
                         setNotifications={setNotifications}
+                        userInfo={user}
                         onClose={() => setIsNotificationDropdownOpen(false)}
                       />
                     </div>
