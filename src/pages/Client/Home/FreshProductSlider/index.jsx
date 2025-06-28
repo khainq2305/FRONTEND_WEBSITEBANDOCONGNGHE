@@ -9,7 +9,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
 import { Link } from 'react-router-dom';
 
 const InlinedProductCard = ({ id, productId, name, price, oldPrice, discount, image, rating, slug, soldCount, inStock, badge }) => {
-  // Hàm render sao đánh giá
+  
   const renderStars = (rate) => {
     const stars = [];
     const numRating = parseFloat(rate);

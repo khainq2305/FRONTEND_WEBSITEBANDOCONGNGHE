@@ -1,290 +1,341 @@
+// src/pages/Checkout/OrderSummary.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { orderService } from '../../../../services/client/orderService';
-import { userAddressService } from '../../../../services/client/userAddressService';
 import { toast } from 'react-toastify';
-import PromoModal from '../../Cart/PromoModal';
+import { FiChevronUp,FiInfo, FiChevronRight } from 'react-icons/fi';
+
 import { formatCurrencyVND } from '../../../../utils/formatCurrency';
-import { FaPercentage } from "react-icons/fa";
-import { FiChevronRight } from "react-icons/fi";
-import { couponService } from '../../../../services/client/couponService'; // đảm bảo đã import
-const OrderSummary = ({ totalAmount, discount, shippingFee, selectedPaymentMethod, selectedCoupon: propCoupon }) => {
+
+import { FaPercentage } from 'react-icons/fa';
+
+import PromoModal, { CouponCard } from '../../Cart/PromoModal';   // 👈 thêm CouponCard
+import { couponService } from '../../../../services/client/couponService';
+
+/**
+ * OrderSummary
+ * -------------------------------------------------------------------
+ * - Hiển thị tóm tắt đơn hàng + mã giảm giá
+ * - Chỉ cho phép “Đặt hàng” khi đã có selectedAddress (truyền từ CheckoutPage)
+ * - Nếu thiếu địa chỉ, hiện 1 toast: “Vui lòng nhập địa chỉ giao hàng!” và dừng
+ */
+const OrderSummary = ({
+  totalAmount,
+  discount,
+  shippingFee,
+  selectedPaymentMethod,
+  selectedCoupon: propCoupon,
+  selectedAddress, // 👈 prop mới: địa chỉ hiện tại đã chọn
+}) => {
   const navigate = useNavigate();
+
+  /* ====================== STATE ======================= */
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
   const [selectedCoupon, setSelectedCoupon] = useState(null);
-const selectedItems = JSON.parse(localStorage.getItem('selectedCartItems') || '[]');
-const selectedSkuId = selectedItems[0]?.skuId || null;
+  const [isPlacing, setIsPlacing] = useState(false);
 
+  // Lấy SKU đầu tiên để gửi check coupon
+  const cartSelection = JSON.parse(localStorage.getItem('selectedCartItems') || '[]');
+  const firstSkuId = cartSelection[0]?.skuId || null;
+
+  /* ===== Lấy coupon từ prop hoặc localStorage ===== */
   useEffect(() => {
-    if (propCoupon) setSelectedCoupon(propCoupon);
-  }, [propCoupon]);
+    if (propCoupon) return setSelectedCoupon(propCoupon);
 
-useEffect(() => {
-  if (propCoupon) {
-    setSelectedCoupon(propCoupon);
-  } else {
     const stored =
-      localStorage.getItem('selectedCoupon') ||
-      localStorage.getItem('appliedCoupon'); // ✅ đọc thêm key này
+      localStorage.getItem('selectedCoupon') || localStorage.getItem('appliedCoupon');
     if (stored) {
       try {
         setSelectedCoupon(JSON.parse(stored));
       } catch (e) {
-        console.error('Không parse được selectedCoupon:', e);
+        console.error('[OrderSummary] parse coupon error:', e);
       }
     }
-  }
-}, [propCoupon]);
+  }, [propCoupon]);
 
-  
-
-const handleApplyPromo = async (couponCode) => {
-  // ✅ Nếu couponCode = null → là hành động BỎ mã
-  if (!couponCode) {
-    setSelectedCoupon(null);
-    localStorage.removeItem('selectedCoupon');
-    toast.success('Đã bỏ mã giảm giá.');
-    return;
-  }
-
-  // ✅ Nếu được truyền object dạng { code, ... }
-  const code = typeof couponCode === 'object' ? couponCode.code : couponCode;
-  if (!code || typeof code !== 'string') {
-    toast.error('Mã giảm giá không hợp lệ!');
-    return;
-  }
-
-  try {
-    const res = await couponService.applyCoupon({
-      code: code.trim(),
-      skuId: Number(selectedSkuId),
-      orderTotal: Number(totalAmount)
-    });
-
-    const applied = res.data?.coupon;
-    if (applied) {
-      setSelectedCoupon(applied);
-      localStorage.setItem('selectedCoupon', JSON.stringify(applied));
-      toast.success(`Áp dụng mã ${code} thành công!`);
-    } else {
-      toast.error(`Không tìm thấy thông tin mã "${code}"`);
+  /* ================ Áp / Bỏ mã khuyến mãi ================ */
+  const handleApplyPromo = async (coupon) => {
+    if (!coupon) {
+      setSelectedCoupon(null);
+      localStorage.removeItem('selectedCoupon');
+      toast.success('Đã bỏ mã giảm giá.');
+      setIsPromoModalOpen(false);
+      return;
     }
-  } catch (err) {
-    toast.error(err?.response?.data?.message || 'Lỗi khi áp mã giảm giá!');
-  }
 
-  setIsPromoModalOpen(false);
-};
+    const code = typeof coupon === 'string' ? coupon : coupon.code;
+    if (!code) return toast.error('Mã giảm giá không hợp lệ!');
 
+    try {
+      const res = await couponService.applyCoupon({
+        code: code.trim(),
+       skuIds    : [Number(firstSkuId)],   // ✅ mảng
+        orderTotal: Number(totalAmount),
+      });
+      const applied = res.data?.coupon;
+      if (applied) {
+        setSelectedCoupon(applied);
+        localStorage.setItem('selectedCoupon', JSON.stringify(applied));
+        toast.success(`Áp dụng mã ${code} thành công!`);
+      } else {
+        toast.error(`Không tìm thấy mã "${code}"`);
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Lỗi khi áp mã giảm giá!');
+    } finally {
+      setIsPromoModalOpen(false);
+    }
+  };
 
-
-
-// ✅ Nếu propCoupon truyền sẵn couponDiscount thì ưu tiên xài lại
+  /* ===================== TÍNH TOÁN TIỀN ===================== */
+/* ===== TÍNH TOÁN TIỀN ===== */
+/* ==== TÍNH TOÁN ==== */
 const couponDiscount =
-  typeof selectedCoupon?.discountAmount === 'number'
-    ? selectedCoupon.discountAmount
+  selectedCoupon?.discountType !== 'shipping'
+    ? Number(selectedCoupon?.discountAmount || 0)
     : 0;
 
+const shippingDiscount =
+  selectedCoupon?.discountType === 'shipping'
+    ? Math.min(shippingFee, selectedCoupon.discountValue || 0)
+    : 0;
 
+/* ➜ Tổng ưu đãi để hiển thị */
+const totalDiscountDisplay = discount + couponDiscount + shippingDiscount;
 
-  const shippingDiscount =
-    selectedCoupon?.discountType === 'shipping'
-      ? Math.min(shippingFee, selectedCoupon.discountValue || 0)
-      : 0;
+/* ➜ Tiền phải trả thực tế */
+const finalAmount =
+  totalAmount - discount - couponDiscount + shippingFee - shippingDiscount;
+//  hoặc:  const finalAmount = totalAmount + shippingFee - totalDiscountDisplay;
 
- const totalDiscount = Number(discount || 0) + Number(couponDiscount || 0);
-
-  const finalAmount = totalAmount - totalDiscount + (shippingFee - shippingDiscount);
-
+  /* ======================== ĐẶT HÀNG ========================= */
   const handlePlaceOrder = async () => {
+    if (!selectedAddress || !selectedAddress.id) {
+      toast.error('Vui lòng nhập địa chỉ giao hàng!');
+      return;
+    }
+
+    if (cartSelection.length === 0) {
+      toast.error('Không có sản phẩm được chọn!');
+      return;
+    }
+
+    if (isPlacing) return;
+    setIsPlacing(true);
+
     try {
-      const selectedItems = JSON.parse(localStorage.getItem('selectedCartItems') || '[]');
-      if (selectedItems.length === 0) return toast.error('Không có sản phẩm được chọn!');
-
-      const addressRes = await userAddressService.getDefault();
-      const address = addressRes.data?.data;
-      if (!address?.id) return toast.error('Chưa có địa chỉ giao hàng mặc định!');
-let paymentStatus = 'unpaid';
-if ([2, 3, 4, 5].includes(selectedPaymentMethod)) {
-  paymentStatus = 'waiting';
-}
-
-const payload = {
-  addressId: address.id,
-  paymentMethodId: selectedPaymentMethod,
-  couponCode: selectedCoupon?.code || null,
-  note: '',
-  items: selectedItems.map((item) => ({
-    skuId: item.skuId,
-    quantity: item.quantity,
-    price: item.finalPrice,
-    flashSaleId: item.flashSaleId    // ← thêm dòng này
-  })),
-  cartItemIds: selectedItems.map((item) => item.id),
-  couponDiscount: couponDiscount,
-  paymentStatus // ✅ thêm dòng này
-};
-
-
+      const payload = {
+        addressId: selectedAddress.id,
+        paymentMethodId: selectedPaymentMethod,
+        couponCode: selectedCoupon?.code || null,
+        note: '',
+        items: cartSelection.map((i) => ({
+          skuId: i.skuId,
+          quantity: i.quantity,
+          price: i.finalPrice,
+          flashSaleId: i.flashSaleId || null,
+        })),
+        cartItemIds: cartSelection.map((i) => i.id),
+      };
 
       const res = await orderService.createOrder(payload);
-  const createdOrderId = res.data?.orderId || res.data?.data?.orderId || res.data?.data?.id;
-const createdOrderCode = res.data?.orderCode || res.data?.data?.orderCode;
+      const orderId = res.data?.orderId || res.data?.data?.orderId;
+      const orderCode = res.data?.orderCode || res.data?.data?.orderCode;
+      if (!orderId || !orderCode) throw new Error('Không lấy được mã đơn hàng!');
 
-
-      if (!createdOrderId || !createdOrderCode) {
-        toast.error('Không lấy được mã đơn hàng.');
-        return;
-      }
-
-      // VietQR hoặc MoMo xử lý riêng
+      /** Xử lý thanh toán online */
       const isQR = selectedPaymentMethod === 2;
+      const isVNPay = selectedPaymentMethod === 3;
       const isMoMo = selectedPaymentMethod === 4;
-const isZalo = selectedPaymentMethod === 5;
-const isVNPay = selectedPaymentMethod === 3;
-
+      const isZalo = selectedPaymentMethod === 5;
+const isViettel = selectedPaymentMethod === 6;   // 👈 THÊM
+      // Clear cart localStorage
       const fullCart = JSON.parse(localStorage.getItem('cartItems') || '[]');
       const updatedCart = fullCart.filter(
-        (cartItem) => !selectedItems.some((selected) => selected.skuId === cartItem.skuId)
+        (c) => !cartSelection.some((sel) => sel.skuId === c.skuId),
       );
       localStorage.setItem('cartItems', JSON.stringify(updatedCart));
       localStorage.removeItem('selectedCartItems');
       localStorage.removeItem('selectedCoupon');
 
       if (isQR) {
-        const vietqrRes = await orderService.vietqrPay({
+                 const payableNow =
+   totalAmount - totalDiscount + (shippingFee - shippingDiscount); // tính “tức thì”
+
+        const qrRes = await orderService.vietqrPay({
+ 
           accountNumber: '2222555552005',
           accountName: 'NGUYEN QUOC KHAI',
           bankCode: 'MB',
-          amount: finalAmount,
-          message: createdOrderCode
+          amount       : payableNow,    // ✅ số vừa tính
+          message: orderCode,
         });
+        const qrImg = qrRes.data?.qrImage;
+        navigate(
+          `/order-confirmation?orderCode=${orderCode}&qr=${encodeURIComponent(qrImg || '')}`,
+        );
+        return;
+      }
 
-        const qrUrl = vietqrRes.data?.qrImage;
-        if (!qrUrl) return toast.error('Không lấy được ảnh VietQR.');
-
-        navigate(`/order-confirmation?orderCode=${createdOrderCode}&qr=${encodeURIComponent(qrUrl)}`);
+      if (isVNPay) {
+       const url = (await orderService.vnpay({
+ orderId,
+  bankCode: 'NCB',      // ✅ ATM test; 'VISA' cho thẻ quốc tế
+ })).data?.payUrl;
+        if (!url) throw new Error('Không nhận được link VNPay');
+        window.location.href = url;
         return;
       }
 
       if (isMoMo) {
-        const momoRes = await orderService.momoPay({ orderId: createdOrderId });
-        const momoPayUrl = momoRes.data?.payUrl;
-        if (!momoPayUrl) return toast.error('Không nhận được link thanh toán MoMo.');
-        window.location.href = momoPayUrl;
+        const url = (await orderService.momoPay({ orderId })).data?.payUrl;
+        if (!url) throw new Error('Không nhận được link MoMo');
+        window.location.href = url;
         return;
       }
-if (isVNPay) {
-  const res = await orderService.vnpay({ orderId: createdOrderId });
-  const url = res.data?.payUrl;
-  if (!url) return toast.error('Không nhận được link VNPay');
-  window.location.href = url;
-  return;
-}
 
-if (isZalo) {
-  const res = await orderService.zaloPay({ orderId: createdOrderId });
-  const url = res.data?.payUrl;
-  if (!url) return toast.error('Không nhận được link ZaloPay');
+      if (isZalo) {
+        const url = (await orderService.zaloPay({ orderId })).data?.payUrl;
+        if (!url) throw new Error('Không nhận được link ZaloPay');
+        window.location.href = url;
+        return;
+      }
+if (isViettel) {
+  const url = (await orderService.viettelMoney({ orderId })).data?.payUrl;
+  if (!url) throw new Error('Không nhận được link Viettel Money');
   window.location.href = url;
   return;
 }
 
       toast.success('Đặt hàng thành công!');
-      navigate(`/order-confirmation?orderCode=${createdOrderCode}`);
+      navigate(`/order-confirmation?orderCode=${orderCode}`);
     } catch (err) {
-      console.error('Lỗi khi đặt hàng:', err);
+      console.error('[Create Order]', err);
       toast.error(err?.response?.data?.message || 'Lỗi đặt hàng!');
+    } finally {
+      setIsPlacing(false);
     }
   };
 
+  /* ========================= UI ========================= */
   return (
     <div className="relative">
       <aside className="bg-white rounded-md p-3 sm:p-4 border border-gray-200 shadow-sm sticky top-6 h-fit">
-        {selectedCoupon?.code && (
-          <div className="mb-2 text-xs text-green-600">
-            Mã đã áp: <strong>{selectedCoupon.code}</strong>
+          <div className="flex justify-between items-center pb-4">
+            <h4 className="font-semibold text-sm text-gray-800">
+              HomePower khuyến mãi
+            </h4>
+            <div className="flex items-center text-xs text-gray-500">
+              Có thể chọn&nbsp;1
+              <FiInfo className="ml-1 text-gray-400" size={14} />
+            </div>
           </div>
-        )}
+       <div className="border border-gray-200 rounded-md p-3 mb-3">
+          {selectedCoupon ? (
+            /* Đã có coupon – hiện pill + link đổi mã */
+            <div className="flex flex-col gap-2">
+              <CouponCard
+                compact
+                logoW={70}
+                 titleClassName="text-left ml-5"
+                compactHeight={76}
+                 containerBg="white"  
+                promo={{
+                  id:   selectedCoupon.code,
+                  code: selectedCoupon.code,
+                  type:
+                    selectedCoupon.discountType === 'shipping'
+                      ? 'shipping'
+                      : 'discount',
+                  title: selectedCoupon.title || selectedCoupon.code,
+                  isApplicable: true,
+                }}
+                isSelected
+                onSelect={() => handleApplyPromo(null)}
+              />
 
-       <div
-  onClick={() => setIsPromoModalOpen(true)}
-  className="flex items-center justify-between border border-gray-200 rounded-md px-3 py-3 mb-3 text-sm text-gray-800 hover:bg-gray-50 cursor-pointer"
->
-  <span className="flex items-center font-medium">
-    <span className={`mr-2 text-lg ${selectedCoupon ? 'text-red-500' : 'text-gray-400'}`}>
-      <FaPercentage />
-    </span>
-    {selectedCoupon
-      ? `Đã áp dụng: ${selectedCoupon.code}`
-      : 'Chọn hoặc nhập ưu đãi'}
-  </span>
-  <FiChevronRight className="text-gray-400" />
-</div>
+              <button
+                onClick={() => setIsPromoModalOpen(true)}
+                className="text-primary text-sm font-medium inline-flex items-center self-start"
+              >
+                <FaPercentage className="mr-1.5" />
+                Chọn hoặc nhập mã khác
+                <FiChevronRight className="ml-0.5" />
+              </button>
+            </div>
+          ) : (
+            /* Chưa có coupon – nút chọn mã */
+            <button
+              onClick={() => setIsPromoModalOpen(true)}
+              className="flex justify-between items-center w-full text-sm text-gray-800"
+            >
+              <span className="flex items-center font-medium">
+                <FaPercentage className="mr-2 text-lg text-gray-400" />
+                Chọn hoặc nhập ưu đãi
+              </span>
+              <FiChevronRight className="text-gray-400" />
+            </button>
+          )}
+        </div>
 
-
-        
-
-       <div className="text-xs sm:text-sm text-gray-600 mb-4">
+        {/* Thông tin tiền */}
+      {/* ================= Thông tin tiền ================= */}
+<div className="text-xs sm:text-sm text-gray-600 mb-4">
   <h3 className="font-semibold mb-2 text-gray-800">Thông tin đơn hàng</h3>
 
-  <div className="flex justify-between mb-2">
-    <span>Tổng tiền hàng</span>
-    <span className="font-medium text-gray-800">{formatCurrencyVND(totalAmount)}</span>
-  </div>
-
-  <div className="flex justify-between mb-2 text-sm text-gray-600">
-    <span>Giảm giá từ sản phẩm</span>
-    <span>{formatCurrencyVND(discount)}</span>
-  </div>
-
+  {/* 1. Tiền hàng + giảm giá SP / coupon */}
+  <Row label="Tổng tiền hàng" value={formatCurrencyVND(totalAmount)} bold />
+  <Row className="text-xs" label="Giảm giá từ sản phẩm" value={formatCurrencyVND(discount)} />
   {couponDiscount > 0 && (
-    <div className="flex justify-between mb-2 text-sm text-green-600">
-      <span>Giảm giá từ coupon</span>
-      <span>- {formatCurrencyVND(couponDiscount)}</span>
-    </div>
+    <Row
+      label="Giảm giá từ coupon"
+      value={`- ${formatCurrencyVND(couponDiscount)}`}
+      color="text-green-600"
+      className="text-xs"
+    />
   )}
 
-  <div className="flex justify-between mb-2 text-sm text-gray-800">
-    <span>Tổng khuyến mãi</span>
-    <span>{formatCurrencyVND(totalDiscount)}</span>
-  </div>
-
-  {/* === PHÍ VẬN CHUYỂN (hiển thị 3 dòng nếu có giảm) === */}
-{/* === PHÍ VẬN CHUYỂN (hiển thị đã sửa gọn gàng hơn) === */}
+  {/* 2. Phí vận chuyển */}
+{/* 2. Phí vận chuyển */}
 {shippingDiscount > 0 ? (
-  <div className="mb-2 text-sm">
-    <div className="flex justify-between">
-      <span>Phí vận chuyển</span>
-      <span className="font-medium text-gray-800 line-through">
-        {formatCurrencyVND(shippingFee)}
-      </span>
-    </div>
-    <div className="flex justify-between text-green-600">
-      <span className="pl-2">Sau giảm</span> {/* Label "Sau giảm" ở đây */}
-      <span>{formatCurrencyVND(shippingFee - shippingDiscount)}</span>
-    </div>
-  </div>
+  <>
+    {/* phí gốc – KHÔNG gạch nữa */}
+    <Row
+      label="Phí vận chuyển"
+      value={formatCurrencyVND(shippingFee)}
+    />
+
+    {/* phần được giảm */}
+    <Row
+      label="Giảm phí vận chuyển"
+      value={`- ${formatCurrencyVND(shippingDiscount)}`}
+      color="text-green-600"
+      className="text-xs"
+
+    />
+  </>
 ) : (
-  /* Trường hợp không có giảm phí ship */
-  <div className="flex justify-between mb-2 text-sm">
-    <span>Phí vận chuyển</span>
-    <span className="text-gray-800">
-      {shippingFee === 0 ? 'Miễn phí' : formatCurrencyVND(shippingFee)}
-    </span>
-  </div>
+  <Row
+    label="Phí vận chuyển"
+    value={shippingFee === 0 ? 'Miễn phí' : formatCurrencyVND(shippingFee)}
+  />
 )}
 
+  {/* 3. Tổng khuyến mãi (hiển thị sau phí ship) */}
+<Row label="Tổng khuyến mãi" value={formatCurrencyVND(totalDiscountDisplay)} />
 
+  {/* 4. Tổng cần thanh toán */}
   <div className="pt-2">
     <div className="border-t border-dashed border-gray-300 mb-2" />
-    <div className="flex justify-between text-base sm:text-sm font-bold text-red-600">
-      <span>Cần thanh toán</span>
-      <span>{formatCurrencyVND(finalAmount)}</span>
-    </div>
-    <div className="text-sm text-green-600 mt-1 text-right">
-      Tiết kiệm {formatCurrencyVND(totalDiscount)}
-    </div>
+   <Row
+  label="Cần thanh toán"
+  value={formatCurrencyVND(finalAmount)}
+  bold
+  color="text-red-600"
+/>
+<p className="text-sm text-green-600 mt-1 text-right">
+  Tiết kiệm {formatCurrencyVND(totalDiscountDisplay)}
+</p>
     <p className="text-[11px] text-gray-400 text-right">
       (Đã bao gồm VAT nếu có)
     </p>
@@ -292,33 +343,52 @@ if (isZalo) {
 </div>
 
 
+        {/* BTN */}
         <button
           onClick={handlePlaceOrder}
-          className="block text-center hover:opacity-85 w-full bg-primary text-white font-semibold py-3 rounded-md transition"
+          disabled={isPlacing}
+          className="w-full bg-primary text-white font-semibold py-3 rounded-md hover:opacity-90 disabled:opacity-60 transition"
         >
-          Đặt hàng
+          {isPlacing ? 'Đang xử lý...' : 'Đặt hàng'}
         </button>
 
         <p className="text-[11px] text-gray-400 text-center mt-2">
           Bằng việc nhấn <strong>Đặt hàng</strong>, bạn đồng ý với{' '}
-          <a href="#" className="text-blue-500 underline">Điều khoản dịch vụ</a> và{' '}
-          <a href="#" className="text-blue-500 underline">Chính sách xử lý dữ liệu cá nhân</a> của PHT Shop
+          <a href="#" className="text-blue-500 underline">
+            Điều khoản dịch vụ
+          </a>{' '}
+          và{' '}
+          <a href="#" className="text-blue-500 underline">
+            Chính sách xử lý dữ liệu cá nhân
+          </a>{' '}
+          của PHT Shop
         </p>
       </aside>
 
+      {/* Modal Coupon */}
       {isPromoModalOpen && (
-<PromoModal
-  onClose={() => setIsPromoModalOpen(false)}
-  onApplySuccess={handleApplyPromo}
-  appliedCode={selectedCoupon?.code || ''}
-  orderTotal={Number(totalAmount) || 0}
-  skuId={selectedSkuId} // ✅ THÊM DÒNG NÀY
-/>
-
-
+        <PromoModal
+          onClose={() => setIsPromoModalOpen(false)}
+          onApplySuccess={handleApplyPromo}
+          appliedCode={selectedCoupon?.code || ''}
+           skuIds={[firstSkuId]}               // ✅ phải là mảng
+          orderTotal={+totalAmount || 0}
+        />
       )}
     </div>
   );
 };
+
+/* ==== Component nhỏ hiển thị từng dòng tiền ==== */
+const Row = ({ label, value, bold, color, className, pl }) => (
+  <div
+    className={`flex justify-between mb-2 text-sm ${
+      color || 'text-gray-800'
+    } ${className || ''}`}
+  >
+    <span className={pl ? 'pl-2' : ''}>{label}</span>
+    <span className={bold ? 'font-bold' : ''}>{value}</span>
+  </div>
+);
 
 export default OrderSummary;

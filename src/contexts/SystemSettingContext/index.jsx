@@ -1,29 +1,30 @@
-// import { createContext, useContext, useEffect, useState } from 'react';
-// import { systemSettingService } from '@/services/admin/systemSettingService';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { systemSettingService } from '@/services/admin/systemSettingService';
 
-// const SystemSettingContext = createContext();
+const SystemSettingContext = createContext(undefined);
 
-// export const SystemSettingProvider = ({ children }) => {
-//   const [settings, setSettings] = useState(null);
+export const SystemSettingProvider = ({ children }) => {
+  const [settings, setSettings] = useState(null);
 
-//   // const fetchSettings = async () => {
-//   //   try {
-//   //     const res = await systemSettingService.get();
-//   //     setSettings(res);
-//   //   } catch (err) {
-//   //     console.error('Lỗi khi fetch system settings:', err);
-//   //   }
-//   // };
+  const fetchSettings = async () => {
+    try {
+      const res = await systemSettingService.get();
+      setSettings(res);
+    } catch (err) {
+      console.error('Lỗi tải system settings:', err);
+      setSettings(null);
+    }
+  };
 
-//   // useEffect(() => {
-//   //   fetchSettings();
-//   // }, []);
+  useEffect(() => {
+    fetchSettings();
+  }, []);
 
-//   return (
-//     <SystemSettingContext.Provider value={{ settings, fetchSettings }}>
-//       {children}
-//     </SystemSettingContext.Provider>
-//   );
-// };
+  return (
+    <SystemSettingContext.Provider value={{ settings, fetchSettings }}>
+      {children}
+    </SystemSettingContext.Provider>
+  );
+};
 
-// export const useSystemSetting = () => useContext(SystemSettingContext);
+export const useSystemSetting = () => useContext(SystemSettingContext);

@@ -132,8 +132,8 @@ const CheckoutPage = () => {
         <Breadcrumb items={breadcrumbItems} />
       </div>
 
-<div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
-        <div className="lg:col-span-8 space-y-3 sm:space-y-4">
+<div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6">
+  <div className="w-full lg:w-[70%] space-y-3 sm:space-y-4">
           <div className="bg-white rounded-lg p-4 shadow-md border border-gray-200 text-xs sm:text-sm">
             <h2 className="font-semibold text-sm sm:text-base mb-3 sm:mb-4">Sản phẩm trong đơn ({productsInOrder.length})</h2>
             <div className="product-list-inner-box bg-gray-50 p-3 rounded-md space-y-3 sm:space-y-4">
@@ -219,13 +219,14 @@ const CheckoutPage = () => {
           <PaymentMethod selectedPaymentMethod={selectedPaymentMethod} setSelectedPaymentMethod={setSelectedPaymentMethod} />
         </div>
 
-       <div className="lg:col-span-4 lg:sticky lg:top-4 lg:h-fit">
+      <div  className="w-full lg:w-[30%] lg:sticky lg:top-4 lg:h-fit">
 <OrderSummary
   totalAmount={totals.totalAmount}
   discount={totals.discount}
   shippingFee={shippingFee}
   selectedPaymentMethod={selectedPaymentMethod}
   selectedCoupon={selectedCoupon}
+  selectedAddress={selectedAddress}   // 👈 thêm dòng này
   // ❌ XÓA: onCheckout={onSubmitCheckout}
   // để mặc định OrderSummary tự xử lý
 />

@@ -10,7 +10,6 @@ import Loader from '../../../components/common/Loader';
 import FilterSelect from '../../../components/common/FilterSelect';
 import { confirmDelete } from '../../../components/common/ConfirmDeleteDialog';
 import { useNavigate } from 'react-router-dom';
-
 const NotificationPage = () => {
   const [data, setData] = useState({ list: [], total: 0 });
   const [selectedIds, setSelectedIds] = useState([]);
@@ -57,7 +56,7 @@ const NotificationPage = () => {
       setLoading(false);
     }
   };
-//
+
   useEffect(() => {
     fetchData();
   }, [reload, page, status, search, typeFilter, itemsPerPage]);
@@ -66,7 +65,7 @@ const NotificationPage = () => {
     setEditing(item);
     setShowForm(true);
   };
-//
+
   const handleDelete = async (item) => {
     const confirmed = await confirmDelete('xoá', `thông báo "${item.title}"`);
     if (!confirmed) return;

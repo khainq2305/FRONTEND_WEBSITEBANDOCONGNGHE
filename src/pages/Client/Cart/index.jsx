@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { confirmDelete } from '../../../components/common/ConfirmDeleteDialog';
 import Breadcrumb from '../../../components/common/Breadcrumb';
+import { couponService } from '../../../services/client/couponService';
 
 const CartPage = () => {
   const [cartItems, setCartItems] = useState([]);
@@ -16,25 +17,39 @@ const CartPage = () => {
   const navigate = useNavigate();
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const isAllChecked = cartItems.length > 0 && cartItems.every((item, index) => item.stock <= 0 || checkedItems[index]);
-
+ const [isCartLoaded, setIsCartLoaded] = useState(false);   // ⭐
   const hasSelectedItems = cartItems.length > 0 && checkedItems.some(Boolean);
   const selectedItems = cartItems.filter((_, index) => checkedItems[index]);
 
-  // CartPage.jsx
-const totals = selectedItems.reduce(
-  (acc, item) => {
-    const qty       = item.quantity;
-    const original  = item.originalPrice * qty;   // ✅ giá niêm yết
-    const current   = item.finalPrice   * qty;    // ✅ giá thực trả
+useEffect(() => {
+  if (!appliedCoupon) return;
 
-    acc.totalPrice    += original;                // Tổng tiền hàng (niêm yết)
-    acc.totalDiscount += original - current;      // Giảm giá từ SP
-    acc.payablePrice  += current;                 // Cần thanh toán trước coupon
-    acc.rewardPoints  += Math.floor(current / 1_000_000);
-    return acc;
-  },
-  { totalPrice: 0, totalDiscount: 0, payablePrice: 0, rewardPoints: 0 },
-   
+  const allowed = appliedCoupon.allowedSkuIds || [];
+const stillValid =
+  allowed.length === 0           
+  || selectedItems.some(i => allowed.includes(i.skuId));
+
+  if (!stillValid) {
+    toast.info('Bạn đã bỏ sản phẩm đủ điều kiện, mã giảm giá bị gỡ.');
+    setAppliedCoupon(null);
+    localStorage.removeItem('appliedCoupon');
+  }
+}, [selectedItems, appliedCoupon]);
+
+  // CartPage.jsx
+  const totals = selectedItems.reduce(
+    (acc, item) => {
+      const qty = item.quantity;
+      const original = item.originalPrice * qty; 
+      const current = item.finalPrice * qty; 
+
+      acc.totalPrice += original; 
+      acc.totalDiscount += original - current;
+      acc.payablePrice += current; 
+      acc.rewardPoints += Math.floor(current / 1_000_000);
+      return acc;
+    },
+    { totalPrice: 0, totalDiscount: 0, payablePrice: 0, rewardPoints: 0 }
   );
   totals.rewardPoints = '+' + totals.rewardPoints;
 
@@ -45,19 +60,21 @@ const totals = selectedItems.reduce(
     try {
       const response = await cartService.getCart();
       const items = response.data?.cartItems || [];
-   const formattedItems = items.map((item) => ({
-  ...item,
-  name: item.productName,
-  originalPrice: Number(item.originalPrice), // ✅ đúng trường
-  price        : Number(item.price),         // (nếu vẫn cần tới price)
-  finalPrice   : Number(item.finalPrice),
-  flashSaleId  : item.flashSaleId || null
-}));
+      const formattedItems = items.map((item) => ({
+        ...item,
+        name: item.productName,
+        skuId: Number(item.skuId),        
+        originalPrice: Number(item.originalPrice),
+        price: Number(item.price),
+        finalPrice: Number(item.finalPrice),
+        flashSaleId: item.flashSaleId || null
+      }));
 
       const newChecked = formattedItems.map((item) => !!item.isSelected && item.stock > 0);
 
       setCartItems(formattedItems);
       setCheckedItems(newChecked);
+      setIsCartLoaded(true);           // ⭐ đã load xong
     } catch (error) {
       console.error('Lỗi khi tải giỏ hàng:', error);
       toast.error('Không thể tải giỏ hàng. Vui lòng thử lại.', {
@@ -149,23 +166,52 @@ const totals = selectedItems.reduce(
     }
   };
 
-  useEffect(() => {
-    if (selectedItems.length === 0 && appliedCoupon) {
+useEffect(() => {
+  if (!isCartLoaded) return;  // ⬅️ bỏ qua lần render đầu
+  if (selectedItems.length === 0 && appliedCoupon) {
+    setAppliedCoupon(null);
+    localStorage.removeItem('appliedCoupon');
+  }
+}, [isCartLoaded, selectedItems, appliedCoupon]);
+const handleProceedToCheckout = async () => {
+
+  if (selectedItems.length === 0) {
+    toast.info('Vui lòng chọn ít nhất một sản phẩm để thanh toán.', { position: 'top-right' });
+    return;
+  }
+  const skuIdsForCoupon = [...new Set(
+    selectedItems.map(i => Number(i.skuId)).filter(Boolean)  
+  )];
+
+  console.log('🚚 [CHECKOUT] payload', {
+    code      : appliedCoupon?.code,
+    orderTotal: totals.payablePrice,
+    skuIds    : skuIdsForCoupon
+  });
+  if (appliedCoupon) {
+    try {
+      await couponService.applyCoupon({
+        code      : appliedCoupon.code,
+        orderTotal: totals.payablePrice,  
+        skuIds    : skuIdsForCoupon
+      });
+    } catch (err) {
+      const msg = err?.response?.data?.message ||
+                  err.message ||
+                  'Mã giảm giá không còn hợp lệ, vui lòng thử lại.';
+      toast.error(msg, { position: 'top-right' });
+
+     
       setAppliedCoupon(null);
       localStorage.removeItem('appliedCoupon');
+      return;                             
     }
-  }, [selectedItems, appliedCoupon]);
+  }
+  localStorage.setItem('selectedCartItems', JSON.stringify(selectedItems));
+  navigate('/checkout', { replace: true });
+};
 
-  const handleProceedToCheckout = () => {
-    if (selectedItems.length === 0) {
-      toast.info('Vui lòng chọn ít nhất một sản phẩm để thanh toán.', {
-        position: 'top-right'
-      });
-      return;
-    }
-    localStorage.setItem('selectedCartItems', JSON.stringify(selectedItems));
-    navigate('/checkout', { replace: true });
-  };
+
 
   return (
     <main className="max-w-[1200px] mx-auto pb-20">
@@ -175,7 +221,7 @@ const totals = selectedItems.reduce(
 
       {cartItems.length > 0 ? (
         <div className="flex flex-col lg:flex-row gap-6">
-           <section className="w-full lg:w-[70%]">   
+          <section className="w-full lg:w-[70%]">
             <div className="bg-white rounded-md p-3 sm:p-4 border border-gray-200">
               <div className="flex items-center h-11 mb-3 sm:mb-4">
                 <div onClick={toggleAll} className="flex items-center gap-2 cursor-pointer pl-3 sm:pl-4 flex-grow">
@@ -189,6 +235,7 @@ const totals = selectedItems.reduce(
                   <span className="text-sm text-gray-700 min-w-0 truncate mr-2">
                     Chọn tất cả ({cartItems.filter((item) => item.stock > 0).length} sản phẩm còn hàng) {/* Sửa lại số lượng hiển thị */}
                   </span>
+                  
                 </div>
                 <button
                   onClick={handleDeleteSelected}
@@ -214,16 +261,16 @@ const totals = selectedItems.reduce(
             </div>
           </section>
 
-     <aside className="w-full lg:w-[30%] lg:sticky lg:top-35 self-start h-fit mt-6 lg:mt-0">
+          <aside className="w-full lg:w-[30%] lg:sticky lg:top-35 self-start h-fit mt-6 lg:mt-0">
             <CartSummary
               hasSelectedItems={hasSelectedItems}
               selectedItems={selectedItems}
               appliedCoupon={appliedCoupon}
-              discountAmount={discountAmount}
+            
               orderTotals={{
                 totalPrice: totals.totalPrice,
                 totalDiscount: totals.totalDiscount,
-                payablePrice: payableAfterCoupon,
+                payablePrice  : totals.payablePrice, 
                 rewardPoints: totals.rewardPoints
               }}
               onCheckout={handleProceedToCheckout}

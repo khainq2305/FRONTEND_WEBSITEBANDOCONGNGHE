@@ -67,6 +67,11 @@ export const API_ENDPOINT = {
     brand: {
       base: '/api/client/brands'
     },
+    systemSettings: {
+      base: `${API_BASE_URL}/system-settings`,
+      update: '/update',
+       get: '' // 👈 thêm dòng này vào
+    },
     cart: {
       base: `${API_BASE_URL}/cart`,
       add: '/add',
@@ -92,7 +97,12 @@ export const API_ENDPOINT = {
       reorder: (orderId) => `/${orderId}/reorder`,
       momoCallback: '/momo-callback',
       zaloPay: '/zalopay',
+       payAgain: (id) => `/${id}/pay-again`,     
       vnpay: '/vnpay',
+      shippingOptions: '/shipping/options',     // ← endpoint mới
+        viettelMoney: '/viettel-money',          // 👈 THÊM
+  viettelMoneyCallback: '/viettel-money/callback', // 👈 THÊM
+      bookPickup: (id) => `/return/${id}/book-pickup`,
       vietqrPay: '/generate-vietqr',
       markAsCompleted: (orderId) => `/${orderId}/mark-completed`,
       return: '/return',
@@ -159,14 +169,7 @@ export const API_ENDPOINT = {
     }
   },
   admin: {
-    // action: {
-    //   base: `${API_BASE_URL}/admin`,
-    //   getAll: '/action'
-    // },
-    // subject: {
-    //   base: `${API_BASE_URL}/admin`,
-    //   // getAll: '/subjects-all'
-    // },
+   
     permissions: {
       base: `${API_BASE_URL}/admin/permissions`,
       getAll: '/permissions',
@@ -353,7 +356,7 @@ export const API_ENDPOINT = {
       getById: (slug) => `/flash-sales/${slug}`,
       delete: (id) => `/flash-sales/${id}`,
       deleteMany: '/flash-sales/delete-many',
-
+updateSortOrder: (slug) => `/flash-sales/${slug}/items/sort-order`,  
       softDelete: (id) => `/flash-sales/soft-delete/${id}`,
       softDeleteMany: '/flash-sales/soft-delete-many',
       restore: (id) => `/flash-sales/restore/${id}`,

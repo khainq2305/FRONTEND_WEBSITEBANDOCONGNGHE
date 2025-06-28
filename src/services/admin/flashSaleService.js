@@ -4,6 +4,8 @@ import { get, post, patch, del } from '../common/crud';
 const base = API_ENDPOINT.admin.flashSale.base;
 
 export const flashSaleService = {
+  updateSortOrder: (slug, list) =>                    
+ patch(`${base}${API_ENDPOINT.admin.flashSale.updateSortOrder(slug)}`, list),
   list: (params = {}) => get(`${base}${API_ENDPOINT.admin.flashSale.list}`, params),
  getById: (slug) => get(`${base}${API_ENDPOINT.admin.flashSale.getById(slug)}`),
   create: (data) => post(`${base}${API_ENDPOINT.admin.flashSale.create}`, data),

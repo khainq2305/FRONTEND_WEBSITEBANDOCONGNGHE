@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { FaPercentage, FaQuestionCircle } from 'react-icons/fa';
-import { FiChevronUp, FiChevronRight } from 'react-icons/fi';
-import PromoModal from '../PromoModal';
+import { FiChevronUp, FiInfo, FiChevronRight } from 'react-icons/fi';
+import PromoModal, { CouponCard } from '../PromoModal';
 import { couponService } from '../../../../services/client/couponService';
 import { formatCurrencyVND } from '../../../../utils/formatCurrency';
-
+import defaultShippingIcon from '../../../../assets/Client/images/image 12.png';
 const CartSummary = ({ hasSelectedItems, selectedItems, orderTotals, appliedCoupon, setAppliedCoupon, onCheckout }) => {
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
 
@@ -28,11 +28,12 @@ const CartSummary = ({ hasSelectedItems, selectedItems, orderTotals, appliedCoup
     }
   };
 
-  const discountAmount = appliedCoupon ? Number(appliedCoupon.discountAmount) : 0;
-
-  const rawPayable = Number(orderTotals.payablePrice);
-  const payableAfterDiscount = Math.max(0, rawPayable - discountAmount);
-
+ const discountAmount =
+  appliedCoupon && appliedCoupon.discountType !== 'shipping'
+   ? Number(appliedCoupon.discountAmount)
+   : 0;
+  const payableBeforeDiscount = Number(orderTotals.payablePrice); // 9 000 000
+  const payableAfterDiscount = Math.max(0, payableBeforeDiscount - discountAmount);
   const payableAfterDiscountFormatted = formatCurrencyVND(payableAfterDiscount > 0 ? payableAfterDiscount : 0);
 
   const totals = orderTotals || {
@@ -50,20 +51,54 @@ const CartSummary = ({ hasSelectedItems, selectedItems, orderTotals, appliedCoup
   return (
     <>
       <aside className="bg-white rounded-md p-3 sm:p-4 border border-gray-200 shadow-sm flex flex-col gap-4">
+        <div className="flex justify-between items-center">
+          <h4 className="font-semibold text-sm text-gray-800">HomePower khuyến mãi</h4>
+          <div className="flex items-center text-xs text-gray-500">
+            Có thể chọn&nbsp;1
+            <FiInfo className="ml-1 text-gray-400" size={14} />
+          </div>
+        </div>
+
         <div className="border border-gray-200 rounded-md p-3">
-          <button
-            onClick={openPromoModal}
-            disabled={!hasSelectedItems}
-            className="flex justify-between items-center w-full text-sm text-gray-800 transition-colors disabled:text-gray-400 disabled:cursor-not-allowed"
-          >
-            <span className="flex items-center font-medium">
-              <span className={`mr-2 text-lg ${hasSelectedItems ? 'text-red-500' : 'text-gray-400'}`}>
-                <FaPercentage />
+          {appliedCoupon ? (
+            <div className="flex flex-col gap-2">
+              <CouponCard
+                compact
+                logoW={70}
+                titleClassName="text-left ml-5"
+                compactHeight={76}
+                 containerBg="white"  
+                promo={{
+                  id: appliedCoupon.code,
+                  code: appliedCoupon.code,
+                  type: appliedCoupon.type === 'shipping' ? 'shipping' : 'discount',
+                  type: appliedCoupon.discountType || appliedCoupon.type || '',
+                  title: appliedCoupon.title || appliedCoupon.code,
+                  isApplicable: true
+                }}
+                isSelected
+                onSelect={() => handleApplySuccess(null)}
+              />
+
+              <button onClick={openPromoModal} className="text-primary text-sm font-medium inline-flex items-center self-start">
+                <FaPercentage className="mr-1.5" />
+                Chọn hoặc nhập mã khác
+                <FiChevronRight className="ml-0.5" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={openPromoModal}
+              disabled={!hasSelectedItems}
+              className="flex justify-between items-center w-full text-sm text-gray-800 disabled:text-gray-400"
+            >
+              <span className="flex items-center font-medium">
+                <FaPercentage className={`mr-2 text-lg ${hasSelectedItems ? 'text-red-500' : 'text-gray-400'}`} />
+                Chọn hoặc nhập ưu đãi
               </span>
-              {appliedCoupon ? `Đã áp dụng: ${appliedCoupon.code}` : 'Chọn hoặc nhập ưu đãi'}
-            </span>
-            <FiChevronRight className="text-gray-400" />
-          </button>
+              <FiChevronRight className="text-gray-400" />
+            </button>
+          )}
         </div>
 
         <div className="text-sm text-gray-700 space-y-2">
@@ -108,13 +143,18 @@ const CartSummary = ({ hasSelectedItems, selectedItems, orderTotals, appliedCoup
           Xác nhận đơn
         </button>
       </aside>
-
+<style jsx global>{`
+  /* Chỉ tác động tới thẻ div.mx-2 của CouponCard khi nằm trong .tight-title */
+  .tight-title .mx-2 {
+    margin-left: 0.25rem;   /* 4 px thay vì 0.5rem (8px) gốc */
+  }
+`}</style>
       {isPromoModalOpen && (
         <PromoModal
           onClose={closePromoModal}
           onApplySuccess={handleApplySuccess}
-          skuId={selectedItems[0]?.skuId || null}
-          orderTotal={rawPayable}
+          skuIds={selectedItems.map((i) => i.skuId)}
+          orderTotal={payableBeforeDiscount}
           appliedCode={appliedCoupon?.code || ''}
         />
       )}

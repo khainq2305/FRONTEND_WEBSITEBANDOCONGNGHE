@@ -4,13 +4,15 @@ import {
 } from '@mui/material';
 import { useState, useEffect } from 'react';
 
+/* ---- UpdateOrderStatusDialog.jsx ---- */
 const statusOptions = [
-  { value: 'pending', label: 'Chờ xác nhận' },
-  { value: 'confirmed', label: 'Đã xác nhận' },
-  { value: 'shipping', label: 'Đang giao' },
-  { value: 'delivered', label: 'Đã giao' },
-  { value: 'completed', label: 'Hoàn thành' }, // ✅ sửa lại tên hiển thị
+  { value: 'processing', label: 'Đang xử lý' },   // đơn mới → admin có thể chuyển tiếp
+  { value: 'shipping',   label: 'Vận chuyển'   },   // từ processing
+  { value: 'delivered',  label: 'Đã giao'     },   // từ shipping
+  { value: 'cancelled',  label: 'Đã hủy'      }    // có thể hủy ở processing / shipping
 ];
+
+/* phần còn lại giữ nguyên */
 
 
 const UpdateOrderStatusDialog = ({ open, onClose, order, onConfirm }) => {

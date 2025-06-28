@@ -49,9 +49,8 @@ const MoreActionsMenu = ({ actions }) => {
 };
 const statusTabs = [
   { value: '', label: 'Tất cả', color: 'gray' },
-  { value: 'pending', label: 'Chờ xác nhận', color: '#ff9800' },
-  { value: 'confirmed', label: 'Đã xác nhận', color: '#2196f3' },
-  { value: 'shipping', label: 'Đang giao', color: '#3f51b5' },
+ { value: 'processing', label: 'Đang xử lý', color: '#2196f3' },
+  { value: 'shipping', label: 'Vận chuyển', color: '#3f51b5' },
   { value: 'delivered', label: 'Đã giao', color: '#4caf50' },
   { value: 'completed', label: 'Hoàn thành', color: '#009688' }, // ✅ thêm dòng này
   { value: 'cancelled', label: 'Đã hủy', color: '#f44336' }
@@ -119,9 +118,8 @@ const handleUpdateStatus = async (newStatus) => {
   try {
     await orderService.updateStatus(selectedOrder.id, newStatus);
     const statusMap = {
-  pending: 'Chờ xác nhận',
-  confirmed: 'Đã xác nhận',
-  shipping: 'Đang giao',
+ processing : 'Đang xử lý',   // thay thế cho pending / confirmed cũ
+  shipping: 'Vận chuyển',
   delivered: 'Đã giao',
   completed: 'Hoàn thành',
   cancelled: 'Đã hủy'
@@ -143,16 +141,26 @@ toast.success(`Đã cập nhật trạng thái đơn ${selectedOrder?.code} thà
 
   const getStatusChip = (orderStatus) => {
     const map = {
-      pending: ['Chờ xác nhận', 'warning'],
-      confirmed: ['Đã xác nhận', 'info'],
-      shipping: ['Đang giao', 'primary'],
+    processing: ['Đang xử lý', 'info'   ],
+      shipping: ['Vận chuyển', 'primary'],
       delivered: ['Đã giao', 'success'],
+      completed : ['Hoàn thành', 'success'],
       cancelled: ['Đã hủy', 'error'],
       refunded: ['Trả hàng/Hoàn tiền', 'default']
     };
     const [label, color] = map[orderStatus] || [orderStatus, 'default'];
     return <Chip label={label} color={color} size="small" />;
   };
+const PAYMENT_CHIP_MAP = {
+  unpaid : ['Chưa thanh toán', 'warning'],
+  waiting: ['Chờ xác thực',    'info'],
+  paid   : ['Đã thanh toán',   'success']
+};
+
+const getChip = (value, map) => {
+  const [label, color] = map[value] || [value, 'default'];
+  return <Chip label={label} color={color} size="small" />;
+};
 
   return (
     <Box sx={{ p: 2 }}>
@@ -216,6 +224,7 @@ toast.success(`Đã cập nhật trạng thái đơn ${selectedOrder?.code} thà
               <TableCell>Khách hàng</TableCell>
               <TableCell>Tổng tiền</TableCell>
               <TableCell>Trạng thái</TableCell>
+              <TableCell>Thanh toán</TableCell>
               <TableCell>Ngày đặt</TableCell>
               <TableCell align="right">Hành động</TableCell>
             </TableRow>
@@ -240,6 +249,7 @@ toast.success(`Đã cập nhật trạng thái đơn ${selectedOrder?.code} thà
                         {Number(order.total).toLocaleString('vi-VN')} ₫
                       </TableCell>
                       <TableCell>{getStatusChip(order.status)}</TableCell>
+                      <TableCell>{getChip(order.paymentStatus, PAYMENT_CHIP_MAP)}</TableCell>
                       <TableCell>
   {new Date(order.createdAt).toLocaleString('vi-VN')}
 </TableCell>

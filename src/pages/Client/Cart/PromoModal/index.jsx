@@ -1,38 +1,242 @@
-// src/components/Client/PromoModal.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
-import { FiX, FiInfo, FiLoader } from 'react-icons/fi';
-import { couponService } from '../../../../services/client/couponService';
-import defaultShippingIcon from '../../../../assets/Client/images/image 12.png';
-import { formatCurrencyVND } from '../../../../utils/formatCurrency';
-import { FaTicketAlt, FaGift } from 'react-icons/fa';
+import { FiX, FiInfo, FiLoader, FiChevronRight, FiChevronUp } from 'react-icons/fi';
+import { FaGift, FaTicketAlt } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
-const PromoModal = ({
-  modalTitle = 'Hồng Ân Khuyến Mãi',
-  onClose,
-  onApplySuccess,
-  skuId,
-  orderTotal,
-  appliedCode = ''
+import { couponService } from '../../../../services/client/couponService';
+import defaultShippingIcon from '../../../../assets/Client/images/image 12.png';
+import notQualifiedStamp from '../../../../assets/Client/images/image 13.png';
+import { formatCurrencyVND } from '../../../../utils/formatCurrency';
+
+
+export const CouponCard = ({
+  promo,
+  isSelected,
+  onSelect,
+  compact = false,
+   titleClassName = ''    ,    
+  logoW = 80,         
+   containerBg = '#F4F4F5',     
+  compactHeight = 64   
 }) => {
+  const HOLE = 20;
+  const BLUE = '#1CA7EC';
+  const CONTAINER_BG = '#F4F4F5';
+
+ const isShip = String(promo.type ?? '')
+                 .toLowerCase()
+                .includes('ship');       
+
+ const primaryBg = isShip ? 'bg-green-600' : 'bg-primary';
+const cardBg    = isSelected
+    ? (isShip ? 'bg-green-50' : 'bg-blue-50')
+    : 'bg-white';
+  const notAllowed = !promo.isApplicable;
+
+ 
+  if (compact) {
+  
+    const PAD = 8;
+    const GAP = 8;
+    const LEFT_POS = PAD + logoW + GAP;
+
+    return (
+      <div
+        onClick={() => !notAllowed && onSelect(promo)}
+        className={`
+          relative flex items-center w-full ${cardBg} rounded-lg p-2 shadow-sm border border-gray-200
+          ${notAllowed ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}
+          ${isSelected ? 'ring-2 ring-[#1CA7EC]' : ''}
+        `}
+        style={{ height: compactHeight, paddingLeft: PAD }}
+      >
+        
+        <div
+          className={`flex items-center justify-center rounded-lg ${primaryBg}`}
+          style={{ width: logoW, height: '100%' }}
+        >
+          {promo.type === 'shipping'
+            ? <img src={defaultShippingIcon} alt="" className="w-full h-full object-contain" />
+            : <FaGift className="text-white text-3xl" />}
+        </div>
+
+     
+        <div className="absolute" style={{ top: 0, bottom: 0, left: LEFT_POS, width: 1 }}>
+          <span
+            style={{
+              position: 'absolute',
+              inset: 0,
+              left: '50%',
+              width: 1,
+              transform: 'translateX(-0.5px)',
+              background: `repeating-linear-gradient(${BLUE} 0 3px, transparent 3px 6px)`
+            }}
+          />
+        </div>
+
+    
+        {['top', 'bottom'].map(pos => (
+          <div
+            key={pos}
+            className="absolute"
+            style={{
+              [pos]: -HOLE / 2,
+              left: LEFT_POS,
+              width: HOLE,
+              height: HOLE,
+               
+              borderRadius: '50%',
+              transform: 'translateX(-50%)',
+             backgroundColor: containerBg,
+              ...(isSelected && {
+                [pos === 'top' ? 'borderBottom' : 'borderTop']: `2px solid ${BLUE}`
+              })
+            }}
+          />
+        ))}
+
+      
+     <div
+  className={`
+   mx-2 flex-1 font-semibold text-sm text-gray-900 truncate
+    ${titleClassName || 'text-center'}     /*  <-- thêm dòng này */
+   `}
+>
+          {promo.title}
+        </div>
+
+        <FiInfo size={16} className="text-gray-400 flex-shrink-0 mr-2" />
+
+        {promo.isApplicable && (
+          <button
+            onClick={e => { e.stopPropagation(); onSelect(promo); }}
+            className="text-xs font-semibold px-3 py-1 rounded bg-primary text-white hover:opacity-90"
+          >
+            {isSelected ? 'Bỏ chọn' : 'Áp dụng'}
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  
+  const PAD = 12;
+  const GAP = 10;
+  const LEFT_POS = PAD + logoW + GAP;
+
+  return (
+    <div
+      onClick={() => !notAllowed && onSelect(promo)}
+      className={`
+        relative flex h-24 w-full ${cardBg} rounded-lg p-2 shadow-sm border border-gray-200
+        ${notAllowed ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}
+        ${isSelected ? 'ring-2 ring-[#1CA7EC]' : ''}
+      `}
+    >
+      <div
+        className={`flex items-center justify-center rounded-lg ${primaryBg}`}
+        style={{ width: logoW }}
+      >
+        {promo.type === 'shipping'
+          ? <img src={defaultShippingIcon} alt="" className="w-full h-full object-contain" />
+          : <FaGift className="text-white text-4xl" />}
+      </div>
+
+      <div className="absolute" style={{ top: 0, bottom: 0, left: LEFT_POS, width: 1 }}>
+        <span
+          style={{
+            position: 'absolute',
+            inset: 0,
+            left: '50%',
+            width: 1,
+            transform: 'translateX(-0.5px)',
+            background: `repeating-linear-gradient(${BLUE} 0 3px, transparent 3px 6px)`
+          }}
+        />
+      </div>
+
+      {['top', 'bottom'].map(pos => (
+        <div
+          key={pos}
+          className="absolute"
+          style={{
+            [pos]: -HOLE / 2,
+            left: LEFT_POS,
+            width: HOLE,
+            height: HOLE,
+            borderRadius: '50%',
+            transform: 'translateX(-50%)',
+            backgroundColor: CONTAINER_BG,
+            ...(isSelected && {
+              [pos === 'top' ? 'borderBottom' : 'borderTop']: `2px solid ${BLUE}`
+            })
+          }}
+        />
+      ))}
+
+      <div className="flex-1 flex flex-col justify-between pl-6">
+        <div className="flex items-start justify-between">
+        <p
+   className={`
+     font-semibold text-sm text-gray-900 truncate
+    ${titleClassName}
+  `}
+>{promo.title}</p>
+          <FiInfo size={16} className="text-gray-400 flex-shrink-0 ml-1" />
+        </div>
+        <p className="text-xs text-gray-600">{promo.description}</p>
+        <div className="flex items-center justify-between">
+          {promo.expiryDate && <p className="text-xs text-gray-500">HSD: {promo.expiryDate}</p>}
+          {promo.isApplicable && (
+            <button
+              onClick={e => { e.stopPropagation(); onSelect(promo); }}
+              className="text-xs font-semibold px-4 py-1.5 rounded bg-primary text-white hover:opacity-90"
+            >
+              {isSelected ? 'Bỏ chọn' : 'Áp dụng'}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {!promo.isApplicable && (
+        <img
+          src={notQualifiedStamp}
+          alt="not-qualified"
+          className="absolute right-4 bottom-3 w-[72px] select-none pointer-events-none"
+        />
+      )}
+    </div>
+  );
+};
+
+const PromoModal = ({ modalTitle = 'Hồng Ân Khuyến Mãi', onClose, onApplySuccess, skuIds = [], orderTotal, appliedCode = '' }) => {
   const [availablePromos, setAvailablePromos] = useState([]);
   const [selectedCode, setSelectedCode] = useState('');
   const [inputPromoCode, setInputPromoCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [applyError, setApplyError] = useState('');
-
-  /* ─────────── EFFECTS ─────────── */
+  const [expandedGroups, setExpandedGroups] = useState({});
 
   useEffect(() => {
-    if (appliedCode) setSelectedCode(appliedCode);
+    if (appliedCode) {
+      setSelectedCode(appliedCode);
+    }
   }, [appliedCode]);
 
   useEffect(() => {
     const fetchCoupons = async () => {
       setIsLoading(true);
       try {
-        const res = await couponService.getAvailable(skuId ? `?skuId=${skuId}` : '');
+        const params = new URLSearchParams();
+        if (skuIds.length) {
+          params.set('skuIds', skuIds.join(','));
+        }
+        if (orderTotal) {
+          params.set('orderTotal', orderTotal);
+        }
+
+        const res = await couponService.getAvailable(`?${params.toString()}`);
         const coupons = res.data?.data || [];
         setAvailablePromos(
           coupons.map((c) => ({
@@ -53,7 +257,7 @@ const PromoModal = ({
         );
       } catch (err) {
         console.error('Lỗi khi lấy coupons:', err);
-        alert('Không thể tải danh sách khuyến mãi. Vui lòng thử lại.');
+        toast.error('Không thể tải khuyến mãi, thử lại sau!');
       } finally {
         setIsLoading(false);
       }
@@ -61,10 +265,18 @@ const PromoModal = ({
 
     document.body.style.overflow = 'hidden';
     fetchCoupons();
-    return () => (document.body.style.overflow = 'unset');
-  }, [skuId]);
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [skuIds, orderTotal]);
 
-  /* ─────────── HANDLERS ─────────── */
+  const groupedPromos = availablePromos.reduce((acc, p) => {
+    const key = p.type === 'shipping' ? 'Mã Vận Chuyển' : 'Mã Giảm Giá';
+    (acc[key] = acc[key] || []).push(p);
+    return acc;
+  }, {});
+
+  const toggleGroup = (g) => setExpandedGroups((s) => ({ ...s, [g]: !s[g] }));
 
   const handleSelect = (promo) => {
     if (!promo.isApplicable) return;
@@ -73,13 +285,10 @@ const PromoModal = ({
     setSelectedCode((prev) => (prev === promo.code ? '' : promo.code));
   };
 
-  const _applyCode = async (codeToApply) => {
-    const trimmed = String(codeToApply || '').trim();
+  const applyCode = async (rawCode) => {
+    const trimmed = String(rawCode || '').trim();
     if (!trimmed) {
       onApplySuccess(null);
-      setSelectedCode('');
-      setInputPromoCode('');
-      setApplyError('');
       onClose();
       return;
     }
@@ -87,15 +296,18 @@ const PromoModal = ({
     setIsLoading(true);
     setApplyError('');
     try {
-      const payload = { code: trimmed, orderTotal: Number(orderTotal) };
-      if (skuId) payload.skuId = Number(skuId);
+      const res = await couponService.applyCoupon({
+        code: trimmed,
+        orderTotal: Number(orderTotal),
+        skuIds
+      });
 
-      const res = await couponService.applyCoupon(payload);
-      toast.success('Áp dụng mã giảm giá thành công!');
-      onApplySuccess(res.data.coupon);
+      const coupon = res.data?.coupon;
+      
+      onApplySuccess(coupon);
       onClose();
     } catch (err) {
-      const msg = err?.response?.data?.message || err.message || 'Lỗi không xác định';
+      const msg = err?.response?.data?.message || err.message || 'Mã không hợp lệ';
       toast.error(msg);
       setApplyError(msg);
     } finally {
@@ -103,121 +315,21 @@ const PromoModal = ({
     }
   };
 
-  const groupedPromos = availablePromos.reduce((acc, p) => {
-    const key = p.type === 'shipping' ? 'Mã Vận Chuyển' : 'Mã Giảm Giá';
-    (acc[key] = acc[key] || []).push(p);
-    return acc;
-  }, {});
-
-  /* ─────────── COUPON CARD ─────────── */
-
-  const CouponCard = ({ promo, isSelected, onSelect }) => {
-    const primaryBg = promo.type === 'shipping' ? 'bg-green-600' : 'bg-blue-600';
-    const ring      = isSelected
-      ? 'ring-2 ring-blue-500 ring-offset-2'
-      : 'ring-2 ring-transparent ring-offset-2';
-    const disabled  = promo.isApplicable ? '' : 'opacity-60 cursor-not-allowed';
-
-    return (
-      <div
-        onClick={() => onSelect(promo)}
-        className={`relative flex w-full h-24 bg-white rounded-md p-2 shadow-sm
-                    transition-all duration-200 ${ring} ${disabled}`}
-        /* quan trọng: cho lỗ bấm ló ra ngoài */
-        style={{ overflow: 'visible' }}
-      >
-        {/* icon */}
-        <div className={`relative w-24 flex-shrink-0 flex items-center justify-center p-2 ${primaryBg}`}>
-          {promo.type === 'shipping' ? (
-            <img src={defaultShippingIcon} alt="shipping" className="w-full h-full object-contain" />
-          ) : (
-            <FaGift className="text-white text-4xl" />
-          )}
-        </div>
-
-        {/* separator + lỗ bấm */}
-        <div className="relative w-0 flex-shrink-0">
-          {/* nét đứt */}
-          <div className="absolute top-4 bottom-4 left-1/2 border-l-2 border-dashed border-blue-500" />
-
-          {/* lỗ trên */}
-          <span className="absolute -top-3 -left-3 w-6 h-6 rounded-full bg-gray-100 border-2 border-blue-500" />
-          {/* lỗ dưới */}
-          <span className="absolute -bottom-3 -left-3 w-6 h-6 rounded-full bg-gray-100 border-2 border-blue-500" />
-        </div>
-
-        {/* nội dung */}
-        <div className="flex-1 flex items-center justify-between pl-5 pr-3">
-          <div>
-            <p className="font-semibold text-sm text-gray-900">{promo.title}</p>
-            <p className="text-xs text-gray-600">{promo.description}</p>
-            {promo.expiryDate && (
-              <p className="text-xs text-gray-500 mt-1">HSD: {promo.expiryDate}</p>
-            )}
-          </div>
-
-          <div className="flex items-center space-x-2 pl-2">
-            <FiInfo className="text-gray-400 flex-shrink-0" size={16} />
-
-            {!promo.isApplicable ? (
-              <div className="absolute top-1/2 right-4 -translate-y-1/2 -rotate-12">
-                <div className="border-2 border-gray-400 rounded-md px-2 py-1">
-                  <span className="text-xs font-bold text-gray-400">CHƯA THỎA ĐIỀU KIỆN</span>
-                </div>
-              </div>
-            ) : isSelected ? (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onSelect(promo);
-                }}
-                className="bg-blue-600 text-white text-xs font-semibold px-3 py-1.5 rounded-sm hover:opacity-90"
-              >
-                Bỏ chọn
-              </button>
-            ) : (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onSelect(promo);
-                }}
-                className="bg-blue-600 text-white text-xs font-semibold px-3 py-1.5 rounded-sm hover:opacity-90"
-              >
-                Áp dụng
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  /* ─────────── MODAL UI ─────────── */
-
   const modalContent = (
-    <div
-      className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4" onClick={onClose}>
       <div
-        className="bg-gray-100 rounded-lg shadow-xl flex flex-col w-full max-w-md"
+        className="bg-gray-100 rounded-lg shadow-xl flex flex-col w-full max-w-sm"
         style={{ maxHeight: '90vh' }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="relative py-3 text-center border-b border-gray-200 flex-shrink-0">
           <h3 className="text-base font-semibold text-gray-800">{modalTitle}</h3>
-          <button
-            onClick={onClose}
-            className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-500 hover:text-gray-800"
-          >
+          <button onClick={onClose} className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-500 hover:text-gray-800">
             <FiX size={24} />
           </button>
         </div>
 
-        {/* Body */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {/* Nhập mã thủ công */}
           <div className="flex items-start gap-2">
             <div className="flex-grow">
               <input
@@ -225,25 +337,21 @@ const PromoModal = ({
                 onChange={(e) => {
                   setInputPromoCode(e.target.value.toUpperCase());
                   setSelectedCode('');
-                  if (applyError) setApplyError('');
+                  if (applyError) {
+                    setApplyError('');
+                  }
                 }}
                 placeholder="Nhập mã giảm giá"
-                className={`w-full px-3 py-2 border ${
-                  applyError ? 'border-red-500' : 'border-gray-300'
-                } rounded-sm text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none`}
+                className={`w-full px-3 py-2 border ${applyError ? 'border-red-500' : 'border-gray-300'} rounded-sm text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none`}
               />
               {applyError && <p className="text-xs text-red-500 mt-1">{applyError}</p>}
             </div>
             <button
-              onClick={() => _applyCode(inputPromoCode.trim().toUpperCase())}
+              onClick={() => applyCode(inputPromoCode.trim().toUpperCase())}
               disabled={!inputPromoCode.trim() || isLoading}
-              className="flex-shrink-0 bg-blue-600 text-white font-semibold py-2 px-4 rounded-sm hover:bg-blue-700 disabled:bg-gray-400"
+              className="flex-shrink-0 bg-primary text-white font-semibold py-2 px-4 rounded-sm hover:opacity-90 disabled:bg-gray-400"
             >
-              {isLoading && !selectedCode && inputPromoCode.trim() ? (
-                <FiLoader className="animate-spin" />
-              ) : (
-                'Áp dụng'
-              )}
+              {isLoading && !selectedCode && inputPromoCode.trim() ? <FiLoader className="animate-spin" /> : 'Áp dụng'}
             </button>
           </div>
 
@@ -251,42 +359,53 @@ const PromoModal = ({
           {isLoading && availablePromos.length === 0 ? (
             <p className="text-center py-10">Đang tải...</p>
           ) : availablePromos.length > 0 ? (
-            Object.entries(groupedPromos).map(([group, promos]) => (
-              <div key={group}>
-                <div className="flex justify-between items-center mb-2">
-                  <h4 className="font-semibold text-sm text-gray-800">{group}</h4>
-                  <span className="text-xs text-gray-500">Áp dụng tối đa: 1</span>
+            Object.entries(groupedPromos).map(([group, promos]) => {
+              const isOpen = expandedGroups[group];
+              const visibleList = isOpen ? promos : promos.slice(0, 2);
+              const hiddenCount = promos.length - visibleList.length;
+
+              return (
+                <div key={group} className="mb-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="font-semibold text-sm text-gray-800">{group}</h4>
+                    <span className="text-xs text-gray-500">Áp dụng tối đa: 1</span>
+                  </div>
+                  <div className="space-y-3">
+                    {visibleList.map((p) => (
+                      <CouponCard key={p.id} promo={p} isSelected={selectedCode === p.code} onSelect={handleSelect} />
+                    ))}
+                  </div>
+
+                  {promos.length > 2 && (
+                    <button onClick={() => toggleGroup(group)} className="mt-2 mx-auto flex items-center text-primary text-sm font-medium">
+                      {isOpen ? (
+                        <>
+                          Thu gọn <FiChevronUp className="ml-1" />
+                        </>
+                      ) : (
+                        <>
+                          Xem thêm ({hiddenCount}) <FiChevronRight className="ml-1" />
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
-                <div className="space-y-3">
-                  {promos.map((p) => (
-                    <CouponCard
-                      key={p.id}
-                      promo={p}
-                      isSelected={selectedCode === p.code}
-                      onSelect={handleSelect}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))
+              );
+            })
           ) : (
-            !isLoading && (
-              <div className="text-center py-10 px-4">
-                <FaTicketAlt className="mx-auto text-5xl text-gray-300" />
-                <p className="mt-4 text-sm font-medium text-gray-600">
-                  Rất tiếc, không có ưu đãi nào khả dụng.
-                </p>
-              </div>
-            )
+            <div className="text-center py-10 px-4">
+              <FaTicketAlt className="mx-auto text-5xl text-gray-300" />
+              <p className="mt-4 text-sm font-medium text-gray-600">Rất tiếc, không có ưu đãi nào khả dụng.</p>
+            </div>
           )}
         </div>
 
-        {/* Footer */}
+        {/* footer */}
         <div className="p-4 bg-white border-t flex-shrink-0">
           <button
-            onClick={() => _applyCode(selectedCode)}
+            onClick={() => applyCode(selectedCode)}
             disabled={isLoading}
-            className="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded hover:opacity-90 disabled:bg-gray-400 flex items-center justify-center"
+            className="w-full bg-primary text-white font-bold py-2 px-4 rounded hover:opacity-90 disabled:bg-gray-400 flex items-center justify-center"
           >
             {isLoading && selectedCode ? <FiLoader className="animate-spin" /> : 'Xác nhận'}
           </button>
@@ -294,8 +413,6 @@ const PromoModal = ({
       </div>
     </div>
   );
-
-  /* ─────────── PORTAL ─────────── */
 
   let root = document.getElementById('modal-root');
   if (!root) {

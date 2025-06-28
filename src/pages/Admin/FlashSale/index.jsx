@@ -29,7 +29,7 @@ import LoaderAdmin from '../../../components/Admin/LoaderVip';
 import HighlightText from '../../../components/Admin/HighlightText';
 import MUIPagination from '../../../components/common/Pagination';
 import { confirmDelete } from '../../../components/common/ConfirmDeleteDialog';
-import { toast } from 'react-toastify'; // <-- SỬA DUY NHẤT DÒNG NÀY
+import { toast } from 'react-toastify';
 
 const FlashSaleList = () => {
   const navigate = useNavigate();
@@ -119,38 +119,36 @@ const FlashSaleList = () => {
     fetchData();
   };
 
-const handleBulkAction = async (action) => {
-  if (selectedIds.length === 0) return;
+  const handleBulkAction = async (action) => {
+    if (selectedIds.length === 0) return;
 
-  let label = '';
-  let actionFunc;
+    let label = '';
+    let actionFunc;
 
-  if (action === 'khoi-phuc') {
-    label = 'khôi phục';
-    actionFunc = () => flashSaleService.restoreMany(selectedIds);
-  } else if (action === 'xoa-vinh-vien') {
-    label = 'xoá vĩnh viễn';
-    actionFunc = () => flashSaleService.forceDeleteMany(selectedIds);
-  } else if (action === 'xoa') {
-    label = 'xoá';
-    actionFunc = () => flashSaleService.softDeleteMany(selectedIds);
-  } else {
-    return;
-  }
+    if (action === 'khoi-phuc') {
+      label = 'khôi phục';
+      actionFunc = () => flashSaleService.restoreMany(selectedIds);
+    } else if (action === 'xoa-vinh-vien') {
+      label = 'xoá vĩnh viễn';
+      actionFunc = () => flashSaleService.forceDeleteMany(selectedIds);
+    } else if (action === 'xoa') {
+      label = 'xoá';
+      actionFunc = () => flashSaleService.softDeleteMany(selectedIds);
+    } else {
+      return;
+    }
 
-  const confirmed = await confirmDelete(label, `${selectedIds.length} flash sale`);
-  if (!confirmed) return;
+    const confirmed = await confirmDelete(label, `${selectedIds.length} flash sale`);
+    if (!confirmed) return;
 
-  try {
-    await actionFunc();
-    toast.success(`Đã ${label} ${selectedIds.length} mục`);
-    fetchData();
-  } catch (err) {
-    toast.error('Thao tác thất bại');
-  }
-};
-
-
+    try {
+      await actionFunc();
+      toast.success(`Đã ${label} ${selectedIds.length} mục`);
+      fetchData();
+    } catch (err) {
+      toast.error('Thao tác thất bại');
+    }
+  };
 
   useEffect(() => {
     fetchData();
@@ -158,16 +156,15 @@ const handleBulkAction = async (action) => {
 
   return (
     <Box p={2}>
-     <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-  <Typography variant="h5" fontWeight={600}>
-    Danh sách Flash Sale
-  </Typography>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <Typography variant="h5" fontWeight={600}>
+          Danh sách Flash Sale
+        </Typography>
 
-  <Button variant="contained" onClick={() => navigate('/admin/flash-sale/create')}>
-    Thêm Mới
-  </Button>
-</Box>
-
+        <Button variant="contained" onClick={() => navigate('/admin/flash-sale/create')}>
+          Thêm Mới
+        </Button>
+      </Box>
 
       <Paper elevation={1} sx={{ p: 2, mt: 2, mb: 2 }}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
@@ -183,28 +180,40 @@ const handleBulkAction = async (action) => {
           <Box display="flex" gap={2}>
             <FormControl size="small" sx={{ minWidth: 200 }}>
               <Select
-  displayEmpty
-  value={bulkAction}
-  onChange={(e) => setBulkAction(e.target.value)}
-  renderValue={() => {
-    switch (bulkAction) {
-      case 'khoi-phuc': return 'Đã chọn: Khôi phục';
-      case 'xoa-vinh-vien': return 'Đã chọn: Xoá vĩnh viễn';
-      case 'xoa': return 'Đã chọn: Xoá';
-      default: return 'Chọn hành động';
-    }
-  }}
->
-  <MenuItem value="" disabled>Chọn hành động</MenuItem>
-  {isTrashTab
-    ? [
-        <MenuItem key="khoi-phuc" value="khoi-phuc">Khôi phục</MenuItem>,
-        <MenuItem key="xoa-vinh-vien" value="xoa-vinh-vien">Xoá vĩnh viễn</MenuItem>
-      ]
-    : [<MenuItem key="xoa" value="xoa">Chuyển vào thùng rác</MenuItem>]
-  }
-</Select>
-
+                displayEmpty
+                value={bulkAction}
+                onChange={(e) => setBulkAction(e.target.value)}
+                renderValue={() => {
+                  switch (bulkAction) {
+                    case 'khoi-phuc':
+                      return 'Đã chọn: Khôi phục';
+                    case 'xoa-vinh-vien':
+                      return 'Đã chọn: Xoá vĩnh viễn';
+                    case 'xoa':
+                      return 'Đã chọn: Xoá';
+                    default:
+                      return 'Chọn hành động';
+                  }
+                }}
+              >
+                <MenuItem value="" disabled>
+                  Chọn hành động
+                </MenuItem>
+                {isTrashTab
+                  ? [
+                      <MenuItem key="khoi-phuc" value="khoi-phuc">
+                        Khôi phục
+                      </MenuItem>,
+                      <MenuItem key="xoa-vinh-vien" value="xoa-vinh-vien">
+                        Xoá vĩnh viễn
+                      </MenuItem>
+                    ]
+                  : [
+                      <MenuItem key="xoa" value="xoa">
+                        Chuyển vào thùng rác
+                      </MenuItem>
+                    ]}
+              </Select>
             </FormControl>
             <Button variant="outlined" disabled={selectedIds.length === 0 || !bulkAction} onClick={() => handleBulkAction(bulkAction)}>
               Áp Dụng
@@ -236,122 +245,121 @@ const handleBulkAction = async (action) => {
                 <TableCell align="right">Hành động</TableCell>
               </TableRow>
             </TableHead>
-         <TableBody>
-  {data.length === 0 ? (
-    <TableRow>
-      <TableCell colSpan={9} align="center">
-        <Typography variant="body1" color="text.secondary">
-          Không tìm thấy kết quả phù hợp
-        </Typography>
-      </TableCell>
-    </TableRow>
-  ) : (
-    data.map((row, index) => (
-      <TableRow key={row.id}>
-        <TableCell padding="checkbox">
-          <Checkbox checked={selectedIds.includes(row.id)} onChange={() => handleSelect(row.id)} />
-        </TableCell>
-        <TableCell>{(page - 1) * rowsPerPage + index + 1}</TableCell>
-        <TableCell>
-    {row.bannerUrl ? (
-        <img
-            src={row.bannerUrl}
-            alt="banner"
-            style={{
-                width: '150px',         // Đặt chiều rộng cố định cho thumbnail
-                height: '58px',          // Đặt chiều cao cố định
-                objectFit: 'cover',      // Quan trọng: Giữ tỷ lệ, cắt phần thừa
-                borderRadius: '4px',     // Bo góc cho đẹp
-                verticalAlign: 'middle'  // Căn ảnh ra giữa ô
-            }}
-        />
-    ) : (
-        <Typography variant="body2" color="text.secondary">
-            Không có
-        </Typography>
-    )}
-</TableCell>
+            <TableBody>
+              {data.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={9} align="center">
+                    <Typography variant="body1" color="text.secondary">
+                      Không tìm thấy kết quả phù hợp
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                data.map((row, index) => (
+                  <TableRow key={row.id}>
+                    <TableCell padding="checkbox">
+                      <Checkbox checked={selectedIds.includes(row.id)} onChange={() => handleSelect(row.id)} />
+                    </TableCell>
+                    <TableCell>{(page - 1) * rowsPerPage + index + 1}</TableCell>
+                    <TableCell>
+                      {row.bannerUrl ? (
+                        <img
+                          src={row.bannerUrl}
+                          alt="banner"
+                          style={{
+                            width: '150px',
+                            height: '58px',
+                            objectFit: 'cover',
+                            borderRadius: '4px',
+                            verticalAlign: 'middle'
+                          }}
+                        />
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          Không có
+                        </Typography>
+                      )}
+                    </TableCell>
 
-        <TableCell>
-          <HighlightText text={row.title} highlight={search} />
-        </TableCell>
+                    <TableCell>
+                      <HighlightText text={row.title} highlight={search} />
+                    </TableCell>
 
-        <TableCell>
-          {`${formatDateFlexible(row.startTime, { showTime: true })} - ${formatDateFlexible(row.endTime, { showTime: true })}`}
-        </TableCell>
+                    <TableCell>
+                      {`${formatDateFlexible(row.startTime, { showTime: true })} - ${formatDateFlexible(row.endTime, { showTime: true })}`}
+                    </TableCell>
 
-        <TableCell>{row.isActive ? 'Đang chạy' : 'Tạm dừng'}</TableCell>
-        <TableCell>{row.slug}</TableCell>
-        <TableCell>
-          <Box
-            sx={{
-              width: 20,
-              height: 20,
-              borderRadius: '4px',
-              backgroundColor: row.bgColor || '#ccc',
-              border: '1px solid #999'
-            }}
-            title={row.bgColor}
-          />
-        </TableCell>
+                    <TableCell>{row.isActive ? 'Đang chạy' : 'Tạm dừng'}</TableCell>
+                    <TableCell>{row.slug}</TableCell>
+                    <TableCell>
+                      <Box
+                        sx={{
+                          width: 20,
+                          height: 20,
+                          borderRadius: '4px',
+                          backgroundColor: row.bgColor || '#ccc',
+                          border: '1px solid #999'
+                        }}
+                        title={row.bgColor}
+                      />
+                    </TableCell>
 
-        <TableCell align="right" sx={{ minWidth: 60 }}>
-          <IconButton size="small" onClick={(e) => handleMenuClick(e, row.id)}>
-            <MoreVertIcon />
-          </IconButton>
-          <Menu
-            anchorEl={anchorEl}
-            open={openMenu && menuRowId === row.id}
-            onClose={handleMenuClose}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-          >
-            {!row.deletedAt && (
-              <MenuItem
-                onClick={() => {
-                  handleMenuClose();
-                  navigate(`/admin/flash-sale/edit/${row.slug}`);
-                }}
-              >
-                Sửa
-              </MenuItem>
-            )}
-            {row.deletedAt ? (
-              <>
-                <MenuItem
-                  onClick={() => {
-                    handleMenuClose();
-                    handleRestore(row.id);
-                  }}
-                >
-                  Khôi phục
-                </MenuItem>
-                <MenuItem
-                  onClick={() => {
-                    handleMenuClose();
-                    handleForceDelete(row.id);
-                  }}
-                >
-                  Xoá vĩnh viễn
-                </MenuItem>
-              </>
-            ) : (
-              <MenuItem
-                onClick={() => {
-                  handleMenuClose();
-                  handleDelete(row.id);
-                }}
-              >
-                Xoá
-              </MenuItem>
-            )}
-          </Menu>
-        </TableCell>
-      </TableRow>
-    ))
-  )}
-</TableBody>
-
+                    <TableCell align="right" sx={{ minWidth: 60 }}>
+                      <IconButton size="small" onClick={(e) => handleMenuClick(e, row.id)}>
+                        <MoreVertIcon />
+                      </IconButton>
+                      <Menu
+                        anchorEl={anchorEl}
+                        open={openMenu && menuRowId === row.id}
+                        onClose={handleMenuClose}
+                        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                      >
+                        {!row.deletedAt && (
+                          <MenuItem
+                            onClick={() => {
+                              handleMenuClose();
+                              navigate(`/admin/flash-sale/edit/${row.slug}`);
+                            }}
+                          >
+                            Sửa
+                          </MenuItem>
+                        )}
+                        {row.deletedAt ? (
+                          <>
+                            <MenuItem
+                              onClick={() => {
+                                handleMenuClose();
+                                handleRestore(row.id);
+                              }}
+                            >
+                              Khôi phục
+                            </MenuItem>
+                            <MenuItem
+                              onClick={() => {
+                                handleMenuClose();
+                                handleForceDelete(row.id);
+                              }}
+                            >
+                              Xoá vĩnh viễn
+                            </MenuItem>
+                          </>
+                        ) : (
+                          <MenuItem
+                            onClick={() => {
+                              handleMenuClose();
+                              handleDelete(row.id);
+                            }}
+                          >
+                            Xoá
+                          </MenuItem>
+                        )}
+                      </Menu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
           </Table>
         </Paper>
       )}

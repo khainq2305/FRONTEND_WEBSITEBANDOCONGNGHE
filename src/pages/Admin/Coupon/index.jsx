@@ -13,19 +13,15 @@ import { couponService } from '../../../services/admin/couponService';
 import { confirmDelete }  from '../../../components/common/ConfirmDeleteDialog';
 import LoaderAdmin from '../../../components/Admin/LoaderVip';
 import HighlightText from '../../../components/Admin/HighlightText';
-
-// Hàm tiện ích để định dạng số chung (không có ký hiệu tiền tệ)
-// Sử dụng cho phần trăm hoặc các số lượng không phải tiền
 const formatNumber = (num) => {
     if (num === null || num === undefined || num === "") return "";
     const number = Number(num);
     if (isNaN(number)) return "";
-    // Định dạng số với dấu phân cách hàng nghìn theo chuẩn Việt Nam
-    // và không thêm số thập phân nếu là số nguyên
+  
     if (Number.isInteger(number)) {
         return number.toLocaleString('vi-VN');
     }
-    // Giữ tối đa 2 chữ số thập phân cho số lẻ
+    
     return number.toLocaleString('vi-VN', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 };
 
@@ -181,8 +177,8 @@ export default function CouponList() {
 
   const getDiscountLabel = (coupon) =>
     coupon.discountType === 'percent'
-      ? `${formatNumber(coupon.discountValue)}%` // Sử dụng formatNumber cho giá trị phần trăm
-      : `${Number(coupon.discountValue).toLocaleString('vi-VN')}₫`; // Giữ nguyên cho tiền tệ
+      ? `${formatNumber(coupon.discountValue)}%`
+      : `${Number(coupon.discountValue).toLocaleString('vi-VN')}₫`; 
 
   const formatDate = (date) =>
     date ? new Date(date).toLocaleDateString('vi-VN') : '---';
@@ -373,7 +369,7 @@ export default function CouponList() {
                 closeMenu();
               }}
             >
-              {action.label} {/* Removed redundant empty string conditionals */}
+              {action.label}
             </MenuItem>
           ))}
         </Menu>

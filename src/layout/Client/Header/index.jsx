@@ -12,8 +12,8 @@ import { authService } from 'services/client/authService';
 import logoSrc from '../../../assets/Client/images/Logo/logo.svg';
 import { categoryService } from '../../../services/client/categoryService';
 import { notificationService } from '../../../services/client/notificationService';
-import Loader from '../../../components/common/Loader'; // <-- 1. IMPORT LOADER VÀO ĐÂY
-
+import Loader from '../../../components/common/Loader';
+import { useSystemSetting } from '@/contexts/SystemSettingContext';
 import FeatureBar from './FeatureBar';
 
 const Header = () => {
@@ -26,7 +26,8 @@ const Header = () => {
   const [notifications, setNotifications] = useState([]);
   const unreadCount = notifications.filter((n) => !n.isRead).length;
   const [isSticky, setIsSticky] = useState(false);
-  // Ref để tham chiếu đến "con mắt" theo dõi
+  const { settings } = useSystemSetting() || {};
+  const logoSrc = settings?.site_logo || '/default-logo.png';
   const sentinelRef = useRef(null);
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(true);
   const accountDropdownTimerRef = useRef(null);
@@ -45,14 +46,18 @@ const Header = () => {
         const res = await notificationService.getForUser();
         setNotifications(res.data || []);
       } catch (err) {
-        console.error('Lỗi lấy thông báo:', err);
-        setNotifications([]);
+        if (err.response?.status === 401) {
+          setNotifications([]);
+        } else {
+          console.error('Lỗi lấy thông báo:', err);
+          setNotifications([]);
+        }
       }
     };
 
     fetchNotifications();
   }, []);
-  // TÁCH RA NGOÀI USEEFFECT
+
   const fetchCartItemCount = async () => {
     try {
       const res = await import('services/client/cartService').then((m) => m.cartService.getCart());
@@ -77,7 +82,6 @@ const Header = () => {
   useEffect(() => {
     const fetchCombinedCategories = async () => {
       try {
-        // Không cần log ở đây nữa
         const response = await categoryService.getCombinedMenu();
         const combinedNested = response.data || [];
 
@@ -103,16 +107,16 @@ const Header = () => {
       } catch (err) {
         console.error('Lỗi lấy danh mục tổng hợp:', err);
       } finally {
-        setIsCategoriesLoading(false); // Kết thúc loading
+        setIsCategoriesLoading(false);
       }
     };
 
     const initialFetch = async () => {
-      setIsCategoriesLoading(true); // Bật loading
-      await fetchCombinedCategories(); // Chờ fetch xong
+      setIsCategoriesLoading(true);
+      await fetchCombinedCategories();
     };
 
-    initialFetch(); // Gọi lần đầu
+    initialFetch();
 
     const intervalId = setInterval(fetchCombinedCategories, 300000);
     return () => clearInterval(intervalId);
@@ -308,13 +312,9 @@ const Header = () => {
     <>
       {isCategoriesLoading && <Loader fullscreen={true} />}
       <div ref={sentinelRef} style={{ height: '1px', position: 'absolute', top: '0' }}></div>
-      {/* DIV WRAPPER: Đây là cái "khay" làm nhiệm vụ dính lại.
-          Nó không có màu nền. Nó chứa cả Header và FeatureBar.
-        */}
+
       <div className="sticky top-0 z-30 ">
-        {/* 1. HEADER: Nền xanh, không còn sticky */}
         <header className="bg-primary-gradient text-white w-full relative">
-          {/* Mobile & Tablet View */}
           <div className="lg:hidden">
             <div className="flex justify-center items-center pt-2.5 pb-1.5 px-4">
               <Link to="/">
@@ -396,20 +396,36 @@ const Header = () => {
                     className="flex flex-col items-center justify-center p-2 rounded-lg hover-primary transition-all text-center w-[70px] h-[56px]"
                     onClick={handleNotificationToggle}
                   >
-                    <Bell className="w-6 h-6" strokeWidth={1.5} color="#fff" />
+                    <span className="relative">
+                      <Bell className="w-6 h-6" strokeWidth={1.5} color="#fff" />
+                      {unreadCount > 0 && (
+                        <span
+                          className="
+            absolute -top-1 -right-1 bg-red-600 text-white text-[10px] 
+            w-4 h-4 rounded-full flex items-center justify-center font-bold
+          "
+                        >
+                          {unreadCount > 99 ? '99+' : unreadCount}
+                        </span>
+                      )}
+                    </span>
+
                     <span className="text-white text-[10px] font-medium leading-tight mt-1">Thông báo</span>
                   </button>
+
                   {isNotificationDropdownOpen && (
                     <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-lg z-50 transition-transform duration-200 ease-in-out">
                       <NotificationDropdown
                         isOpen={isNotificationDropdownOpen}
                         notifications={notifications}
                         setNotifications={setNotifications}
+                        userInfo={userInfo}
                         onClose={() => setIsNotificationDropdownOpen(false)}
                       />
                     </div>
                   )}
                 </div>
+
                 <Link to="/cart" className="relative flex flex-col items-center gap-1 px-2 py-2 rounded-lg hover-primary transition-all">
                   <div className="relative">
                     <ShoppingCart className="w-6 h-6" strokeWidth={1.8} color="#fff" />
@@ -490,11 +506,9 @@ const Header = () => {
           </div>
         </header>
 
-        {/* Truyền state isSticky vào FeatureBar qua prop */}
         <FeatureBar isSticky={isSticky} />
       </div>
 
-      {/* Các component Overlay và Panel vẫn nằm ngoài như cũ */}
       <Overlay isOpen={isMobilePanelOpen} onClick={toggleMobilePanel} />
       <MobileCategoryPanel isOpen={isMobilePanelOpen} onClose={toggleMobilePanel} categories={mobileCategoryTree} />
       <PopupModal isOpen={isLoginPopupOpen} onClose={toggleLoginPopup} />

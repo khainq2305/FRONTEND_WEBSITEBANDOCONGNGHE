@@ -4,7 +4,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { ChevronLeft, ChevronRight, X as XIcon } from 'lucide-react';
 import { productViewService } from "../../../../services/client/productViewService";
-
+import { Link } from 'react-router-dom';
 const ProductCard = ({ product, onRemove }) => {
     const getPriceJsx = (product) => {
         const salePrice = product.price;
@@ -39,15 +39,15 @@ const ProductCard = ({ product, onRemove }) => {
     return (
         <div className="h-full p-1.5">
             <div className="group/card flex items-center bg-white rounded-md shadow-sm relative p-2.5 border border-gray-200 h-full hover:shadow-lg transition-shadow duration-200">
-                <a href={product.slug ? `/product/${product.slug}` : '#'} className="flex-shrink-0 mr-2">
+                <Link to={product.slug ? `/product/${product.slug}` : '#'} className="flex-shrink-0 mr-2">
                     <img src={product.thumbnail} alt={product.name} className="w-16 h-16 object-contain rounded" loading="lazy" />
-                </a>
+               </Link>
                 <div className="flex flex-col justify-center flex-1 min-w-0 pr-4">
-                    <a href={product.slug ? `/product/${product.slug}` : '#'} title={product.name}>
+                    <Link to={product.slug ? `/product/${product.slug}` : '#'} title={product.name}>
                         <p className="text-xs font-medium text-gray-800 hover:text-primary line-clamp-2 leading-snug mb-0.5">
                             {product.name}
                         </p>
-                    </a>
+                   </Link>
                     {getPriceJsx(product)}
                 </div>
                 <button

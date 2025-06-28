@@ -74,15 +74,13 @@ export default function FloatingContactBox() {
     }
   };
 
-const FloatingContact = () => {
+  // 👇 Bắt đầu JSX hiển thị
   return (
     <>
       <div className="floating-contact">
+        {/* 3 nút + trợ lý ảo */}
         <a href="https://m.me/tenfanpagecuaban" className="contact-item">
-          <img
-            src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png"
-            alt="Messenger"
-          />
+          <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Messenger" />
           <div className="contact-text">
             <span>Chat Messenger</span>
             <small>(8h - 24h)</small>
@@ -124,13 +122,7 @@ const FloatingContact = () => {
               </button>
               <button onClick={() => setOpen(false)} className="header-button" title="Đóng">
                 <svg viewBox="0 0 24 24" className="action-icon">
-                  <path
-                    d="M6 18L18 6M6 6l12 12"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
+                  <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
             </div>
@@ -189,13 +181,10 @@ const FloatingContact = () => {
                 </svg>
               </button>
             </div>
-            <p className="disclaimer-text">
-              Trợ lý AI hỗ trợ 24/7 - Nội dung mang tính tham khảo
-            </p>
+            <p className="disclaimer-text">Trợ lý AI hỗ trợ 24/7 - Nội dung mang tính tham khảo</p>
           </div>
         </div>
       )}
     </>
   );
-}
 }

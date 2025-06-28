@@ -1,7 +1,24 @@
-// src/components/Footer.jsx
 import React from 'react';
+import { useSystemSetting } from '@/contexts/SystemSettingContext';
 
 const Footer = () => {
+  const { settings } = useSystemSetting() || {};
+  if (!settings) return null;
+
+  const {
+    hotline,
+    hotline_warranty,
+    hotline_feedback,
+    email_contact,
+    address,
+    facebook_enabled,
+    instagram_enabled,
+    tiktok_enabled,
+    youtube_enabled,
+    zalo_enabled,
+    show_social_footer
+  } = settings;
+
   return (
     <footer className="bg-white text-gray-800 pt-10 pb-4">
       <div className="max-w-[1200px] mx-auto">
@@ -10,29 +27,37 @@ const Footer = () => {
             {/* --- CỘT 1: THÔNG TIN LIÊN HỆ --- */}
             <div className="text-xs sm:text-sm">
               <h3 className="font-semibold text-sm md:text-base uppercase mb-4 text-gray-700">Thông tin liên hệ</h3>
-              <p className="mb-1.5">
-                <a href="tel:19008922" className="hover:text-primary">
-                  Mua nhanh Online: <strong className="text-primary">1900 8922</strong>
-                </a>{' '}
-                (8h-24h mỗi ngày)
-              </p>
-              <p className="mb-1.5">
-                <a href="tel:19008174" className="hover:text-primary">
-                  Bảo hành - Sửa chữa: <strong className="text-primary">1900 8174</strong>
-                </a>{' '}
-                (8h-21h mỗi ngày)
-              </p>
-              <p className="mb-1.5">
-                <a href="tel:0364444247" className="hover:text-primary">
-                  Góp Ý/ Phản ánh về DV: <strong className="text-primary">0364 444 247</strong>
-                </a>{' '}
-                (8h-24h mỗi ngày)
-              </p>
-              <p className="mb-3">
-                <a href="mailto:hotro@giakho.vn" className="hover:text-primary">
-                  Hỗ trợ khách hàng: <strong className="text-primary">hotro@giakho.vn</strong>
-                </a>
-              </p>
+              {hotline && (
+                <p className="mb-1.5">
+                  <a href={`tel:${hotline}`} className="hover:text-primary">
+                    Mua nhanh Online: <strong className="text-primary">{hotline}</strong>
+                  </a>{' '}
+                  (8h-24h mỗi ngày)
+                </p>
+              )}
+              {hotline_warranty && (
+                <p className="mb-1.5">
+                  <a href={`tel:${hotline_warranty}`} className="hover:text-primary">
+                    Bảo hành - Sửa chữa: <strong className="text-primary">{hotline_warranty}</strong>
+                  </a>{' '}
+                  (8h-21h mỗi ngày)
+                </p>
+              )}
+              {hotline_feedback && (
+                <p className="mb-1.5">
+                  <a href={`tel:${hotline_feedback}`} className="hover:text-primary">
+                    Góp Ý/ Phản ánh về DV: <strong className="text-primary">{hotline_feedback}</strong>
+                  </a>{' '}
+                  (8h-24h mỗi ngày)
+                </p>
+              )}
+              {email_contact && (
+                <p className="mb-3">
+                  <a href={`mailto:${email_contact}`} className="hover:text-primary">
+                    Hỗ trợ khách hàng: <strong className="text-primary">{email_contact}</strong>
+                  </a>
+                </p>
+              )}
 
               <h3 className="font-semibold text-sm md:text-base uppercase mb-3 mt-5 text-gray-700">Showroom Giá Kho</h3>
               <p className="mb-1.5">Giờ hoạt động Showroom: 8h30 - 21h30</p>
@@ -45,74 +70,25 @@ const Footer = () => {
               </ul>
             </div>
 
-            {/* --- CỘT 2: THÔNG TIN & CHÍNH SÁCH --- */}
+            {/* --- CỘT 2 + 3: THÔNG TIN KHÁC --- */}
             <div className="text-xs sm:text-sm">
               <h3 className="font-semibold text-sm md:text-base uppercase mb-4 text-gray-700">Thông tin & Chính sách</h3>
-
               <ul className="space-y-2 text-gray-600">
-                <li>
-                  <a href="#" className="hover:text-primary">
-                    Ưu đãi Giá Kho Member
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-primary">
-                    Hướng dẫn mua hàng Online
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-primary">
-                    Hướng dẫn thanh toán
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-primary">
-                    Hướng dẫn trả góp
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-primary">
-                    Hướng dẫn sử dụng Voucher
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-primary">
-                    Chính sách giao nhận - kiểm hàng
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-primary">
-                    Chính sách đổi trả
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-primary">
-                    Chính sách bảo mật thông tin
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-primary">
-                    Chính sách bảo hành
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-primary">
-                    Dịch vụ sửa chữa
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-primary">
-                    Quy định sao lưu dữ liệu
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-primary">
-                    Câu hỏi thường gặp
-                  </a>
-                </li>
+                <li><a href="#" className="hover:text-primary">Ưu đãi Giá Kho Member</a></li>
+                <li><a href="#" className="hover:text-primary">Hướng dẫn mua hàng Online</a></li>
+                <li><a href="#" className="hover:text-primary">Hướng dẫn thanh toán</a></li>
+                <li><a href="#" className="hover:text-primary">Hướng dẫn trả góp</a></li>
+                <li><a href="#" className="hover:text-primary">Chính sách giao nhận</a></li>
+                <li><a href="#" className="hover:text-primary">Chính sách bảo hành</a></li>
               </ul>
-            </div>
 
+              <h3 className="font-semibold text-sm md:text-base uppercase mb-4 mt-6 text-gray-700">Đối tác bảo hành</h3>
+              <img
+                src="https://cdn.dienthoaigiakho.vn/photos/1719201482724-CareCenter_Logo-Ngang.png"
+                alt="CareCenter.vn"
+                className="h-10 bg-blue-600 p-1 rounded"
+              />
+            </div>
             {/* --- CỘT 3: DỊCH VỤ & THÔNG TIN KHÁC --- */}
             <div className="text-xs sm:text-sm">
               <h3 className="font-semibold text-sm md:text-base uppercase mb-4 text-gray-700">Dịch vụ & Thông tin khác</h3>
@@ -144,27 +120,40 @@ const Footer = () => {
                 />
               </a>
             </div>
-
-            {/* --- CỘT 4: KẾT NỐI & THANH TOÁN --- */}
+            {/* --- CỘT 4: KẾT NỐI MẠNG XÃ HỘI & THANH TOÁN --- */}
             <div className="text-xs sm:text-sm">
-              <h3 className="font-semibold text-sm md:text-base uppercase mb-4 text-gray-700">Kết nối với chúng tôi</h3>
-              <div className="flex flex-wrap gap-2.5 mb-6">
-                <a href="#" className="hover:opacity-80">
-                  <img src="https://dienthoaigiakho.vn/icons/footer/icon-facebook.svg" alt="Facebook" className="w-8 h-8" />
-                </a>
-                <a href="#" className="hover:opacity-80">
-                  <img src="https://dienthoaigiakho.vn/icons/footer/icon-instagram.svg" alt="Instagram" className="w-8 h-8" />
-                </a>
-                <a href="#" className="hover:opacity-80">
-                  <img src="https://dienthoaigiakho.vn/icons/footer/icon-tiktok.svg" alt="TikTok" className="w-8 h-8" />
-                </a>
-                <a href="#" className="hover:opacity-80">
-                  <img src="https://dienthoaigiakho.vn/icons/footer/icon-youtube.svg" alt="YouTube" className="w-8 h-8" />
-                </a>
-                <a href="#" className="hover:opacity-80">
-                  <img src="https://dienthoaigiakho.vn/icons/footer/icon-zalo.svg" alt="Zalo" className="w-8 h-8" />
-                </a>
-              </div>
+              {show_social_footer && (
+                <>
+                  <h3 className="font-semibold text-sm md:text-base uppercase mb-4 text-gray-700">Kết nối với chúng tôi</h3>
+                  <div className="flex flex-wrap gap-2.5 mb-6">
+                    {facebook_enabled && (
+                      <a href="#" className="hover:opacity-80">
+                        <img src="https://dienthoaigiakho.vn/icons/footer/icon-facebook.svg" alt="Facebook" className="w-8 h-8" />
+                      </a>
+                    )}
+                    {instagram_enabled && (
+                      <a href="#" className="hover:opacity-80">
+                        <img src="https://dienthoaigiakho.vn/icons/footer/icon-instagram.svg" alt="Instagram" className="w-8 h-8" />
+                      </a>
+                    )}
+                    {tiktok_enabled && (
+                      <a href="#" className="hover:opacity-80">
+                        <img src="https://dienthoaigiakho.vn/icons/footer/icon-tiktok.svg" alt="TikTok" className="w-8 h-8" />
+                      </a>
+                    )}
+                    {youtube_enabled && (
+                      <a href="#" className="hover:opacity-80">
+                        <img src="https://dienthoaigiakho.vn/icons/footer/icon-youtube.svg" alt="YouTube" className="w-8 h-8" />
+                      </a>
+                    )}
+                    {zalo_enabled && (
+                      <a href="#" className="hover:opacity-80">
+                        <img src="https://dienthoaigiakho.vn/icons/footer/icon-zalo.svg" alt="Zalo" className="w-8 h-8" />
+                      </a>
+                    )}
+                  </div>
+                </>
+              )}
 
               <h3 className="font-semibold text-sm md:text-base uppercase mb-3 text-gray-700">Phương thức thanh toán</h3>
               <div className="flex flex-wrap gap-1.5 items-center mb-6">
@@ -172,42 +161,39 @@ const Footer = () => {
                 <img src="https://dienthoaigiakho.vn/icons/footer/master.svg" alt="Mastercard" className="h-5" />
                 <img src="https://dienthoaigiakho.vn/icons/footer/atm.svg" alt="ATM" className="h-5" />
                 <img src="https://dienthoaigiakho.vn/icons/footer/alepay.svg" alt="VNPay" className="h-6" />
-                <img src="https://dienthoaigiakho.vn/icons/footer/mpos.svg" alt="AlePay" className="h-6" />
-                <img src="https://dienthoaigiakho.vn/icons/footer/epay.svg" alt="Moca" className="h-6" />
-                <img src="https://dienthoaigiakho.vn/icons/footer/epay.svg" alt="MegaPay" className="h-6" />
-                <img src="https://dienthoaigiakho.vn/icons/footer/kredivo.svg" alt="Kredivo" className="h-6" />
+                <img src="https://dienthoaigiakho.vn/icons/footer/mpos.svg" alt="MPOS" className="h-6" />
               </div>
+
               <a href="#" title="Đã thông báo Bộ Công Thương">
-                <img src="https://dienthoaigiakho.vn/icons/footer/bocngthuong.png" alt="Đã thông báo Bộ Công Thương" className="h-10" />
+                <img src="https://dienthoaigiakho.vn/icons/footer/bocngthuong.png" alt="Bộ Công Thương" className="h-10" />
               </a>
             </div>
           </div>
         </div>
 
+        {/* --- CHÂN TRANG --- */}
         <div className="px-4 sm:px-6 md:px-8 lg:px-0">
           <div className="mt-8 pt-5 pb-2 border-t border-gray-300 text-xs text-gray-600">
             <p className="mb-1">
-              © Công ty TNHH Giá Kho Group | Giấy CN ĐKDN số: 031669591 do Sở Kế hoạch và Đầu tư TP. HCM cấp ngày 27/01/2021, đăng ký thay
-              đổi lần thứ 2, ngày 03/04/2023 - 0939 557 139 (Khối văn phòng)
+              © Công ty TNHH Giá Kho Group | Giấy CN ĐKDN số: 031669591 do Sở KHĐT TP. HCM cấp ngày 27/01/2021, đăng ký thay đổi lần 2, ngày 03/04/2023 - 0939 557 139 (Khối văn phòng)
             </p>
             <p className="mb-1">
-              Địa chỉ trụ sở chính: 47/2/16C Bùi Đình Túy, Phường 14, Quận Bình Thạnh, Thành phố Hồ Chí Minh | Email hỗ trợ:{' '}
-              <a href="mailto:hotro@giakho.vn" className="text-primary hover:underline">
-                hotro@giakho.vn
+              Trụ sở: {address} | Email:{' '}
+              <a href={`mailto:${email_contact}`} className="text-primary hover:underline">
+                {email_contact}
               </a>{' '}
               | Gọi mua hàng:{' '}
-              <a href="tel:19008922" className="text-primary hover:underline">
-                1900 8922
+              <a href={`tel:${hotline}`} className="text-primary hover:underline">
+                {hotline}
               </a>
             </p>
             <p>
-              Chịu trách nhiệm quản lý nội dung: Vũ Viết Tuấn Anh | Email góp ý:{' '}
-              <a href="mailto:ceo@giakho.vn" className="text-primary hover:underline">
-                ceo@giakho.vn
-              </a>
+              Chịu trách nhiệm nội dung: Vũ Viết Tuấn Anh | Email:{' '}
+              <a href="mailto:ceo@giakho.vn" className="text-primary hover:underline">ceo@giakho.vn</a>
             </p>
           </div>
         </div>
+
       </div>
     </footer>
   );

@@ -1,32 +1,38 @@
 import React from 'react';
 
-const paymentOptions = [
-  {
-    id: 1,
-    label: 'Thanh toán khi nhận hàng',
-    icon: 'https://s3-sgn09.fptcloud.com/ict-payment-icon/payment/cod.png',
-  },
-  {
-    id: 2,
-    label: 'Chuyển khoản ngân hàng',
-    icon: 'https://i.gyazo.com/566d62fd25cf0867e0033fb1b9b47927.png',
-  },
+ const paymentOptions = [
    {
-    id: 3,
-    label: 'Thanh toán bằng ví VNPay',
-    icon: 'https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-VNPAY-QR-1-300x96.png',
-  },
-  {
-    id: 4,
-    label: 'Thanh toán bằng ví MoMo',
-    icon: 'https://s3-sgn09.fptcloud.com/ict-payment-icon/payment/momo.png',
-  },
-  {
-    id: 5,
-    label: 'Thanh toán bằng ví ZaloPay',
-    icon: 'https://s3-sgn09.fptcloud.com/ict-payment-icon/payment/zalopay.png',
-  },
-];
+     id: 1,
+     label: 'Thanh toán khi nhận hàng',
+     icon: 'https://s3-sgn09.fptcloud.com/ict-payment-icon/payment/cod.png',
+   },
+   {
+     id: 2,
+     label: 'Chuyển khoản ngân hàng',
+     icon: 'https://i.gyazo.com/566d62fd25cf0867e0033fb1b9b47927.png',
+   },
+   {
+     id: 3,
+     label: 'Thanh toán bằng ví VNPay',
+     icon: 'https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-VNPAY-QR-1-300x96.png',
+   },
+   {
+     id: 4,
+     label: 'Thanh toán bằng ví MoMo',
+     icon: 'https://s3-sgn09.fptcloud.com/ict-payment-icon/payment/momo.png',
+   },
+   {
+     id: 5,
+     label: 'Thanh toán bằng ví ZaloPay',
+     icon: 'https://s3-sgn09.fptcloud.com/ict-payment-icon/payment/zalopay.png',
+   },
+ {
+   id: 6,
+   label: 'Thanh toán bằng Viettel Money',
+   icon: 'https://i.imgur.com/ttZPvTx.png',           // ← logo Viettel Money
+},
+ ];
+
 
 const PaymentMethod = ({ selectedPaymentMethod, setSelectedPaymentMethod }) => {
   return (

@@ -85,7 +85,6 @@ const NotificationDetailDialog = ({ open, onClose, data }) => {
             )}
           </Grid>
 
-          {/* Bên phải */}
           <Grid item xs={12} md={6}>
             <Detail label="Hiển thị" value={data.isActive ? 'Có' : 'Không'} />
             <Detail label="Ngày tạo" value={formatDate(data.createdAt)} />

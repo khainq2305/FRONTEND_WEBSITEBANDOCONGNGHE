@@ -1,10 +1,10 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react'; 
 import Slider from 'react-slick';
 import { Link } from 'react-router-dom';
 
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import './TestResponsiveSlider.css';
+import './TestResponsiveSlider.css'; 
 import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
 import CountdownTimer from './CountdownTimer';
@@ -118,23 +118,7 @@ const InlinedProductCard = ({ id, slug, name, price, oldPrice, discount, image, 
               ? `Tiết kiệm ${(oldPriceNum - currentPriceNum).toLocaleString('vi-VN')}₫`
               : ''}
           </div>
-          {typeof quantity === 'number' && typeof soldCount === 'number' && (
-            <div className="relative w-full h-[24px] rounded-full bg-gray-200 overflow-hidden mb-1 text-[11px] font-semibold">
-              <div
-                className="absolute top-0 left-0 h-full bg-gradient-to-r from-yellow-300 to-yellow-400 flex items-center justify-center gap-1 text-orange-800"
-                style={{
-                  width: `${Math.min(100, ((quantity - soldCount) / quantity) * 100)}%`,
-                  borderTopLeftRadius: '9999px',
-                  borderBottomLeftRadius: '9999px'
-                }}
-              >
-                <img src="src/assets/Client/images/flash-sale.png" alt="🔥" className="h-[14px] w-[14px]" />
-                <span className="leading-none">
-                  Còn {quantity - soldCount}/{quantity} suất
-                </span>
-              </div>
-            </div>
-          )}
+          
 
           <div className="pt-1.5">
             <div className="product-card-meta flex items-center justify-between min-h-[18px]">
@@ -150,25 +134,37 @@ const InlinedProductCard = ({ id, slug, name, price, oldPrice, discount, image, 
               )}
             </div>
           </div>
+          {typeof quantity === 'number' && typeof soldCount === 'number' ? (
+            <div className="relative w-full h-[24px] mb-1">
+              
+              <div className="absolute inset-0 bg-gray-200 rounded-full overflow-hidden" />
+
+      
+              <div
+                className="absolute top-0 left-0 h-full bg-gradient-to-r from-yellow-300 to-yellow-400 rounded-full"
+                style={{
+                  width: `${Math.min(100, ((quantity - soldCount) / quantity) * 100)}%`
+                }}
+              />
+
+            
+              <img
+                src="src/assets/Client/images/flash-sale.png"
+                alt="🔥"
+                className="absolute top-[-4px] left-[-4px] h-[27px] w-[24px] select-none pointer-events-none" 
+              />
+
+             
+              <span className="absolute inset-0 flex items-center justify-center text-[11px] font-semibold text-orange-800">
+                Còn {quantity - soldCount}/{quantity} suất
+              </span>
+            </div>
+          ) : (
+            <div className="h-[24px] mb-1" />
+          )}
+
         </div>
       </div>
-    </div>
-  );
-};
-
-const ProductColumn = ({ productTop, productBottom }) => {
-  return (
-    <div className="flex flex-col space-y-1.5 h-full justify-start">
-      {productTop && (
-        <div className="h-auto flex-none">
-          <InlinedProductCard {...productTop} />
-        </div>
-      )}
-      {productBottom && (
-        <div className="h-auto flex-none">
-          <InlinedProductCard {...productBottom} />
-        </div>
-      )}
     </div>
   );
 };
@@ -188,39 +184,89 @@ const CustomSlickArrow = (props) => {
   );
 };
 
-const TwoRowMarketSlider = ({ productsInput = [], imageBannerUrl, endTime, bgColor = '#007BFF' }) => {
+const HorizontalProductSlider = ({ productsInput = [], imageBannerUrl, endTime, bgColor = '#007BFF' }) => {
   const sliderRef = useRef(null);
+  const totalProducts = productsInput.length;
 
-  const pairedProducts = [];
-  for (let i = 0; i < productsInput.length; i += 2) {
-    pairedProducts.push({
-      id: `pair-${productsInput[i].id}`,
-      top: productsInput[i],
-      bottom: productsInput[i + 1] || null
-    });
-  }
+  
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
-  /* TwoRowMarketSlider.jsx – chỉ sửa sliderSettings */
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+
+  const getIdealSlidesToShow = () => {
+    if (windowWidth >= 1279) return 5;
+    if (windowWidth >= 767) return 4;  
+    if (windowWidth >= 479) return 2; 
+    return 1; 
+  };
+
+  const idealSlidesToShow = getIdealSlidesToShow();
 
   const sliderSettings = {
     dots: false,
-    infinite: pairedProducts.length > 5,
     speed: 600,
-    slidesToShow: 5,
     slidesToScroll: 1,
-    arrows: pairedProducts.length > 5,
+    
+   
+    
+    slidesToShow: idealSlidesToShow,
+    
+    infinite: totalProducts > idealSlidesToShow, 
+    arrows: totalProducts > idealSlidesToShow,   
+
     autoplay: true,
     autoplaySpeed: 7000,
     pauseOnHover: true,
     prevArrow: <CustomSlickArrow type="prev" />,
     nextArrow: <CustomSlickArrow type="next" />,
     swipeToSlide: true,
-    responsive: [
-      { breakpoint: 1279, settings: { slidesToShow: 4, arrows: pairedProducts.length > 4, infinite: pairedProducts.length > 4 } },
-      { breakpoint: 767, settings: { slidesToShow: 2, arrows: false, infinite: pairedProducts.length > 2 } },
 
-      { breakpoint: 479, settings: { slidesToShow: 1, arrows: false, infinite: pairedProducts.length > 1 } }
-    ]
+    responsive: [
+      
+      {
+        breakpoint: 1279, 
+        settings: {
+          slidesToShow: Math.min(5, totalProducts), 
+          infinite: totalProducts > 5, 
+          arrows: totalProducts > 5,
+        },
+      },
+     
+      {
+        breakpoint: 767, 
+        settings: {
+          slidesToShow: Math.min(4, totalProducts), 
+          infinite: totalProducts > 4,
+          arrows: totalProducts > 4,
+        },
+      },
+      // Smaller Tablets
+      {
+        breakpoint: 479, 
+        settings: {
+          slidesToShow: Math.min(2, totalProducts), 
+          infinite: totalProducts > 2,
+          arrows: false, 
+        },
+      },
+      
+      {
+        breakpoint: 0, 
+        settings: {
+          slidesToShow: 1,
+          infinite: totalProducts > 1,
+          arrows: false,
+        },
+      },
+    ],
   };
 
   return (
@@ -245,13 +291,34 @@ const TwoRowMarketSlider = ({ productsInput = [], imageBannerUrl, endTime, bgCol
             {!productsInput || productsInput.length === 0 ? (
               <p className="text-center py-10 text-white font-semibold text-lg">Không có sản phẩm nào trong chương trình.</p>
             ) : (
-              <Slider {...sliderSettings} ref={sliderRef} className="two-row-slick-slider">
-                {pairedProducts.map((pair) => (
-                  <div key={pair.id}>
-                    <ProductColumn productTop={pair.top} productBottom={pair.bottom} />
-                  </div>
-                ))}
-              </Slider>
+            
+                totalProducts <= idealSlidesToShow && totalProducts > 0 ? ( 
+                    <div className="flex justify-start items-stretch gap-x-4"> 
+                        {productsInput.map((product) => (
+                           
+                            <div 
+                                key={product.id} 
+                                className={`
+                                    w-full 
+                                    ${idealSlidesToShow === 5 ? 'md:w-1/5' : ''}
+                                    ${idealSlidesToShow === 4 ? 'lg:w-1/4' : ''}
+                                    ${idealSlidesToShow === 2 ? 'sm:w-1/2' : ''}
+                                    ${idealSlidesToShow === 1 ? 'w-full' : ''}
+                                `}
+                            >
+                                <InlinedProductCard {...product} />
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <Slider {...sliderSettings} ref={sliderRef} className="horizontal-slick-slider">
+                        {productsInput.map((product) => (
+                            <div key={product.id} className="px-1 md:px-1"> 
+                                <InlinedProductCard {...product} />
+                            </div>
+                        ))}
+                    </Slider>
+                )
             )}
           </div>
         </div>
@@ -260,4 +327,4 @@ const TwoRowMarketSlider = ({ productsInput = [], imageBannerUrl, endTime, bgCol
   );
 };
 
-export default TwoRowMarketSlider;
+export default HorizontalProductSlider;

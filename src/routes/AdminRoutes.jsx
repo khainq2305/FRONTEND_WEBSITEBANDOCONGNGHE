@@ -46,6 +46,7 @@ const UserDetailPage = Loadable(lazy(() => import('pages/Admin/User/UserDetailDi
 const NotificationCreatePage = Loadable(lazy(() => import('pages/Admin/Notification/NotificationCreatePage')));
 const NotificationEditPage = Loadable(lazy(() => import('pages/Admin/Notification/NotificationEditPage')));
 const QuestionDetailPage = Loadable(lazy(() => import('pages/Admin/ProductQuestion/QuestionDetailPage/index.jsx')));
+const SystemSettings = Loadable(lazy(() => import('pages/Admin/SystemSettings/index')));
 import RequireAuth from '@/components/Admin/RequireAuth';
 const RoleIndex = Loadable(lazy(() => import('pages/Admin/Role/index')));
 const RoleManagement = Loadable(lazy(() => import('pages/Admin/Role/RoleManagement')));
@@ -260,6 +261,10 @@ const AdminRoutes = {
         { index: true, element: <ProductQuestion /> },
         { path: ':id', element: <QuestionDetailPage /> }
       ]
+    },
+    {
+      path: 'system-settings',
+      element: <SystemSettings />
     },
     {
       path: '*',

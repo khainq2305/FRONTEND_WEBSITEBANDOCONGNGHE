@@ -78,38 +78,50 @@ export default function ProductListByCategory() {
         priceRange: filters.price,
         sort: sortOption
       });
-      const formatted = (res.data.products || []).map((item) => {
-        const sku = item.skus?.[0] || {};
-        const flash = sku.flashSaleSkus?.find((f) => f.isActive);
+     const formatted = (res.data.products || []).map((item) => {
+  const sku = item.skus?.[0] || {};
 
-        const priceNum = Number(flash?.salePrice || sku.price) || 0;
-        const oldPriceNum = Number(sku.originalPrice ?? sku.price) || 0;
-        const originalPriceNum = Number(sku.originalPrice ?? sku.price) || 0;
+  // Ưu tiên salePrice do giảm danh mục → flashSale → giá gốc
+  const finalPrice =
+    (sku.salePrice && sku.salePrice > 0 ? sku.salePrice : null) ??
+    (sku.flashSaleSkus?.find((f) => f.isActive)?.salePrice ?? null) ??
+    sku.price ??
+    0;
 
-        let calculatedDiscount = 0;
-        const comparePriceForDiscount = flash && flash.salePrice ? oldPriceNum : oldPriceNum;
+  const priceNum = Number(finalPrice) || 0;
+  const originalPriceNum = Number(sku.originalPrice ?? sku.price) || 0;
 
-        if (comparePriceForDiscount > priceNum && comparePriceForDiscount > 0) {
-          calculatedDiscount = Math.round(((comparePriceForDiscount - priceNum) / comparePriceForDiscount) * 100);
-        }
+  // Hiển thị oldPrice nếu có giảm
+  const oldPriceNum = originalPriceNum > priceNum ? originalPriceNum : null;
 
-        return {
-          id: item.id,
-          name: item.name,
-          slug: item.slug,
-          badge: item.badge,
-          image: item.image || item.thumbnail,
+  // Tính phần trăm giảm giá
+  let calculatedDiscount = 0;
+  const comparePriceForDiscount = oldPriceNum ?? 0;
 
-          priceNum,
-          oldPriceNum,
-          originalPriceNum,
-          discount: calculatedDiscount,
-          rating: item.averageRating,
-          inStock: item.inStock,
-          soldCount: item.soldCount,
-          skus: item.skus
-        };
-      });
+  if (comparePriceForDiscount > priceNum && comparePriceForDiscount > 0) {
+    calculatedDiscount = Math.round(
+      ((comparePriceForDiscount - priceNum) / comparePriceForDiscount) * 100
+    );
+  }
+
+  return {
+    id: item.id,
+    name: item.name,
+    slug: item.slug,
+    badge: item.badge,
+    image: item.image || item.thumbnail,
+
+    priceNum,
+    oldPriceNum,
+    originalPriceNum,
+    discount: calculatedDiscount,
+    rating: item.averageRating,
+    inStock: item.inStock,
+    soldCount: item.soldCount,
+    skus: item.skus
+  };
+});
+
 
       setProducts(formatted);
       setTotalItems(res.data.totalItems);

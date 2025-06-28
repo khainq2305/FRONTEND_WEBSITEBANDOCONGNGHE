@@ -90,6 +90,10 @@
 .two-row-slick-slider .slick-prev {
   left: -15px; 
 }
+.two-row-slick-slider .slick-slide > div {
+  width: 100% !important; /* ✅ ép item phủ kín width slide */
+}
+
 .two-row-slick-slider .slick-next {
   right: -15px;
 }

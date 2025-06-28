@@ -9,10 +9,9 @@ const NotificationCreatePage = () => {
   const handleSuccess = () => {
     navigate('/admin/notifications');
   };
-//
+
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <h1 className="text-2xl font-semibold mb-6">Thêm thông báo mới</h1>
+    <div className=''>
       <NotificationForm onSuccess={handleSuccess} onCancel={() => navigate('/admin/notifications')} />
     </div>
   );

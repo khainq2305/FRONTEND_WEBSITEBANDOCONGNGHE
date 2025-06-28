@@ -28,6 +28,19 @@ const OrderItem = ({ order, searchTerm, refetchOrders }) => {
             toast.error('Không thể mua lại đơn hàng!');
         }
     };
+const handlePayAgain = async () => {
+  try {
+    const res = await orderService.payAgain(order.id);
+    if (res.data?.payUrl) {
+      window.location.href = res.data.payUrl;   // chuyển sang trang thanh toán
+    } else {
+      toast.error('Không tạo được link thanh toán.');
+    }
+  } catch (err) {
+    console.error('Pay-again error:', err);
+    toast.error(err.response?.data?.message || 'Không thể thanh toán lại.');
+  }
+};
 
     const [showCancelDialog, setShowCancelDialog] = useState(false);
     return (
@@ -90,10 +103,31 @@ const OrderItem = ({ order, searchTerm, refetchOrders }) => {
             </div>
 
             <div className="px-4 sm:px-6 py-3 sm:py-4 flex flex-wrap justify-end items-center gap-2">
+                {order.buttons.includes('Thanh toán lại') && (
+  <button
+    onClick={handlePayAgain}
+    className="
+      text-sm border border-orange-500 text-orange-600
+      hover:bg-orange-50 px-4 py-2 rounded-sm transition-colors
+      dark:text-orange-400 dark:border-orange-500 dark:hover:bg-orange-900
+    "
+  >
+    Thanh toán lại
+  </button>
+)}
+
                 {order.buttons.includes('Hủy đơn') && (
                     <>
                         <button
-                            className="text-sm bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-sm transition-colors dark:bg-red-700 dark:hover:bg-red-600"
+                            className="
+    text-sm
+    border  border-red-500
+    text-red-600
+    hover:bg-red-50
+    px-4 py-2 rounded-sm
+    transition-colors
+    dark:text-red-400 dark:border-red-500 dark:hover:bg-red-900
+  "
                             onClick={() => setShowCancelDialog(true)}
                         >
                             Hủy đơn
@@ -110,7 +144,15 @@ const OrderItem = ({ order, searchTerm, refetchOrders }) => {
                 )}
                 {order.buttons.includes('Mua Lại') && (
                     <button
-                        className="text-sm bg-primary hover:bg-secondary text-white px-4 sm:px-5 py-1.5 sm:py-2 rounded-sm transition-colors dark:bg-primary-dark dark:hover:bg-secondary-dark"
+                        className="
+    text-sm
+    border  border-primary
+    text-primary
+    hover:bg-primary/10
+    px-4 sm:px-5 py-1.5 sm:py-2 rounded-sm
+    transition-colors
+    dark:text-primary-light dark:border-primary-dark dark:hover:bg-primary-dark/20
+  "
                         onClick={handleReorder}
                     >
                         Mua Lại
@@ -120,7 +162,15 @@ const OrderItem = ({ order, searchTerm, refetchOrders }) => {
                 {order.buttons.includes('Trả hàng/Hoàn tiền') && (
                     <>
                         <button
-                            className="text-sm bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 sm:px-5 py-1.5 sm:py-2 rounded-sm transition-colors dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                             className="
+    text-sm
+    border  border-blue-500
+    text-blue-600
+    hover:bg-blue-50
+    px-4 sm:px-5 py-1.5 sm:py-2 rounded-sm
+    transition-colors
+    dark:text-blue-400 dark:border-blue-600 dark:hover:bg-blue-900
+  "
                             onClick={() => navigate('/return-order', {
                                 state: {
                                     orderId: order.id,
@@ -135,7 +185,15 @@ const OrderItem = ({ order, searchTerm, refetchOrders }) => {
                 )}
                 {order.buttons.includes('Đã nhận hàng') && (
                     <button
-                        className="text-sm bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-sm transition-colors dark:bg-green-800 dark:hover:bg-green-700"
+                         className="
+    text-sm
+    border  border-green-600
+    text-green-600
+    hover:bg-green-50
+    px-4 py-2 rounded-sm
+    transition-colors
+    dark:text-green-400 dark:border-green-600 dark:hover:bg-green-900
+  "
                         onClick={async () => {
                             try {
                                 await orderService.markAsCompleted(order.id);
@@ -180,99 +238,107 @@ const RenderDonMuaContent = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const mapApiDataToView = (apiOrders) => {
-        if (!apiOrders || !Array.isArray(apiOrders)) return [];
-        return apiOrders.map(order => {
-            let statusText = '';
-            let statusColor = 'text-primary';
-            let buttons = [];
+/* ================================================================
+   MAP API  →  VIEW
+   ================================================================ */
+/* ================================================================
+   MAP API → VIEW  (thêm "Mua Lại" cho DELIVERED)
+================================================================ */
+const mapApiDataToView = (apiOrders = []) =>
+  apiOrders.map(order => {
+    /* -------- 1. tabId -------- */
+    // 🔧 CHỈ gán vào tab await_payment khi paymentStatus = 'waiting'
+    const tabId =
+      order.paymentStatus === 'waiting'
+        ? 'await_payment'
+        : order.status || 'unknown';
 
-            switch (order.status) {
-                case 'pending':
-                    statusText = 'CHỜ XÁC NHẬN';
-                    statusColor = 'text-blue-500';
-                    buttons.push('Hủy đơn');
-                    break;
-                case 'confirmed':
-                    statusText = 'ĐÃ XÁC NHẬN';
-                    statusColor = 'text-yellow-600';
-                    buttons.push('Hủy đơn');
-                    break;
-                case 'shipping':
-                    statusText = 'ĐANG GIAO';
-                    statusColor = 'text-cyan-500';
-                    break;
-                case 'delivered':
-                    statusText = 'ĐÃ GIAO';
-                    statusColor = 'text-green-500';
-                    buttons.push('Đã nhận hàng');
-                    break;
+    /* -------- 2. statusText / statusColor -------- */
+    let statusText  = '';
+    let statusColor = 'text-primary';
 
-                case 'completed':
-                    statusText = 'HOÀN THÀNH';
-                    statusColor = 'text-green-600';
-                    if (!order.returnRequest) {
-                        buttons.push('Mua Lại', 'Trả hàng/Hoàn tiền');
-                    } else if (order.returnRequest.status === 'approved') {
-                        buttons.push('Chọn cách hoàn hàng');
-                    } else {
-                        buttons.push('Mua Lại');
-                    }
-                    break;
+    if (order.paymentStatus === 'waiting') {
+      statusText  = 'CHỜ THANH TOÁN';
+      statusColor = 'text-orange-500';
+    } else {
+      switch (order.status) {
+        case 'processing':
+          statusText  = 'ĐANG XỬ LÝ';
+          statusColor = 'text-blue-600';
+          break;
+        case 'shipping':
+          statusText  = 'ĐANG GIAO';
+          statusColor = 'text-cyan-500';
+          break;
+        case 'delivered':
+          statusText  = 'ĐÃ GIAO';
+          statusColor = 'text-green-500';
+          break;
+        case 'completed':
+          statusText  = 'HOÀN THÀNH';
+          statusColor = 'text-emerald-600';
+          break;
+        case 'cancelled':
+          statusText  = 'ĐÃ HỦY';
+          statusColor = 'text-red-500';
+          break;
+        default:
+          statusText  = 'KHÔNG RÕ';
+          statusColor = 'text-gray-400';
+      }
+    }
 
-                case 'cancelled':
-                    statusText = 'ĐÃ HỦY';
-                    statusColor = 'text-red-500';
-                    buttons.push('Mua Lại');
-                    break;
-                case 'return_requested':
-                    statusText = 'YÊU CẦU TRẢ HÀNG';
-                    statusColor = 'text-purple-600';
-                    buttons.push('Mua Lại');
-                    break;
-                case 'return_approved':
-                    statusText = 'ĐÃ DUYỆT TRẢ HÀNG';
-                    statusColor = 'text-purple-700';
-                    buttons.push('Chọn cách hoàn hàng');
-                    break;
-                case 'returned':
-                    statusText = 'ĐÃ HOÀN TIỀN/HÀNG';
-                    statusColor = 'text-indigo-600';
-                    buttons.push('Mua Lại');
-                    break;
-                case 'return_rejected':
-                    statusText = 'TỪ CHỐI TRẢ HÀNG';
-                    statusColor = 'text-gray-500';
-                    buttons.push('Mua Lại');
-                    break;
-                default:
-                    statusText = 'KHÔNG RÕ';
-                    statusColor = 'text-gray-400';
-            }
+    /* -------- 3. buttons -------- */
+    const buttons = [];
 
-            return {
-                id: order.id,
-                status: order.status,
-                statusText,
-                orderCode: order.orderCode,
-                statusColor,
-                products: order.products.map(p => ({
-                    skuId: p.skuId,
-                    imageUrl: p.imageUrl,
-                    name: p.name,
-                    variation: p.variation,
-                    quantity: p.quantity,
-                    price: p.price,
-                    originalPrice: p.originalPrice,
-                })),
-                totalAmount: order.finalPrice,
-                buttons,
-                paymentMethod: order.paymentMethod || null,
-                paymentMethodCode: order.paymentMethod?.code || null,
-                returnRequest: order.returnRequest || null,
-            };
-        });
+    // Chỉ hiển thị “Thanh toán lại / Hủy đơn” khi đang chờ thanh toán
+   if (order.status === 'processing') {
+ // Đơn online chưa thanh toán → có thêm “Thanh toán lại”
+  if (order.paymentStatus === 'waiting') buttons.push('Thanh toán lại');
+
+ // Mọi đơn đang xử lý đều được hủy
+  buttons.push('Hủy đơn');
+}
+
+    // logic khác giữ nguyên…
+    if (order.status === 'shipping') buttons.push('Đã nhận hàng');
+    if (order.status === 'delivered') {
+      buttons.push('Đã nhận hàng', 'Trả hàng/Hoàn tiền', 'Mua Lại');
+      if (order.returnRequest?.status === 'approved')
+        buttons.push('Chọn cách hoàn hàng');
+    }
+    if (order.status === 'completed') {
+      buttons.push('Mua Lại', 'Trả hàng/Hoàn tiền');
+      if (order.returnRequest?.status === 'approved')
+        buttons.push('Chọn cách hoàn hàng');
+    }
+    if (order.status === 'cancelled') buttons.push('Mua Lại');
+
+    /* -------- 4. object view -------- */
+    return {
+      id   : order.id,
+      tabId,
+      statusText,
+      statusColor,
+      orderCode: order.orderCode,
+      products : order.products.map(p => ({
+        skuId        : p.skuId,
+        imageUrl     : p.imageUrl,
+        name         : p.name,
+        variation    : p.variation,
+        quantity     : p.quantity,
+        price        : p.price,
+        originalPrice: p.originalPrice,
+      })),
+      totalAmount      : order.finalPrice,
+      buttons,
+      paymentMethod    : order.paymentMethod || null,
+      paymentMethodCode: order.paymentMethod?.code || null,
+      returnRequest    : order.returnRequest || null,
     };
+  });
+
+
 
     const fetchOrders = async () => {
         try {
@@ -303,12 +369,14 @@ const RenderDonMuaContent = () => {
             activeClasses: 'text-primary border-b-2 border-primary font-bold',
             inactiveClasses: 'text-gray-600 dark:text-gray-300 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600',
         },
-        {
-            id: 'await_payment',
-            label: 'Chờ thanh toán',
-            activeClasses: 'text-yellow-600 border-b-2 border-yellow-600 font-bold',
-            inactiveClasses: 'text-gray-600 dark:text-gray-300 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600',
-        },
+         {
+  id: 'await_payment',
+   label: 'Chờ thanh toán',
+  activeClasses:
+   'text-orange-500 border-b-2 border-orange-500 font-bold',
+  inactiveClasses:
+    'text-gray-600 dark:text-gray-300 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600',
+},
         {
             id: 'processing',
             label: 'Đang xử lý',
@@ -349,16 +417,17 @@ const RenderDonMuaContent = () => {
 
 
 
-    const filteredOrders = orders.filter(order => {
-        const statusMatch = activePurchaseTab === 'all' || order.status === activePurchaseTab;
-        const term = searchTerm.toLowerCase();
-        const searchTermMatch =
-            !term ||
-            (order.orderCode && order.orderCode.toLowerCase().includes(term)) ||
-            order.id.toString().includes(term) ||
-            order.products.some(p => p.name.toLowerCase().includes(term));
-        return statusMatch && searchTermMatch;
-    });
+const filteredOrders = (orders || []).filter(order => {
+  const statusMatch = activePurchaseTab === 'all' || order.tabId === activePurchaseTab;
+  const term = searchTerm.toLowerCase();
+  const searchTermMatch =
+    !term ||
+    (order.orderCode && order.orderCode.toLowerCase().includes(term)) ||
+    order.id.toString().includes(term) ||
+    order.products.some(p => p.name.toLowerCase().includes(term));
+  return statusMatch && searchTermMatch;
+});
+
 
 
     if (loading) {

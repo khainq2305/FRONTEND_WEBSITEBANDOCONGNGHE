@@ -9,10 +9,28 @@ export const orderService = {
     console.log('[orderService] createOrder called with data:', data);
     return post(`${base}/create`, data);
   },
-
+   viettelMoney: (payload) => post(`${base}${API_ENDPOINT.client.order.viettelMoney}`, payload),
+ payAgain: (orderId) =>
+    post(`${base}${API_ENDPOINT.client.order.payAgain(orderId)}`),
   getShippingFee: (data) => {
     return post(`${base}/calculate-shipping-fee`, data);
   },
+
+getShippingOptions: (data) => {
+  console.log('[orderService] getShippingOptions payload:', data); // 👈 Log input
+  return post(`${base}${API_ENDPOINT.client.order.shippingOptions}`, data)
+    .then((res) => {
+      console.log('[orderService] getShippingOptions response:', res?.data); // 👈 Log output
+      return res;
+    })
+    .catch((err) => {
+      console.error('[orderService] getShippingOptions ERROR:', err?.response?.data || err);
+      throw err;
+    });
+}
+,
+  bookReturnPickup: (returnId) =>
+ post(`${base}${API_ENDPOINT.client.order.bookPickup(returnId)}`),
   getUserOrders: () => {
     return get(`${base}/user-orders`);
   },

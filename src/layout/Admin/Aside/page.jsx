@@ -8,6 +8,7 @@ import {
   MessageOutlined,
   AppstoreOutlined,
   CommentOutlined,
+PieChartOutlined,
   GiftOutlined
 } from '@ant-design/icons';
 const icons = {
@@ -17,12 +18,23 @@ const icons = {
   MessageOutlined,
   AppstoreOutlined,
   FileTextOutlined,
+  PieChartOutlined,
   TagsOutlined,
   CommentOutlined,
   GiftOutlined
 };
 
 const pages = [
+    {
+    id: 'dashboard-statistics',
+   title: 'Thống kê',
+   type: 'item',
+  url: '/admin/dashboard/default',   // hoặc '/admin/dashboard'
+   icon: icons.PieChartOutlined,
+   breadcrumbs: false,
+   action: 'read',
+    subject: 'Dashboard'               // đặt subject tuỳ theo CASL
+  },
   {
     id: 'product-section-collapse',
     title: 'Quản lý sản phẩm',
@@ -96,7 +108,7 @@ const pages = [
 
   {
     id: 'flash-sale',
-    title: 'Flash Sale',
+    title: 'Khuyến mãi',
     type: 'collapse',
     icon: icons.GiftOutlined,
     action: 'read',
@@ -104,7 +116,7 @@ const pages = [
     children: [
       {
         id: 'flash-sale-list',
-        title: 'Danh sách Flash Sale',
+        title: 'Danh sách khuyến mãi',
         type: 'item',
         url: '/admin/flash-sale',
         icon: icons.TableOutlined,
@@ -114,7 +126,7 @@ const pages = [
       },
       {
         id: 'flash-sale-create',
-        title: 'Tạo Flash Sale',
+        title: 'Tạo mới khuyến mãi',
         type: 'item',
         url: '/admin/flash-sale/create',
         icon: icons.FileTextOutlined,
@@ -363,7 +375,17 @@ const pages = [
         subject: 'Role'
       }
     ]
-  }
+  },
+   {
+        id: 'system-settings',
+        title: 'Cài đặt',
+        type: 'item',
+        url: '/admin/system-settings',
+        icon: icons.SettingOutlined,
+        breadcrumbs: false,
+        action: 'create',
+        subject: 'Role'
+      }
 ];
 
 export default pages;

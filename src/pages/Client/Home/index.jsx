@@ -71,20 +71,27 @@ const HomePage = () => {
         <section>
           <PromoGridSection />
         </section>
-
         {flashSales.map((saleEvent) => {
-          if (!saleEvent || !saleEvent.flashSaleItems || saleEvent.flashSaleItems.length === 0) return null;
+          const categories = saleEvent.categories || [];
 
-          const productsForSlider = saleEvent.flashSaleItems.map((item) => {
-            const sku = item.sku || {};
-            const product = sku.product || {};
+          const skuItems = saleEvent.flashSaleItems || [];
+
+          const skuFromCats = categories.flatMap((cat) => (cat.category?.products || []).flatMap((p) => p.skus || []));
+
+          const skuMap = new Map();
+          [...skuItems.map((i) => i.sku), ...skuFromCats].forEach((s) => {
+            if (s && !skuMap.has(s.id)) skuMap.set(s.id, s);
+          });
+          const allSkus = Array.from(skuMap.values());
+
+          const productsForSlider = allSkus.map((sku) => {
+            const product = sku.product || sku.Product || {};
             const originalPrice = sku.originalPrice || 0;
-            const salePrice = item.salePrice || 0;
+            const saleItem = skuItems.find((i) => i.skuId === sku.id);
+            const salePrice = saleItem?.salePrice ?? sku.salePrice ?? sku.price;
+            const limitPerUser = saleItem?.maxPerUser ?? 1;
 
-            const isGloballyOutOfStock = (sku.stock || 0) <= 0;
-            const hasReachedLimit = (item.userPurchaseCount || 0) >= (item.limitPerUser || 1);
-            const skuMedia = sku.ProductMedia || [];
-            const imageUrl = skuMedia.length > 0 ? skuMedia[0].mediaUrl : product.thumbnail;
+            const imageUrl = sku.ProductMedia?.[0]?.mediaUrl || product.thumbnail;
 
             return {
               id: product.id,
@@ -92,17 +99,18 @@ const HomePage = () => {
               name: product.name || 'N/A',
               slug: product.slug,
               price: formatCurrencyVND(salePrice),
-
               oldPrice: originalPrice > 0 ? formatCurrencyVND(originalPrice) : null,
-
-              discount: originalPrice > salePrice ? Math.round(100 - (salePrice * 100) / originalPrice) : 0,
+              discount: originalPrice > 0 && salePrice < originalPrice ? Math.round(100 - (salePrice * 100) / originalPrice) : 0,
               image: constructImageUrl(imageUrl),
-              rating: parseFloat(product.averageRating) || 0,
-              inStock: !isGloballyOutOfStock && !hasReachedLimit,
-              soldCount: parseInt(product.soldCount) || 0,
-              quantity: item.quantity || 0
+              rating: parseFloat(sku.averageRating) || 0,
+              inStock: (sku.stock || 0) > 0,
+              soldCount: parseInt(sku.soldCount) || 0,
+              quantity: saleItem?.quantity ?? null,
+              limitPerUser
             };
           });
+
+          if (!productsForSlider.length) return null;
 
           return (
             <section key={saleEvent.id}>

@@ -60,8 +60,7 @@ const NotificationItem = ({ notification, onClick }) => {
           <p className={`text-sm leading-snug ${!notification.isRead ? 'font-semibold text-gray-800' : 'text-gray-700'}`}>
             {notification.title}
           </p>
-          <div className="text-xs text-gray-500 mt-0.5 line-clamp-2" dangerouslySetInnerHTML={{ __html: notification.message }}></div>
-
+          <div className="text-xs text-gray-500 mt-0.5 line-clamp-2" dangerouslySetInnerHTML={{ __html: notification.message }} />
           {notification.startAt && <p className="text-[11px] text-gray-400 mt-0.5">{dayjs(notification.startAt).fromNow()}</p>}
         </div>
         {!notification.isRead && <span className="w-2 h-2 bg-blue-500 rounded-full mt-1.5 ml-auto flex-shrink-0" title="Chưa đọc"></span>}
@@ -70,11 +69,32 @@ const NotificationItem = ({ notification, onClick }) => {
   );
 };
 
-const NotificationDropdown = ({ isOpen, notifications = [], onClose, setNotifications }) => {
+const NotificationDropdown = ({ isOpen, notifications = [], onClose, setNotifications, userInfo }) => {
   const [activeTab, setActiveTab] = useState('all');
   if (!isOpen) return null;
 
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  // Nếu chưa đăng nhậpp
+  if (!userInfo) {
+    return (
+      <div className="absolute top-full right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-40 flex flex-col has-arrow-up">
+        <div className="p-6 text-center text-gray-500 text-sm">
+          <Bell size={40} className="mb-2 text-gray-300 mx-auto" />
+          <p className="font-medium">Bạn cần đăng nhập để xem thông báo</p>
+          <p className="text-xs mt-1">Vui lòng đăng nhập để nhận các cập nhật mới nhất từ hệ thống.</p>
+        </div>
+        <div className="p-2.5 text-center border-t border-gray-200 bg-gray-50 flex-shrink-0">
+          <a
+            href="/dang-nhap"
+            className="text-xs font-medium text-gradient py-1.5 px-4 rounded-md w-full inline-block hover-primary transition-colors"
+          >
+            Đăng nhập ngay
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  const unreadCount = notifications?.filter((n) => !n.isRead).length || 0;
 
   const handleMarkAllAsRead = async () => {
     try {
@@ -89,10 +109,7 @@ const NotificationDropdown = ({ isOpen, notifications = [], onClose, setNotifica
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
   };
 
-  const filteredNotifications = notifications.filter((n) => {
-    if (activeTab === 'order') return n.type === 'order';
-    return true;
-  });
+  const filteredNotifications = notifications?.filter((n) => (activeTab === 'order' ? n.type === 'order' : true)) || [];
 
   return (
     <div className="absolute top-full right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-40 flex flex-col has-arrow-up">
