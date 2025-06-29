@@ -15,23 +15,23 @@ const UserAddPage = () => {
       email: data.email,
       password: data.password,
       phone: '',
-      roleId: parseInt(data.roleId),
-      status: data.status,
+      roleIds: [parseInt(data.roleId)], // ✅ đổi roleId thành roleIds (mảng)
+      status: data.status
     };
 
     try {
       setFieldErrors({});
       await createUser(payload);
-      toast.success(' Tạo tài khoản thành công!');
+      toast.success('Tạo tài khoản thành công!');
       navigate('/admin/users');
     } catch (err) {
       const backendErrors = err?.errors || err?.response?.data?.errors;
       if (Array.isArray(backendErrors)) {
         const errors = {};
-        backendErrors.forEach(e => {
+        backendErrors.forEach((e) => {
           errors[e.field] = e.message;
         });
-        setFieldErrors(errors); 
+        setFieldErrors(errors);
       } else {
         toast.error('❌ Tạo tài khoản thất bại!');
       }
@@ -41,7 +41,7 @@ const UserAddPage = () => {
   return (
     <Container maxWidth="lg" sx={{ pt: 3 }}>
       <Typography variant="h5" fontWeight="bold" mb={2}>
-        Thêm người dùng
+        Thêm tài khoản
       </Typography>
 
       <Card>
