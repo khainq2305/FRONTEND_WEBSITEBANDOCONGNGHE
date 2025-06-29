@@ -1,4 +1,3 @@
-// Giống bản chuẩn đã dùng trước
 import React, { useState, useRef, useEffect } from 'react';
 import './FloatingContact.css';
 import logo from '@/assets/Client/images/Logo/logo.svg';
@@ -18,6 +17,7 @@ const quickSuggestions = [
 
 export default function FloatingContactBox() {
   const [open, setOpen] = useState(false);
+  const [tooltipVisible, setTooltipVisible] = useState(true);
   const [chatHistory, setChatHistory] = useState([]);
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -27,18 +27,41 @@ export default function FloatingContactBox() {
 
   const systemGreeting = {
     role: 'system',
-    text: '👋 Xin chào! Em là trợ lý ảo của Home Power. Anh/Chị cần em hỗ trợ gì ạ?',
+    text: '👋 Xin chào Anh/Chị! Em là trợ lý ảo của Home Power.',
   };
+
+  useEffect(() => {
+    const savedChat = localStorage.getItem('hp_chat_history');
+    if (savedChat) {
+      setChatHistory(JSON.parse(savedChat));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('hp_chat_history', JSON.stringify(chatHistory));
+  }, [chatHistory]);
 
   useEffect(() => {
     if (open && chatHistory.length === 0) {
       setChatHistory([systemGreeting]);
     }
-  }, [open]);
+    if (open) {
+      inputRef.current?.focus();
+    }
+  }, [open, chatHistory.length]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatHistory, isLoading]);
+
+  const handleOpenChat = () => {
+    setOpen(true);
+    setTooltipVisible(false);
+  };
+
+  const handleCloseChat = () => {
+    setOpen(false);
+  };
 
   const resetChat = () => {
     setChatHistory([systemGreeting]);
@@ -50,64 +73,36 @@ export default function FloatingContactBox() {
   const sendMessage = async (msg = message) => {
     const trimmed = msg.trim();
     if (!trimmed) return;
-    if (showSuggestions) setShowSuggestions(false);
+    if (showSuggestions && trimmed !== message) {
+      setShowSuggestions(false);
+    }
     setChatHistory((prev) => [...prev, { role: 'user', text: trimmed }]);
     setMessage('');
     setIsLoading(true);
     try {
       const res = await chatService.sendMessage({ message: trimmed });
-      const reply =
-        res?.data?.data?.reply ||
-        '🤖 Xin lỗi, em chưa hiểu rõ câu hỏi. Anh/Chị vui lòng thử lại.';
+      const reply = res?.data?.data?.reply || '🤖 Xin lỗi, em chưa hiểu rõ câu hỏi. Anh/Chị vui lòng thử lại.';
       setChatHistory((prev) => [...prev, { role: 'ai', text: reply }]);
-    } catch (err) {
-      console.error('[ChatBox Error]', err);
-      setChatHistory((prev) => [
-        ...prev,
-        {
-          role: 'ai',
-          text: '❌ Đã xảy ra lỗi khi kết nối với hệ thống. Vui lòng thử lại sau.',
-        },
-      ]);
+    } catch {
+      setChatHistory((prev) => [...prev, { role: 'ai', text: '❌ Đã xảy ra lỗi. Vui lòng thử lại sau.' }]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // 👇 Bắt đầu JSX hiển thị
   return (
     <>
-      <div className="floating-contact">
-        {/* 3 nút + trợ lý ảo */}
-        <a href="https://m.me/tenfanpagecuaban" className="contact-item">
-          <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Messenger" />
-          <div className="contact-text">
-            <span>Chat Messenger</span>
-            <small>(8h - 24h)</small>
+      {!open && (
+        <div className="floating-contact">
+          <div className={`contact-tooltip ${!tooltipVisible ? 'hidden' : ''}`}>
+            <strong>Home Power</strong>
+            Xin chào Anh/Chị! Em là trợ lý ảo của Home Power.
           </div>
-        </a>
-        <a href="tel:19008922" className="contact-item">
-          <img src="/icons/btn-call.svg" alt="Gọi mua hàng" />
-          <div className="contact-text">
-            <span>Gọi mua hàng</span>
-            <small>1900 8922</small>
-          </div>
-        </a>
-        <a href="tel:19008174" className="contact-item">
-          <img src="/icons/icon-repair.svg" alt="Bảo hành" />
-          <div className="contact-text">
-            <span>Gọi bảo hành</span>
-            <small>1900 8174</small>
-          </div>
-        </a>
-        <button onClick={() => setOpen(true)} className="contact-item">
-          <img src={logo} alt="Trợ lý ảo" />
-          <div className="contact-text">
-            <span>Trợ lý ảo</span>
-            <small>Hỏi đáp 24/7</small>
-          </div>
-        </button>
-      </div>
+          <button className="contact-item" onClick={handleOpenChat}>
+            <img src={logo} alt="Trợ lý ảo" />
+          </button>
+        </div>
+      )}
 
       {open && (
         <div className="chatbox-container">
@@ -120,7 +115,7 @@ export default function FloatingContactBox() {
               <button onClick={resetChat} className="header-button" title="Reset">
                 <img src={resetIcon} alt="reset" className="action-icon" />
               </button>
-              <button onClick={() => setOpen(false)} className="header-button" title="Đóng">
+              <button onClick={handleCloseChat} className="header-button" title="Đóng chat">
                 <svg viewBox="0 0 24 24" className="action-icon">
                   <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
@@ -130,15 +125,14 @@ export default function FloatingContactBox() {
 
           <div className="chat-content">
             {chatHistory.map((msg, i) => (
-              <div
-                key={i}
-                className={`chat-message ${msg.role === 'user' ? 'user-message' : 'ai-message'}`}
-                dangerouslySetInnerHTML={{ __html: msg.text }}
-              />
+              <div key={i} className={`chat-message ${msg.role === 'user' ? 'user-message' : 'ai-message'}`} dangerouslySetInnerHTML={{ __html: msg.text }} />
             ))}
             {isLoading && (
               <div className="chat-message ai-message">
                 <span className="loading-text">Trợ lý đang trả lời...</span>
+                <div className="loading-dots">
+                  <span>.</span><span>.</span><span>.</span>
+                </div>
               </div>
             )}
             <div ref={chatEndRef} />
@@ -181,7 +175,8 @@ export default function FloatingContactBox() {
                 </svg>
               </button>
             </div>
-            <p className="disclaimer-text">Trợ lý AI hỗ trợ 24/7 - Nội dung mang tính tham khảo</p>
+
+            <p className="disclaimer-text">Trợ lý AI hỗ trợ 24/7 - Nội dung tham khảo</p>
           </div>
         </div>
       )}
