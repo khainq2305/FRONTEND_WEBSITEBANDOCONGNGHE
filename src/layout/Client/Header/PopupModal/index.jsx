@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import logo from '@/assets/Client/images/Logo/snapedit_1749613755235 1.png';
 
 const ANIMATION_DURATION_MS = 300;
- import logo from '@/assets/Client/images/Logo/snapedit_1749613755235 1.png';
+import logo from '@/assets/Client/images/Logo/snapedit_1749613755235 1.png';
 
 const PopupModal = ({ isOpen, onClose }) => {
   const [isRendered, setIsRendered] = useState(false);
@@ -70,9 +71,7 @@ const PopupModal = ({ isOpen, onClose }) => {
           <X className="w-5 h-5 sm:w-6 sm:h-6" />
         </button>
 
-       
-<img src={logo} alt="Smember" className="mx-auto mb-4 w-28 h-28 object-contain" />
-
+        <img src={logo} alt="Smember" className="mx-auto mb-4 w-28 h-28 object-contain" />
 
         <p className="text-sm sm:text-base text-gray-600 mb-6 leading-relaxed">
           Vui lòng đăng nhập tài khoản để

@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react';
-import {
-  Card, CardContent, Typography, CircularProgress, Box, Button, Chip
-} from '@mui/material';
+import { Card, CardContent, Typography, CircularProgress, Box, Button, Chip } from '@mui/material';
 import { toast } from 'react-toastify';
 
 import CommentFilterBar from '../CommentFilterBar';
@@ -28,7 +26,7 @@ const AllCommentList = () => {
   const [detailOpen, setDetailOpen] = useState(false);
 
   const isMenuOpen = Boolean(anchorEl);
-  const { currentUser } = useUser();
+  const { currentUser } = useUser() || {};
 
   const [filters, setFilters] = useState({
     status: 'all',
@@ -149,24 +147,39 @@ const handleReplySubmit = async () => {
   return (
     <Card elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
       <CardContent sx={{ p: { xs: 2, md: 4 } }}>
-        <Typography variant="h5" fontWeight="bold" mb={3}>Quản lý Đánh giá & Bình luận</Typography>
+        <Typography variant="h5" fontWeight="bold" mb={3}>
+          Quản lý Đánh giá & Bình luận
+        </Typography>
 
         <CommentFilterBar filters={filters} onChange={handleFilterChange} />
 
         {getActiveFilterChips().length > 0 && (
           <Box display="flex" alignItems="center" flexWrap="wrap" gap={1} mb={2}>
-            <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary' }}>Đang lọc:</Typography>
+            <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary' }}>
+              Đang lọc:
+            </Typography>
             {getActiveFilterChips().map((chip, i) => (
-              <Chip key={i} label={chip.label} color="primary" variant="outlined" size="small" onDelete={() => handleRemoveFilter(chip.key)} />
+              <Chip
+                key={i}
+                label={chip.label}
+                color="primary"
+                variant="outlined"
+                size="small"
+                onDelete={() => handleRemoveFilter(chip.key)}
+              />
             ))}
-            <Button onClick={clearAllFilters} size="small" color="error" sx={{ textTransform: 'none' }}>Xoá tất cả</Button>
+            <Button onClick={clearAllFilters} size="small" color="error" sx={{ textTransform: 'none' }}>
+              Xoá tất cả
+            </Button>
           </Box>
         )}
 
         {loading ? (
           <Box textAlign="center" my={10}>
             <CircularProgress />
-            <Typography mt={2} color="text.secondary">Đang tải dữ liệu...</Typography>
+            <Typography mt={2} color="text.secondary">
+              Đang tải dữ liệu...
+            </Typography>
           </Box>
         ) : (
           <>
@@ -207,12 +220,7 @@ const handleReplySubmit = async () => {
       />
 
       {selectedComment && (
-        <CommentDetailDialog
-          open={detailOpen}
-          onClose={handleCloseDetail}
-          comment={selectedComment}
-          onReplyClick={handleReplyClick}
-        />
+        <CommentDetailDialog open={detailOpen} onClose={handleCloseDetail} comment={selectedComment} onReplyClick={handleReplyClick} />
       )}
     </Card>
   );

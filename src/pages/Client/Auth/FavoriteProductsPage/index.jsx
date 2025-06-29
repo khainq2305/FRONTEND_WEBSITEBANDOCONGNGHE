@@ -1,63 +1,109 @@
-import React, { useState, useEffect } from 'react';
-import { PackageOpen, Search, ShoppingCart, Trash2, Percent } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import HighlightText from '@/components/Admin/HighlightText';
+
+import { PackageOpen, Search, ShoppingCart, Trash2, Percent, ChevronLeft, ChevronRight } from 'lucide-react';
 import { wishlistService } from '@/services/client/wishlistService';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 
-// Skeleton khi loading
+// --- SKELETON KHI LOADING ---
 const LoadingSkeleton = () => (
-  <div className="space-y-4">
+  <div className="flex space-x-4 md:space-x-0 md:flex-col md:space-y-5 overflow-x-auto md:overflow-visible pb-4 -mb-4">
     {Array.from({ length: 3 }).map((_, index) => (
-      <div
-        key={index}
-        className="bg-white border border-gray-200 rounded-lg p-4 animate-pulse flex space-x-4"
-      >
-        <div className="w-24 h-24 bg-gray-300 rounded-md"></div>
-        <div className="flex-1 space-y-3 py-1">
-          <div className="h-4 bg-gray-300 rounded w-3/4"></div>
-          <div className="h-3 bg-gray-300 rounded w-1/2"></div>
-          <div className="h-6 bg-gray-300 rounded w-1/4"></div>
-        </div>
-        <div className="w-1/4 flex flex-col items-end justify-between">
-          <div className="h-8 bg-gray-300 rounded w-32"></div>
-          <div className="h-8 bg-gray-300 rounded w-24"></div>
+      <div key={index} className="flex-shrink-0 w-[80vw] sm:w-80 md:w-full bg-white border border-gray-200 rounded-lg p-4 animate-pulse">
+        <div className="flex flex-col sm:flex-row sm:gap-6">
+          <div className="flex flex-1 items-start gap-4">
+            <div className="w-24 h-24 bg-gray-300 rounded-md flex-shrink-0"></div>
+            <div className="flex-1 space-y-3 py-1">
+              <div className="h-5 bg-gray-300 rounded w-3/4"></div>
+              <div className="h-4 bg-gray-300 rounded w-1/2"></div>
+              <div className="h-8 bg-gray-300 rounded w-1/4 mt-2"></div>
+            </div>
+          </div>
+          <div className="w-full sm:w-auto flex items-center justify-end gap-2 mt-4 sm:mt-0">
+            <div className="h-10 w-32 bg-gray-300 rounded-lg"></div>
+            <div className="h-10 w-10 bg-gray-300 rounded-full"></div>
+          </div>
         </div>
       </div>
     ))}
   </div>
 );
 
-// Rỗng
+// --- TRẠNG THÁI RỖNG ---
 const EmptyState = ({ searchTerm }) => (
   <div className="w-full text-center py-20 px-6 bg-white rounded-lg border-2 border-dashed border-gray-300">
     <PackageOpen size={60} className="mx-auto text-gray-400 mb-4" />
-    <h3 className="text-lg font-semibold text-gray-800">
-      {searchTerm ? 'Không tìm thấy sản phẩm' : 'Danh sách yêu thích của bạn trống'}
-    </h3>
+    <h3 className="text-xl font-semibold text-gray-800">{searchTerm ? 'Không tìm thấy sản phẩm' : 'Danh sách yêu thích của bạn trống'}</h3>
     <p className="text-gray-500 mt-2 max-w-md mx-auto">
       {searchTerm
-        ? `Không tìm thấy sản phẩm khớp với từ khóa "${searchTerm}".`
-        : 'Hãy khám phá và thêm sản phẩm bạn yêu thích vào đây để dễ theo dõi!'}
+        ? `Rất tiếc, không có sản phẩm nào khớp với từ khóa "${searchTerm}".`
+        : 'Hãy khám phá và thêm sản phẩm bạn yêu thích vào đây để dễ theo dõi và mua sắm!'}
     </p>
     {!searchTerm && (
       <Link
         to="/"
-        className="mt-6 inline-block bg-primary text-white font-semibold px-6 py-2 rounded-lg hover:opacity-90 transition-opacity"
+        className="mt-6 inline-block bg-primary text-white font-semibold px-8 py-3 rounded-lg hover:opacity-90 transition-opacity shadow-sm hover:shadow-md"
       >
-        Bắt đầu mua sắm
+        Khám phá sản phẩm
       </Link>
     )}
   </div>
 );
 
+// --- COMPONENT CHÍNH ---
 const FavoriteProductsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [favoriteProducts, setFavoriteProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState(false);
+  const visibleProducts = expanded ? favoriteProducts : favoriteProducts.slice(0, 5);
 
-  const formatCurrency = (vnd) => {
-    const number = typeof vnd === 'string' ? parseFloat(vnd) : vnd;
-    return number?.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }) || '0₫';
+  const scrollContainerRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const formatCurrency = (value) => {
+    const number = typeof value === 'string' ? parseFloat(value) : value;
+    if (isNaN(number)) return '0₫';
+    return number.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+  };
+
+  const checkScrollability = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      const { scrollLeft, scrollWidth, clientWidth } = container;
+      setCanScrollLeft(scrollLeft > 5);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 5);
+    }
+  }, []);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (container && !loading && favoriteProducts.length > 0) {
+      checkScrollability();
+      container.addEventListener('scroll', checkScrollability);
+      window.addEventListener('resize', checkScrollability);
+      return () => {
+        container.removeEventListener('scroll', checkScrollability);
+        window.removeEventListener('resize', checkScrollability);
+      };
+    }
+  }, [loading, favoriteProducts, checkScrollability]);
+
+  const handleScroll = (direction) => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      const firstCard = container.querySelector(':scope > div');
+      if (firstCard) {
+        const gap = 16;
+        const scrollAmount = firstCard.offsetWidth + gap;
+        container.scrollBy({
+          left: direction === 'left' ? -scrollAmount : scrollAmount,
+          behavior: 'smooth'
+        });
+      }
+    }
   };
 
   useEffect(() => {
@@ -75,17 +121,19 @@ const FavoriteProductsPage = () => {
         }
       };
       fetchFavorites();
-    }, 500);
+    }, 300);
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
   const handleRemoveItem = async (productId, skuId, productName) => {
     try {
       await wishlistService.remove(productId, skuId);
-      setFavoriteProducts((prev) =>
-        prev.filter((item) => !(item.productId === productId && item.skuId === skuId))
+      setFavoriteProducts((prev) => prev.filter((item) => !(item.productId === productId && item.skuId === skuId)));
+      toast.info(
+        <div>
+          Đã xóa <strong>{productName}</strong> khỏi danh sách yêu thích
+        </div>
       );
-      toast.info(<div>Đã xóa <strong>{productName}</strong> khỏi danh sách yêu thích</div>);
     } catch (err) {
       console.error('❌ Lỗi khi xoá khỏi yêu thích:', err);
       toast.error('Không thể xoá sản phẩm.');
@@ -93,154 +141,195 @@ const FavoriteProductsPage = () => {
   };
 
   const handleAddToCart = (productName) => {
-    toast.success(<div>Đã thêm <strong>{productName}</strong> vào giỏ hàng</div>);
+    toast.success(
+      <div>
+        Đã thêm <strong>{productName}</strong> vào giỏ hàng
+      </div>
+    );
   };
 
+  const arrowButtonClass =
+    'absolute top-1/2 -translate-y-1/2 z-10 w-11 h-11 bg-white/90 backdrop-blur-md rounded-full shadow-lg hover:shadow-xl flex items-center justify-center border border-slate-200/80 transition-all duration-300 ease-in-out group md:hidden';
+
   return (
-    <div className="w-full max-w-7xl bg-white  mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Tìm kiếm */}
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <div className="relative w-full">
-          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <Search size={20} className="text-gray-400" />
+          <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none z-10">
+            <Search size={22} className="text-gray-500" />
           </div>
           <input
             type="text"
-            placeholder="Tìm kiếm trong danh sách yêu thích của bạn..."
+            placeholder="Tìm kiếm trong danh sách yêu thích..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="block w-full bg-white border border-gray-300 text-gray-900 rounded-lg pl-12 pr-4 py-2.5 focus:ring-2 focus:ring-primary focus:border-primary transition-shadow"
+            className="block w-full bg-slate-100 text-gray-800 rounded-full pl-14 pr-5 py-3.5 shadow-sm transition-all duration-300 focus:shadow-md focus:bg-white focus:ring-0"
           />
         </div>
       </div>
 
-      {/* Danh sách */}
       {loading ? (
         <LoadingSkeleton />
       ) : favoriteProducts.length === 0 ? (
         <EmptyState searchTerm={searchTerm} />
       ) : (
-        <div className="space-y-4">
-          {favoriteProducts.map((item) => {
-            const product = item.product || {};
-            const sku = item.sku || {};
-            const imageUrl =
-              sku?.ProductMedia?.[0]?.mediaUrl || product.thumbnail || 'https://via.placeholder.com/100';
+        <div className="relative">
+          <button
+            onClick={() => handleScroll('left')}
+            className={`${arrowButtonClass} left-3 hover:scale-110 active:scale-100 ${
+              canScrollLeft ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            }`}
+            aria-label="Lướt sang trái"
+          >
+            <ChevronLeft size={26} className="text-slate-700 transition-colors group-hover:text-primary" />
+          </button>
 
-            const salePrice = item.salePrice ?? sku.flashSaleSkus?.[0]?.salePrice ?? null;
-            const displayPrice = salePrice ?? sku.price ?? sku.originalPrice ?? 0;
+          <button
+            onClick={() => handleScroll('right')}
+            className={`${arrowButtonClass} right-3 hover:scale-110 active:scale-100 ${
+              canScrollRight ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            }`}
+            aria-label="Lướt sang phải"
+          >
+            <ChevronRight size={26} className="text-slate-700 transition-colors group-hover:text-primary" />
+          </button>
 
-            const strikethroughPrice =
-              salePrice && sku.originalPrice && salePrice < sku.originalPrice
-                ? sku.originalPrice
-                : sku.originalPrice && sku.price && sku.price < sku.originalPrice
-                ? sku.originalPrice
-                : null;
+          <div
+            ref={scrollContainerRef}
+            className="flex space-x-4 md:space-x-0 md:flex-col md:space-y-5 overflow-x-auto md:overflow-visible pb-4 -mb-4 custom-scrollbar scroll-smooth scroll-p-4 sm:scroll-p-6 md:scroll-p-0 scroll-snap-x mandatory md:scroll-snap-none"
+          >
+            {visibleProducts.map((item) => {
+              const product = item.product || {};
+              const sku = item.sku || {};
+              const imageUrl = sku?.ProductMedia?.[0]?.mediaUrl || product.thumbnail || 'https://via.placeholder.com/150';
 
-            const isOnSale = !!salePrice;
-            const discountAmount = strikethroughPrice && displayPrice < strikethroughPrice
-              ? strikethroughPrice - displayPrice
-              : 0;
-            const discountPercent = discountAmount > 0
-              ? Math.round((discountAmount / strikethroughPrice) * 100)
-              : 0;
+              const originalPrice = sku.originalPrice ?? 0;
+              const currentPrice = sku.price ?? originalPrice;
+              const flashSalePrice = sku.flashSaleSkus?.[0]?.salePrice ?? null;
+              const displayPrice = flashSalePrice ?? currentPrice;
+              const strikethroughPrice = displayPrice < originalPrice ? originalPrice : null;
+              const isOnFlashSale = !!flashSalePrice;
+              const isOnSale = displayPrice < originalPrice;
+              const discountAmount = strikethroughPrice ? strikethroughPrice - displayPrice : 0;
+              const discountPercent = strikethroughPrice ? Math.round((discountAmount / strikethroughPrice) * 100) : 0;
 
-            return (
-              <div
-                key={`${item.productId}-${item.skuId}`}
-                className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 hover:shadow-md transition-all duration-200"
-              >
-                <div className="flex flex-col sm:flex-row items-start sm:items-center sm:gap-6">
-                  {/* Ảnh + mô tả */}
-                  <div className="flex-1 min-w-0 flex items-start gap-4">
-                    <Link to={`/product/${product.slug}?skuId=${item.skuId}`} className="flex-shrink-0">
-                      <img
-                        src={imageUrl}
-                        alt={product.name}
-                        className="w-20 h-20 sm:w-24 sm:h-24 object-cover border border-gray-200 rounded-md"
-                      />
-                    </Link>
-                    <div className="flex-grow pt-1">
-                      <Link to={`/product/${product.slug}?skuId=${item.skuId}`} className="group">
-                        <p className="text-base font-semibold text-gray-800 group-hover:text-primary transition-colors line-clamp-2">
-                          {product.name}
-                        </p>
-                      </Link>
-                      {item.variantText && (
-                        <p className="text-sm text-gray-500 mt-1">
-                          Phân loại: {item.variantText}
-                        </p>
-                      )}
-                      <div className="mt-2 sm:hidden">
-                        <div className="flex items-center gap-2">
-                          <p className="text-base text-primary font-bold">
-                            {formatCurrency(displayPrice)}
-                          </p>
-                          {isOnSale && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800 text-xs font-semibold">
-                              <Percent size={14} className="mr-1" /> Đang giảm giá
-                            </span>
-                          )}
-                        </div>
-                        {strikethroughPrice && (
-                          <p className="text-xs text-gray-500 line-through">
-                            {formatCurrency(strikethroughPrice)}
-                          </p>
-                        )}
-                        {discountAmount > 0 && (
-                          <p className="text-sm text-red-600 font-medium bg-red-50 inline-block px-2 py-1 rounded mt-1">
-                            Giảm {formatCurrency(discountAmount)} (-{discountPercent}%)
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Giá desktop */}
-                  <div className="hidden sm:block sm:w-48 text-right pr-4">
-                    <div className="flex items-center justify-end gap-2">
-                      <p className="text-lg text-primary font-bold">
-                        {formatCurrency(displayPrice)}
-                      </p>
-                      {isOnSale && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800 text-xs font-semibold">
-                          <Percent size={14} className="mr-1" /> Đang giảm giá
-                        </span>
-                      )}
-                    </div>
-                    {strikethroughPrice && (
-                      <p className="text-sm text-gray-500 line-through">
-                        {formatCurrency(strikethroughPrice)}
-                      </p>
-                    )}
-                    {discountAmount > 0 && (
-                      <p className="text-sm text-red-600 font-medium bg-red-50 inline-block px-2 py-1 rounded mt-1">
-                        Giảm {formatCurrency(discountAmount)} (-{discountPercent}%)
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Hành động */}
-                  <div className="w-full sm:w-auto flex items-center justify-end gap-2 mt-4 sm:mt-0">
+              return (
+                <div
+                  key={`${item.productId}-${item.skuId}`}
+                  className="flex-shrink-0 w-[85vw] sm:w-96 md:w-full bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 md:flex scroll-snap-start"
+                >
+                  <div className="relative p-4 flex flex-col md:flex-row items-stretch md:gap-6 w-full">
                     <button
                       onClick={() => handleRemoveItem(item.productId, item.skuId, product.name)}
-                      className="p-2 text-gray-500 hover:text-red-600 hover:bg-gray-100 rounded-full transition-colors"
+                      className="absolute top-2 right-2 z-10 p-2 text-gray-500 bg-white/50 backdrop-blur-sm rounded-full hover:text-red-600 hover:bg-gray-100 transition-all md:hidden"
                       title="Bỏ Yêu Thích"
                     >
                       <Trash2 size={20} />
                     </button>
-                    <button
-                      onClick={() => handleAddToCart(product.name)}
-                      className="flex items-center justify-center gap-2 bg-primary text-white font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition-opacity text-sm"
-                    >
-                      <ShoppingCart size={16} />
-                      <span>Thêm vào giỏ</span>
-                    </button>
+
+                    <div className="flex flex-1 items-start gap-4">
+                      <Link to={`/product/${product.slug}?skuId=${item.skuId}`} className="flex-shrink-0">
+                        <img
+                          src={imageUrl}
+                          alt={product.name}
+                          className="w-24 h-24 md:w-28 md:h-28 object-cover border border-gray-200 rounded-md"
+                        />
+                      </Link>
+                      <div className="flex-grow pt-1 min-w-0">
+                        <Link to={`/product/${product.slug}?skuId=${item.skuId}`} className="group">
+                          <h2 className="text-base md:text-lg font-semibold text-gray-800 group-hover:text-primary transition-colors line-clamp-2">
+                            <HighlightText text={product.name} highlight={searchTerm} />
+                          </h2>
+                        </Link>
+                        {item.variantText && (
+                          <div className="mt-2">
+                            <span className="inline-block bg-primary/10 text-primary text-xs font-semibold px-3 py-1 rounded-full">
+                              Phân loại: {item.variantText}
+                            </span>
+                          </div>
+                        )}
+                        <div className="mt-2 lg:hidden">
+                          <div className="flex items-baseline gap-2">
+                            <p className="text-lg text-primary font-bold">{formatCurrency(displayPrice)}</p>
+                            {strikethroughPrice && (
+                              <p className="text-sm text-gray-500 line-through">{formatCurrency(strikethroughPrice)}</p>
+                            )}
+                          </div>
+                          {isOnSale && (
+                            <div className="mt-1 flex flex-wrap items-center gap-2">
+                              {isOnFlashSale ? (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-red-100 text-red-800 text-xs font-semibold">
+                                  <Percent size={14} className="-ml-0.5 mr-1" />
+                                  Flash Sale
+                                </span>
+                              ) : (
+                                <span className="text-xs font-semibold text-orange-600 bg-orange-100 px-2 py-0.5 rounded-full">
+                                  Đang giảm giá
+                                </span>
+                              )}
+                              <span className="text-xs font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
+                                Giảm {discountPercent}%
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="hidden lg:flex flex-col justify-center items-end w-52">
+                      <p className="text-xl text-primary font-bold">{formatCurrency(displayPrice)}</p>
+                      {strikethroughPrice && <p className="text-base text-gray-500 line-through">{formatCurrency(strikethroughPrice)}</p>}
+                      {isOnSale && (
+                        <div className="mt-2 flex flex-col items-end gap-1">
+                          {isOnFlashSale ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-red-100 text-red-800 text-sm font-semibold">
+                              <Percent size={14} className="-ml-0.5 mr-1" /> Flash Sale
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-orange-100 text-orange-600 text-sm font-semibold">
+                              Đang giảm giá
+                            </span>
+                          )}
+                          <p className="text-sm text-red-600 font-medium bg-red-50 inline-block px-2 py-1 rounded">
+                            Tiết kiệm {formatCurrency(discountAmount)} (-{discountPercent}%)
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="w-full md:w-auto flex items-center justify-between md:justify-end gap-3 mt-4 md:mt-0 pt-4 md:pt-0 border-t md:border-none">
+                      <button
+                        onClick={() => handleAddToCart(product.name)}
+                        className="w-full flex items-center justify-center gap-2 bg-primary text-white font-semibold px-4 py-2.5 rounded-lg hover:opacity-90 transition-opacity text-sm"
+                      >
+                        <ShoppingCart size={18} />
+                        <span>Thêm vào giỏ</span>
+                      </button>
+                      <button
+                        onClick={() => handleRemoveItem(item.productId, item.skuId, product.name)}
+                        className="p-2 text-gray-500 hover:text-red-600 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0 hidden md:flex"
+                        title="Bỏ Yêu Thích"
+                      >
+                        <Trash2 size={22} />
+                      </button>
+                    </div>
                   </div>
                 </div>
+              );
+            })}
+
+            {/* 👇 Thêm nút xem thêm/thu gọn bên ngoài map */}
+            {favoriteProducts.length > 5 && (
+              <div className="text-center mt-6">
+                <button
+                  onClick={() => setExpanded(!expanded)}
+                  className="inline-flex items-center justify-center text-primary font-medium hover:underline text-sm transition-all"
+                >
+                  {expanded ? 'Thu gọn ▲' : 'Xem thêm ▼'}
+                </button>
               </div>
-            );
-          })}
+            )}
+          </div>
         </div>
       )}
     </div>
