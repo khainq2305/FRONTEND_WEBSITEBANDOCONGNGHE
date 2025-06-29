@@ -54,6 +54,12 @@ const CategoryEdit = Loadable(lazy(() => import('pages/Admin/CaterogyProduct/Cat
 const NotificationPage = Loadable(lazy(() => import('pages/Admin/Notification')));
 const UserDetailPage = Loadable(lazy(() => import('pages/Admin/User/UserDetailDialog')));
 
+// SEO Components
+const SEOManager = Loadable(lazy(() => import('components/admin/SEOManager/SEOManager')));
+const PostSEOManager = Loadable(lazy(() => import('components/admin/PostSEOManager/PostSEOManager')));
+const PostSEOManagerSimple = Loadable(lazy(() => import('components/admin/PostSEOManager/PostSEOManagerSimple')));
+const PostSEOManagerBeautiful = Loadable(lazy(() => import('components/admin/PostSEOManager/PostSEOManagerBeautiful')));
+
 const AdminRoutes = {
   path: '/admin',
   element: <DashboardLayout />,
@@ -237,6 +243,27 @@ const AdminRoutes = {
       path: 'product-question',
       element: <ProductQuestion />
     },
+    
+    // SEO Routes
+    {
+      path: 'seo',
+      children: [
+        { index: true, element: <SEOManager /> },
+        { path: 'reports', element: <SEOManager /> },
+        { path: 'posts', element: <PostSEOManager /> } // Redirect seo/posts to PostSEOManager
+      ]
+    },
+    
+    // Post SEO Routes
+    {
+      path: 'post-seo',
+      children: [
+        { index: true, element: <PostSEOManagerBeautiful /> },
+        { path: 'manage', element: <PostSEOManager /> },
+        { path: 'simple', element: <PostSEOManagerSimple /> }
+      ]
+    },
+    
     {
       path: '*',
       element: <NotFound />

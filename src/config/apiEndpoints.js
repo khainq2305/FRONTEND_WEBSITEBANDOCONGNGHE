@@ -1,5 +1,7 @@
 import { API_BASE_URL } from '../constants/environment';
 
+export const CLOUDINARY_BASE_URL = 'https://res.cloudinary.com';
+
 export const API_ENDPOINT = {
   client: {
     auth: {
@@ -83,6 +85,8 @@ export const API_ENDPOINT = {
       base: `${API_BASE_URL}/tin-noi-bat`,
       featurePost: '',
       byCategory: '/theo-danh-muc',
+      getBySlug: (slug) => `/${slug}`,
+      getRelated: '/bai-viet-lien-quan',
       calculateFee: '/calculate-fee'
     },
     wishlist: {
@@ -106,14 +110,6 @@ export const API_ENDPOINT = {
       create: '/create',
       getBySku: (id) => `/sku/${id}`,
       check: (skuId) => `/check/${skuId}`
-    },
-    news: {
-      base: `${API_BASE_URL}/tin-noi-bat`,
-      featurePost: '',
-      byCategory: '/theo-danh-muc',
-      getBySlug: '',
-      getRelated: '/bai-viet-lien-quan',
-      calculateFee: '/calculate-fee'
     },
      notification: {
       base: `${API_BASE_URL}/admin/notifications`,
@@ -311,6 +307,16 @@ export const API_ENDPOINT = {
       forceDelete: '/force-delete',
       restore: '/restore',
       updateOrder: '/update-order'
+    },
+    seo: {
+      config: `${API_BASE_URL}/admin/seo/config`,
+      reports: `${API_BASE_URL}/admin/seo/reports`
+    },
+    postSEO: {
+      base: `${API_BASE_URL}/admin/post-seo`,
+      posts: `${API_BASE_URL}/admin/post-seo/posts`,
+      postsWithoutSEO: `${API_BASE_URL}/admin/post-seo/posts-without-seo`,
+      stats: `${API_BASE_URL}/admin/post-seo/stats`
     }
   }
 };

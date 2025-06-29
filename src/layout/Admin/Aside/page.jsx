@@ -8,7 +8,9 @@ import {
   MessageOutlined,
   AppstoreOutlined,
   CommentOutlined,
-  GiftOutlined
+  GiftOutlined,
+  SearchOutlined,
+  BarChartOutlined
 } from '@ant-design/icons';
 
 // icons
@@ -21,7 +23,9 @@ const icons = {
   FileTextOutlined,
   TagsOutlined,
   CommentOutlined,
-  GiftOutlined
+  GiftOutlined,
+  SearchOutlined,
+  BarChartOutlined
 };
 
 const pages = [
@@ -241,6 +245,38 @@ const pages = [
         type: 'item',
         url: '/admin/notifications/create',
         icon: icons.FileTextOutlined,
+        breadcrumbs: false
+      }
+    ]
+  },
+  {
+    id: 'seo-section',
+    title: 'SEO & Marketing',
+    type: 'collapse',
+    icon: icons.SearchOutlined,
+    children: [
+      {
+        id: 'seo-analyzer',
+        title: 'SEO Analyzer',
+        type: 'item',
+        url: '/admin/seo',
+        icon: icons.BarChartOutlined,
+        breadcrumbs: false
+      },
+      {
+        id: 'post-seo-manager',
+        title: 'Post SEO Manager',
+        type: 'item',
+        url: '/admin/post-seo',
+        icon: icons.FileTextOutlined,
+        breadcrumbs: false
+      },
+      {
+        id: 'seo-reports',
+        title: 'SEO Reports',
+        type: 'item',
+        url: '/admin/seo/reports',
+        icon: icons.TableOutlined,
         breadcrumbs: false
       }
     ]

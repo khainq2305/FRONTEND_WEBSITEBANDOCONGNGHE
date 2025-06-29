@@ -14,8 +14,8 @@ export const newsSevice = {
         return get(`${base}${API_ENDPOINT.client.news.byCategory}/${slug}?limit=${limit}`);
     },
     getBySlug: (slug) => {
-        console.log(`API lấy bài viết nè: ${base}${API_ENDPOINT.client.news.getBySlug}/${slug}`);
-        return get(`${base}${API_ENDPOINT.client.news.getBySlug}/${slug}`);    
+        console.log(`API lấy bài viết nè: ${base}${API_ENDPOINT.client.news.getBySlug(slug)}`);
+        return get(`${base}${API_ENDPOINT.client.news.getBySlug(slug)}`);    
     },
     getRelated: (slug) => {
         console.log(`API lấy bài viết lliên quan: ${base}${API_ENDPOINT.client.news.getRelated}/${slug}`);

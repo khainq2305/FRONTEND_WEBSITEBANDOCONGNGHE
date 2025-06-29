@@ -14,7 +14,7 @@ const ClientLayout = () => {
 
   const isAuthPage = [
     '/dang-nhap',
-    '/dang-ky',
+    '/dang-ky', 
     '/quen-mat-khau',
     '/dat-lai-mat-khau',
     '/otp-verification',
