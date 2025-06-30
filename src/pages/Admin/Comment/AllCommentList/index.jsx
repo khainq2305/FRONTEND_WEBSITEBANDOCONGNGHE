@@ -103,21 +103,28 @@ const AllCommentList = () => {
     setReplyDialogOpen(true);
   };
 
-  const handleReplySubmit = async () => {
-    if (!dialogReplyText.trim()) return toast.warning('Vui lòng nhập nội dung phản hồi.');
-    try {
-      await reviewService.reply(selectedComment.id, {
-        reply: dialogReplyText,
-        repliedBy: currentUser?.fullName
-      });
-      toast.success('Phản hồi thành công!');
-      setReplyDialogOpen(false);
-      setSelectedComment(null);
-      await fetchReviews();
-    } catch {
-      toast.error('Phản hồi thất bại');
-    }
-  };
+const handleReplySubmit = async () => {
+  if (!dialogReplyText.trim()) {
+    return toast.warning('Vui lòng nhập nội dung phản hồi.');
+  }
+
+  console.log('✅ currentUser:', currentUser);
+  console.log('✅ currentUser.fullName:', currentUser?.fullName);
+  console.log('✅ dialogReplyText:', dialogReplyText);
+
+  try {
+    await reviewService.reply(selectedComment.id, {
+      reply: dialogReplyText,
+      repliedBy: currentUser?.fullName
+    });
+    toast.success('Phản hồi thành công!');
+    setReplyDialogOpen(false);
+    setSelectedComment(null);
+    await fetchReviews();
+  } catch {
+    toast.error('Phản hồi thất bại');
+  }
+};
 
   const handleViewDetail = (item) => {
     setSelectedComment(item);

@@ -25,7 +25,10 @@ const NewsCategoryEdit = Loadable(lazy(() => import('pages/Admin/News/CategoryEd
 const ProductAddPage = Loadable(lazy(() => import('pages/Admin/Product/ProductAddPage')));
 const VariantValueList = Loadable(lazy(() => import('pages/Admin/VariantValue/index.jsx')));
 const VariantValueForm = Loadable(lazy(() => import('pages/Admin/VariantValue/VariantValueForm')));
-const AllCommentList = Loadable(lazy(() => import('pages/Admin/Comment/AllCommentList')));
+
+
+const AdminReviewsPage = Loadable(lazy(() => import('pages/Admin/Comment/AdminReviewsPage')));
+
 const ProductListPage = Loadable(lazy(() => import('pages/Admin/Product')));
 const VariantList = Loadable(lazy(() => import('pages/Admin/ProductVariants')));
 const VariantForm = Loadable(lazy(() => import('pages/Admin/ProductVariants/VariantForm')));
@@ -252,7 +255,7 @@ const AdminRoutes = {
     { path: 'quan-ly-vai-tro/danh-sach-vai-tro', element: <RoleManagement /> },
     {
       path: 'comments/all',
-      element: <AllCommentList />
+      element: <AdminReviewsPage/>
     },
 
     {
@@ -269,7 +272,11 @@ const AdminRoutes = {
     {
       path: '*',
       element: <NotFound />
-    }
+    },
+
+
+
+
   ]
 };
 
