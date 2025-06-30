@@ -109,7 +109,11 @@ const NotificationDropdown = ({ isOpen, notifications = [], onClose, setNotifica
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
   };
 
-  const filteredNotifications = notifications?.filter((n) => (activeTab === 'order' ? n.type === 'order' : true)) || [];
+const filteredNotifications = notifications?.filter((n) => {
+  if (activeTab === 'order') return n.type === 'order';
+  if (activeTab === 'promotion') return n.type === 'promotion';
+  return true;
+}) || [];
 
   return (
     <div className="absolute top-full right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-40 flex flex-col has-arrow-up">
@@ -138,8 +142,9 @@ const NotificationDropdown = ({ isOpen, notifications = [], onClose, setNotifica
               activeTab === 'all' ? 'bg-secondary text-gradient border-secondary' : 'text-gray-600 hover:bg-gray-100 border-gray-200'
             }`}
           >
-            Tất cả {unreadCount > 0 && `(${unreadCount})`}
+Tất cả {notifications.length > 0 && `(${notifications.length})`}
           </button>
+
           <button
             onClick={() => setActiveTab('order')}
             className={`px-3 py-1.5 rounded-full border ${
@@ -148,6 +153,17 @@ const NotificationDropdown = ({ isOpen, notifications = [], onClose, setNotifica
           >
             Đơn hàng{' '}
             {notifications.filter((n) => n.type === 'order').length > 0 && `(${notifications.filter((n) => n.type === 'order').length})`}
+          </button>
+
+          <button
+            onClick={() => setActiveTab('promotion')}
+            className={`px-3 py-1.5 rounded-full border ${
+              activeTab === 'promotion' ? 'bg-secondary text-gradient border-secondary' : 'text-gray-600 hover:bg-gray-100 border-gray-200'
+            }`}
+          >
+            Khuyến mãi{' '}
+            {notifications.filter((n) => n.type === 'promotion').length > 0 &&
+              `(${notifications.filter((n) => n.type === 'promotion').length})`}
           </button>
         </div>
       </div>

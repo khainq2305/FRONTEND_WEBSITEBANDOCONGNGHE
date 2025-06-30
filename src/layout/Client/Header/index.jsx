@@ -406,7 +406,14 @@ const Header = () => {
                   aria-haspopup="true"
                   aria-expanded={isNotificationDropdownOpen}
                 >
-                    <Bell className="w-6 h-6" strokeWidth={1.5} color="#fff" />
+<div className="relative">
+  <Bell className="w-6 h-6" strokeWidth={1.5} color="#fff" />
+  {unreadCount > 0 && (
+    <span className="absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold shadow-md z-10">
+      {unreadCount > 9 ? '9+' : unreadCount}
+    </span>
+  )}
+</div>
                     <span className="text-white text-[10px] font-medium leading-tight mt-1">Thông báo</span>
                   </button>
                   {isNotificationDropdownOpen && (
