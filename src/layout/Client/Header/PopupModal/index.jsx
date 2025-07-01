@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import logo from '@/assets/Client/images/Logo/snapedit_1749613755235 1.png';
+
 
 const ANIMATION_DURATION_MS = 300;
 import logo from '@/assets/Client/images/Logo/snapedit_1749613755235 1.png';

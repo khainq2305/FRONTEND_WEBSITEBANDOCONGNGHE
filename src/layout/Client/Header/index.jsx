@@ -27,7 +27,7 @@ const Header = () => {
   const unreadCount = notifications.filter((n) => !n.isRead).length;
   const [isSticky, setIsSticky] = useState(false);
   const { settings } = useSystemSetting() || {};
-  const logoSrc = settings?.siteLogo || '/default-logo.png';
+  const logoSrc = settings?.site_logo || '/default-logo.png';
   const sentinelRef = useRef(null);
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(true);
   const accountDropdownTimerRef = useRef(null);
@@ -313,66 +313,52 @@ const Header = () => {
       {isCategoriesLoading && <Loader fullscreen={true} />}
       <div ref={sentinelRef} style={{ height: '1px', position: 'absolute', top: '0' }}></div>
 
-      <div className="sticky top-0 z-30">
+      <div className="sticky top-0 z-30 ">
         <header className="bg-primary-gradient text-white w-full relative">
-          {/* Mobile Header */}
           <div className="lg:hidden">
             <div className="flex justify-center items-center pt-2.5 pb-1.5 px-4">
               <Link to="/">
                 <img src={logoSrc} alt="Logo" className="h-15 w-auto max-w-[400px]" />
               </Link>
             </div>
-
-            <div className="flex items-center gap-x-2 px-3 pb-2.5">
-              <button
-                className="p-1 text-white flex-shrink-0 -ml-1"
-                onClick={toggleMobilePanel}
-                aria-label="Mở danh mục"
-              >
+            <div className="flex items-center gap-x-2 px-3 pb-2.5 pt-0">
+              <button className="p-1 text-white flex-shrink-0 -ml-1" onClick={toggleMobilePanel} aria-label="Mở danh mục">
                 <LayoutGrid className="w-6 h-6" strokeWidth={2} />
               </button>
               <div className="flex-grow mx-1">
-                <div className="flex items-center bg-white text-gray-600 pl-3 pr-1 py-1 h-[36px] rounded-lg shadow-sm">
+                <div className="flex items-center bg-white text-gray-600 pl-3 pr-1 py-1 h-[36px] rounded-lg w-full shadow-sm">
                   <input
                     type="text"
                     placeholder="Tìm kiếm..."
                     className="flex-1 text-[13px] outline-none bg-transparent placeholder-gray-400"
                   />
-                  <button className="flex items-center justify-center w-[28px] h-[28px] bg-primary rounded-full transition hover:opacity-90 ml-1 flex-shrink-0">
-                    <Search className="w-4 h-4 text-white" strokeWidth={2.5} />
+                  <button className="flex items-center justify-center w-[28px] h-[28px] hover-secondary bg-primary rounded-full transition ml-1 flex-shrink-0">
+                    <Search style={{ color: 'var(--text-primary)' }} strokeWidth={2.5} className="w-4 h-4" />
                   </button>
                 </div>
               </div>
-              <button className="p-1 text-white">
-                <ShoppingCart className="w-6 h-6" strokeWidth={1.8} />
-              </button>
+              <div className="flex items-center gap-x-1 flex-shrink-0">
+                <button className="p-1 text-white">
+                  <ShoppingCart className="w-6 h-6" strokeWidth={1.8} />
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Desktop Header */}
+          {/* Desktop View */}
           <div className="hidden lg:block relative">
             <div className="flex justify-between items-center max-w-[1200px] h-[80px] mx-auto py-2 px-4">
-              {/* Logo + Danh mục */}
               <div className="flex items-center gap-4 flex-shrink-0">
                 <Link to="/">
                   <img src={logoSrc} alt="Logo" className="h-18 w-auto max-w-[700px]" />
                 </Link>
-                <div
-                  className="relative"
-                  onMouseEnter={handleMenuEnter}
-                  onMouseLeave={handleMenuLeave}
-                >
+                <div className="relative" onMouseEnter={handleMenuEnter} onMouseLeave={handleMenuLeave}>
                   <button
                     type="button"
-                    className={`flex items-center gap-2 px-3 py-2.5 rounded-lg transition ${isCategoryMenuOpen
-                        ? 'bg-white text-primary rounded-t-lg shadow-md pb-4'
-                        : 'bg-white/20 hover:bg-white/30 text-white'
-                      }`}
+                    className={`flex items-center gap-2 px-3 py-2.5 transition-all duration-150 ease-in-out ${isCategoryMenuOpen ? 'bg-white text-primary rounded-t-lg shadow-md pb-4' : 'bg-white/20 hover:bg-white/30 text-white rounded-lg'}`}
                   >
-                    <LayoutGrid className={`w-5 h-5 ${isCategoryMenuOpen ? 'text-primary' : 'text-white'}`} />
-                    <span className="text-sm font-semibold">
-                      Danh mục
-                    </span>
+                    <LayoutGrid className={`w-5 h-5 stroke-[1.8px] ${isCategoryMenuOpen ? 'text-primary' : 'text-white'}`} />
+                    <span className={`text-sm font-semibold ${isCategoryMenuOpen ? 'text-primary' : 'text-white'}`}>Danh mục</span>
                   </button>
                   <CategoryMenu
                     topLevelCategories={topLevelDesktopCategories}
@@ -381,31 +367,25 @@ const Header = () => {
                   />
                 </div>
               </div>
-
-              {/* Search Bar */}
               <div className="flex-1 mx-4">
-                <div className="relative flex items-center bg-white text-gray-600 px-3 h-[40px] rounded-full shadow-sm max-w-[600px] mx-auto">
+                <div className="relative flex items-center bg-white text-gray-600 px-3 h-[40px] rounded-full w-full max-w-[600px] mx-auto shadow-sm">
                   <input
                     type="text"
                     placeholder="Siêu phẩm Samsung Galaxy S25"
                     className="flex-1 text-sm outline-none bg-transparent pr-10"
                   />
-                  <button className="absolute right-[4px] top-1/2 -translate-y-1/2 flex items-center justify-center w-[36px] h-[36px] bg-primary rounded-full transition hover:opacity-90">
-                    <Search className="w-5 h-5 text-white" strokeWidth={2} />
+                  <button className="absolute right-[4px] top-1/2 -translate-y-1/2 flex items-center justify-center w-[36px] h-[36px] rounded-full bg-primary transition hover-secondary">
+                    <Search style={{ color: 'var(--text-primary)' }} strokeWidth={2} className="w-5 h-5 transition-all" />
                   </button>
                 </div>
               </div>
-
-              {/* Action buttons */}
               <div className="flex items-center gap-3 flex-shrink-0">
-                <Link to="/orderlookup">
-                  <button className="flex flex-col items-center gap-1 px-2 py-2 rounded-lg hover:opacity-90">
-                    <FileSearch className="w-6 h-6 text-white" strokeWidth={1.5} />
-                    <span className="text-white text-[11px] font-semibold">Tra cứu đơn hàng</span>
+                <Link to="orderlookup">
+                  <button className="flex flex-col items-center gap-1 px-2 py-2 rounded-lg hover-primary transition-all">
+                    <FileSearch className="w-6 h-6" strokeWidth={1.5} color="#fff" />
+                    <span className="text-white text-[11px] font-semibold leading-tight text-center">Tra cứu đơn hàng</span>
                   </button>
                 </Link>
-
-                {/* Thông báo */}
                 <div
                   className="relative"
                   onMouseEnter={handleNotificationEnter}
@@ -413,11 +393,11 @@ const Header = () => {
                   ref={notificationButtonRef}
                 >
                   <button
-                    className="flex flex-col items-center p-2 rounded-lg hover:opacity-90 w-[70px] h-[56px]"
+                    className="flex flex-col items-center justify-center p-2 rounded-lg hover-primary transition-all text-center w-[70px] h-[56px]"
                     onClick={handleNotificationToggle}
                   >
                     <span className="relative">
-                      <Bell className="w-6 h-6 text-white" strokeWidth={1.5} />
+                      <Bell className="w-6 h-6" strokeWidth={1.5} color="#fff" />
                       {unreadCount > 0 && (
                     <span
   className="
@@ -430,10 +410,12 @@ const Header = () => {
 
                       )}
                     </span>
-                    <span className="text-white text-[10px] font-medium mt-1">Thông báo</span>
+
+                    <span className="text-white text-[10px] font-medium leading-tight mt-1">Thông báo</span>
                   </button>
+
                   {isNotificationDropdownOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-lg z-50">
+                    <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-lg z-50 transition-transform duration-200 ease-in-out">
                       <NotificationDropdown
                         isOpen={isNotificationDropdownOpen}
                         notifications={notifications}
@@ -445,42 +427,41 @@ const Header = () => {
                   )}
                 </div>
 
-                {/* Giỏ hàng */}
-                <Link to="/cart" className="relative flex flex-col items-center gap-1 px-2 py-2 rounded-lg hover:opacity-90">
+                <Link to="/cart" className="relative flex flex-col items-center gap-1 px-2 py-2 rounded-lg hover-primary transition-all">
                   <div className="relative">
-                    <ShoppingCart className="w-6 h-6 text-white" strokeWidth={1.8} />
+                    <ShoppingCart className="w-6 h-6" strokeWidth={1.8} color="#fff" />
                     {cartItemCount > 0 && (
-                      <span className="absolute -top-1.5 -right-2 bg-red-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                      <span className="absolute -top-1.5 -right-2 bg-red-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold shadow-md">
                         {cartItemCount}
                       </span>
                     )}
                   </div>
-                  <span className="text-white text-[11px] font-semibold">Giỏ hàng</span>
+                  <span className="text-white text-[11px] font-semibold leading-tight text-center">Giỏ hàng</span>
                 </Link>
-
-                {/* Account */}
                 <div
                   className="hidden lg:block relative"
                   onMouseEnter={handleAccountDropdownEnter}
                   onMouseLeave={handleAccountDropdownLeave}
                 >
                   {userInfo ? (
-                    <div className="flex items-center gap-2 cursor-pointer p-2 rounded-lg bg-primary hover:opacity-90">
+                    <div className="flex items-center gap-2 cursor-pointer p-2 bg-primary rounded-lg transition-colors duration-150">
                       {userInfo?.avatarUrl ? (
                         <img src={userInfo.avatarUrl} alt="Avatar" className="w-8 h-8 rounded-full object-cover" />
-                      ) : (
+                      ) : userInfo?.fullName ? (
                         <div className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center text-sm font-semibold">
-                          {userInfo?.fullName?.charAt(0).toUpperCase() || 'A'}
+                          {userInfo.fullName.charAt(0).toUpperCase()}
                         </div>
+                      ) : (
+                        <CircleUserRound className="w-8 h-8 text-white" strokeWidth={1.5} />
                       )}
-                      <span className="text-sm font-semibold">{getDisplayName(userInfo?.fullName)}</span>
+                      <span className="text-sm font-semibold">{userInfo?.fullName ? getDisplayName(userInfo.fullName) : 'Tài khoản'}</span>
                     </div>
                   ) : (
                     <button
                       onClick={toggleLoginPopup}
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/40 hover:opacity-90"
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg hover-primary bg-white/40 transition"
                     >
-                      <CircleUserRound className="w-6 h-6 text-white" strokeWidth={1.5} />
+                      <CircleUserRound className="w-6 h-6" strokeWidth={1.5} color="#fff" />
                       <span className="text-sm font-semibold">Tài khoản</span>
                     </button>
                   )}
@@ -488,23 +469,31 @@ const Header = () => {
                     <div
                       ref={dropdownRef}
                       className="absolute right-0 mt-2 w-38 bg-white rounded-md shadow-xl z-50 text-gray-800 text-sm"
+                      onMouseEnter={handleAccountDropdownEnter}
+                      onMouseLeave={handleAccountDropdownLeave}
                     >
-                      <div className="absolute -top-2 right-5 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[8px] border-b-white"></div>
+                      <div className="absolute -top-2 right-5 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[8px] border-b-white"></div>
                       <ul className="py-1">
                         <li>
-                          <Link to="/user-profile" className="block px-4 py-2.5 hover:bg-primary hover:text-white">
+                          <Link
+                            to="/user-profile"
+                            className="block px-4 py-2.5 text-gray-700 hover-primary hover:text-white transition-colors duration-150"
+                          >
                             Tài Khoản Của Tôi
                           </Link>
                         </li>
                         <li>
-                          <Link to="/user-profile#quan-ly-don-hang" className="block px-4 py-2.5 hover:bg-primary hover:text-white">
+                          <Link
+                            to="/user-profile#quan-ly-don-hang"
+                            className="block px-4 py-2.5 text-primary-focus hover-primary hover:text-white transition-colors duration-150"
+                          >
                             Đơn Mua
                           </Link>
                         </li>
                         <li>
                           <button
                             onClick={handleLogout}
-                            className="block w-full text-left px-4 py-2.5 hover:bg-primary hover:text-white"
+                            className="block w-full text-left px-4 py-2.5 text-gray-700 hover-primary hover:text-white transition-colors duration-150"
                           >
                             Đăng Xuất
                           </button>
@@ -520,7 +509,6 @@ const Header = () => {
 
         <FeatureBar isSticky={isSticky} />
       </div>
-
 
       <Overlay isOpen={isMobilePanelOpen} onClick={toggleMobilePanel} />
       <MobileCategoryPanel isOpen={isMobilePanelOpen} onClose={toggleMobilePanel} categories={mobileCategoryTree} />
