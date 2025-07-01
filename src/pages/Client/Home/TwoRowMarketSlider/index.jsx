@@ -9,7 +9,8 @@ import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
 import CountdownTimer from './CountdownTimer';
 
-const InlinedProductCard = ({ id, slug, name, price, oldPrice, discount, image, rating, soldCount, inStock, badge, quantity }) => {
+const InlinedProductCard = ({ id, slug, name, price, oldPrice, discount,badgeImage, image, rating, soldCount, inStock, badge, quantity }) => {
+  
   const renderStars = (rate) => {
     const stars = [];
     const numRating = parseFloat(rate);
@@ -40,10 +41,10 @@ const InlinedProductCard = ({ id, slug, name, price, oldPrice, discount, image, 
     }
 
     const badgeImageMap = {
-      'GIAO NHANH': '/images/badges/Giao-Nhanh.webp',
-      'THU CŨ ĐỔI MỚI': '/images/badges/TCDM.webp',
-      'TRẢ GÓP 0%': '/images/badges/Tra-Gop-0.webp',
-      'GIÁ TỐT': '/images/badges/Bestprice.gif'
+      'GIAO NHANH': 'src/assets/Client/images/1717405144807-Left-Tag-Giao-Nhanh.webp',
+      'THU CŨ ĐỔI MỚI': 'src/assets/Client/images/1740550907303-Left-tag-TCDM (1).webp',
+      'TRẢ GÓP 0%': 'src/assets/Client/images/1717405144808-Left-Tag-Tra-Gop-0.webp',
+      'GIÁ TỐT': 'src/assets/Client/images/1732077440142-Left-tag-Bestprice-0.gif'
     };
     const upperCaseBadge = badge.toUpperCase();
     let imageUrl = null;
@@ -83,6 +84,17 @@ const InlinedProductCard = ({ id, slug, name, price, oldPrice, discount, image, 
           className={`max-h-full max-w-full object-contain group-hover/productCard:scale-105 transition-all duration-300 ${!inStock ? 'opacity-40' : ''}`}
           loading="lazy"
         />
+      
+{badgeImage && (
+  <img
+    src={badgeImage}
+    alt="badge overlay"
+    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
+                w-[205px] h-[180px] pointer-events-none select-none z-20"
+    loading="lazy"
+  />
+)}
+
         {!inStock && (
           <div className="absolute inset-0 bg-white/10 flex items-center justify-center">
             <div className="border-2 border-red-400 rounded-md px-4 py-1 -rotate-12 transform">

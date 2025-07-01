@@ -2,109 +2,192 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Slider from 'react-slick';
 
+// Import các ảnh badge trực tiếp từ assets
+import giaoNhanhImg from '@/assets/Client/images/1717405144807-Left-Tag-Giao-Nhanh.webp';
+import thuCuDoiMoiImg from '@/assets/Client/images/1740550907303-Left-tag-TCDM (1).webp';
+import traGopImg from '@/assets/Client/images/1717405144808-Left-Tag-Tra-Gop-0.webp';
+import giaTotImg from '@/assets/Client/images/1732077440142-Left-tag-Bestprice-0.gif';
+
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import './RelatedProductsSlider.css';
-
+import './RelatedProductsSlider.css'; // Đảm bảo file CSS này tồn tại nếu bạn có các style riêng
+import { Link } from 'react-router-dom';
 import { productService } from '../../../../services/client/productService'; 
-import useFavorites from '../../../../hooks/useFavorites';
+// import useFavorites from '../../../../hooks/useFavorites'; // Đã bỏ vì không dùng nút yêu thích
 import { formatCurrencyVND } from '../../../../utils/formatCurrency';
 import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
-import { HeartIcon, ArrowPathIcon as CompareIcon } from '@heroicons/react/24/outline';
-import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
 
-const badgeImageMap = {
-  'GIAO NHANH': 'src/assets/Client/images/1717405144807-Left-Tag-Giao-Nhanh.webp',
-  'THU CŨ ĐỔI MỚI': 'src/assets/Client/images/1740550907303-Left-tag-TCDM (1).webp',
-  'TRẢ GÓP 0%': 'src/assets/Client/images/1717405144808-Left-Tag-Tra-Gop-0.webp',
-  'GIÁ TỐT': 'src/assets/Client/images/1732077440142-Left-tag-Bestprice-0.gif',
+// Cố định map các badge image ở ngoài component để tránh re-render không cần thiết
+const BADGE_IMAGE_MAP = {
+  'GIAO NHANH': giaoNhanhImg,
+  'THU CŨ ĐỔI MỚI': thuCuDoiMoiImg,
+  'TRẢ GÓP 0%': traGopImg,
+  'GIÁ TỐT': giaTotImg,
 };
 
-const InlinedProductCard = ({
-  id, name, price, oldPrice, discount, image,
-  rating, soldCount, inStock, badge,
-  onAddToFavorites, onCompare, isFavorite
-}) => {
-  const renderStars = rate => {
-    const stars = [];
-    const num = parseFloat(rate);
-    if (isNaN(num) || num <= 0) return <div className="h-[14px] sm:h-[16px]" />;
-    for (let i = 1; i <= 5; i++) {
-      if (num >= i) stars.push(<FaStar key={i} className="text-yellow-400 text-[10.5px] sm:text-[11.5px]" />);
-      else if (num >= i - 0.5) stars.push(<FaStarHalfAlt key={i} className="text-yellow-400 text-[10.5px] sm:text-[11.5px]" />);
-      else stars.push(<FaRegStar key={i} className="text-yellow-400 text-[10.5px] sm:text-[11.5px]" />);
-    }
-    return <div className="flex gap-px sm:gap-0.5">{stars}</div>;
-  };
+// Hàm render badge đã được chỉnh sửa để tương đồng với FreshProductSlider
+const renderBadge = (badge) => {
+  if (!badge) {
+    return <div className="mb-2 h-[28px]"></div>; // Giữ khoảng trống nếu không có badge
+  }
 
-  const badgeUrl = badgeImageMap[badge?.toUpperCase()] || null;
+  const upperCaseBadge = badge.toUpperCase();
+  let imageUrl = null;
+
+  if (upperCaseBadge.includes('GIAO NHANH')) imageUrl = BADGE_IMAGE_MAP['GIAO NHANH'];
+  else if (upperCaseBadge.includes('THU CŨ')) imageUrl = BADGE_IMAGE_MAP['THU CŨ ĐỔI MỚI'];
+  else if (upperCaseBadge.includes('TRẢ GÓP')) imageUrl = BADGE_IMAGE_MAP['TRẢ GÓP 0%'];
+  else if (upperCaseBadge.includes('GIÁ TỐT') || upperCaseBadge.includes('BEST PRICE'))
+    imageUrl = BADGE_IMAGE_MAP['GIÁ TỐT'];
+
+  if (imageUrl) {
+    return (
+      <div className="flex justify-start items-center mb-2 h-[28px]">
+        <img src={imageUrl} alt={`Huy hiệu ${badge}`} className="h-[24px] object-contain" loading="lazy" />
+      </div>
+    );
+  }
+
+  return <div className="mb-2 h-[28px]"></div>; // Vẫn giữ khoảng trống nếu badge không match
+};
+
+// Hàm render sao được giữ nguyên, đảm bảo đồng nhất
+const renderStars = (rate, productId) => { // Thêm productId để key duy nhất
+  const stars = [];
+  const numRating = parseFloat(rate);
+  if (isNaN(numRating) || numRating <= 0) return <div className="h-[14px] sm:h-[16px] w-auto"></div>; // Đảm bảo chiều cao
+  for (let i = 1; i <= 5; i++) {
+    if (numRating >= i)
+      stars.push(<FaStar key={`star-${i}-${productId}`} className="text-yellow-400 text-[10.5px] sm:text-[11.5px]" />);
+    else if (numRating >= i - 0.5)
+      stars.push(<FaStarHalfAlt key={`half-${i}-${productId}`} className="text-yellow-400 text-[10.5px] sm:text-[11.5px]" />);
+    else
+      stars.push(<FaRegStar key={`empty-${i}-${productId}`} className="text-yellow-400 text-[10.5px] sm:text-[11.5px]" />);
+  }
+  return stars;
+};
+
+// Hàm parsePrice để xử lý định dạng giá nếu cần
+const parsePrice = (priceString) => {
+  if (typeof priceString === 'number') return priceString;
+  if (typeof priceString === 'string') {
+    return parseFloat(priceString.replace(/\./g, '').replace(',', '.'));
+  }
+  return 0;
+};
+
+// Component InlinedProductCard đã được đồng nhất UI và bỏ nút yêu thích/so sánh
+const InlinedProductCard = ({
+  id, name, price, slug, oldPrice, discount, image,
+  rating, soldCount, inStock, badge, badgeImage,
+}) => {
+  // Lấy giá trị số của giá hiện tại và giá cũ
+  const currentPriceNum = parsePrice(price);
+  const oldPriceNum = oldPrice ? parsePrice(oldPrice) : 0;
+
+  // Quyết định ảnh overlay: ưu tiên badgeImage, sau đó đến badge từ BADGE_IMAGE_MAP
+  const overlaySrc = badgeImage || BADGE_IMAGE_MAP[badge?.toUpperCase()] || null;
 
   return (
-    <div className="product-card-item flex flex-col border rounded-lg shadow-sm bg-white overflow-hidden relative group hover:shadow-md transition-shadow">
-      {discount != null && (
-        <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded z-10">
-          -{discount}%
-        </div>
-      )}
-      {badgeUrl && (
-        <img
-          src={badgeUrl}
-          alt={badge}
-          className="absolute top-2 right-2 w-6 h-6 object-contain z-10"
-        />
-      )}
-      <a href={`/product/${id}`} className="block h-40 flex items-center justify-center p-2">
-        <img
-          src={image}
-          alt={name}
-          className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105"
-          loading="lazy"
-        />
-      </a>
-      <div className="p-2 flex flex-col flex-grow">
-        <h3 className="text-sm font-semibold text-gray-800 mb-1 line-clamp-2 group-hover:text-blue-600 transition-colors">
-          <a href={`/product/${id}`} className="hover:underline">{name}</a>
+    <div className="product-card-item w-full h-full flex flex-col bg-white relative transition-all duration-300 ease-in-out group/productCard border-l border-r border-transparent hover:shadow-2xl hover:z-20 hover:border-l-gray-200 hover:border-r-gray-200 rounded-lg overflow-hidden">
+      <div className="relative">
+        {/* Lớp phủ khi hết hàng */}
+        {!inStock && (
+          <div className="absolute inset-0 bg-white/40 flex items-center justify-center z-20 rounded-t-lg pointer-events-none">
+            <span className="text-rose-600 font-bold text-base border-2 border-rose-500 rounded-lg px-4 py-2 transform -rotate-12 shadow-lg bg-white">
+              Hết Hàng
+            </span>
+          </div>
+        )}
+
+        {/* % giảm giá */}
+        {discount > 0 && (
+          <div className="absolute top-2 left-2 bg-red-500 text-white text-[9px] sm:text-xs font-bold px-1.5 py-0.5 rounded z-10">
+            -{discount}%
+          </div>
+        )}
+
+        {/* ------------ Ảnh sản phẩm ------------- */}
+        <Link
+          to={`/product/${slug ?? id}`}
+          className="product-card-image-link block w-full h-[125px] xs:h-[140px] sm:h-[160px] mt-3 mb-1.5 sm:mt-4 sm:mb-2 flex items-center justify-center px-3 relative"
+        >
+          <img
+            src={image || 'https://placehold.co/300x300/e2e8f0/94a3b8?text=No+Image'}
+            alt={name}
+            className="max-h-full max-w-full object-contain group-hover/productCard:scale-105 transition-transform duration-300"
+            loading="lazy"
+          />
+
+          {/* ========= overlay chỉ khi có overlaySrc (badgeImage hoặc badge) ========= */}
+          {overlaySrc && (
+            <img
+              src={overlaySrc}
+              alt="badge overlay"
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[205px] h-[180px] z-20 pointer-events-none select-none"
+              loading="lazy"
+            />
+          )}
+        </Link>
+      </div>
+
+      {/* ------------ Thông tin sản phẩm ------------- */}
+      <div className="product-card-info px-2 xs:px-1.5 sm:px-2.5 pt-1 pb-2 sm:pb-2.5 flex flex-col flex-grow overflow-hidden">
+        {renderBadge(badge)}
+
+        <h3
+          className="product-card-name font-semibold text-xs sm:text-[13px] text-gray-800 leading-tight mb-1 group-hover/productCard:text-blue-600 transition-colors duration-200 h-[38px] line-clamp-2"
+          title={name}
+        >
+          <Link to={`/product/${slug ?? id}`} className="hover:underline">
+            {name}
+          </Link>
         </h3>
+
         <div className="mt-auto">
-          <div className="text-base font-bold text-red-600">
-            {formatCurrencyVND(isNaN(price) ? oldPrice : price)}
-            {oldPrice > price && (
-              <span className="line-through text-gray-400 text-xs ml-1">
-                {formatCurrencyVND(oldPrice)}
-              </span>
+          <div className="product-card-price text-[13px] sm:text-sm mb-0.5">
+            {currentPriceNum > 0 ? (
+              oldPrice && discount > 0 && oldPriceNum > currentPriceNum ? (
+                <>
+                  <span className="text-red-600 font-bold">{formatCurrencyVND(currentPriceNum)}</span>
+                  <span className="text-gray-400 text-[10px] sm:text-[11px] line-through ml-1.5 sm:ml-2">
+                    {formatCurrencyVND(oldPriceNum)}
+                  </span>
+                </>
+              ) : (
+                <span className="text-red-600 font-bold">{formatCurrencyVND(currentPriceNum)}</span>
+              )
+            ) : oldPriceNum > 0 ? (
+              <span className="text-red-600 font-bold">{formatCurrencyVND(oldPriceNum)}</span>
+            ) : (
+              <span className="text-gray-400 text-[13px] sm:text-sm font-normal">Liên hệ</span>
             )}
           </div>
-          <div className="text-xs text-green-600 mt-1">
-            {oldPrice > price && `Tiết kiệm ${formatCurrencyVND(oldPrice - price)}`}
+
+          <div
+            className="product-card-saving text-[10px] sm:text-[10.5px] font-medium mb-1 sm:mb-1.5 min-h-[16px]"
+            style={{ color: 'rgb(80, 171, 95)' }}
+          >
+            {currentPriceNum > 0 && oldPriceNum > currentPriceNum
+              ? `Tiết kiệm ${formatCurrencyVND(oldPriceNum - currentPriceNum)}`
+              : ''}
           </div>
-          <div className="flex justify-between items-center mt-2 text-xs text-gray-600">
-            {renderStars(rating)}
-            {inStock
-              ? soldCount > 0
-                ? <span>Đã bán {soldCount > 999 ? `${(soldCount/1000).toFixed(0)}k+` : soldCount}</span>
-                : <span className="text-green-600">Mới về</span>
-              : <span className="text-red-500">Hết hàng</span>}
-          </div>
-          <div className="flex justify-between items-center mt-2">
-            <button
-              onClick={e => { e.stopPropagation(); onCompare(id); }}
-              className="flex items-center gap-1 text-gray-500 hover:text-blue-700 p-1 rounded transition-colors"
-            >
-              <CompareIcon className="w-4 h-4" /> So sánh
-            </button>
-            <button
-              onClick={e => { e.stopPropagation(); onAddToFavorites(id); }}
-              className={`flex items-center gap-1 p-1 rounded transition-colors ${
-                isFavorite ? 'text-red-500 hover:text-red-600' : 'text-gray-500 hover:text-red-500'
-              }`}
-            >
-              {isFavorite
-                ? <HeartSolidIcon className="w-4 h-4" />
-                : <HeartIcon className="w-4 h-4" />
-              }
-              {isFavorite ? 'Đã thích' : 'Yêu thích'}
-            </button>
+
+          <div className="pt-1.5">
+            <div className="product-card-meta flex items-center justify-between mb-1.5 sm:mb-2 min-h-[18px]">
+              <div className="flex items-center gap-x-1 sm:gap-x-1.5 text-[10px] sm:text-[10.5px] text-gray-600">
+                <div className="flex items-center gap-px sm:gap-0.5 text-yellow-400">{renderStars(rating, id)}</div>
+                {rating > 0 && <span className="text-gray-500">({parseFloat(rating).toFixed(1)})</span>}
+              </div>
+
+              {inStock && soldCount > 0 && (
+                <span className="text-gray-500 text-[9.5px] sm:text-[10.5px] font-medium">
+                  Đã bán {soldCount > 999 ? `${(soldCount / 1000).toFixed(0)}k+` : soldCount}
+                </span>
+              )}
+            </div>
+            {/* Các nút yêu thích/so sánh đã được loại bỏ */}
           </div>
         </div>
       </div>
@@ -128,7 +211,7 @@ export default function RelatedProductsSlider({
   const sliderRef = useRef(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { isFavorite, toggleFavorite } = useFavorites();
+  // const { isFavorite, toggleFavorite } = useFavorites(); // Đã bỏ vì không dùng nút yêu thích
   const SLIDES_THRESHOLD = 5;
 
   useEffect(() => {
@@ -138,7 +221,8 @@ export default function RelatedProductsSlider({
       try {
         const res = await productService.getRelated(categoryId, currentProductId, 12);
         setProducts(res.data.products || []);
-      } catch {
+      } catch (error) { // Nên bắt lỗi để biết vấn đề gì xảy ra
+        console.error("Failed to fetch related products:", error);
         setProducts([]);
       } finally {
         setLoading(false);
@@ -169,16 +253,16 @@ export default function RelatedProductsSlider({
     nextArrow: <CustomSlickArrow type="next" />,
     swipeToSlide: true,
     responsive: [
-      { breakpoint: 1280, settings: { slidesToShow: Math.min(products.length, 4) }},
-      { breakpoint: 1024, settings: { slidesToShow: Math.min(products.length, 3) }},
-      { breakpoint: 768, settings: { slidesToShow: 2, arrows: false }},
-      { breakpoint: 480, settings: { slidesToShow: 1, arrows: false }}
+      { breakpoint: 1280, settings: { slidesToShow: Math.min(products.length, 4) } },
+      { breakpoint: 1024, settings: { slidesToShow: Math.min(products.length, 3) } },
+      { breakpoint: 768, settings: { slidesToShow: 2, arrows: false } },
+      { breakpoint: 480, settings: { slidesToShow: 1, arrows: false } }
     ]
   };
 
   return (
     <div className="max-w-[1200px] mx-auto bg-gray-50 rounded-lg shadow-md my-8">
-      <h2 className="px-4 pt-4 text-xl font-bold text-gray-800">{mainSectionTitle}</h2>
+      <h2 className="px-4 py-4 pt-4 text-xl font-bold text-[#c51813]">{mainSectionTitle}</h2>
       <div className="px-2 pb-4">
         {products.length <= SLIDES_THRESHOLD
           ? (
@@ -187,9 +271,9 @@ export default function RelatedProductsSlider({
                 <InlinedProductCard
                   key={p.id}
                   {...p}
-                  onAddToFavorites={toggleFavorite}
-                  onCompare={() => alert(`So sánh ${p.id}`)}
-                  isFavorite={isFavorite(p.id)}
+                  // onAddToFavorites={toggleFavorite} // Đã bỏ
+                  // onCompare={() => alert(`So sánh ${p.id}`)} // Đã bỏ
+                  // isFavorite={isFavorite(p.id)} // Đã bỏ
                 />
               ))}
             </div>
@@ -198,10 +282,11 @@ export default function RelatedProductsSlider({
               {products.map(p => (
                 <div key={p.id} className="p-1.5">
                   <InlinedProductCard
+                    key={p.id} // Thêm key ở đây nữa để đảm bảo React hoạt động tối ưu
                     {...p}
-                    onAddToFavorites={toggleFavorite}
-                    onCompare={() => alert(`So sánh ${p.id}`)}
-                    isFavorite={isFavorite(p.id)}
+                    // onAddToFavorites={toggleFavorite} // Đã bỏ
+                    // onCompare={() => alert(`So sánh ${p.id}`)} // Đã bỏ
+                    // isFavorite={isFavorite(p.id)} // Đã bỏ
                   />
                 </div>
               ))}

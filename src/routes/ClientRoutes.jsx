@@ -26,7 +26,7 @@ const OrderLookup = Loadable(lazy(() => import('pages/Client/OrderLookup')));
 const ProductComparison = Loadable(lazy(() => import('pages/Client/CompareProducts')));
 
 const ReturnOrderPage = Loadable(lazy(() => import('pages/Client/Auth/ReturnOrderDialog'))); 
-
+const OrderDetailPage   = Loadable(lazy(() => import('pages/Client/Auth/OrderDetailPage'))); // xem chi tiết đơn hàng
 const ClientRoutes = {
   path: '/',
   element: 
@@ -51,13 +51,28 @@ const ClientRoutes = {
       element: <ForgotPasswordNotice />
     },
     { path: 'dat-lai-mat-khau', element: <ResetPasswordPage /> },
+ {
+  path: 'user-profile',
+  element: (
+    <RequireAuth>
+      <UserProfilePage />        {/* CHỨA SIDEBAR + <Outlet /> */}
+    </RequireAuth>
+  ),
+  children: [
+    // route mặc định (tab profile cũ)
+    { index: true, element: <></> },           // hoặc Redirect về '#thong-tin-tai-khoan'
 
+    // chi tiết đơn
+    { path: 'orders/:orderCode', element: <OrderDetailPage /> }
+  ]
+},
     {
       path: 'register-email-sent',
       element: <RegisterEmailSentNotice />
     },
     { path: 'verify-email', element: <VerifyEmailPage /> },
-    { path: 'user-profile', element: <UserProfilePage /> },
+    // { path: 'user-profile', element: <UserProfilePage /> },
+     
     { path: 'category/:slug', element: <ProductListByCategory /> },
 
     { path: 'product/:slug', element: <ProductDetail /> },

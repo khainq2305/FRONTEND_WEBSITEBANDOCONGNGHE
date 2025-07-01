@@ -25,31 +25,35 @@ const ClientLayout = () => {
     '/register-email-sent',
   ].includes(location.pathname);
 
- return (
-  <div className="bg-gray-100 min-h-screen text-gray-900"> {/* ← thêm bg ở đây */}
-    {isAuthPage ? (
-      <AuthHeader />
-    ) : (
-      <>
-        <Topbar />
-        <Header />
-      </>
-    )}
+  return (
+    <div className="bg-gray-100 min-h-screen text-gray-900">
+      {isAuthPage ? (
+        <AuthHeader />
+      ) : (
+        <>
+          <Topbar />
+          <Header />
+        </>
+      )}
 
-    <main>
-      <Outlet />
-      {!isComparePage && <CompareBar /> }
-    </main>
+      <main>
+        <Outlet />
+        {!isComparePage && <CompareBar />}
+      </main>
 
-    <Footer />
-    <FloatingContact />
-    <BottomNavigationBar />
-    <PopupBanner />
-    <Toastify />
-    <div className="pb-[56px] lg:pb-0"></div>
-  </div>
-);
+      <Footer />
 
+      {/* Ẩn FloatingContact ở các trang auth */}
+      {!isAuthPage && <FloatingContact />}
+
+      <BottomNavigationBar />
+      <PopupBanner />
+      <Toastify />
+
+      {/* chừa khoảng cho BottomNavigationBar trên mobile */}
+      <div className="pb-[56px] lg:pb-0" />
+    </div>
+  );
 };
 
 export default ClientLayout;

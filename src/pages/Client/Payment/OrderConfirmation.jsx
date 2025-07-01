@@ -29,12 +29,12 @@ const OrderConfirmation = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate(); // Initialize useNavigate
   const location = useLocation();
-
+  const vnpTxnRef = searchParams.get('vnp_TxnRef'); // ⬅️ thêm dòng này
   // Get parameters from URL
   const resultCode = searchParams.get('resultCode'); // 0 = success, other = error/cancel (from MoMo)
-  const momoOrderId = searchParams.get('orderId');   // MoMo's order ID
-  const orderCodeFromUrl = searchParams.get('orderCode') || momoOrderId; // Use orderCode or momoOrderId
+  const momoOrderId = searchParams.get('orderId'); // MoMo's order ID
 
+  const orderCodeFromUrl = searchParams.get('orderCode') || momoOrderId || vnpTxnRef;
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isPaymentAttempted, setIsPaymentAttempted] = useState(false); // To prevent multiple callbacks
@@ -51,19 +51,19 @@ const OrderConfirmation = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderId: momoOrderId, resultCode })
       })
-        .then(res => {
+        .then((res) => {
           if (!res.ok) {
             console.error('MoMo callback failed with status:', res.status);
             throw new Error('MoMo callback failed');
           }
           return res.text();
         })
-        .then(txt => {
+        .then((txt) => {
           console.log('Momo callback ->', txt);
           // Re-fetch order after callback to get updated status
           fetchOrderDetails(orderCodeFromUrl);
         })
-        .catch(err => {
+        .catch((err) => {
           console.error('Callback lỗi:', err);
           toast.error('Có lỗi xảy ra khi xử lý thanh toán MoMo.');
           // Even on error, try to fetch order details to reflect the current state
@@ -71,6 +71,36 @@ const OrderConfirmation = () => {
         });
     }
   }, [momoOrderId, resultCode, isPaymentAttempted, orderCodeFromUrl]); // Depend on orderCodeFromUrl for re-fetch
+  /* ------------------- side-effect: handle VNPay callback ------------------- */
+  useEffect(() => {
+  // Gửi callback đúng 1 lần
+  if (!vnpTxnRef || isPaymentAttempted) return;
+
+  setIsPaymentAttempted(true);
+
+  const rawQuery = window.location.search.slice(1); // bỏ dấu '?'
+
+ fetch('http://localhost:5000/payment/vnpay-callback', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ rawQuery })
+})
+  .then((res) => res.text().then((txt) => ({ ok: res.ok, txt })))
+  .then(({ ok, txt }) => {
+    console.log('VNPay callback →', txt);
+    if (!ok || txt.trim().toUpperCase() !== 'OK') {
+      throw new Error(txt);
+    }
+    fetchOrderDetails(orderCodeFromUrl);
+  })
+  .catch((err) => {
+    console.error('VNPay callback error:', err);
+    toast.error('Có lỗi khi xử lý thanh toán VNPay.');
+    fetchOrderDetails(orderCodeFromUrl);
+  });
+
+
+}, [vnpTxnRef, isPaymentAttempted, orderCodeFromUrl]);
 
   /* ------------------- side-effect: fetch order details ------------------- */
   const fetchOrderDetails = async (code) => {
@@ -132,10 +162,7 @@ const OrderConfirmation = () => {
         <div className="text-center">
           <h2 className="text-xl font-semibold text-red-500">Tải thông tin đơn hàng thất bại</h2>
           <p className="text-gray-600 mt-2">Vui lòng kiểm tra lại mã đơn hàng hoặc thử lại sau.</p>
-          <Link
-            to="/"
-            className="mt-4 inline-block bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700"
-          >
+          <Link to="/" className="mt-4 inline-block bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700">
             Về trang chủ
           </Link>
         </div>
@@ -161,18 +188,18 @@ const OrderConfirmation = () => {
 
   const customer = {
     name: userAddress?.fullName || 'Chưa có tên',
-    phone: userAddress?.phone || 'N/A',
+    phone: userAddress?.phone || 'N/A'
   };
 
   const deliveryInfo = {
     address: userAddress?.fullAddress || 'N/A',
-    time: order?.deliveryTime || 'Thời gian sẽ được nhân viên xác nhận khi gọi điện',
+    time: order?.deliveryTime || 'Thời gian sẽ được nhân viên xác nhận khi gọi điện'
   };
-const isCOD = paymentMethod?.code?.toLowerCase() === 'cod' || paymentStatus === 'unpaid';
+  const isCOD = paymentMethod?.code?.toLowerCase() === 'cod' || paymentStatus === 'unpaid';
 
   const isOrderProcessing = orderStatus === 'processing';
-    const isPaymentPending = paymentStatus === 'waiting';
-const isPaymentSuccessful = paymentStatus === 'paid' || isCOD;
+  const isPaymentPending = paymentStatus === 'waiting';
+  const isPaymentSuccessful = paymentStatus === 'paid' || isCOD;
 
   /* ------------------- render ------------------- */
   return (
@@ -191,10 +218,9 @@ const isPaymentSuccessful = paymentStatus === 'paid' || isCOD;
                 {isPaymentSuccessful ? 'Đặt hàng thành công!' : 'Đơn hàng chờ thanh toán'}
               </h1>
               <p className="text-sm text-gray-600 mt-2 max-w-md mx-auto">
-                {isPaymentSuccessful ?
-                  'Cảm ơn bạn đã mua hàng. Nhân viên sẽ liên hệ với bạn trong thời gian sớm nhất để xác nhận đơn hàng.' :
-                  'Đơn hàng của bạn đã được tạo. Vui lòng hoàn tất thanh toán để đơn hàng được xử lý.'
-                }
+                {isPaymentSuccessful
+                  ? 'Cảm ơn bạn đã mua hàng. Nhân viên sẽ liên hệ với bạn trong thời gian sớm nhất để xác nhận đơn hàng.'
+                  : 'Đơn hàng của bạn đã được tạo. Vui lòng hoàn tất thanh toán để đơn hàng được xử lý.'}
               </p>
             </div>
           </div>
@@ -211,17 +237,13 @@ const isPaymentSuccessful = paymentStatus === 'paid' || isCOD;
 
               {qrUrl && paymentMethod?.code?.toLowerCase() === 'vietqr' && isPaymentPending && (
                 <div className="bg-white p-4 rounded-lg shadow h-fit text-center">
-                  <h3 className="text-base font-semibold text-gray-800 mb-2">
-                    Quét mã VietQR để thanh toán
-                  </h3>
+                  <h3 className="text-base font-semibold text-gray-800 mb-2">Quét mã VietQR để thanh toán</h3>
                   <img
                     src={decodeURIComponent(qrUrl)}
                     alt="Mã QR chuyển khoản ngân hàng"
                     className="mx-auto w-60 border border-gray-200 rounded-md"
                   />
-                  <p className="text-sm text-gray-500 mt-2">
-                    Vui lòng quét mã VietQR để thực hiện chuyển khoản theo thông tin trên mã.
-                  </p>
+                  <p className="text-sm text-gray-500 mt-2">Vui lòng quét mã VietQR để thực hiện chuyển khoản theo thông tin trên mã.</p>
                 </div>
               )}
 
@@ -240,50 +262,28 @@ const isPaymentSuccessful = paymentStatus === 'paid' || isCOD;
                 <CopyableRow label="Mã đơn hàng" value={code} />
 
                 <Row label="Tổng tiền hàng" value={formatCurrencyVND(totalPrice)} bold />
-                <Row
-                  label="Giảm giá từ sản phẩm"
-                  value={formatCurrencyVND(productDiscount)}
-                />
+                <Row label="Giảm giá từ sản phẩm" value={formatCurrencyVND(productDiscount)} />
                 {couponDiscount > 0 && (
-                  <Row
-                    label="Giảm giá từ coupon"
-                    value={`- ${formatCurrencyVND(couponDiscount)}`}
-                    color="text-green-600"
-                  />
+                  <Row label="Giảm giá từ coupon" value={`- ${formatCurrencyVND(couponDiscount)}`} color="text-green-600" />
                 )}
 
                 {/* phí vận chuyển */}
                 {shippingDiscount > 0 ? (
                   <>
                     <Row label="Phí vận chuyển" value={formatCurrencyVND(shippingFee)} />
-                    <Row
-                      label="Giảm phí vận chuyển"
-                      value={`- ${formatCurrencyVND(shippingDiscount)}`}
-                      color="text-green-600"
-                    />
+                    <Row label="Giảm phí vận chuyển" value={`- ${formatCurrencyVND(shippingDiscount)}`} color="text-green-600" />
                   </>
                 ) : (
-                  <Row
-                    label="Phí vận chuyển"
-                    value={shippingFee === 0 ? 'Miễn phí' : formatCurrencyVND(shippingFee)}
-                  />
+                  <Row label="Phí vận chuyển" value={shippingFee === 0 ? 'Miễn phí' : formatCurrencyVND(shippingFee)} />
                 )}
 
                 {/* tổng khuyến mãi */}
-                <Row
-                  label="Tổng khuyến mãi"
-                  value={formatCurrencyVND(productDiscount + couponDiscount + shippingDiscount)}
-                />
+                <Row label="Tổng khuyến mãi" value={formatCurrencyVND(productDiscount + couponDiscount + shippingDiscount)} />
 
                 {/* cần thanh toán */}
                 <div className="pt-2">
                   <div className="border-t border-dashed border-gray-300 mb-2" />
-                  <Row
-                    label="Cần thanh toán"
-                    value={formatCurrencyVND(finalPrice)}
-                    bold
-                    color="text-red-600"
-                  />
+                  <Row label="Cần thanh toán" value={formatCurrencyVND(finalPrice)} bold color="text-red-600" />
                   <p className="text-sm text-green-600 mt-1 text-right">
                     Tiết kiệm&nbsp;
                     {formatCurrencyVND(productDiscount + couponDiscount + shippingDiscount)}
@@ -294,14 +294,15 @@ const isPaymentSuccessful = paymentStatus === 'paid' || isCOD;
 
               {/* nút & link */}
               <div className="mt-6 space-y-3">
-                {isPaymentPending && isOrderProcessing && ( // Only show "Pay Again" if waiting for payment and order is processing
-                  <button
-                    onClick={handlePayAgain}
-                    className="bg-blue-600 text-white w-full py-2.5 rounded-md font-semibold inline-block text-center hover:opacity-85 transition-colors"
-                  >
-                    Thanh toán lại
-                  </button>
-                )}
+                {isPaymentPending &&
+                  isOrderProcessing && ( // Only show "Pay Again" if waiting for payment and order is processing
+                    <button
+                      onClick={handlePayAgain}
+                      className="bg-blue-600 text-white w-full py-2.5 rounded-md font-semibold inline-block text-center hover:opacity-85 transition-colors"
+                    >
+                      Thanh toán lại
+                    </button>
+                  )}
                 <Link
                   to="/"
                   className={`text-white w-full py-2.5 rounded-md font-semibold inline-block text-center hover:opacity-85 transition-colors ${
@@ -310,10 +311,7 @@ const isPaymentSuccessful = paymentStatus === 'paid' || isCOD;
                 >
                   Về trang chủ
                 </Link>
-                <Link
-                  to="/user-profile#don-mua"
-                  className="block text-sm text-green-600 hover:underline text-center"
-                >
+                <Link to="/user-profile#don-mua" className="block text-sm text-green-600 hover:underline text-center">
                   Xem lịch sử đơn mua
                 </Link>
               </div>

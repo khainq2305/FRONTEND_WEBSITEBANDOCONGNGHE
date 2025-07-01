@@ -154,23 +154,41 @@ const CartItem = ({ item, isChecked, onToggleChecked, onQuantityChange }) => {
           {isOutOfStock ? (
             <div className="text-red-600 font-semibold text-sm px-4 whitespace-nowrap flex-shrink-0">Hết hàng</div>
           ) : (
-            <div className="border rounded flex shadow-sm flex-shrink-0">
-              <button
-                className="w-8 h-8 border-r border-gray-300 text-gray-400 hover:bg-gray-100 disabled:opacity-50"
-                onClick={() => handleQuantityChange(-1)}
-                disabled={quantity <= 1 || isUpdating}
-              >
-                −
-              </button>
-              <input type="text" value={quantity} readOnly className="w-10 h-8 text-center border-0 text-sm focus:outline-none" />
-              <button
-                className="w-8 h-8 border-l border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50"
-                onClick={() => handleQuantityChange(1)}
-                disabled={quantity >= item.stock || isUpdating}
-              >
-                +
-              </button>
-            </div>
+           <>
+{/* cụm tăng / giảm số lượng */}
+<div className="flex flex-col items-center">
+  <div className="border rounded flex shadow-sm flex-shrink-0">
+    <button
+      className="w-8 h-8 border-r border-gray-300 text-gray-400 hover:bg-gray-100 disabled:opacity-50"
+      onClick={() => handleQuantityChange(-1)}
+      disabled={quantity <= 1 || isUpdating}
+    >
+      −
+    </button>
+
+    <input
+      type="text"
+      value={quantity}
+      readOnly
+      className="w-10 h-8 text-center border-0 text-sm focus:outline-none"
+    />
+
+    <button
+      className="w-8 h-8 border-l border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+      onClick={() => handleQuantityChange(1)}
+      disabled={quantity >= item.stock || isUpdating}
+    >
+      +
+    </button>
+  </div>
+
+  {/* ✅ Dòng này nằm DƯỚI ô input */}
+  <p className="text-xs text-orange-500 mt-1">
+    Còn {Math.max(0, item.stock - quantity)} sản phẩm
+  </p>
+</div>
+
+</>
           )}
           <button className="text-gray-400 hover:text-red-600 p-1 transition" onClick={handleDeleteItem} title="Xóa">
             <FiTrash2 size={18} />

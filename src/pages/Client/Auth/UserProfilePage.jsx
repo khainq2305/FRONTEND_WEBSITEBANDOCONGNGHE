@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { User, ShoppingBag, MapPin, Eye, Ticket, Heart, ChevronDown, X } from 'lucide-react';
-
+import { Outlet, useParams, useNavigate } from 'react-router-dom';
+  // ⬅ thêm useParams
 import ProfileContent from './ProfileContent';
 import RenderDonMuaContentTuyChinh from './PurchaseHistoryPage';
 import AddressPageContent from './RenderDiaChiContent';
@@ -24,7 +25,8 @@ const UserProfilePage = () => {
   });
   const [isSidebarLoading, setIsSidebarLoading] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
+ const { orderCode } = useParams(); 
+ const navigate = useNavigate();
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -145,8 +147,16 @@ const UserProfilePage = () => {
 
   const handleTabClick = (tabId) => {
     setActiveTab(tabId);
+    
+      if (orderCode) {
+    // Đang ở /user-profile/orders/xxx  -> chuyển về /user-profile rồi gắn hash
+    navigate(`/user-profile#${tabId}`, { replace: true });
+  } else {
+    // Đã ở /user-profile -> chỉ đổi hash
     window.location.hash = tabId;
-    setIsDropdownOpen(false);
+ }
+
+  setIsDropdownOpen(false);
   };
 
   const sidebarNavItems = [
@@ -321,14 +331,22 @@ const UserProfilePage = () => {
           <DesktopSidebar />
 
           <div className="flex-1 min-w-0 lg:pl-8 md:pl-6 pl-0 pb-8">
-            {activeTab === 'thong-tin-tai-khoan' && <ProfileContent />}
-            {activeTab === 'quan-ly-don-hang' && <RenderDonMuaContentTuyChinh />}
-            {activeTab === 'so-dia-chi' && <AddressPageContent />}
-            {activeTab === 'san-pham-da-xem' && <EmptyContent title="Sản phẩm đã xem" />}
-            {activeTab === 'san-pham-yeu-thich' && <FavoriteProductsPage />}
-            {activeTab === 'doi-mat-khau' && <ChangePasswordTab />}
+             {orderCode ? (
+            <Outlet />
+          ) : (
+            <>
+              {activeTab === 'thong-tin-tai-khoan' && <ProfileContent />}
+              {activeTab === 'quan-ly-don-hang' && <RenderDonMuaContentTuyChinh />}
+              {activeTab === 'so-dia-chi' && <AddressPageContent />}
+              {activeTab === 'san-pham-da-xem' && <EmptyContent title="Sản phẩm đã xem" />}
+              {activeTab === 'san-pham-yeu-thich' && <FavoriteProductsPage />}
+              {activeTab === 'doi-mat-khau' && <ChangePasswordTab />}
+            </>
+          )}
           </div>
+
         </div>
+             
       </div>
       <style jsx global>{`
         body {
@@ -411,6 +429,7 @@ const UserProfilePage = () => {
           background-color: transparent;
         }
       `}</style>
+
     </div>
   );
 };

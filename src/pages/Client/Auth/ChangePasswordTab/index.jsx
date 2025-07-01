@@ -95,6 +95,7 @@ const ChangePasswordTab = () => {
 
   return (
     <div className="bg-white p-6 rounded-md shadow border border-gray-200">
+ 
       <h2 className="text-xl font-semibold text-gray-800 mb-1">
         {hasPassword ? 'Đổi mật khẩu' : 'Thiết lập mật khẩu'}
       </h2>
@@ -103,7 +104,7 @@ const ChangePasswordTab = () => {
       </p>
       <hr className="mb-5 border-t border-gray-200 dark:border-gray-700" />
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 max-w-md mx-auto" >
         {hasPassword && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu hiện tại</label>

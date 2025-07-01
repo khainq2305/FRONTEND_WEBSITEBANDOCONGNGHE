@@ -45,7 +45,8 @@ getShippingOptions: (data) => {
   zaloPay: (payload) => {
     return post(`${base}${API_ENDPOINT.client.order.zaloPay}`, payload);
   },
-
+ momoCallback : (data) => post(`${base}${API_ENDPOINT.client.order.momoCallback}`,  data),
+vnpayCallback: (data) => post(`${base}${API_ENDPOINT.client.order.vnpayCallback}`, data),
   vnpay: (payload) => {
     return post(`${base}${API_ENDPOINT.client.order.vnpay}`, payload);
   },

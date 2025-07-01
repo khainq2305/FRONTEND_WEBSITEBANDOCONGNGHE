@@ -399,14 +399,15 @@ const Header = () => {
                     <span className="relative">
                       <Bell className="w-6 h-6" strokeWidth={1.5} color="#fff" />
                       {unreadCount > 0 && (
-                        <span
-                          className="
-            absolute -top-1 -right-1 bg-red-600 text-white text-[10px] 
-            w-4 h-4 rounded-full flex items-center justify-center font-bold
-          "
-                        >
-                          {unreadCount > 99 ? '99+' : unreadCount}
-                        </span>
+                    <span
+  className="
+    absolute -top-1.5 -right-2 bg-red-600 text-white text-xs
+    w-5 h-5 rounded-full flex items-center justify-center font-bold shadow-md
+  "
+>
+  {unreadCount > 99 ? '99+' : unreadCount}
+</span>
+
                       )}
                     </span>
 

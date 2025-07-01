@@ -95,7 +95,8 @@ const NotificationDropdown = ({ isOpen, notifications = [], onClose, setNotifica
   }
 
   const unreadCount = notifications?.filter((n) => !n.isRead).length || 0;
-
+  const totalPromotion = notifications.filter((n) => n.type === 'promotion').length;
+  const totalOrder = notifications.filter((n) => n.type === 'order').length;
   const handleMarkAllAsRead = async () => {
     try {
       await notificationService.markAllAsRead();
@@ -109,7 +110,11 @@ const NotificationDropdown = ({ isOpen, notifications = [], onClose, setNotifica
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
   };
 
-  const filteredNotifications = notifications?.filter((n) => (activeTab === 'order' ? n.type === 'order' : true)) || [];
+  const filteredNotifications = notifications.filter((n) => {
+    if (activeTab === 'order') return n.type === 'order';
+    if (activeTab === 'promotion') return n.type === 'promotion';
+    return true; 
+  });
 
   return (
     <div className="absolute top-full right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-40 flex flex-col has-arrow-up">
@@ -138,7 +143,7 @@ const NotificationDropdown = ({ isOpen, notifications = [], onClose, setNotifica
               activeTab === 'all' ? 'bg-secondary text-gradient border-secondary' : 'text-gray-600 hover:bg-gray-100 border-gray-200'
             }`}
           >
-            Tất cả {unreadCount > 0 && `(${unreadCount})`}
+            Tất cả ({notifications.length})
           </button>
           <button
             onClick={() => setActiveTab('order')}
@@ -146,8 +151,15 @@ const NotificationDropdown = ({ isOpen, notifications = [], onClose, setNotifica
               activeTab === 'order' ? 'bg-secondary text-gradient border-secondary' : 'text-gray-600 hover:bg-gray-100 border-gray-200'
             }`}
           >
-            Đơn hàng{' '}
-            {notifications.filter((n) => n.type === 'order').length > 0 && `(${notifications.filter((n) => n.type === 'order').length})`}
+            Đơn hàng ({notifications.filter((n) => n.type === 'order').length})
+          </button>
+          <button
+            onClick={() => setActiveTab('promotion')}
+            className={`px-3 py-1.5 rounded-full border ${
+              activeTab === 'promotion' ? 'bg-secondary text-gradient border-secondary' : 'text-gray-600 hover:bg-gray-100 border-gray-200'
+            }`}
+          >
+            Khuyến mãi ({totalPromotion})
           </button>
         </div>
       </div>

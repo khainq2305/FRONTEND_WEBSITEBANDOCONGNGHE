@@ -53,8 +53,12 @@ const ForgotPasswordNotice = () => {
       const { verified, lockTime, resendCooldown } = statusResponse.data;
       setVerified(verified);
       setLockTime(lockTime || 0);
-      setResendTimeout(Math.ceil(resendCooldown / 1000) || 0);
-
+      if (lockTime > 0) {
+  // đang bị khóa → không cần hiển thị cooldown
+  setResendTimeout(0);
+ } else {
+   setResendTimeout(Math.ceil(resendCooldown / 1000) || 0);
+ }
       if (verified) {
         toast.success("Mật khẩu đã được đặt lại. Đang chuyển sang trang đăng nhập...");
         setTimeout(() => {
@@ -136,24 +140,27 @@ const ForgotPasswordNotice = () => {
           Gửi lại liên kết
         </GradientButton>
 
-        {lockTime > 0 && (
-          <div className="mt-4 p-3 text-left text-red-700 bg-red-100 border border-red-400 rounded-md flex items-start gap-2">
-            <XCircle className="w-5 h-5 text-red-600 mt-1" />
-            <div>
-              <p className="font-semibold">Bạn đã gửi xác thực quá thường xuyên.</p>
-              <p>Vui lòng thử lại sau {formatLockTime(lockTime)}.</p>
-            </div>
-          </div>
-        )}
-        {resendTimeout > 0 && (
-          <div className="mt-4 p-3 text-left text-yellow-700 bg-yellow-100 border border-yellow-400 rounded-md flex items-start gap-2">
-            <XCircle className="w-5 h-5 text-yellow-600 mt-1" />
-            <div>
-              <p className="font-semibold">Vui lòng đợi trước khi gửi lại.</p>
-              <p>Thời gian chờ: {formatLockTime(resendTimeout * 1000)}.</p>
-            </div>
-          </div>
-        )}
+       {lockTime > 0 ? (
+  <div className="mt-4 p-3 text-left text-red-700 bg-red-100 border border-red-400 rounded-md flex items-start gap-2">
+    <XCircle className="w-5 h-5 text-red-600 mt-1" />
+    <div>
+      <p className="font-semibold">Bạn đã gửi xác thực quá thường xuyên.</p>
+      <p>Vui lòng thử lại sau {formatLockTime(lockTime)}.</p>
+    </div>
+  </div>
+) : (
+  resendTimeout > 0 && (
+    <div className="mt-4 p-3 text-left text-yellow-700 bg-yellow-100 border border-yellow-400 rounded-md flex items-start gap-2">
+      <XCircle className="w-5 h-5 text-yellow-600 mt-1" />
+      <div>
+        <p className="font-semibold">Vui lòng đợi trước khi gửi lại.</p>
+        <p>Thời gian chờ: {formatLockTime(resendTimeout * 1000)}.</p>
+      </div>
+    </div>
+  )
+)}
+
+       
       </div>
     </div>
   );

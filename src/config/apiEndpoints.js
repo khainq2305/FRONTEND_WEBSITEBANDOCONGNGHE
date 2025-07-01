@@ -96,6 +96,8 @@ export const API_ENDPOINT = {
       momoPay: '/momo',
       reorder: (orderId) => `/${orderId}/reorder`,
       momoCallback: '/momo-callback',
+
+      vnpayCallback : '/vnpay-callback',         // VNPay redirect
       zaloPay: '/zalopay',
        payAgain: (id) => `/${id}/pay-again`,     
       vnpay: '/vnpay',

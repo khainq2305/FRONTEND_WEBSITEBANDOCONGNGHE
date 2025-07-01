@@ -9,6 +9,7 @@ export default function ProductCard({
   slug,
   name,
   price,
+  badgeImage,
   oldPrice,
   priceNum,
   oldPriceNum,
@@ -82,6 +83,14 @@ export default function ProductCard({
             loading="lazy"
             style={{ zIndex: 10 }}
           />
+          {badgeImage && (
+    <img
+      src={badgeImage}
+      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
+                 w-[205px] h-[190px] pointer-events-none select-none z-20"
+    />
+)}
+
         </div>
 
         {renderBadge()}
@@ -100,7 +109,7 @@ export default function ProductCard({
         <div className="product-card-price text-sm mb-1">
           {typeof priceNum === 'number' && priceNum > 0 ? (
             <>
-              <span className="text-red-600 font-bold">{formatCurrencyVND(priceNum)}</span>
+              <span className="text-red-600 text-base font-bold">{formatCurrencyVND(priceNum)}</span>
 
              
               {originalPriceNum && originalPriceNum > priceNum ? (
@@ -121,7 +130,7 @@ export default function ProductCard({
           <div className="min-h-[14px] sm:min-h-[16px]"></div>
         </div>
 
-        <div className="product-card-actions flex items-center justify-between min-h-[26px] pt-1 mt-1">
+        <div className="product-card-actions flex items-center justify-between min-h-[26px] pt-1">
           <button
             onClick={(e) => {
               e.stopPropagation();

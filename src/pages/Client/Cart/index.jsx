@@ -22,19 +22,27 @@ const CartPage = () => {
   const selectedItems = cartItems.filter((_, index) => checkedItems[index]);
 
 useEffect(() => {
+  // 1️⃣  Nếu chưa có mã nào đang áp → thoát
   if (!appliedCoupon) return;
 
+  // 2️⃣  Lấy danh sách SKU mà coupon cho phép (backend trả về)
   const allowed = appliedCoupon.allowedSkuIds || [];
-const stillValid =
-  allowed.length === 0           
-  || selectedItems.some(i => allowed.includes(i.skuId));
 
+  // 3️⃣  Xác định mã vẫn hợp lệ?
+  //    • allowed rỗng  → coupon áp cho mọi SKU
+  //    • hoặc còn ít nhất 1 SKU đang chọn thuộc allowed
+  const stillValid =
+    allowed.length === 0 ||
+    selectedItems.some(i => allowed.includes(i.skuId));
+
+  // 4️⃣  Nếu KHÔNG còn hợp lệ → thông báo & gỡ mã
   if (!stillValid) {
     toast.info('Bạn đã bỏ sản phẩm đủ điều kiện, mã giảm giá bị gỡ.');
     setAppliedCoupon(null);
     localStorage.removeItem('appliedCoupon');
   }
 }, [selectedItems, appliedCoupon]);
+
 
   // CartPage.jsx
   const totals = selectedItems.reduce(
@@ -87,17 +95,65 @@ const stillValid =
     fetchCart();
   }, []);
 
-  useEffect(() => {
-    const saved = localStorage.getItem('appliedCoupon');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed && parsed.code) setAppliedCoupon(parsed);
-      } catch (e) {
-        localStorage.removeItem('appliedCoupon');
-      }
+// CartPage.jsx
+useEffect(() => {
+  const saved = localStorage.getItem('appliedCoupon');
+  if (!saved) return;
+
+  try {
+    const parsed = JSON.parse(saved);
+
+    /* 1. Không có code → bỏ qua */
+    if (!parsed?.code) return;
+
+    /* 2. Hết hạn → xoá & thoát */
+    if (parsed.expiryDate && new Date(parsed.expiryDate) < new Date()) {
+      localStorage.removeItem('appliedCoupon');
+      return;                      // <── quan trọng: thoát luôn, KHÔNG set nữa
     }
-  }, []);
+
+    /* 3. Vẫn hợp lệ → set vào state */
+    setAppliedCoupon(parsed);
+
+  } catch (err) {
+    /* JSON hỏng → xoá */
+    localStorage.removeItem('appliedCoupon');
+  }
+}, []);
+
+/* ➊ Đặt NGAY dưới useEffect đang có (giữ nguyên useEffect cũ) */
+useEffect(() => {
+  if (!appliedCoupon) return;
+
+  const skuIds = [...new Set(selectedItems.map(i => i.skuId))];
+  const orderTotal = totals.payablePrice;
+
+  // hàm kiểm tra lại coupon
+  async function validate() {
+    try {
+      await couponService.applyCoupon({
+        code: appliedCoupon.code,
+        skuIds,
+        orderTotal,
+      });
+      /* hợp lệ → không làm gì */
+    } catch (err) {
+      toast.warn(
+        err.response?.data?.message || 'Mã giảm giá không còn hiệu lực.',
+        { position: 'top-right' }
+      );
+      setAppliedCoupon(null);
+      localStorage.removeItem('appliedCoupon');
+    }
+  }
+
+  /* chạy ngay 1 lần */
+  validate();
+
+  /* lặp lại 60 giây/lần khi trang Cart đang mở */
+  const id = setInterval(validate, 60_000);
+  return () => clearInterval(id);
+}, [appliedCoupon, selectedItems, totals.payablePrice]);
 
   const toggleAll = async () => {
     const targetValue = !isAllChecked;

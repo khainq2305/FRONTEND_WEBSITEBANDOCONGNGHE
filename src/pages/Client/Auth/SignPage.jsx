@@ -84,27 +84,6 @@ const AuthPage = () => {
       setIsLoading(false);
     }
   };
-
-  // const handleGoogleLogin = async (credentialResponse) => {
-  //   try {
-  //     setIsLoading(true);
-  //     const response = await authService.loginWithGoogle({ token: credentialResponse.credential }, { withCredentials: true });
-  //     console.log('🔎 Đăng nhập Google response:', response.data);
-
-  //     const { token, user } = response.data;
-
-  //     if (user.fullName) {
-  //       localStorage.setItem('token', token);
-  //       localStorage.setItem('user', JSON.stringify(user));
-  //     }
-  //     navigate('/');
-  //   } catch (err) {
-  //     console.error('Đăng nhập Google thất bại:', err);
-  //     alert(err?.response?.data?.message || 'Đăng nhập Google thất bại!');
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {

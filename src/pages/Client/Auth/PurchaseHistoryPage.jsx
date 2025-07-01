@@ -115,6 +115,13 @@ const handlePayAgain = async () => {
     Thanh toán lại
   </button>
 )}
+<button
+  className="text-sm text-blue-600 hover:underline"
+  onClick={() => navigate(`/user-profile/orders/${order.orderCode}`)}
+>
+  Xem chi tiết
+</button>
+
 
                 {order.buttons.includes('Hủy đơn') && (
                     <>
@@ -176,6 +183,7 @@ const handlePayAgain = async () => {
                                     orderId: order.id,
                                     orderPaymentMethodCode: order.paymentMethod?.code,
                                     orderProducts: order.products,
+                                    finalPrice             : order.totalAmount,   
                                 }
                             })}
                         >
@@ -209,21 +217,31 @@ const handlePayAgain = async () => {
                     </button>
                 )}
 
-                {order.buttons.includes("Chọn cách hoàn hàng") && (
+                  {order.buttons.includes("Chọn cách hoàn hàng") && (
                     <>
                         <button
-                            className="text-sm bg-white border border-blue-500 text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-sm transition-colors dark:bg-gray-800 dark:border-blue-600 dark:text-blue-400 dark:hover:bg-blue-900"
+                            className="
+    text-sm
+    border  border-blue-500
+    text-blue-600
+    hover:bg-blue-50
+    px-4 sm:px-5 py-1.5 sm:py-2 rounded-sm
+    transition-colors
+    dark:text-blue-400 dark:border-blue-600 dark:hover:bg-blue-900
+  "
                             onClick={() => setOpenReturnMethodDialog(true)}
                         >
                             Chọn cách hoàn hàng
                         </button>
                         <ReturnMethodDialog
                             open={openReturnMethodDialog}
-                            orderPaymentMethodCode={order.paymentMethodCode}
-
                             onClose={() => setOpenReturnMethodDialog(false)}
                             returnRequestId={order.returnRequest.id}
                             onSuccess={refetchOrders}
+                            // THÊM CÁC PROPS NÀY VÀO ĐÂY
+                              
+                          shippingAddress={order.shippingAddress}
+                            shippingMethodName={order.shippingMethod?.name || 'GHN'} // Tên đơn vị vận chuyển (giả định có trong order)
                         />
                     </>
                 )}
@@ -244,84 +262,105 @@ const RenderDonMuaContent = () => {
 /* ================================================================
    MAP API → VIEW  (thêm "Mua Lại" cho DELIVERED)
 ================================================================ */
+/* eslint-disable camelcase */
 const mapApiDataToView = (apiOrders = []) =>
   apiOrders.map(order => {
-    /* -------- 1. tabId -------- */
-    // 🔧 CHỈ gán vào tab await_payment khi paymentStatus = 'waiting'
-    const tabId =
-      order.paymentStatus === 'waiting'
-        ? 'await_payment'
-        : order.status || 'unknown';
+    /* -------------------------------------------------- *
+     * 1. TAB ID                                          *
+     * -------------------------------------------------- *
+     * KHÔNG can thiệp “chuyển tab tự động”.
+     * Mỗi đơn ở đúng tab = order.status                */
+    const tabId = order.status || 'unknown';
 
-    /* -------- 2. statusText / statusColor -------- */
+    /* -------------------------------------------------- *
+     * 2. STATUS TEXT + COLOR                             *
+     * -------------------------------------------------- */
     let statusText  = '';
-    let statusColor = 'text-primary';
+    let statusColor = '';
 
+    switch (order.status) {
+      case 'processing':
+        statusText  = 'ĐANG XỬ LÝ';
+        statusColor = 'text-blue-600';
+        break;
+      case 'shipping':
+        statusText  = 'ĐANG GIAO';
+        statusColor = 'text-cyan-500';
+        break;
+      case 'delivered':
+        statusText  = 'ĐÃ GIAO';
+        statusColor = 'text-green-500';
+        break;
+      case 'completed':
+        statusText  = 'HOÀN THÀNH';
+        statusColor = 'text-emerald-600';
+        break;
+      case 'cancelled':
+        statusText  = 'ĐÃ HỦY';
+        statusColor = 'text-red-500';
+        break;
+      default:
+        statusText  = 'KHÔNG RÕ';
+        statusColor = 'text-gray-400';
+    }
+
+    // Nếu đơn đang CHỜ THANH TOÁN, chỉ đổi màu + text — KHÔNG đổi tab
     if (order.paymentStatus === 'waiting') {
       statusText  = 'CHỜ THANH TOÁN';
       statusColor = 'text-orange-500';
-    } else {
-      switch (order.status) {
-        case 'processing':
-          statusText  = 'ĐANG XỬ LÝ';
-          statusColor = 'text-blue-600';
-          break;
-        case 'shipping':
-          statusText  = 'ĐANG GIAO';
-          statusColor = 'text-cyan-500';
-          break;
-        case 'delivered':
-          statusText  = 'ĐÃ GIAO';
-          statusColor = 'text-green-500';
-          break;
-        case 'completed':
-          statusText  = 'HOÀN THÀNH';
-          statusColor = 'text-emerald-600';
-          break;
-        case 'cancelled':
-          statusText  = 'ĐÃ HỦY';
-          statusColor = 'text-red-500';
-          break;
-        default:
-          statusText  = 'KHÔNG RÕ';
-          statusColor = 'text-gray-400';
-      }
     }
 
-    /* -------- 3. buttons -------- */
+    /* -------------------------------------------------- *
+     * 3. BUTTONS                                         *
+     * -------------------------------------------------- */
+    const rr          = order.returnRequest;
+    const hasRR       = !!rr;
+    const rrApproved  = rr?.status === 'approved';
+
     const buttons = [];
 
-    // Chỉ hiển thị “Thanh toán lại / Hủy đơn” khi đang chờ thanh toán
-   if (order.status === 'processing') {
- // Đơn online chưa thanh toán → có thêm “Thanh toán lại”
-  if (order.paymentStatus === 'waiting') buttons.push('Thanh toán lại');
+    // ——— PROCESSING
+    if (order.status === 'processing') {
+      if (order.paymentStatus === 'waiting') buttons.push('Thanh toán lại');
+      buttons.push('Hủy đơn');
+    }
 
- // Mọi đơn đang xử lý đều được hủy
-  buttons.push('Hủy đơn');
-}
-
-    // logic khác giữ nguyên…
+    // ——— SHIPPING
     if (order.status === 'shipping') buttons.push('Đã nhận hàng');
+
+    // ——— DELIVERED
     if (order.status === 'delivered') {
-      buttons.push('Đã nhận hàng', 'Trả hàng/Hoàn tiền', 'Mua Lại');
-      if (order.returnRequest?.status === 'approved')
-        buttons.push('Chọn cách hoàn hàng');
+      buttons.push('Đã nhận hàng', 'Mua Lại');
+      if (!hasRR)         buttons.push('Trả hàng/Hoàn tiền');
+      else if (rrApproved) buttons.push('Chọn cách hoàn hàng');
     }
+
+    // ——— COMPLETED
     if (order.status === 'completed') {
-      buttons.push('Mua Lại', 'Trả hàng/Hoàn tiền');
-      if (order.returnRequest?.status === 'approved')
-        buttons.push('Chọn cách hoàn hàng');
+      buttons.push('Mua Lại');
+      if (!hasRR)         buttons.push('Trả hàng/Hoàn tiền');
+      else if (rrApproved) buttons.push('Chọn cách hoàn hàng');
     }
+
+    // ——— CANCELLED
     if (order.status === 'cancelled') buttons.push('Mua Lại');
 
-    /* -------- 4. object view -------- */
+    /* -------------------------------------------------- *
+     * 4. OBJECT RETURN                                   *
+     * -------------------------------------------------- */
     return {
-      id   : order.id,
+      id                : order.id,
       tabId,
       statusText,
       statusColor,
-      orderCode: order.orderCode,
-      products : order.products.map(p => ({
+      orderCode         : order.orderCode,
+      totalAmount       : order.finalPrice,
+  shippingAddress : order.shippingAddress || null,   // 👈 thêm
+      paymentMethod     : order.paymentMethod || null,
+      paymentMethodCode : order.paymentMethod?.code || null,
+      returnRequest     : order.returnRequest || null,
+
+      products: order.products.map(p => ({
         skuId        : p.skuId,
         imageUrl     : p.imageUrl,
         name         : p.name,
@@ -330,11 +369,8 @@ const mapApiDataToView = (apiOrders = []) =>
         price        : p.price,
         originalPrice: p.originalPrice,
       })),
-      totalAmount      : order.finalPrice,
+
       buttons,
-      paymentMethod    : order.paymentMethod || null,
-      paymentMethodCode: order.paymentMethod?.code || null,
-      returnRequest    : order.returnRequest || null,
     };
   });
 
@@ -418,7 +454,12 @@ const mapApiDataToView = (apiOrders = []) =>
 
 
 const filteredOrders = (orders || []).filter(order => {
-  const statusMatch = activePurchaseTab === 'all' || order.tabId === activePurchaseTab;
+    // 1) Tab "Trả hàng/Hoàn tiền": lấy mọi đơn có returnRequest
+  const isReturnTab = activePurchaseTab === 'return';
+  const statusMatch = isReturnTab
+    ? Boolean(order.returnRequest)              // có yêu cầu đổi/trả
+    : (activePurchaseTab === 'all' ||
+       order.tabId === activePurchaseTab);      // các tab khác như cũ
   const term = searchTerm.toLowerCase();
   const searchTermMatch =
     !term ||

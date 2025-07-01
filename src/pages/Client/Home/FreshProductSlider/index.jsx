@@ -8,7 +8,7 @@ import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
 import { Link } from 'react-router-dom';
 
-const InlinedProductCard = ({ id, productId, name, price, oldPrice, discount, image, rating, slug, soldCount, inStock, badge }) => {
+const InlinedProductCard = ({ id, badgeImage , productId, name, price, oldPrice, discount, image, rating, slug, soldCount, inStock, badge }) => {
   
   const renderStars = (rate) => {
     const stars = [];
@@ -81,17 +81,33 @@ const InlinedProductCard = ({ id, productId, name, price, oldPrice, discount, im
           </div>
         )}
 
-        <Link
-          to={`/product/${slug}`}
-          className="product-card-image-link block w-full h-[125px] xs:h-[140px] sm:h-[160px] mt-3 mb-1.5 sm:mt-4 sm:mb-2 flex items-center justify-center px-3"
-        >
-          <img
-            src={image || 'https://placehold.co/300x300/e2e8f0/94a3b8?text=No+Image'}
-            alt={name}
-            className="max-h-full max-w-full object-contain group-hover/productCard:scale-105 transition-transform duration-300"
-            loading="lazy"
-          />
-        </Link>
+ {/* ------------ ảnh sản phẩm ------------- */}
+<Link
+  to={`/product/${slug}`}
+  className="product-card-image-link block w-full h-[125px] xs:h-[140px] sm:h-[160px] mt-3 mb-1.5 sm:mt-4 sm:mb-2
+             flex items-center justify-center px-3 relative"
+>
+  <img
+    src={image || 'https://placehold.co/300x300/e2e8f0/94a3b8?text=No+Image'}
+    alt={name}
+    className="max-h-full max-w-full object-contain group-hover/productCard:scale-105 transition-transform duration-300"
+    loading="lazy"
+  />
+
+  {/* ========= overlay chỉ khi có badgeImage ========= */}
+{badgeImage && (
+  <img
+    src={badgeImage}
+    alt="badge overlay"
+    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
+               w-[205px] h-[180px] z-20 pointer-events-none select-none hidden sm:block"
+    loading="lazy"
+  />
+)}
+
+</Link>
+
+
       </div>
 
       <div className="product-card-info px-2 xs:px-1.5 sm:px-2.5 pt-1 pb-2 sm:pb-2.5 flex flex-col flex-grow overflow-hidden">
@@ -201,6 +217,7 @@ const FreshProductSlider = ({
 
     const mappedProducts = (productsFromProp || []).map((p) => ({
       badge: p.badge || null,
+       badgeImage: p.badgeImage || null,  
       ...p,
       price: typeof p.price === 'number' ? p.price.toLocaleString('vi-VN') : String(p.price || '0'),
       oldPrice: typeof p.oldPrice === 'number' ? p.oldPrice.toLocaleString('vi-VN') : p.oldPrice ? String(p.oldPrice) : null

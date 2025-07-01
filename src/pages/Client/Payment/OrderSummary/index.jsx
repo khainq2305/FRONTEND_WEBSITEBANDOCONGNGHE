@@ -137,8 +137,10 @@ const finalAmount =
         })),
         cartItemIds: cartSelection.map((i) => i.id),
       };
+console.log('[PAYLOAD gửi createOrder]', payload);
 
       const res = await orderService.createOrder(payload);
+      
       const orderId = res.data?.orderId || res.data?.data?.orderId;
       const orderCode = res.data?.orderCode || res.data?.data?.orderCode;
       if (!orderId || !orderCode) throw new Error('Không lấy được mã đơn hàng!');

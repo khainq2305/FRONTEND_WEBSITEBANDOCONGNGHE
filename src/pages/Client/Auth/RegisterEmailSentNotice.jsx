@@ -119,8 +119,10 @@ const RegisterEmailSentNotice = () => {
 
       await authService.resendVerificationLink({ email });
       toast.success('Đã gửi lại liên kết đến email của bạn.');
-      setInitialResendCooldownSec(10);
-      setResendCooldownStartTime(Date.now());
+      const cdRes = await authService.getVerificationCooldown(email);
+      const cdMs = cdRes.data.cooldown || 0;
+      setInitialResendCooldownSec(Math.ceil(cdMs / 1000));
+      setResendCooldownStartTime(cdMs > 0 ? Date.now() : 0);
     } catch (error) {
       console.error('Lỗi gửi lại liên kết:', error);
       toast.error('Không thể gửi lại liên kết.');

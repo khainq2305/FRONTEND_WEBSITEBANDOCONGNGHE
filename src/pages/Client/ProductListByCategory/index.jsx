@@ -110,7 +110,7 @@ export default function ProductListByCategory() {
     slug: item.slug,
     badge: item.badge,
     image: item.image || item.thumbnail,
-
+badgeImage: item.badgeImage,    
     priceNum,
     oldPriceNum,
     originalPriceNum,

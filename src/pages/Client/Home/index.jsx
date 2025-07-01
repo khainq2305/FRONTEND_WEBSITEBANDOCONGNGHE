@@ -102,6 +102,10 @@ const HomePage = () => {
               oldPrice: originalPrice > 0 ? formatCurrencyVND(originalPrice) : null,
               discount: originalPrice > 0 && salePrice < originalPrice ? Math.round(100 - (salePrice * 100) / originalPrice) : 0,
               image: constructImageUrl(imageUrl),
+                badge     : product.badge || null,
+ badgeImage  : product.badgeImage             // CHỈ convert khi có giá trị
+                ? constructImageUrl(product.badgeImage)
+               : null,
               rating: parseFloat(sku.averageRating) || 0,
               inStock: (sku.stock || 0) > 0,
               soldCount: parseInt(sku.soldCount) || 0,
@@ -141,6 +145,7 @@ const HomePage = () => {
                 id: displaySku.id,
                 productId: product.id,
                 name: product.name || 'N/A',
+               badgeImage: product.badgeImage    ,
                 slug: product.slug,
                 badge: product.badge || null,
                 price: formatCurrencyVND(finalPriceNum),

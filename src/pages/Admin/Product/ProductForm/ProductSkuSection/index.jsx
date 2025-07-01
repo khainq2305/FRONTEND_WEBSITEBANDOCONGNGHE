@@ -38,12 +38,12 @@ const ProductSkuSection = ({
                             <>
                                 <Typography variant="h5" gutterBottom>Các phiên bản sản phẩm (SKU)</Typography>
                                 {formData.skus.map((sku, i) => {
-                                    // Tìm tất cả các giá trị đã được chọn bởi các SKU KHÁC
+                                   
                                     const otherSelectedValueIds = new Set(
                                         formData.skus
                                             .filter((_, otherIndex) => i !== otherIndex)
                                             .flatMap(s => Object.values(s.variantSelections || {}))
-                                            .filter(Boolean) // Lọc bỏ các giá trị null hoặc undefined
+                                            .filter(Boolean) 
                                     );
 
                                     return (
@@ -58,7 +58,7 @@ const ProductSkuSection = ({
                                             productConfiguredVariants={variantsForSkus}
                                             skuMediaFiles={skuMediaFiles}
                                             errors={formErrors.skus?.[i] || {}}
-                                            // Truyền danh sách các ID đã bị chọn xuống
+                                            
                                             disabledValueIds={otherSelectedValueIds}
                                         />
                                     );

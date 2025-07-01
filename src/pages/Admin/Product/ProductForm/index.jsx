@@ -41,6 +41,7 @@ const ProductForm = ({ onSubmit, initialData }) => {
     const [brandList, setBrandList] = useState([]);
     const [formErrors, setFormErrors] = useState({});
     const [thumbnail, setThumbnail] = useState(null);
+     const [badgeImage,  setBadgeImage]  = useState(null);  
     const [availableVariants, setAvailableVariants] = useState([]);
     const [productConfiguredVariants, setProductConfiguredVariants] = useState([]);
     const [categoryTree, setCategoryTree] = useState([]);
@@ -290,6 +291,12 @@ const ProductForm = ({ onSubmit, initialData }) => {
             payloadForJson.thumbnail = formData.thumbnail;
         }
 
+if (badgeImage?.file instanceof File) {                     
+  finalPayload.append('badgeImage', badgeImage.file);
+} else if (typeof formData.badgeImage === 'string' && formData.badgeImage) {
+  payloadForJson.badgeImage = formData.badgeImage;
+}
+
         if (formData.skus.length > 0) {
             if (!formData.hasVariants) {
                 const mediaFiles = skuMediaFiles[0] || [];
@@ -364,7 +371,7 @@ const ProductForm = ({ onSubmit, initialData }) => {
     }, [formData.hasVariants, fetchAvailableVariants]);
 useEffect(() => {
     if (initialData) {
-        const { name, shortDescription, description, thumbnail, orderIndex, isActive, hasVariants, categoryId, brandId, infoContent, variants, skus, specs } = initialData;
+        const { name,badgeImage , shortDescription, description, thumbnail, orderIndex, isActive, hasVariants, categoryId, brandId, infoContent, variants, skus, specs } = initialData;
         const processedSkus = (skus && skus.length > 0)
             ? skus.map(s => ({
                 ...createEmptySku(),
@@ -390,7 +397,11 @@ useEffect(() => {
         
         setInfoContent(infoContent || '');
         setThumbnail(thumbnail ? { url: thumbnail.startsWith('http') ? thumbnail : `${API_BASE_URL}${thumbnail}` } : null);
-        
+        setBadgeImage(                                              
+  badgeImage
+    ? { url: badgeImage.startsWith('http') ? badgeImage : `${API_BASE_URL}${badgeImage}` }
+   : null
+);
         const newSkuMediaFiles = {};
         processedSkus.forEach((sku, index) => {
             newSkuMediaFiles[index] = (sku.mediaUrls || []).map(url => ({ url: url.startsWith('http') ? url : `${API_BASE_URL}${url}`, type: getFrontendFileType(url), id: Math.random() }));
@@ -415,7 +426,7 @@ useEffect(() => {
         productConfiguredVariants.every(pvc => pvc.variantTypeId && pvc.applicableValueIds.length > 0);
         
     return (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className='bg-[#fff] p-4'>
             <Grid container spacing={4}>
                 <ProductInformationSection
                     formData={formData}
@@ -424,6 +435,8 @@ useEffect(() => {
                     setFormData={setFormData}
                     infoContent={infoContent}
                     setInfoContent={setInfoContent}
+                    badgeImage={badgeImage}              
+setBadgeImage={setBadgeImage}         
                     thumbnail={thumbnail}
                     setThumbnail={setThumbnail}
                     categoryTree={categoryTree}
