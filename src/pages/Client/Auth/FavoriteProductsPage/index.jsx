@@ -204,14 +204,19 @@ const FavoriteProductsPage = () => {
               const imageUrl = sku?.ProductMedia?.[0]?.mediaUrl || product.thumbnail || 'https://via.placeholder.com/150';
 
               const originalPrice = sku.originalPrice ?? 0;
-              const currentPrice = sku.price ?? originalPrice;
-              const flashSalePrice = sku.flashSaleSkus?.[0]?.salePrice ?? null;
-              const displayPrice = flashSalePrice ?? currentPrice;
-              const strikethroughPrice = displayPrice < originalPrice ? originalPrice : null;
-              const isOnFlashSale = !!flashSalePrice;
+              const basePrice = sku.price ?? originalPrice;
+
+              const salePriceFromBE = sku.salePrice ?? null;
+
+              const displayPrice = salePriceFromBE && salePriceFromBE < basePrice ? salePriceFromBE : basePrice;
+
               const isOnSale = displayPrice < originalPrice;
-              const discountAmount = strikethroughPrice ? strikethroughPrice - displayPrice : 0;
-              const discountPercent = strikethroughPrice ? Math.round((discountAmount / strikethroughPrice) * 100) : 0;
+              const strikethroughPrice = isOnSale ? originalPrice : null;
+
+              const discountAmount = isOnSale ? originalPrice - displayPrice : 0;
+              const discountPercent = isOnSale ? Math.round((discountAmount / originalPrice) * 100) : 0;
+
+              const isOnFlashSale = !!sku.flashSaleSkus?.length && !!sku.flashSaleSkus?.[0]?.salePrice;
 
               return (
                 <div
@@ -241,6 +246,7 @@ const FavoriteProductsPage = () => {
                             <HighlightText text={product.name} highlight={searchTerm} />
                           </h2>
                         </Link>
+
                         {item.variantText && (
                           <div className="mt-2">
                             <span className="inline-block bg-primary/10 text-primary text-xs font-semibold px-3 py-1 rounded-full">
@@ -248,6 +254,7 @@ const FavoriteProductsPage = () => {
                             </span>
                           </div>
                         )}
+
                         <div className="mt-2 lg:hidden">
                           <div className="flex items-baseline gap-2">
                             <p className="text-lg text-primary font-bold">{formatCurrency(displayPrice)}</p>
@@ -259,8 +266,7 @@ const FavoriteProductsPage = () => {
                             <div className="mt-1 flex flex-wrap items-center gap-2">
                               {isOnFlashSale ? (
                                 <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-red-100 text-red-800 text-xs font-semibold">
-                                  <Percent size={14} className="-ml-0.5 mr-1" />
-                                  Flash Sale
+                                  <Percent size={14} className="-ml-0.5 mr-1" /> Flash Sale
                                 </span>
                               ) : (
                                 <span className="text-xs font-semibold text-orange-600 bg-orange-100 px-2 py-0.5 rounded-full">
