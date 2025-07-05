@@ -112,25 +112,22 @@ export const postSEOAPI = {
       return response.data;
     } catch (error) {
       console.error('Post SEO API Error:', error);
-      // Return null if not found (new post without SEO data)
-      if (error.response?.status === 404) {
-        return null;
-      }
-      throw new Error(error.response?.data?.message || 'Failed to fetch post SEO record');
+      console.error('Post SEO API Error Response:', error.response?.data);
+      throw new Error(error.response?.data?.message || 'Failed to fetch post SEO by post ID');
     }
   },
 
   // Create new post SEO
-  createPostSEO: async (postSEOData) => {
+  createPostSEO: async (seoData) => {
     try {
-      console.log('Post SEO API: Creating post SEO:', postSEOData);
-      const response = await api.post('/', postSEOData);
+      console.log('Post SEO API: Creating post SEO:', seoData);
+      const response = await api.post('/', seoData);
       console.log('Post SEO API: Response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Post SEO API Error:', error);
       console.error('Post SEO API Error Response:', error.response?.data);
-      throw new Error(error.response?.data?.message || 'Failed to create post SEO record');
+      throw new Error(error.response?.data?.message || 'Failed to create post SEO');
     }
   },
 

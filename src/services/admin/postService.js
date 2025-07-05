@@ -36,5 +36,16 @@ forceDelete: (slugs) => {
   return post(`${base}${API_ENDPOINT.admin.news.restorePost}`, { slugs }); // ✅ bọc lại trong object
 },
 
+updatePostSlug: async (postId, newSlug) => {
+  try {
+    console.log(`Updating slug for post ${postId} to ${newSlug}`);
+    const response = await put(`${base}/update-slug/${postId}`, { slug: newSlug });
+    return response.data; // Trả về data thay vì full response để consistent với postSeoAPI
+  } catch (error) {
+    console.error('Update slug error:', error);
+    throw error; // Re-throw để frontend xử lý
+  }
+},
+
 
 };
