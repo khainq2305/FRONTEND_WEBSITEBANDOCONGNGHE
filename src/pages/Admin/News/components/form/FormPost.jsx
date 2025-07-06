@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Grid, FormControlLabel, Switch } from "@mui/material";
 import Content from "@/pages/Admin/News/components/form/Content";
 import Sidebar from "@/pages/Admin/News/components/sidebar/Sidebar";
+import SEORealtimeAnalyzerEnhanced from "@/components/Admin/SEO/SEORealtimeAnalyzerEnhanced";
 import { newsCategoryService } from "@/services/admin/newCategoryService";
 import { normalizeCategoryList } from "@/utils";
 import { tagService } from "@/services/admin/tagService";
@@ -19,6 +20,7 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
   const [publishAt, setPublishAt] = useState("");
   const [isFeature, setIsFeature] = useState(false);
   const [errors, setErrors] = useState({});
+  const [focusKeyword, setFocusKeyword] = useState("");
 
   useEffect(() => {
     if (initialData) {
@@ -31,6 +33,16 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
       setIsFeature(initialData.isFeature || false);
       setIsScheduled(Boolean(initialData.publishAt));
       setPublishAt(initialData.publishAt || "");
+      
+      // Tự động load focus keyword từ database khi chỉnh sửa
+      const existingFocusKeyword = 
+        initialData.seoData?.focusKeyword || 
+        initialData.focusKeyword || 
+        initialData.seo?.focusKeyword || 
+        "";
+      
+      setFocusKeyword(existingFocusKeyword);
+      console.log('🔑 Loaded focus keyword from database:', existingFocusKeyword);
     }
   }, [initialData]);
 
@@ -69,6 +81,7 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
   formData.append("isFeature", isFeature);
   formData.append("thumbnail", thumbnail);
   formData.append('tags', JSON.stringify(tags));
+  formData.append('focusKeyword', focusKeyword);
 
   try {
     await onSubmit?.(formData);
@@ -104,6 +117,16 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
           />
         </Grid>
         <Grid item xs={12} md={3}>
+          {/* SEO Real-time Analyzer */}
+          <SEORealtimeAnalyzerEnhanced
+            title={title}
+            content={content}
+            focusKeyword={focusKeyword}
+            onFocusKeywordChange={setFocusKeyword}
+            mode={mode}
+            slug={initialData?.slug || ''}
+          />
+          
           <Sidebar
             category={category}
             setCategory={setCategory}

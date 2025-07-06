@@ -11,9 +11,11 @@ import { postSEOAPI } from '@/services/postSeoAPI';
 import { toast } from 'react-toastify';
 import MUIPagination from '@/components/common/Pagination';
 import { confirmDelete } from '@/components/common/ConfirmDeleteDialog'; 
-import { useParams } from 'react-router';
+import { useParams, useLocation } from 'react-router';
+
 const News = () => {
-  const { slug } = useParams()
+  const { slug } = useParams();
+  const location = useLocation();
   const [filters, setFilters] = useState({
     search: '',
     status: '',
@@ -43,6 +45,7 @@ const News = () => {
   const [seoMessage, setSeoMessage] = useState('');
   const [seoLoading, setSeoLoading] = useState(false);
   const [bulkProgress, setBulkProgress] = useState({ current: 0, total: 0, message: '' });
+  const [refreshTrigger, setRefreshTrigger] = useState(0); // Trigger để force refresh
 
   const loadArticles = async () => {
     const { search, category, status } = filters;
@@ -117,7 +120,18 @@ const News = () => {
 
   useEffect(() => {
     loadArticles().catch(console.error);
-  }, [filters, currentPage]);
+  }, [filters, currentPage, refreshTrigger]); // Thêm refreshTrigger vào dependency
+
+  // Refresh khi navigate về từ edit page
+  useEffect(() => {
+    if (location.state?.refresh) {
+      console.log('🔄 Refreshing articles after edit');
+      setRefreshTrigger(prev => prev + 1); // Trigger refresh
+      
+      // Clear state để tránh refresh liên tục
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const handleTabClick = (statusValue) => {
     setFilters(prev => ({
