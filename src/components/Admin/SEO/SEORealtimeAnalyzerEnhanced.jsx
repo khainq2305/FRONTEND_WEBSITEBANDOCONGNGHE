@@ -78,7 +78,7 @@ const SEORealtimeAnalyzerEnhanced = ({
   const createSlugFromTitle = (title) => {
     if (!title) return '';
     
-    return title
+    const generatedSlug = title
       .toLowerCase()
       .trim()
       .replace(/\s+/g, '-')
@@ -92,6 +92,13 @@ const SEORealtimeAnalyzerEnhanced = ({
       .replace(/[^a-z0-9\-]/g, '')
       .replace(/-+/g, '-')
       .replace(/^-|-$/g, '');
+
+    // Debug: Log frontend slug generation
+    console.log(`🔍 [Frontend SEO Debug] Title: "${title}"`);
+    console.log(`🏷️  Generated slug: "${generatedSlug}"`);
+    console.log(`⚙️  Using seoSlugify (frontend version)`);
+    
+    return generatedSlug;
   };
 
   // Sync localFocusKeyword với focusKeyword prop khi thay đổi
@@ -322,59 +329,7 @@ const SEORealtimeAnalyzerEnhanced = ({
     return (content.toLowerCase().match(new RegExp(keyword.toLowerCase(), 'g')) || []).length;
   };
 
-  // SEO Analysis Functions
-  const analyzeTitleSEO = (title, keyword, suggestions) => {
-    let score = 0;
-    
-    if (!title.trim()) {
-      suggestions.push({
-        type: 'error',
-        text: 'Tiêu đề không được để trống',
-        icon: Error
-      });
-      return 0;
-    }
-
-    if (title.length < 30) {
-      suggestions.push({
-        type: 'warning', 
-        text: `Tiêu đề quá ngắn (${title.length} ký tự). Nên có 30-60 ký tự`,
-        icon: Warning
-      });
-      score += 10;
-    } else if (title.length > 60) {
-      suggestions.push({
-        type: 'warning',
-        text: `Tiêu đề quá dài (${title.length} ký tự). Nên có 30-60 ký tự`, 
-        icon: Warning
-      });
-      score += 10;
-    } else {
-      suggestions.push({
-        type: 'success',
-        text: `Độ dài tiêu đề tốt (${title.length} ký tự)`,
-        icon: CheckCircle
-      });
-      score += 15;
-    }
-
-    if (keyword && title.toLowerCase().includes(keyword.toLowerCase())) {
-      suggestions.push({
-        type: 'success',
-        text: 'Từ khóa xuất hiện trong tiêu đề',
-        icon: CheckCircle
-      });
-      score += 10;
-    } else if (keyword) {
-      suggestions.push({
-        type: 'warning',
-        text: 'Từ khóa chưa xuất hiện trong tiêu đề',
-        icon: Warning
-      });
-    }
-
-    return score;
-  };
+  // SEO Analysis Functions - Using calculateAdvancedSEOScore instead
 
   const analyzeContentLength = (stats, suggestions) => {
     let score = 0;
@@ -617,7 +572,11 @@ const SEORealtimeAnalyzerEnhanced = ({
       });
       titleScore = 0;
     } else {
-      // Title length analysis (30 points)
+      // Debug log for title analysis
+      console.log(`🔍 [Frontend Title Debug] Title: "${title}" (${title.length} chars)`);
+      console.log(`📝 Focus keyword: "${keyword}"`);
+      
+      // Title length analysis (30 points) - CRITICAL: No points for bad length
       if (title.length < 30) {
         suggestions.push({
           type: 'warning',
@@ -625,6 +584,7 @@ const SEORealtimeAnalyzerEnhanced = ({
           icon: Warning,
           priority: 'medium'
         });
+        console.log(`❌ Title too short: 0 points`);
       } else if (title.length > 60) {
         suggestions.push({
           type: 'warning',
@@ -632,6 +592,7 @@ const SEORealtimeAnalyzerEnhanced = ({
           icon: Warning,
           priority: 'medium'
         });
+        console.log(`❌ Title too long: 0 points`);
       } else {
         titleScore += 30;
         suggestions.push({
@@ -640,6 +601,7 @@ const SEORealtimeAnalyzerEnhanced = ({
           icon: CheckCircle,
           priority: 'low'
         });
+        console.log(`✅ Title length good: +30 points`);
       }
 
       // Focus keyword in title (40 points)
@@ -652,6 +614,7 @@ const SEORealtimeAnalyzerEnhanced = ({
             icon: CheckCircle,
             priority: 'low'
           });
+          console.log(`✅ Keyword in title: +40 points`);
         } else {
           suggestions.push({
             type: 'warning',
@@ -659,19 +622,25 @@ const SEORealtimeAnalyzerEnhanced = ({
             icon: Warning,
             priority: 'high'
           });
+          console.log(`❌ No keyword in title: 0 points`);
         }
       }
 
       // Title has numbers (10 points)
       if (/\d/.test(title)) {
         titleScore += 10;
+        console.log(`✅ Title has numbers: +10 points`);
       }
 
       // Emotional words (20 points)
       const emotionalWords = ['best', 'tốt nhất', 'amazing', 'tuyệt vời', 'ultimate', 'hoàn hảo', 'top', 'hàng đầu'];
       if (emotionalWords.some(word => title.toLowerCase().includes(word.toLowerCase()))) {
         titleScore += 20;
+        console.log(`✅ Title has emotional words: +20 points`);
       }
+      
+      console.log(`🏷️  Total title score: ${titleScore}/100`);
+      console.log(`---`);
     }
 
     // ==================== CONTENT ANALYSIS (100 points) ====================
