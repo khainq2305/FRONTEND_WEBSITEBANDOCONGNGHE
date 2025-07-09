@@ -217,6 +217,20 @@ export const API_ENDPOINT = {
       forceDelete: (id) => `/product/force/${id}`,
       updateOrderIndexBulk: '/product/update-order'
     },
+     sku: {
+      base: `${API_BASE_URL}/admin/sku`,
+      getAll: '/',
+      logsBySkuId: (id) => `/${id}/logs`,
+      importStock: (id) => `/${id}/import`,
+      // getById: (slug) => `/product/${slug}`,
+      exportStock: (id) =>  `/${id}/export`,
+      softDelete: (id) => `/product/soft/${id}`,
+      softDeleteMany: '/product/soft-delete-many',
+      restore: (id) => `/product/restore/${id}`,
+      restoreMany: '/product/restore-many',
+      forceDelete: (id) => `/product/force/${id}`,
+      updateOrderIndexBulk: '/product/update-order'
+    },
     notification: {
       base: `${API_BASE_URL}/admin/notifications`,
       getAll: '',

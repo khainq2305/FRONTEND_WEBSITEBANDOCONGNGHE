@@ -54,6 +54,7 @@ import RequireAuth from '@/components/Admin/RequireAuth';
 const RoleIndex = Loadable(lazy(() => import('pages/Admin/Role/index')));
 const RoleManagement = Loadable(lazy(() => import('pages/Admin/Role/RoleManagement')));
 import { UserProvider } from '@/contexts/UserContext';
+const Skulist =  Loadable(lazy(() => import('pages/Admin/Skus')));
 const NotFound = Loadable(lazy(() => import('pages/Admin/NotFound')));
 const AdminRoutes = {
   path: '/admin',
@@ -268,6 +269,10 @@ const AdminRoutes = {
     {
       path: 'system-settings',
       element: <SystemSettings />
+    },
+    {
+      path: 'skulist',
+      element: <Skulist />
     },
     {
       path: '*',
