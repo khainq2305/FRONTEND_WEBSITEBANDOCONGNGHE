@@ -24,7 +24,8 @@ import {
   HistoryOutlined,
   SafetyCertificateOutlined,
   ToolOutlined,
-  SettingOutlined
+  SettingOutlined,
+  InboxOutlined
 } from '@ant-design/icons';
 
 const icons = {
@@ -52,7 +53,8 @@ const icons = {
   HistoryOutlined,
   SafetyCertificateOutlined,
   ToolOutlined,
-  SettingOutlined
+  SettingOutlined,
+  InboxOutlined
 };
 
 const pages = [
@@ -92,7 +94,7 @@ const pages = [
         title: 'Sản phẩm tồn kho',
         type: 'item',
         url: '/admin/skulist',
-        icon: icons.ShoppingOutlined,
+        icon: icons.InboxOutlined,
         breadcrumbs: false,
         action: 'read',
         subject: 'Product'

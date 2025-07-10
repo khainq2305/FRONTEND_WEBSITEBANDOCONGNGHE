@@ -226,11 +226,11 @@ const DialogDetails = ({ open, onClose, skuItem, logsAction, handleSubmitImport,
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Tổng Giá Trị:</span>
-                  <span className="font-bold text-green-600">{formatCurrency(skuItem.originalPrice)}</span>
+                  <span className="font-bold text-green-600">{formatCurrency(skuItem.originalPrice * skuItem.stock)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Tại Mức Tối Thiểu:</span>
-                  <span className="font-medium">{formatCurrency(6)}</span>
+                  <span className="font-medium">{formatCurrency(skuItem.originalPrice * 10 )}</span>
                 </div>
               </div>
             </Card>

@@ -29,11 +29,11 @@ import {
 const LogsAction = ({ logsAction, fetchLogsBySku, skuId }) => {
   const [typeFilter, setTypeFilter] = useState('all');
 
-const handleChange = (event) => {
-  const value = event.target.value;
-  setTypeFilter(value);
-  fetchLogsBySku(skuId , value);
-};
+  const handleChange = (event) => {
+    const value = event.target.value;
+    setTypeFilter(value);
+    fetchLogsBySku(skuId, value);
+  };
   return (
     <>
       <Card className="p-4 h-full">
@@ -44,21 +44,14 @@ const handleChange = (event) => {
               Lịch Sử Hoạt Động
             </Typography>
           </div>
-          <FormControl size="small" sx={{ minWidth: 200 }}>
-  <InputLabel id="log-type-label">Chọn hoạt động</InputLabel>
-  <Select
-    labelId="log-type-label"
-    id="log-type-select"
-    value={typeFilter}
-    label="Chọn hoạt động"
-    onChange={handleChange}
-  >
-    <MenuItem value="all">Tất cả</MenuItem>
-    <MenuItem value="import">Nhập hàng</MenuItem>
-    <MenuItem value="export">Xuất hàng</MenuItem>
-  </Select>
-</FormControl>
-
+          <FormControl size="small" sx={{ minWidth: 150 }}>
+            <InputLabel id="log-type-label">Chọn hoạt động</InputLabel>
+            <Select labelId="log-type-label" id="log-type-select" value={typeFilter} label="Chọn hoạt động" onChange={handleChange}>
+              <MenuItem value="all">Tất cả</MenuItem>
+              <MenuItem value="import">Nhập hàng</MenuItem>
+              <MenuItem value="export">Xuất hàng</MenuItem>
+            </Select>
+          </FormControl>
         </div>
 
         <div className="space-y-3 max-h-[500px] overflow-y-auto">
