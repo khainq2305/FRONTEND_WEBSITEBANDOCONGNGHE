@@ -107,6 +107,16 @@ const pages = [
         action: 'read',
         subject: 'ProductCategory'
       },
+       {
+        id: 'sku-list',
+        title: 'Sản phẩm tồn kho',
+        type: 'item',
+        url: '/admin/skulist',
+        icon: icons.InboxOutlined,
+        breadcrumbs: false,
+        action: 'read',
+        subject: 'Product'
+      },
       {
         id: 'product-category',
         title: 'Danh mục sản phẩm',
@@ -433,7 +443,29 @@ const pages = [
     breadcrumbs: false,
     action: 'create',
     subject: 'Role'
-  }
+  },
+  // ===== NEW – Payment & Shipping =====
+{
+  id: 'payment-methods',
+  title: 'Phương thức thanh toán',
+  type: 'item',
+  url: '/admin/payment-methods',
+  icon: icons.DollarOutlined,
+  breadcrumbs: false,
+  action: 'read',
+  subject: 'PaymentMethod'
+},
+{
+  id: 'shipping-providers',
+  title: 'Hãng vận chuyển',
+  type: 'item',
+  url: '/admin/shipping-providers',
+  icon: icons.CarOutlined,
+  breadcrumbs: false,
+  action: 'read',
+  subject: 'ShippingProvider'
+},
+
 ];
 
 export default pages;

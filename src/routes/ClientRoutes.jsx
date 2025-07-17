@@ -8,7 +8,7 @@ const SignPage = Loadable(lazy(() => import('pages/Client/Auth/SignPage.jsx')));
 const ProductListByCategory = Loadable(lazy(() => import('pages/Client/ProductListByCategory')));
 const ForgotPasswordPage = Loadable(lazy(() => import('pages/Client/Auth/ForgotPasswordPage')));
 const ResetPasswordPage = Loadable(lazy(() => import('pages/Client/Auth/ResetPasswordPage')));
-
+const ViewedProductsPage = Loadable(lazy(() => import('pages/Client/ViewedProductsPage'))); // Import ViewedProductsPage
 const ProductDetail = Loadable(lazy(() => import('pages/Client/ProductDetail')));
 const ForgotPasswordNotice = Loadable(lazy(() => import('pages/Client/Auth/ForgotPasswordNotice')));
 const RegisterEmailSentNotice = Loadable(lazy(() => import('pages/Client/Auth/RegisterEmailSentNotice')));
@@ -18,6 +18,9 @@ const CartPage = Loadable(lazy(() => import('pages/Client/Cart')));
 const CheckoutPage = Loadable(lazy(() => import('pages/Client/Payment')));
 
 const OrderConfirmation = Loadable(lazy(() => import('pages/Client/Payment/OrderConfirmation')));
+const VietQRConfirmationPage = Loadable(lazy(() => import('pages/Client/Payment/VietQRConfirmationPage')));
+const StripeCheckoutPage = Loadable(lazy(() => import('pages/Client/Payment/StripeCheckoutPage')));
+
 
 const News = Loadable(lazy(() => import('pages/Client/Blog')));
 const NewsDetails = Loadable(lazy(() => import('pages/Client/BlogDetail')));
@@ -25,16 +28,14 @@ const NewsDetails = Loadable(lazy(() => import('pages/Client/BlogDetail')));
 const OrderLookup = Loadable(lazy(() => import('pages/Client/OrderLookup')));
 const ProductComparison = Loadable(lazy(() => import('pages/Client/CompareProducts')));
 
-const ReturnOrderPage = Loadable(lazy(() => import('pages/Client/Auth/ReturnOrderDialog'))); 
-const OrderDetailPage   = Loadable(lazy(() => import('pages/Client/Auth/OrderDetailPage'))); // xem chi tiết đơn hàng
+const ReturnOrderPage = Loadable(lazy(() => import('pages/Client/Auth/ReturnOrderDialog')));
+const OrderDetailPage = Loadable(lazy(() => import('pages/Client/Auth/OrderDetailPage')));
 const ClientRoutes = {
   path: '/',
-  element: 
-    <ClientLayout />,
+  element: <ClientLayout />,
   children: [
     { index: true, element: <HomePage /> },
 
-  
     {
       path: 'dang-nhap',
       element: <SignPage />
@@ -44,44 +45,42 @@ const ClientRoutes = {
       path: 'dang-ky',
       element: <SignPage />
     },
-
+    { path: 'san-pham-da-xem', element: <ViewedProductsPage /> },
     { path: 'quen-mat-khau', element: <ForgotPasswordPage /> },
     {
       path: 'forgot-password-notice',
       element: <ForgotPasswordNotice />
     },
     { path: 'dat-lai-mat-khau', element: <ResetPasswordPage /> },
- {
-  path: 'user-profile',
-  element: (
-    <RequireAuth>
-      <UserProfilePage />        {/* CHỨA SIDEBAR + <Outlet /> */}
-    </RequireAuth>
-  ),
-  children: [
-    // route mặc định (tab profile cũ)
-    { index: true, element: <></> },           // hoặc Redirect về '#thong-tin-tai-khoan'
+    {
+      path: 'user-profile',
+      element: (
+        <RequireAuth>
+          <UserProfilePage />
+        </RequireAuth>
+      ),
+      children: [
+        { index: true, element: <></> },
 
-    // chi tiết đơn
-    { path: 'orders/:orderCode', element: <OrderDetailPage /> }
-  ]
-},
+        { path: 'orders/:orderCode', element: <OrderDetailPage /> }
+      ]
+    },
     {
       path: 'register-email-sent',
       element: <RegisterEmailSentNotice />
     },
     { path: 'verify-email', element: <VerifyEmailPage /> },
-    // { path: 'user-profile', element: <UserProfilePage /> },
-     
-    { path: 'category/:slug', element: <ProductListByCategory /> },
 
+    { path: 'category/:slug', element: <ProductListByCategory /> },
+{ path: 'vietqr-confirmation/:orderCode', element: <VietQRConfirmationPage /> },
+{ path: 'stripe-checkout/:orderCode', element: <StripeCheckoutPage /> },
     { path: 'product/:slug', element: <ProductDetail /> },
     { path: 'tin-noi-bat', element: <News /> },
     { path: 'tin-noi-bat/:slug', element: <NewsDetails /> },
     { path: 'cart', element: <CartPage /> },
     { path: 'checkout', element: <CheckoutPage /> },
-    { path: 'order-confirmation', element: <OrderConfirmation /> },
-
+   
+ { path: 'order-confirmation', element: <OrderConfirmation /> },
     { path: 'news', element: <News /> },
     { path: 'news/:id', element: <NewsDetails /> },
     { path: 'orderlookup', element: <OrderLookup /> },

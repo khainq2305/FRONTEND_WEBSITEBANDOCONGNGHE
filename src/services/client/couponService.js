@@ -5,5 +5,7 @@ const base = API_ENDPOINT.client.coupon.base;
 
 export const couponService = {
   applyCoupon: (data) => post(`${base}${API_ENDPOINT.client.coupon.apply}`, data),
-  getAvailable: () => get(`${base}${API_ENDPOINT.client.coupon.available}`) // ✅ thêm dòng này
+ getAvailable: (queryString = '') =>
+  get(`${base}${API_ENDPOINT.client.coupon.available}${queryString}`)
+
 };

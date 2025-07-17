@@ -2,14 +2,27 @@ import React, { useState, useEffect, useRef } from 'react';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import './FreshProductSlider.css';
+import './FreshProductSlider.css'; // Đảm bảo CSS này được tải
 
 import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
 import { Link } from 'react-router-dom';
 
-const InlinedProductCard = ({ id, badgeImage , productId, name, price, oldPrice, discount, image, rating, slug, soldCount, inStock, badge }) => {
-  
+const InlinedProductCard = ({
+  id,
+  badgeImage,
+  productId,
+  name,
+  price,
+  oldPrice,
+  discount,
+  image,
+  rating,
+  slug,
+  soldCount,
+  inStock,
+  badge
+}) => {
   const renderStars = (rate) => {
     const stars = [];
     const numRating = parseFloat(rate);
@@ -42,7 +55,8 @@ const InlinedProductCard = ({ id, badgeImage , productId, name, price, oldPrice,
       'GIAO NHANH': 'src/assets/Client/images/1717405144807-Left-Tag-Giao-Nhanh.webp',
       'THU CŨ ĐỔI MỚI': 'src/assets/Client/images/1740550907303-Left-tag-TCDM (1).webp',
       'TRẢ GÓP 0%': 'src/assets/Client/images/1717405144808-Left-Tag-Tra-Gop-0.webp',
-      'GIÁ TỐT': 'src/assets/Client/images/1732077440142-Left-tag-Bestprice-0.gif'
+      'GIÁ TỐT': 'src/assets/Client/images/1732077440142-Left-tag-Bestprice-0.gif',
+      'GIÁ KHO': 'src/assets/Client/images/1739182448835-Left-tag-GK-Choice.gif'
     };
 
     const upperCaseBadge = badge.toUpperCase();
@@ -52,6 +66,7 @@ const InlinedProductCard = ({ id, badgeImage , productId, name, price, oldPrice,
     else if (upperCaseBadge.includes('THU CŨ')) imageUrl = badgeImageMap['THU CŨ ĐỔI MỚI'];
     else if (upperCaseBadge.includes('TRẢ GÓP')) imageUrl = badgeImageMap['TRẢ GÓP 0%'];
     else if (upperCaseBadge.includes('GIÁ TỐT') || upperCaseBadge.includes('BEST PRICE')) imageUrl = badgeImageMap['GIÁ TỐT'];
+    else if (upperCaseBadge.includes('GIÁ KHO')) imageUrl = badgeImageMap['GIÁ KHO'];
 
     if (imageUrl) {
       return (
@@ -67,47 +82,42 @@ const InlinedProductCard = ({ id, badgeImage , productId, name, price, oldPrice,
   return (
     <div className="product-card-item w-full h-full flex flex-col bg-white relative transition-all duration-300 ease-in-out group/productCard border-l border-r border-transparent hover:shadow-2xl hover:z-20 hover:border-l-gray-200 hover:border-r-gray-200 rounded-lg overflow-hidden">
       <div className="relative">
-        {!inStock && (
+       {!inStock && (
           <div className="absolute inset-0 bg-white/40 flex items-center justify-center z-20 rounded-t-lg pointer-events-none">
             <span className="text-rose-600 font-bold text-base border-2 border-rose-500 rounded-lg px-4 py-2 transform -rotate-12 shadow-lg bg-white">
               Hết Hàng
             </span>
           </div>
         )}
-
         {discount > 0 && (
-          <div className="absolute top-2 left-2 bg-red-500 text-white text-[9px] sm:text-xs font-bold px-1.5 py-0.5 rounded z-10">
+          <div className="absolute top-2 left-2 bg-red-500 text-white text-[9px] sm:text-xs font-bold px-1.5 py-0.5 rounded z-30">
             -{discount}%
           </div>
         )}
 
- {/* ------------ ảnh sản phẩm ------------- */}
-<Link
-  to={`/product/${slug}`}
-  className="product-card-image-link block w-full h-[125px] xs:h-[140px] sm:h-[160px] mt-3 mb-1.5 sm:mt-4 sm:mb-2
-             flex items-center justify-center px-3 relative"
->
-  <img
-    src={image || 'https://placehold.co/300x300/e2e8f0/94a3b8?text=No+Image'}
-    alt={name}
-    className="max-h-full max-w-full object-contain group-hover/productCard:scale-105 transition-transform duration-300"
-    loading="lazy"
-  />
+        <Link
+          to={`/product/${slug}`}
+          className="product-card-image-link block w-full h-[140px] xs:h-[160px] sm:h-[180px] md:h-[200px] mt-3 mb-1.5 sm:mt-4 sm:mb-2
+                                    flex items-center justify-center px-3 relative"
+        >
+          <img
+            src={image || 'https://placehold.co/300x300/e2e8f0/94a3b8?text=No+Image'}
+            alt={name}
+            className="max-h-full max-w-full object-contain group-hover/productCard:scale-105 transition-transform duration-300"
+            loading="lazy"
+          />
 
-  {/* ========= overlay chỉ khi có badgeImage ========= */}
-{badgeImage && (
-  <img
-    src={badgeImage}
-    alt="badge overlay"
-    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-               w-[205px] h-[180px] z-20 pointer-events-none select-none hidden sm:block"
-    loading="lazy"
-  />
-)}
-
-</Link>
-
-
+          {badgeImage && (
+            <img
+              src={badgeImage}
+              alt="badge overlay"
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
+                    w-full h-full object-contain z-20 pointer-events-none select-none hidden sm:block
+                    transform scale-[1.1]" // Đã điều chỉnh thành scale-[1.1]
+              loading="lazy"
+            />
+          )}
+        </Link>
       </div>
 
       <div className="product-card-info px-2 xs:px-1.5 sm:px-2.5 pt-1 pb-2 sm:pb-2.5 flex flex-col flex-grow overflow-hidden">
@@ -191,33 +201,55 @@ const FreshProductSlider = ({
   linkedCategories = []
 }) => {
   const productSliderRef = useRef(null);
-
   const [sectionTitle, setSectionTitle] = useState(titleFromProp || 'SẢN PHẨM NỔI BẬT');
   const [banners, setBanners] = useState([]);
   const [currentProducts, setCurrentProducts] = useState([]);
+  const [standardSlidesToShow, setStandardSlidesToShow] = useState(5); // Số slideToShow chuẩn cho breakpoint hiện tại
+
+  useEffect(() => {
+    const handleResize = () => {
+      let newSlidesToShow;
+      if (window.innerWidth >= 1279) {
+        newSlidesToShow = 5;
+      } else if (window.innerWidth >= 1023) {
+        newSlidesToShow = 4;
+      } else if (window.innerWidth >= 767) {
+        newSlidesToShow = 3;
+      } else {
+        // mobile
+        newSlidesToShow = 2;
+      }
+      setStandardSlidesToShow(newSlidesToShow);
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Chạy lần đầu khi component mount
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     setSectionTitle(titleFromProp || 'SẢN PHẨM NỔI BẬT');
-
-    const mappedBanners = (bannersFromProp || []).map((b, index) => ({
-      id: b.id,
-      imageUrl: b.imageUrl,
-      link: b.linkValue
-        ? b.linkType === 'URL' || (typeof b.linkValue === 'string' && b.linkValue.startsWith('http'))
-          ? b.linkValue
-          : b.linkType === 'product'
-            ? `/san-pham/${b.linkValue}`
-            : b.linkType === 'category'
-              ? `/category/${b.linkValue}`
-              : '#'
-        : '#',
-      altText: b.altText || `${titleFromProp || 'Banner'} ${index + 1}`
-    }));
+    const mappedBanners = (bannersFromProp || [])
+      .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+      .map((b, index) => ({
+        id: b.id,
+        imageUrl: b.imageUrl,
+        link: b.linkValue
+          ? b.linkType === 'URL' || (typeof b.linkValue === 'string' && b.linkValue.startsWith('http'))
+            ? b.linkValue
+            : b.linkType === 'product'
+              ? `/san-pham/${b.linkValue}`
+              : b.linkType === 'category'
+                ? `/category/${b.linkValue}`
+                : '#'
+          : '#',
+        altText: b.altText || `${titleFromProp || 'Banner'} ${index + 1}`
+      }));
     setBanners(mappedBanners);
 
     const mappedProducts = (productsFromProp || []).map((p) => ({
       badge: p.badge || null,
-       badgeImage: p.badgeImage || null,  
+      badgeImage: p.badgeImage || null,
       ...p,
       price: typeof p.price === 'number' ? p.price.toLocaleString('vi-VN') : String(p.price || '0'),
       oldPrice: typeof p.oldPrice === 'number' ? p.oldPrice.toLocaleString('vi-VN') : p.oldPrice ? String(p.oldPrice) : null
@@ -225,47 +257,66 @@ const FreshProductSlider = ({
     setCurrentProducts(mappedProducts);
   }, [titleFromProp, bannersFromProp, productsFromProp]);
 
+  // Số slide thực tế sẽ hiển thị (luôn là số slide tiêu chuẩn của breakpoint)
+  // Nếu số sản phẩm ít hơn, Slick sẽ hiển thị tất cả và CSS sẽ giữ kích thước
+  const finalSlidesToShow = standardSlidesToShow;
+
+  // Quyết định có nên bật infinite loop và arrows hay không
+  // Chỉ bật infinite và arrows khi số lượng sản phẩm lớn hơn số slide tiêu chuẩn
+  const shouldEnableSliderFeatures = currentProducts.length > standardSlidesToShow;
+
   const productSliderSettings = {
     dots: false,
-    infinite: currentProducts.length > 5,
+    infinite: shouldEnableSliderFeatures,
     speed: 500,
-    slidesToShow: 5,
+    slidesToShow: finalSlidesToShow, // Sử dụng standardSlidesToShow để Slick biết số cột mặc định
     slidesToScroll: 1,
-    arrows: true,
+    arrows: shouldEnableSliderFeatures,
     prevArrow: <CustomSlickArrow type="prev" />,
     nextArrow: <CustomSlickArrow type="next" />,
     centerMode: false,
+    centerPadding: '0px',
     swipeToSlide: true,
+    //initialSlide: 0, // Không cần thiết nếu infinite là false và muốn sát trái
 
     responsive: [
       {
         breakpoint: 1279,
         settings: {
-          slidesToShow: 4,
+          slidesToShow: 4, // Đặt slidesToSHow mặc định cho breakpoint này
+          slidesToScroll: 1,
+          infinite: currentProducts.length > 4,
           arrows: currentProducts.length > 4,
-          infinite: currentProducts.length > 4
+          centerMode: false,
+          centerPadding: '0px'
         }
       },
       {
         breakpoint: 1023,
         settings: {
-          slidesToShow: 3,
+          slidesToShow: 3, // Đặt slidesToSHow mặc định cho breakpoint này
+          slidesToScroll: 1,
+          infinite: currentProducts.length > 3,
           arrows: currentProducts.length > 3,
-          infinite: currentProducts.length > 3
+          centerMode: false,
+          centerPadding: '0px'
         }
       },
       {
         breakpoint: 767,
         settings: {
-          slidesToShow: 2,
+          slidesToShow: 2, // Đặt slidesToSHow mặc định cho breakpoint này
           slidesToScroll: 1,
-          arrows: false
+          infinite: currentProducts.length > 2,
+          arrows: false,
+          centerMode: false,
+          centerPadding: '0px'
         }
       }
     ]
   };
 
-  if ((!currentProducts || currentProducts.length === 0) && (!banners || banners.length === 0)) {
+  if (!currentProducts || currentProducts.length === 0) {
     return null;
   }
 
@@ -276,15 +327,19 @@ const FreshProductSlider = ({
           <h3 className="text-xl sm:text-xl font-bold uppercase whitespace-nowrap text-[#c51813]">{sectionTitle}</h3>
 
           <div className="flex items-center gap-1 sm:gap-2 mt-1 md:flex-wrap overflow-x-auto whitespace-nowrap hide-scrollbar">
-            {linkedCategories.slice(0, 5).map((cat) => (
-              <Link
-                key={cat.id}
-                to={`/category/${cat.slug}`}
-                className="inline-block text-[13px] sm:text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 px-2.5 py-1 rounded-md shadow-sm border border-gray-300 transition flex-shrink-0"
-              >
-                {cat.name}
-              </Link>
-            ))}
+            {[...linkedCategories]
+              .sort((a, b) => (a.HomeSectionCategory?.sortOrder || 0) - (b.HomeSectionCategory?.sortOrder || 0))
+              .slice(0, 5)
+              .map((cat) => (
+                <Link
+                  key={cat.id}
+                  to={`/category/${cat.slug}`}
+                  className="inline-block text-[13px] sm:text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 px-2.5 py-1 rounded-md shadow-sm border border-gray-300 transition flex-shrink-0"
+                >
+                  {cat.name}
+                </Link>
+              ))}
+
             {linkedCategories.length > 5 && (
               <Link
                 to={`/category/${linkedCategories[0]?.slug || ''}`}
@@ -333,11 +388,7 @@ const FreshProductSlider = ({
       )}
 
       <div className="fresh-slider-content-area pt-2 pb-5 px-2 sm:px-4">
-        {!currentProducts || currentProducts.length === 0 ? (
-          banners && banners.length > 0 ? null : (
-            <p className="text-center py-10 text-gray-500">Không có sản phẩm nào để hiển thị.</p>
-          )
-        ) : (
+        {currentProducts.length > 0 ? (
           <Slider {...productSliderSettings} ref={productSliderRef} className="fresh-slick-slider">
             {currentProducts.map((product) => (
               <div key={product.id}>
@@ -345,6 +396,8 @@ const FreshProductSlider = ({
               </div>
             ))}
           </Slider>
+        ) : banners && banners.length > 0 ? null : (
+          <p className="text-center py-10 text-gray-500">Không có sản phẩm nào để hiển thị.</p>
         )}
       </div>
     </div>

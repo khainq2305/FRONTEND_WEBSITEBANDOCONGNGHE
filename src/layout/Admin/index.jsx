@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-
+import { useNavigate } from 'react-router-dom';
+import { injectNavigate } from '@/services/common/api';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import Toolbar from '@mui/material/Toolbar';
 import Box from '@mui/material/Box';
@@ -19,7 +20,11 @@ export default function DashboardLayout() {
   const { pathname } = useLocation();
   const { menuMasterLoading } = useGetMenuMaster();
   const downXL = useMediaQuery((theme) => theme.breakpoints.down('xl'));
+  const navigate = useNavigate();
 
+  useEffect(() => {
+    injectNavigate(navigate);
+  }, [navigate]);
 
   useEffect(() => {
     handlerDrawerOpen(!downXL);

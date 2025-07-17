@@ -73,7 +73,7 @@ const NotificationDropdown = ({ isOpen, notifications = [], onClose, setNotifica
   const [activeTab, setActiveTab] = useState('all');
   if (!isOpen) return null;
 
-  // Nếu chưa đăng nhậpp
+  
   if (!userInfo) {
     return (
       <div className="absolute top-full right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-40 flex flex-col has-arrow-up">

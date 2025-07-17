@@ -2,6 +2,12 @@ import React, { useEffect } from 'react';
 import { CheckCircleIcon, CubeIcon, XCircleIcon, TagIcon } from '@heroicons/react/24/solid';
 import CountdownTimer from '../../Home/TwoRowMarketSlider/CountdownTimer';
 
+import GiaoNhanhBadge from '@/assets/Client/images/1717405144807-Left-Tag-Giao-Nhanh.webp';
+import TraGopBadge from '@/assets/Client/images/1717405144808-Left-Tag-Tra-Gop-0.webp';
+import GiaTotBadge from '@/assets/Client/images/1732077440142-Left-tag-Bestprice-0.gif';
+import GiaKhoBadge from '@/assets/Client/images/1739182448835-Left-tag-GK-Choice.gif';
+import ThuCuDoiMoiBadge from '@/assets/Client/images/1740550907303-Left-tag-TCDM (1).webp';
+
 const StarRating = ({ rating, totalStars = 5 }) => (
   <div className="flex items-center">
     {[...Array(totalStars)].map((_, index) => {
@@ -55,17 +61,21 @@ export default function ProductOptions({
   const renderBadge = () => {
     if (!badge) return null;
     const badgeImageMap = {
-      'GIAO NHANH': '/src/assets/Client/images/1717405144807-Left-Tag-Giao-Nhanh.webp',
-      'THU CŨ ĐỔI MỚI': '/src/assets/Client/images/1740550907303-Left-tag-TCDM (1).webp',
-      'TRẢ GÓP 0%': '/src/assets/Client/images/1717405144808-Left-Tag-Tra-Gop-0.webp',
-      'GIÁ TỐT': '/src/assets/Client/images/1732077440142-Left-tag-Bestprice-0.gif'
-    };
+  'GIAO NHANH': GiaoNhanhBadge,
+  'THU CŨ ĐỔI MỚI': ThuCuDoiMoiBadge,
+  'TRẢ GÓP 0%': TraGopBadge,
+  'GIÁ TỐT': GiaTotBadge,
+  'GIÁ KHO': GiaKhoBadge
+};
+
     const upperCaseBadge = badge.toUpperCase();
     let imageUrl = null;
     if (upperCaseBadge.includes('GIAO NHANH')) imageUrl = badgeImageMap['GIAO NHANH'];
     else if (upperCaseBadge.includes('THU CŨ')) imageUrl = badgeImageMap['THU CŨ ĐỔI MỚI'];
     else if (upperCaseBadge.includes('TRẢ GÓP')) imageUrl = badgeImageMap['TRẢ GÓP 0%'];
     else if (upperCaseBadge.includes('GIÁ TỐT') || upperCaseBadge.includes('BEST PRICE')) imageUrl = badgeImageMap['GIÁ TỐT'];
+    else if (upperCaseBadge.includes('GIÁ KHO')) imageUrl = badgeImageMap['GIÁ KHO'];
+
 
     if (imageUrl) {
       return (
@@ -76,6 +86,9 @@ export default function ProductOptions({
     }
     return null;
   };
+useEffect(() => {
+  console.log('📦 banners trong ProductOptions:', banners);
+}, [banners]);
 
   if (!productOptionsData || productOptionsData.length === 0) {
     return <div className="text-gray-500 text-sm">Đang tải...</div>;
@@ -115,6 +128,7 @@ export default function ProductOptions({
       }}
     >
       <div className="p-4 space-y-4 text-gray-800 bg-white rounded-lg">
+   
         <div>
           <h1 className="text-2xl font-bold text-gray-900 leading-tight">{productName}</h1>
           <div className="mt-2 space-y-2">
@@ -250,7 +264,21 @@ export default function ProductOptions({
             })}
           </div>
         </div>
+              {banners.length > 0 && (
+ <div className="w-full mb-3">
+  {banners?.map((banner) => (
+    <img
+      key={banner.id}
+      src={banner.imageUrl}
+      alt={banner.title || 'Banner'}
+      className="w-full rounded-sm "
+      loading="lazy"
+    />
+  ))}
+</div>
 
+   
+  )}
         <div className="space-y-2 pt-2">
           {areAllOptionsOutOfStock ? (
             <button
@@ -282,6 +310,7 @@ export default function ProductOptions({
             </>
           )}
         </div>
+
       </div>
     </div>
   );

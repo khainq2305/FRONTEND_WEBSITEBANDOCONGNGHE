@@ -18,7 +18,11 @@ export const orderService = {
   console.log(`📡 Gọi API cập nhật trạng thái đơn hàng: ${url}`, status);
   return put(url, { status });
 },
-
+updatePaymentStatus: (orderId, paymentStatus) => {
+    const url = `${base}${API_ENDPOINT.admin.order.updatePaymentStatus(orderId)}`;
+    console.log(`📡 Gọi API cập nhật trạng thái thanh toán: ${url}`, { paymentStatus });
+    return put(url, { paymentStatus }); // Gửi payload { paymentStatus: 'paid' }
+  },
 
  cancel: (id, reason) => {
   const url = `${base}${API_ENDPOINT.admin.order.cancel.replace(':id', id)}`;

@@ -1,8 +1,9 @@
-// src/components/MobileCategoryPanel.jsx
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ChevronRight, FileSearch } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const MobileCategoryPanel = ({ isOpen, onClose, categories = [] }) => {
+  const navigate = useNavigate();
   const [selectedL1CategoryId, setSelectedL1CategoryId] = useState(null);
 
   useEffect(() => {
@@ -30,9 +31,15 @@ const MobileCategoryPanel = ({ isOpen, onClose, categories = [] }) => {
     }
   };
 
-  const handleNavigate = (slug) => {
-    console.log('Simulating navigation to:', slug);
-    onClose();
+  const handleNavigateCommon = (slug) => {
+    if (slug) {
+      navigate(`/category/${slug}`);
+      onClose();
+    }
+  };
+
+  const handleNavigateL2 = (slug) => {
+    handleNavigateCommon(slug);
   };
 
   if (!isOpen) {
@@ -56,10 +63,10 @@ const MobileCategoryPanel = ({ isOpen, onClose, categories = [] }) => {
         </h2>
         {activeL1CategoryData && activeL1CategoryData.slug && level2Display.length > 0 ? (
           <a
-            href={activeL1CategoryData.slug ? `#${activeL1CategoryData.slug}` : '#'}
+            href={`/category/${activeL1CategoryData.slug}`}
             onClick={(e) => {
               e.preventDefault();
-              handleNavigate(activeL1CategoryData.slug);
+              handleNavigateCommon(activeL1CategoryData.slug);
             }}
             className="text-xs font-medium hover:underline whitespace-nowrap p-2"
           >
@@ -112,13 +119,13 @@ const MobileCategoryPanel = ({ isOpen, onClose, categories = [] }) => {
               {level2Display.map((categoryL2) => (
                 <div key={categoryL2.id} className="text-center group flex flex-col items-center">
                   <a
-                    href={categoryL2.slug ? `#${categoryL2.slug}` : '#'}
+                    href={`/category/${categoryL2.slug}`}
                     onClick={(e) => {
                       e.preventDefault();
                       handleNavigateL2(categoryL2.slug);
                     }}
                     className="block mb-1 w-full aspect-square p-1 sm:p-1.5 flex items-center justify-center
-                                   rounded-md hover:shadow-md transition-shadow duration-150 bg-white border border-gray-200 group-hover:border-blue-400"
+                                         rounded-md hover:shadow-md transition-shadow duration-150 bg-white border border-gray-200 group-hover:border-blue-400"
                   >
                     {categoryL2.imageUrl ? (
                       <img
@@ -126,13 +133,14 @@ const MobileCategoryPanel = ({ isOpen, onClose, categories = [] }) => {
                         alt={categoryL2.name}
                         className="max-w-full max-h-full object-contain"
                         onError={(e) => {
-                          /* ... */
+                          e.target.onerror = null;
+                          e.target.src = 'https://placehold.co/100x100?text=Lỗi+ảnh';
                         }}
                       />
                     ) : null}
                     {!categoryL2.imageUrl && (
                       <div
-                        className={`w-full h-full bg-gray-50 rounded flex items-center justify-center text-gray-300 fallback-icon-container ${categoryL2.imageUrl ? 'hidden' : ''}`}
+                        className={`w-full h-full bg-gray-50 rounded flex items-center justify-center text-gray-300 fallback-icon-container`}
                       >
                         <FileSearch className="w-1/2 h-1/2 text-gray-400 opacity-50" />
                       </div>
@@ -140,7 +148,7 @@ const MobileCategoryPanel = ({ isOpen, onClose, categories = [] }) => {
                   </a>
                   <h4 className="font-normal text-[10px] sm:text-xs leading-tight text-gray-700 group-hover:text-blue-600 transition-colors duration-150 w-full line-clamp-2 text-center mt-0.5 px-0.5">
                     <a
-                      href={categoryL2.slug ? `#${categoryL2.slug}` : '#'}
+                      href={`/category/${categoryL2.slug}`}
                       onClick={(e) => {
                         e.preventDefault();
                         handleNavigateL2(categoryL2.slug);
@@ -150,6 +158,26 @@ const MobileCategoryPanel = ({ isOpen, onClose, categories = [] }) => {
                       {categoryL2.name}
                     </a>
                   </h4>
+
+                  
+                  {categoryL2.children && categoryL2.children.length > 0 && (
+                    <ul className="text-left w-full mt-2">
+                      {categoryL2.children.map((categoryL3) => (
+                        <li key={categoryL3.id} className="block mb-1">
+                          <a
+                            href={`/category/${categoryL3.slug}`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleNavigateCommon(categoryL3.slug); 
+                            }}
+                            className="block px-1 py-1 text-[10px] sm:text-xs text-gray-600 hover:text-blue-600 hover:underline transition-colors duration-150 truncate"
+                          >
+                            {categoryL3.name}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               ))}
             </div>

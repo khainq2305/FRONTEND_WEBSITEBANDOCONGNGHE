@@ -1,15 +1,12 @@
-// src/layout/Client/Header.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import { Menu, ShoppingCart, Search, Bell, LayoutGrid, CircleUserRound, FileSearch, X } from 'lucide-react';
 import CategoryMenu from './CategoryMenu';
 import MobileCategoryPanel from './MobileCategoryPanel';
 import Overlay from './Overlay';
-import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import NotificationDropdown from './NotificationDropdown';
 import PopupModal from './PopupModal';
 import { authService } from 'services/client/authService';
-import logoSrc from '../../../assets/Client/images/Logo/logo.svg';
 import { categoryService } from '../../../services/client/categoryService';
 import { notificationService } from '../../../services/client/notificationService';
 import Loader from '../../../components/common/Loader';
@@ -31,6 +28,8 @@ const Header = () => {
   const sentinelRef = useRef(null);
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(true);
   const accountDropdownTimerRef = useRef(null);
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+
   const handleAccountDropdownEnter = () => {
     clearTimeout(accountDropdownTimerRef.current);
     setIsDropdownOpen(true);
@@ -90,8 +89,10 @@ const Header = () => {
             const standardizedItem = {
               id: item.id,
               name: item.name,
+              parent_id: parentId,
               slug: item.slug,
               parent_id: parentId,
+              imageUrl: item.thumbnail,
               thumbnail: item.thumbnail,
               type: item.type
             };
@@ -175,27 +176,32 @@ const Header = () => {
   }, []);
 
   const handleLogout = async () => {
-    try {
-      await authService.logout();
+  try {
+    await authService.logout();
 
-      localStorage.removeItem('token');
-      sessionStorage.removeItem('token');
+    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
 
-      setUserInfo(null);
-      setIsDropdownOpen(false);
+    delete axios.defaults.headers.common['Authorization']; // <- BẮT BUỘC THÊM
 
-      navigate('/dang-nhap');
-    } catch (error) {
-      console.error('Lỗi khi gọi API đăng xuất:', error);
+    setUserInfo(null);
+    setIsDropdownOpen(false);
 
-      localStorage.removeItem('token');
-      sessionStorage.removeItem('token');
+    navigate('/dang-nhap');
+  } catch (error) {
+    console.error('Lỗi khi gọi API đăng xuất:', error);
 
-      setUserInfo(null);
-      setIsDropdownOpen(false);
-      navigate('/dang-nhap');
-    }
-  };
+    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
+
+    delete axios.defaults.headers.common['Authorization']; // <- BẮT BUỘC THÊM
+
+    setUserInfo(null);
+    setIsDropdownOpen(false);
+    navigate('/dang-nhap');
+  }
+};
+
 
   const handleOutsideClick = (e) => {
     if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -214,9 +220,22 @@ const Header = () => {
   const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
   const [topLevelDesktopCategories, setTopLevelDesktopCategories] = useState([]);
   const [mobileCategoryTree, setMobileCategoryTree] = useState([]);
-  const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] = useState(false);
+  const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] = useState(false); // Desktop notification dropdown
   const notificationDropdownTimerRef = useRef(null);
   const notificationButtonRef = useRef(null);
+
+  // Định nghĩa lại các hàm handleMenuEnter và handleMenuLeave
+  const handleMenuEnter = () => {
+    clearTimeout(categoryMenuTimerRef.current);
+    setIsCategoryMenuOpen(true);
+  };
+
+  const handleMenuLeave = () => {
+    categoryMenuTimerRef.current = setTimeout(() => {
+      setIsCategoryMenuOpen(false);
+    }, 200);
+  };
+  // Kết thúc định nghĩa lại
 
   const buildCategoryTree = (categories, parentId = null) => {
     return categories
@@ -268,7 +287,7 @@ const Header = () => {
   }, []);
 
   useEffect(() => {
-    if (isLoginPopupOpen) {
+    if (isLoginPopupOpen || isMobilePanelOpen || isNotificationModalOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -276,7 +295,7 @@ const Header = () => {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [isLoginPopupOpen]);
+  }, [isLoginPopupOpen, isMobilePanelOpen, isNotificationModalOpen]);
 
   const handleNotificationToggle = () => {
     setIsNotificationDropdownOpen((prev) => !prev);
@@ -293,19 +312,12 @@ const Header = () => {
     }, 300);
   };
 
-  const handleMenuEnter = () => {
-    clearTimeout(categoryMenuTimerRef.current);
-    setIsCategoryMenuOpen(true);
-  };
-
-  const handleMenuLeave = () => {
-    categoryMenuTimerRef.current = setTimeout(() => {
-      setIsCategoryMenuOpen(false);
-    }, 200);
-  };
-
   const toggleMobilePanel = () => {
     setIsMobilePanelOpen(!isMobilePanelOpen);
+  };
+
+  const toggleNotificationModal = () => {
+    setIsNotificationModalOpen(!isNotificationModalOpen);
   };
 
   return (
@@ -338,8 +350,21 @@ const Header = () => {
                 </div>
               </div>
               <div className="flex items-center gap-x-1 flex-shrink-0">
-                <button className="p-1 text-white">
-                  <ShoppingCart className="w-6 h-6" strokeWidth={1.8} />
+                <button
+                  className="p-1 text-white relative"
+                  onClick={toggleNotificationModal}
+                >
+                  <Bell className="w-6 h-6" strokeWidth={1.8} />
+                  {unreadCount > 0 && (
+                    <span
+                      className="
+                        absolute -top-1.5 -right-0.5 bg-red-600 text-white text-xs
+                        w-4 h-4 rounded-full flex items-center justify-center font-bold shadow-md
+                      "
+                    >
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
                 </button>
               </div>
             </div>
@@ -360,11 +385,14 @@ const Header = () => {
                     <LayoutGrid className={`w-5 h-5 stroke-[1.8px] ${isCategoryMenuOpen ? 'text-primary' : 'text-white'}`} />
                     <span className={`text-sm font-semibold ${isCategoryMenuOpen ? 'text-primary' : 'text-white'}`}>Danh mục</span>
                   </button>
-                  <CategoryMenu
-                    topLevelCategories={topLevelDesktopCategories}
-                    allCategories={flatCategoriesFromAPI}
-                    isOpen={isCategoryMenuOpen}
-                  />
+                 <div className="absolute z-[9999] left-0 top-full">
+  <CategoryMenu
+    topLevelCategories={topLevelDesktopCategories}
+    allCategories={flatCategoriesFromAPI}
+    isOpen={isCategoryMenuOpen}
+  />
+</div>
+
                 </div>
               </div>
               <div className="flex-1 mx-4">
@@ -399,15 +427,14 @@ const Header = () => {
                     <span className="relative">
                       <Bell className="w-6 h-6" strokeWidth={1.5} color="#fff" />
                       {unreadCount > 0 && (
-                    <span
-  className="
-    absolute -top-1.5 -right-2 bg-red-600 text-white text-xs
-    w-5 h-5 rounded-full flex items-center justify-center font-bold shadow-md
-  "
->
-  {unreadCount > 99 ? '99+' : unreadCount}
-</span>
-
+                        <span
+                          className="
+                            absolute -top-1.5 -right-2 bg-red-600 text-white text-xs
+                            w-5 h-5 rounded-full flex items-center justify-center font-bold shadow-md
+                          "
+                        >
+                          {unreadCount > 99 ? '99+' : unreadCount}
+                        </span>
                       )}
                     </span>
 
@@ -513,6 +540,29 @@ const Header = () => {
       <Overlay isOpen={isMobilePanelOpen} onClick={toggleMobilePanel} />
       <MobileCategoryPanel isOpen={isMobilePanelOpen} onClose={toggleMobilePanel} categories={mobileCategoryTree} />
       <PopupModal isOpen={isLoginPopupOpen} onClose={toggleLoginPopup} />
+
+  
+      {isNotificationModalOpen && (
+        <div className="fixed inset-0 bg-black/50 z-[999] flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto relative flex flex-col">
+            <div className="flex justify-between items-center p-4 border-b border-gray-200 sticky top-0 bg-white z-10">
+              <h2 className="text-lg font-semibold text-gray-800">Thông báo của bạn</h2>
+              <button onClick={toggleNotificationModal} className="text-gray-500 hover:text-gray-700">
+                <X size={24} />
+              </button>
+            </div>
+            <div className="flex-grow p-4 overflow-y-auto">
+              <NotificationDropdown
+                isOpen={isNotificationModalOpen}
+                notifications={notifications}
+                setNotifications={setNotifications}
+                userInfo={userInfo}
+                onClose={toggleNotificationModal}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

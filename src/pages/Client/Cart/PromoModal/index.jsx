@@ -15,28 +15,36 @@ export const CouponCard = ({
   isSelected,
   onSelect,
   compact = false,
-   titleClassName = ''    ,    
-  logoW = 80,         
-   containerBg = '#F4F4F5',     
-  compactHeight = 64   
+  titleClassName = '',
+  logoW = 80,
+  containerBg = '#F4F4F5',
+  compactHeight = 64
 }) => {
   const HOLE = 20;
   const BLUE = '#1CA7EC';
   const CONTAINER_BG = '#F4F4F5';
 
- const isShip = String(promo.type ?? '')
-                 .toLowerCase()
-                .includes('ship');       
+  const isShip = String(promo.type ?? '')
+                  .toLowerCase()
+                  .includes('ship');
 
- const primaryBg = isShip ? 'bg-green-600' : 'bg-primary';
-const cardBg    = isSelected
+  // Điều chỉnh màu nền của phần logo dựa trên isApplicable
+  const primaryBg = promo.isApplicable
+    ? (isShip ? 'bg-green-600' : 'bg-primary') // Màu khi đủ điều kiện
+    : 'bg-gray-400'; // Màu khi không đủ điều kiện (disabled - xám)
+
+  const cardBg = isSelected
     ? (isShip ? 'bg-green-50' : 'bg-blue-50')
     : 'bg-white';
   const notAllowed = !promo.isApplicable;
 
- 
+  const isUsageLimited = typeof promo.totalQuantity === 'number' && promo.totalQuantity > 0;
+  const isOutOfUsage = promo.totalQuantity === 0 || (isUsageLimited && promo.usedCount >= promo.totalQuantity);
+  // Biến remainingUsage vẫn được tính nhưng sẽ không được dùng để hiển thị
+  const remainingUsage = isUsageLimited ? promo.totalQuantity - promo.usedCount : null;
+
+
   if (compact) {
-  
     const PAD = 8;
     const GAP = 8;
     const LEFT_POS = PAD + logoW + GAP;
@@ -44,16 +52,15 @@ const cardBg    = isSelected
     return (
       <div
         onClick={() => !notAllowed && onSelect(promo)}
-        className={`
-          relative flex items-center w-full ${cardBg} rounded-lg p-2 shadow-sm border border-gray-200
+        className={`relative flex items-center w-full ${cardBg} rounded-lg p-2 shadow-sm border border-gray-200
           ${notAllowed ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}
           ${isSelected ? 'ring-2 ring-[#1CA7EC]' : ''}
         `}
         style={{ height: compactHeight, paddingLeft: PAD }}
       >
-        
+
         <div
-          className={`flex items-center justify-center rounded-lg ${primaryBg}`}
+          className={`flex items-center justify-center rounded-lg ${primaryBg}`} // Sử dụng primaryBg đã điều chỉnh
           style={{ width: logoW, height: '100%' }}
         >
           {promo.type === 'shipping'
@@ -61,7 +68,7 @@ const cardBg    = isSelected
             : <FaGift className="text-white text-3xl" />}
         </div>
 
-     
+
         <div className="absolute" style={{ top: 0, bottom: 0, left: LEFT_POS, width: 1 }}>
           <span
             style={{
@@ -75,7 +82,7 @@ const cardBg    = isSelected
           />
         </div>
 
-    
+
         {['top', 'bottom'].map(pos => (
           <div
             key={pos}
@@ -85,10 +92,10 @@ const cardBg    = isSelected
               left: LEFT_POS,
               width: HOLE,
               height: HOLE,
-               
+
               borderRadius: '50%',
               transform: 'translateX(-50%)',
-             backgroundColor: containerBg,
+              backgroundColor: containerBg,
               ...(isSelected && {
                 [pos === 'top' ? 'borderBottom' : 'borderTop']: `2px solid ${BLUE}`
               })
@@ -96,15 +103,23 @@ const cardBg    = isSelected
           />
         ))}
 
-      
-     <div
-  className={`
-   mx-2 flex-1 font-semibold text-sm text-gray-900 truncate
-    ${titleClassName || 'text-center'}     /*  <-- thêm dòng này */
-   `}
->
-          {promo.title}
-        </div>
+
+    <div
+      style={{
+        display: '-webkit-box',
+        WebkitLineClamp: 2,
+        WebkitBoxOrient: 'vertical',
+        overflow: 'hidden'
+      }}
+      className={`mx-2 flex-1 font-semibold text-sm text-gray-900 ${titleClassName || ''} ${notAllowed ? 'text-gray-500' : ''}`}
+    >
+      {promo.title}
+      {/* Giữ lại dòng "Đã hết lượt sử dụng" */}
+      {isOutOfUsage && <span className="block text-red-500 text-xs font-normal">Đã hết lượt sử dụng</span>}
+      {/* Bỏ dòng "Còn: X lượt" */}
+      {/* {isUsageLimited && !isOutOfUsage && <span className="block text-gray-600 text-xs font-normal">Còn: {remainingUsage} lượt</span>} */}
+    </div>
+
 
         <FiInfo size={16} className="text-gray-400 flex-shrink-0 mr-2" />
 
@@ -120,7 +135,7 @@ const cardBg    = isSelected
     );
   }
 
-  
+
   const PAD = 12;
   const GAP = 10;
   const LEFT_POS = PAD + logoW + GAP;
@@ -128,14 +143,13 @@ const cardBg    = isSelected
   return (
     <div
       onClick={() => !notAllowed && onSelect(promo)}
-      className={`
-        relative flex h-24 w-full ${cardBg} rounded-lg p-2 shadow-sm border border-gray-200
+      className={`relative flex h-24 w-full ${cardBg} rounded-lg p-2 shadow-sm border border-gray-200
         ${notAllowed ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}
         ${isSelected ? 'ring-2 ring-[#1CA7EC]' : ''}
       `}
     >
       <div
-        className={`flex items-center justify-center rounded-lg ${primaryBg}`}
+        className={`flex items-center justify-center rounded-lg ${primaryBg}`} // Sử dụng primaryBg đã điều chỉnh
         style={{ width: logoW }}
       >
         {promo.type === 'shipping'
@@ -178,14 +192,21 @@ const cardBg    = isSelected
       <div className="flex-1 flex flex-col justify-between pl-6">
         <div className="flex items-start justify-between">
         <p
-   className={`
-     font-semibold text-sm text-gray-900 truncate
-    ${titleClassName}
-  `}
->{promo.title}</p>
+          className={`font-semibold text-sm text-gray-900 truncate
+            ${titleClassName}
+            ${notAllowed ? 'text-gray-500' : ''} {/* Thêm dòng này để text mờ đi khi không đủ điều kiện */}
+          `}        >
+            {promo.title}
+          </p>
           <FiInfo size={16} className="text-gray-400 flex-shrink-0 ml-1" />
         </div>
-        <p className="text-xs text-gray-600">{promo.description}</p>
+        <p className="text-xs text-gray-600">
+          {promo.description}
+          {/* Giữ lại dòng "Đã hết lượt sử dụng" */}
+          {isOutOfUsage && <span className="block text-red-500 font-normal">Đã hết lượt sử dụng</span>}
+          {/* Bỏ dòng "Còn: X lượt" */}
+          {/* {isUsageLimited && !isOutOfUsage && <span className="block text-gray-600 font-normal">Còn: {remainingUsage} lượt</span>} */}
+        </p>
         <div className="flex items-center justify-between">
           {promo.expiryDate && <p className="text-xs text-gray-500">HSD: {promo.expiryDate}</p>}
           {promo.isApplicable && (
@@ -217,6 +238,9 @@ const PromoModal = ({ modalTitle = 'Hồng Ân Khuyến Mãi', onClose, onApplyS
   const [isLoading, setIsLoading] = useState(false);
   const [applyError, setApplyError] = useState('');
   const [expandedGroups, setExpandedGroups] = useState({});
+useEffect(() => {
+  console.log('📦 PromoModal received orderTotal:', orderTotal);
+}, [orderTotal]);
 
   useEffect(() => {
     if (appliedCode) {
@@ -224,22 +248,34 @@ const PromoModal = ({ modalTitle = 'Hồng Ân Khuyến Mãi', onClose, onApplyS
     }
   }, [appliedCode]);
 
-  useEffect(() => {
-    const fetchCoupons = async () => {
-      setIsLoading(true);
-      try {
-        const params = new URLSearchParams();
-        if (skuIds.length) {
-          params.set('skuIds', skuIds.join(','));
-        }
-        if (orderTotal) {
-          params.set('orderTotal', orderTotal);
-        }
+useEffect(() => {
+  console.log('🧾 useEffect triggered!');
+  console.log('📌 skuIds:', skuIds);
+  console.log('📌 orderTotal:', orderTotal);
 
-        const res = await couponService.getAvailable(`?${params.toString()}`);
-        const coupons = res.data?.data || [];
-        setAvailablePromos(
-          coupons.map((c) => ({
+  const fetchCoupons = async () => {
+    setIsLoading(true);
+
+    try {
+      const params = new URLSearchParams();
+      params.set('skuIds', (skuIds ?? []).join(','));
+      params.set('orderTotal', String(orderTotal ?? 0));
+
+      const queryString = `?${params.toString()}`;
+      console.log('🔗 Query String:', queryString);
+
+      const res = await couponService.getAvailable(queryString);
+      console.log('📥 Nhận về:', res.data);
+
+      const coupons = res.data?.data || [];
+
+      if (coupons.length === 0) {
+        console.warn('⚠️ Không có coupon nào trả về từ API!');
+      }
+
+      setAvailablePromos(
+        coupons.map((c) => {
+          const mapped = {
             id: c.code,
             code: c.code,
             type: c.discountType === 'shipping' ? 'shipping' : 'discount',
@@ -249,26 +285,34 @@ const PromoModal = ({ modalTitle = 'Hồng Ân Khuyến Mãi', onClose, onApplyS
               ? new Date(c.expiryDate).toLocaleDateString('vi-VN', {
                   day: '2-digit',
                   month: '2-digit',
-                  year: '2-digit'
+                  year: '2-digit',
                 })
               : null,
-            isApplicable: c.isApplicable
-          }))
-        );
-      } catch (err) {
-        console.error('Lỗi khi lấy coupons:', err);
-        toast.error('Không thể tải khuyến mãi, thử lại sau!');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+            isApplicable: c.isApplicable,
+            // Vẫn truyền totalQuantity và usedCount xuống CouponCard
+            // để logic notAllowed (làm mờ thẻ) hoạt động đúng
+            totalQuantity: c.totalQuantity,
+            usedCount: c.usedCount,
+          };
 
-    document.body.style.overflow = 'hidden';
-    fetchCoupons();
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [skuIds, orderTotal]);
+          console.log('🎟️ Mapped coupon:', mapped);
+          return mapped;
+        })
+      );
+    } catch (err) {
+      console.error('❌ Lỗi khi lấy coupons:', err);
+      toast.error('Không thể tải khuyến mãi, thử lại sau!');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  document.body.style.overflow = 'hidden';
+  fetchCoupons();
+  return () => {
+    document.body.style.overflow = 'unset';
+  };
+}, [skuIds, orderTotal]);
 
   const groupedPromos = availablePromos.reduce((acc, p) => {
     const key = p.type === 'shipping' ? 'Mã Vận Chuyển' : 'Mã Giảm Giá';
@@ -303,7 +347,7 @@ const PromoModal = ({ modalTitle = 'Hồng Ân Khuyến Mãi', onClose, onApplyS
       });
 
       const coupon = res.data?.coupon;
-      
+
       onApplySuccess(coupon);
       onClose();
     } catch (err) {

@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import Banner from './Banner';
-import FilterBar from './FilterBar';
-import SortBar from './SortBar';
+import ProductFilters from './ProductFilters'; // Component lọc chi tiết (giá, còn hàng, thương hiệu)
+import FilterBar from './FilterBar'; // Component lọc thương hiệu dạng tab
+import SortOptions from './SortOptions'; // Component sắp xếp riêng
 import Description from './Description';
-import Breadcrumb from './Breadcrumb';
-import ViewedProducts from './ViewedProducts';
+import Breadcrumb from '../../../components/common/Breadcrumb';
+
+import ViewedProducts from '../Home/ViewedProductsSlider'; // Component này rất có thể là thủ phạm
 import ProductList from './ProductList';
 import { productService } from '../../../services/client/productService';
-import { brandService } from '../../../services/client/brandService';
+import { brandService } from '../../../services/client/brandService'; 
 import { categoryService } from '../../../services/client/categoryService';
 import { wishlistService } from '../../../services/client/wishlistService';
 import { bannerService } from '../../../services/client/bannerService';
@@ -16,6 +18,7 @@ import Loader from '../../../components/common/Loader';
 
 import { formatCurrencyVND } from '../../../utils/formatCurrency';
 import { useParams } from 'react-router-dom';
+
 const ITEMS_PER_PAGE = 20;
 
 export default function ProductListByCategory() {
@@ -27,14 +30,13 @@ export default function ProductListByCategory() {
   const [totalItems, setTotalItems] = useState(0);
   const [paginationEnabled, setPaginationEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [isStickySortBar, setIsStickySortBar] = useState(false);
   const [categoryName, setCategoryName] = useState('Danh mục');
-  const [brands, setBrands] = useState([]);
+  const [brands, setBrands] = useState([]); 
   const [banners, setBanners] = useState([]);
   const [categoryId, setCategoryId] = useState(null);
   const [categoryInfo, setCategoryInfo] = useState({ id: null, name: 'Danh mục', description: null });
-  const sortBarRef = useRef();
   const { slug } = useParams();
+
   const fetchCategoryName = async () => {
     try {
       const res = await categoryService.getBySlug(slug);
@@ -45,7 +47,7 @@ export default function ProductListByCategory() {
       setCategoryInfo({
         id: cat.id,
         name: cat.parent?.name || cat.name || 'Danh mục',
-        description: cat.description || null
+        description: cat.description || null,
       });
     } catch (err) {
       console.error('Không lấy được tên danh mục:', err);
@@ -57,7 +59,6 @@ export default function ProductListByCategory() {
     if (!categoryId) return;
     try {
       const res = await bannerService.getByCategoryId(categoryId);
-      console.log('Banners by category:', res.data?.data);
       setBanners(res.data?.data || []);
     } catch (err) {
       console.error('Lỗi khi lấy banner danh mục:', err);
@@ -73,55 +74,30 @@ export default function ProductListByCategory() {
         slug,
         page,
         limit: ITEMS_PER_PAGE,
-        brand: filters.brand,
+        brand: filters.brand, 
         stock: filters.stock,
         priceRange: filters.price,
-        sort: sortOption
+        sort: sortOption,
       });
-     const formatted = (res.data.products || []).map((item) => {
-  const sku = item.skus?.[0] || {};
 
-  // Ưu tiên salePrice do giảm danh mục → flashSale → giá gốc
-  const finalPrice =
-    (sku.salePrice && sku.salePrice > 0 ? sku.salePrice : null) ??
-    (sku.flashSaleSkus?.find((f) => f.isActive)?.salePrice ?? null) ??
-    sku.price ??
-    0;
-
-  const priceNum = Number(finalPrice) || 0;
-  const originalPriceNum = Number(sku.originalPrice ?? sku.price) || 0;
-
-  // Hiển thị oldPrice nếu có giảm
-  const oldPriceNum = originalPriceNum > priceNum ? originalPriceNum : null;
-
-  // Tính phần trăm giảm giá
-  let calculatedDiscount = 0;
-  const comparePriceForDiscount = oldPriceNum ?? 0;
-
-  if (comparePriceForDiscount > priceNum && comparePriceForDiscount > 0) {
-    calculatedDiscount = Math.round(
-      ((comparePriceForDiscount - priceNum) / comparePriceForDiscount) * 100
-    );
-  }
-
-  return {
-    id: item.id,
-    name: item.name,
-    slug: item.slug,
-    badge: item.badge,
-    image: item.image || item.thumbnail,
-badgeImage: item.badgeImage,    
-    priceNum,
-    oldPriceNum,
-    originalPriceNum,
-    discount: calculatedDiscount,
-    rating: item.averageRating,
-    inStock: item.inStock,
-    soldCount: item.soldCount,
-    skus: item.skus
-  };
-});
-
+      const formatted = (res.data.products || []).map((item) => {
+        return {
+          id: item.id,
+          name: item.name,
+          slug: item.slug,
+          badge: item.badge,
+          image: item.image || item.thumbnail,
+          badgeImage: item.badgeImage,
+          priceNum: item.price,
+          oldPriceNum: item.oldPrice,
+          originalPriceNum: item.originalPrice,
+          discount: item.discount,
+          rating: item.averageRating,
+          inStock: item.inStock,
+          soldCount: item.soldCount,
+          skus: item.skus,
+        };
+      });
 
       setProducts(formatted);
       setTotalItems(res.data.totalItems);
@@ -143,6 +119,7 @@ badgeImage: item.badgeImage,
   useEffect(() => {
     fetchCategoryBanners();
   }, [categoryId]);
+
   useEffect(() => {
     const fetchBrandsForCategory = async () => {
       if (!categoryId) return;
@@ -157,59 +134,65 @@ badgeImage: item.badgeImage,
     fetchBrandsForCategory();
   }, [categoryId]);
 
-  // ...
   useEffect(() => {
     fetchProducts(1);
     setCurrentPage(1);
-  }, [filters, sortOption, slug, favorites]);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsStickySortBar(!entry.isIntersecting);
-      },
-      { rootMargin: '-64px 0px 0px 0px' }
-    );
-
-    if (sortBarRef.current) observer.observe(sortBarRef.current);
-    return () => sortBarRef.current && observer.unobserve(sortBarRef.current);
-  }, []);
+  }, [filters, sortOption, slug]);
 
   return (
     <main className="w-full flex justify-center">
-      <div className="w-full max-w-[1200px]">
-        {!isStickySortBar && <Breadcrumb categoryName={categoryName} categorySlug={slug} />}
-        <Banner banners={banners} />
-        <FilterBar categorySlug={slug} filters={filters} setFilters={setFilters} brands={brands} />
-        <div ref={sortBarRef} />
-        <SortBar
-          sticky={isStickySortBar}
-          currentFilters={filters}
-          onApplyFilters={setFilters}
-          currentSortOption={sortOption}
-          onApplySort={setSortOption}
-          brandOptions={brands}
-        />
-        {loading ? (
-          <div className="py-10">
-            <Loader fullscreen />
-          </div>
-        ) : (
-          <ProductList
-            products={products}
-            favorites={favorites}
+      {/* THÊM overflow-x-hidden VÀO DIV CHỨA NỘI DUNG CHÍNH */}
+      <div className="w-full max-w-[1200px] overflow-x-hidden">
+        <div className="px-4">
+          <Breadcrumb items={[{ label: 'Trang chủ', href: '/' }, { label: categoryInfo.name }]} />
+        </div>
 
-            loading={false}
-            currentPage={currentPage}
-            totalItems={totalItems}
-            itemsPerPage={ITEMS_PER_PAGE}
-            onPageChange={(page) => {
-              setCurrentPage(page);
-              fetchProducts(page);
-            }}
+        <Banner banners={banners} /> {/* Kiểm tra kỹ component này */}
+        
+        <FilterBar 
+          categorySlug={slug} 
+          filters={filters} 
+          setFilters={setFilters} 
+          brands={brands} 
+        />
+
+        <div className="bg-white p-3 sm:p-3 md:p-3 rounded-lg mb-2 shadow-sm">
+          <ProductFilters
+            currentFilters={filters}
+            onApplyFilters={setFilters}
+            brandOptions={brands} 
           />
-        )}
-        <ViewedProducts />
+        </div>
+
+        <div className="bg-white p-2 sm:p-3 md:p-4 rounded-lg shadow-sm mb-4">
+          <SortOptions
+            currentSortOption={sortOption}
+            onApplySort={setSortOption}
+          />
+          {loading ? (
+            <div className="py-10">
+              <Loader fullscreen />
+            </div>
+          ) : (
+            <div className="mt-4">
+              <ProductList
+                products={products}
+                favorites={favorites}
+                 categoryInfo={categoryInfo} // 👈 THÊM DÒNG NÀY
+                loading={false}
+                currentPage={currentPage}
+                totalItems={totalItems}
+                itemsPerPage={ITEMS_PER_PAGE}
+                onPageChange={(page) => {
+                  setCurrentPage(page);
+                  fetchProducts(page);
+                }}
+              />
+            </div>
+          )}
+        </div>
+        
+        <ViewedProducts /> {/* RẤT RẤT CÓ THỂ ĐÂY LÀ THỦ PHẠM CHÍNH */}
         <Description content={categoryInfo.description} />
       </div>
     </main>

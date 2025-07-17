@@ -13,6 +13,7 @@ const Toastify = () => {
       rtl={false}
       pauseOnFocusLoss
       draggable
+      
       pauseOnHover
       // Thêm style để đẩy container xuống dưới header
       style={{ top: "130px" }} 

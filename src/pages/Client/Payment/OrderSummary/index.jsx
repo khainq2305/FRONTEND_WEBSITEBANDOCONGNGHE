@@ -1,46 +1,38 @@
-// src/pages/Checkout/OrderSummary.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { orderService } from '../../../../services/client/orderService';
 import { toast } from 'react-toastify';
-import { FiChevronUp,FiInfo, FiChevronRight } from 'react-icons/fi';
-
+import { FiChevronUp, FiInfo, FiChevronRight } from 'react-icons/fi';
+import { useCartStore } from '@/stores/useCartStore'; // đầu file nếu chưa có
 import { formatCurrencyVND } from '../../../../utils/formatCurrency';
 
 import { FaPercentage } from 'react-icons/fa';
 
-import PromoModal, { CouponCard } from '../../Cart/PromoModal';   // 👈 thêm CouponCard
+import PromoModal, { CouponCard } from '../../Cart/PromoModal';
 import { couponService } from '../../../../services/client/couponService';
 
-/**
- * OrderSummary
- * -------------------------------------------------------------------
- * - Hiển thị tóm tắt đơn hàng + mã giảm giá
- * - Chỉ cho phép “Đặt hàng” khi đã có selectedAddress (truyền từ CheckoutPage)
- * - Nếu thiếu địa chỉ, hiện 1 toast: “Vui lòng nhập địa chỉ giao hàng!” và dừng
- */
 const OrderSummary = ({
   totalAmount,
   discount,
   shippingFee,
+  selectedShipMethod,
   selectedPaymentMethod,
   selectedCoupon: propCoupon,
-  selectedAddress, // 👈 prop mới: địa chỉ hiện tại đã chọn
+  selectedAddress,
+  selectedItems = [], // <--- ĐÃ THÊM GIÁ TRỊ MẶC ĐỊNH LÀ MẢNG RỖNG TẠI ĐÂY
 }) => {
   const navigate = useNavigate();
 
-  /* ====================== STATE ======================= */
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
   const [selectedCoupon, setSelectedCoupon] = useState(null);
   const [isPlacing, setIsPlacing] = useState(false);
 
-  // Lấy SKU đầu tiên để gửi check coupon
-  const cartSelection = JSON.parse(localStorage.getItem('selectedCartItems') || '[]');
-  const firstSkuId = cartSelection[0]?.skuId || null;
-
   /* ===== Lấy coupon từ prop hoặc localStorage ===== */
   useEffect(() => {
-    if (propCoupon) return setSelectedCoupon(propCoupon);
+    if (propCoupon) {
+      setSelectedCoupon(propCoupon);
+      return;
+    }
 
     const stored =
       localStorage.getItem('selectedCoupon') || localStorage.getItem('appliedCoupon');
@@ -58,6 +50,7 @@ const OrderSummary = ({
     if (!coupon) {
       setSelectedCoupon(null);
       localStorage.removeItem('selectedCoupon');
+      localStorage.removeItem('appliedCoupon'); // Đồng bộ
       toast.success('Đã bỏ mã giảm giá.');
       setIsPromoModalOpen(false);
       return;
@@ -66,47 +59,122 @@ const OrderSummary = ({
     const code = typeof coupon === 'string' ? coupon : coupon.code;
     if (!code) return toast.error('Mã giảm giá không hợp lệ!');
 
+    const currentSkuIds = selectedItems.map(item => item.skuId);
+    if (currentSkuIds.length === 0) {
+        toast.error('Vui lòng chọn sản phẩm để áp dụng mã giảm giá.');
+        return;
+    }
+
     try {
       const res = await couponService.applyCoupon({
         code: code.trim(),
-       skuIds    : [Number(firstSkuId)],   // ✅ mảng
+        skuIds: currentSkuIds, // <--- SỬ DỤNG TẤT CẢ SKU IDS
         orderTotal: Number(totalAmount),
       });
       const applied = res.data?.coupon;
-      if (applied) {
+
+      if (applied && res.data?.isValid) {
         setSelectedCoupon(applied);
         localStorage.setItem('selectedCoupon', JSON.stringify(applied));
+        localStorage.setItem('appliedCoupon', JSON.stringify(applied)); // Đồng bộ
         toast.success(`Áp dụng mã ${code} thành công!`);
       } else {
-        toast.error(`Không tìm thấy mã "${code}"`);
+        if (res.data?.isOutOfUsage) {
+          toast.warn(res.data.message || 'Mã giảm giá đã hết lượt sử dụng');
+          return;
+        }
+        throw new Error(res.data?.message || 'Không thể áp dụng mã');
       }
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Lỗi khi áp mã giảm giá!');
+      toast.error(err?.response?.data?.message || err.message || 'Lỗi khi áp mã giảm giá!');
+      setSelectedCoupon(null);
+      localStorage.removeItem('selectedCoupon');
+      localStorage.removeItem('appliedCoupon'); // Đồng bộ
     } finally {
       setIsPromoModalOpen(false);
     }
   };
 
+  // useEffect để re-validate coupon khi selectedItems hoặc totalAmount thay đổi
+  const prevRef = useRef({ skuIds: [], orderTotal: null });
+
+  useEffect(() => {
+    // selectedItems đã có giá trị mặc định là [] nên không cần kiểm tra undefined
+    if (!selectedCoupon || selectedItems.length === 0) return;
+
+    const currentSkuIds = selectedItems.map((i) => i.skuId).sort();
+    const currentOrderTotal = Number(totalAmount || 0);
+
+    const prev = prevRef.current;
+    const skuChanged = JSON.stringify(prev.skuIds) !== JSON.stringify(currentSkuIds);
+    const totalChanged = prev.orderTotal !== currentOrderTotal;
+
+    if (!skuChanged && !totalChanged) return;
+
+    const refreshCoupon = async () => {
+      try {
+        const res = await couponService.applyCoupon({
+          code: selectedCoupon.code,
+          orderTotal: currentOrderTotal,
+          skuIds: currentSkuIds,
+        });
+
+        if (!res.data?.isValid) {
+          const msg = res.data.message?.toLowerCase() || '';
+
+          if (msg.includes('hết lượt') || msg.includes('hết hạn')) {
+            toast.warn(res.data.message || 'Mã giảm giá không còn hiệu lực');
+            return;
+          }
+
+          toast.warn(res.data.message || 'Mã giảm giá không còn hiệu lực');
+          setSelectedCoupon(null);
+          localStorage.removeItem('selectedCoupon');
+          localStorage.removeItem('appliedCoupon');
+          return;
+        }
+
+        if (!res.data?.coupon) {
+          toast.warn('Mã giảm giá không hợp lệ hoặc không tồn tại');
+          setSelectedCoupon(null);
+          localStorage.removeItem('selectedCoupon');
+          localStorage.removeItem('appliedCoupon');
+          return;
+        }
+
+        const updatedCoupon = res.data.coupon;
+        setSelectedCoupon(updatedCoupon);
+        localStorage.setItem('selectedCoupon', JSON.stringify(updatedCoupon));
+        localStorage.setItem('appliedCoupon', JSON.stringify(updatedCoupon));
+      } catch (err) {
+        console.error('Lỗi validate lại coupon:', err);
+        setSelectedCoupon(null);
+        localStorage.removeItem('selectedCoupon');
+        localStorage.removeItem('appliedCoupon');
+        toast.warn(err?.response?.data?.message || err.message || 'Không thể áp dụng mã giảm giá');
+      }
+    };
+
+    refreshCoupon();
+    prevRef.current = { skuIds: currentSkuIds, orderTotal: currentOrderTotal };
+  }, [selectedItems, totalAmount, selectedCoupon]);
+
+
   /* ===================== TÍNH TOÁN TIỀN ===================== */
-/* ===== TÍNH TOÁN TIỀN ===== */
-/* ==== TÍNH TOÁN ==== */
-const couponDiscount =
-  selectedCoupon?.discountType !== 'shipping'
-    ? Number(selectedCoupon?.discountAmount || 0)
-    : 0;
+  const couponDiscount =
+    selectedCoupon?.discountType !== 'shipping'
+      ? Number(selectedCoupon?.discountAmount || 0)
+      : 0;
 
-const shippingDiscount =
-  selectedCoupon?.discountType === 'shipping'
-    ? Math.min(shippingFee, selectedCoupon.discountValue || 0)
-    : 0;
+  const shippingDiscount =
+    selectedCoupon?.discountType === 'shipping'
+      ? Math.min(shippingFee, selectedCoupon.discountValue || 0)
+      : 0;
 
-/* ➜ Tổng ưu đãi để hiển thị */
-const totalDiscountDisplay = discount + couponDiscount + shippingDiscount;
+  const totalDiscountDisplay = discount + couponDiscount + shippingDiscount;
 
-/* ➜ Tiền phải trả thực tế */
-const finalAmount =
-  totalAmount - discount - couponDiscount + shippingFee - shippingDiscount;
-//  hoặc:  const finalAmount = totalAmount + shippingFee - totalDiscountDisplay;
+  const finalAmount =
+    totalAmount - discount - couponDiscount + shippingFee - shippingDiscount;
 
   /* ======================== ĐẶT HÀNG ========================= */
   const handlePlaceOrder = async () => {
@@ -115,7 +183,8 @@ const finalAmount =
       return;
     }
 
-    if (cartSelection.length === 0) {
+    const itemsToCheckout = JSON.parse(localStorage.getItem('selectedCartItems') || '[]');
+    if (itemsToCheckout.length === 0) {
       toast.error('Không có sản phẩm được chọn!');
       return;
     }
@@ -124,23 +193,60 @@ const finalAmount =
     setIsPlacing(true);
 
     try {
+      // Lại kiểm tra coupon lần cuối trước khi đặt hàng
+      if (selectedCoupon) {
+        const res = await couponService.applyCoupon({
+          code: selectedCoupon.code,
+          orderTotal: Number(totalAmount),
+          skuIds: itemsToCheckout.map((i) => i.skuId), // <-- Đảm bảo gửi tất cả SKU
+        });
+
+        if (!res.data?.isValid || !res.data?.coupon) {
+          const msg = (res.data?.message || '').toLowerCase();
+
+          if (msg.includes('hết lượt') || msg.includes('hết hạn')) {
+            toast.error(res.data.message || 'Mã giảm giá không còn hiệu lực');
+            return; // Dừng checkout, không xóa mã
+          }
+
+          setSelectedCoupon(null);
+          localStorage.removeItem('selectedCoupon');
+          localStorage.removeItem('appliedCoupon');
+          throw new Error(res.data?.message || 'Mã không còn hiệu lực');
+        }
+
+        const updatedCoupon = res.data?.coupon;
+        if (!updatedCoupon) throw new Error('Mã giảm giá không còn hiệu lực.');
+
+        setSelectedCoupon(updatedCoupon);
+        localStorage.setItem('selectedCoupon', JSON.stringify(updatedCoupon));
+        localStorage.setItem('appliedCoupon', JSON.stringify(updatedCoupon));
+      }
+
+
       const payload = {
         addressId: selectedAddress.id,
         paymentMethodId: selectedPaymentMethod,
         couponCode: selectedCoupon?.code || null,
         note: '',
-        items: cartSelection.map((i) => ({
+        items: itemsToCheckout.map((i) => ({ // Sử dụng itemsToCheckout
           skuId: i.skuId,
           quantity: i.quantity,
           price: i.finalPrice,
           flashSaleId: i.flashSaleId || null,
         })),
-        cartItemIds: cartSelection.map((i) => i.id),
+        cartItemIds: itemsToCheckout.map((i) => i.id), // Sử dụng itemsToCheckout
+
+        shippingProviderId: selectedShipMethod?.providerId || null,
+        shippingService: selectedShipMethod?.serviceId || selectedShipMethod?.serviceCode,
+        shippingFee: selectedShipMethod?.fee || 0,
+        shippingLeadTime: selectedShipMethod?.leadtime || null,
       };
-console.log('[PAYLOAD gửi createOrder]', payload);
+
+      console.log('[PAYLOAD gửi createOrder]', payload);
 
       const res = await orderService.createOrder(payload);
-      
+
       const orderId = res.data?.orderId || res.data?.data?.orderId;
       const orderCode = res.data?.orderCode || res.data?.data?.orderCode;
       if (!orderId || !orderCode) throw new Error('Không lấy được mã đơn hàng!');
@@ -150,40 +256,53 @@ console.log('[PAYLOAD gửi createOrder]', payload);
       const isVNPay = selectedPaymentMethod === 3;
       const isMoMo = selectedPaymentMethod === 4;
       const isZalo = selectedPaymentMethod === 5;
-const isViettel = selectedPaymentMethod === 6;   // 👈 THÊM
-      // Clear cart localStorage
+   const isViettel = selectedPaymentMethod === 6;
+
+const isStripe = selectedPaymentMethod === 7;
+
       const fullCart = JSON.parse(localStorage.getItem('cartItems') || '[]');
       const updatedCart = fullCart.filter(
-        (c) => !cartSelection.some((sel) => sel.skuId === c.skuId),
+        (c) => !itemsToCheckout.some((sel) => sel.skuId === c.skuId), // Sử dụng itemsToCheckout
       );
       localStorage.setItem('cartItems', JSON.stringify(updatedCart));
       localStorage.removeItem('selectedCartItems');
       localStorage.removeItem('selectedCoupon');
+      localStorage.removeItem('appliedCoupon'); // Đảm bảo clear cả appliedCoupon
+useCartStore.getState().clearCart();
+window.dispatchEvent(new Event('cartUpdated'));
 
       if (isQR) {
-                 const payableNow =
-   totalAmount - totalDiscount + (shippingFee - shippingDiscount); // tính “tức thì”
+        const payableNow = finalAmount; // Sử dụng finalAmount đã tính ở trên
+        // Hoặc có thể tính lại chi tiết nếu muốn đảm bảo: totalAmount - totalDiscountDisplay + shippingFee - shippingDiscount;
 
         const qrRes = await orderService.vietqrPay({
- 
           accountNumber: '2222555552005',
           accountName: 'NGUYEN QUOC KHAI',
           bankCode: 'MB',
-          amount       : payableNow,    // ✅ số vừa tính
+          amount: payableNow,
           message: orderCode,
         });
         const qrImg = qrRes.data?.qrImage;
         navigate(
-          `/order-confirmation?orderCode=${orderCode}&qr=${encodeURIComponent(qrImg || '')}`,
+        `/vietqr-confirmation/${orderCode}?qr=${encodeURIComponent(qrImg||'')}`
         );
         return;
       }
+if (isStripe) {
+  const stripeRes = await orderService.stripePay({ orderId });
+
+  const redirectUrl = stripeRes?.data?.url;
+  if (!redirectUrl) throw new Error('Không nhận được URL thanh toán từ Stripe');
+
+  window.location.href = redirectUrl; // Chuyển hướng người dùng sang Stripe
+  return;
+}
 
       if (isVNPay) {
-       const url = (await orderService.vnpay({
- orderId,
-  bankCode: 'NCB',      // ✅ ATM test; 'VISA' cho thẻ quốc tế
- })).data?.payUrl;
+        const url = (await orderService.vnpay({
+          orderId,
+          bankCode: 'NCB',
+        })).data?.payUrl;
         if (!url) throw new Error('Không nhận được link VNPay');
         window.location.href = url;
         return;
@@ -202,12 +321,12 @@ const isViettel = selectedPaymentMethod === 6;   // 👈 THÊM
         window.location.href = url;
         return;
       }
-if (isViettel) {
-  const url = (await orderService.viettelMoney({ orderId })).data?.payUrl;
-  if (!url) throw new Error('Không nhận được link Viettel Money');
-  window.location.href = url;
-  return;
-}
+      if (isViettel) {
+        const url = (await orderService.viettelMoney({ orderId })).data?.payUrl;
+        if (!url) throw new Error('Không nhận được link Viettel Money');
+        window.location.href = url;
+        return;
+      }
 
       toast.success('Đặt hàng thành công!');
       navigate(`/order-confirmation?orderCode=${orderCode}`);
@@ -223,27 +342,27 @@ if (isViettel) {
   return (
     <div className="relative">
       <aside className="bg-white rounded-md p-3 sm:p-4 border border-gray-200 shadow-sm sticky top-6 h-fit">
-          <div className="flex justify-between items-center pb-4">
-            <h4 className="font-semibold text-sm text-gray-800">
-              HomePower khuyến mãi
-            </h4>
-            <div className="flex items-center text-xs text-gray-500">
-              Có thể chọn&nbsp;1
-              <FiInfo className="ml-1 text-gray-400" size={14} />
-            </div>
+        <div className="flex justify-between items-center pb-4">
+          <h4 className="font-semibold text-sm text-gray-800">
+            HomePower khuyến mãi
+          </h4>
+          <div className="flex items-center text-xs text-gray-500">
+            Có thể chọn&nbsp;1
+            <FiInfo className="ml-1 text-gray-400" size={14} />
           </div>
-       <div className="border border-gray-200 rounded-md p-3 mb-3">
+        </div>
+        <div className="border border-gray-200 rounded-md p-3 mb-3">
           {selectedCoupon ? (
             /* Đã có coupon – hiện pill + link đổi mã */
             <div className="flex flex-col gap-2">
               <CouponCard
                 compact
                 logoW={70}
-                 titleClassName="text-left ml-5"
+                titleClassName="text-left ml-5"
                 compactHeight={76}
-                 containerBg="white"  
+                containerBg="white"
                 promo={{
-                  id:   selectedCoupon.code,
+                  id: selectedCoupon.code,
                   code: selectedCoupon.code,
                   type:
                     selectedCoupon.discountType === 'shipping'
@@ -281,69 +400,59 @@ if (isViettel) {
         </div>
 
         {/* Thông tin tiền */}
-      {/* ================= Thông tin tiền ================= */}
-<div className="text-xs sm:text-sm text-gray-600 mb-4">
-  <h3 className="font-semibold mb-2 text-gray-800">Thông tin đơn hàng</h3>
+        <div className="text-xs sm:text-sm text-gray-600 mb-4">
+          <h3 className="font-semibold mb-2 text-gray-800">Thông tin đơn hàng</h3>
 
-  {/* 1. Tiền hàng + giảm giá SP / coupon */}
-  <Row label="Tổng tiền hàng" value={formatCurrencyVND(totalAmount)} bold />
-  <Row className="text-xs" label="Giảm giá từ sản phẩm" value={formatCurrencyVND(discount)} />
-  {couponDiscount > 0 && (
-    <Row
-      label="Giảm giá từ coupon"
-      value={`- ${formatCurrencyVND(couponDiscount)}`}
-      color="text-green-600"
-      className="text-xs"
-    />
-  )}
+          <Row label="Tổng tiền hàng" value={formatCurrencyVND(totalAmount)} bold />
+          <Row className="text-xs" label="Giảm giá từ sản phẩm" value={formatCurrencyVND(discount)} />
+          {couponDiscount > 0 && (
+            <Row
+              label="Giảm giá từ coupon"
+              value={`- ${formatCurrencyVND(couponDiscount)}`}
+              color="text-green-600"
+              className="text-xs"
+            />
+          )}
 
-  {/* 2. Phí vận chuyển */}
-{/* 2. Phí vận chuyển */}
-{shippingDiscount > 0 ? (
-  <>
-    {/* phí gốc – KHÔNG gạch nữa */}
-    <Row
-      label="Phí vận chuyển"
-      value={formatCurrencyVND(shippingFee)}
-    />
+          {shippingDiscount > 0 ? (
+            <>
+              <Row
+                label="Phí vận chuyển"
+                value={formatCurrencyVND(shippingFee)}
+              />
 
-    {/* phần được giảm */}
-    <Row
-      label="Giảm phí vận chuyển"
-      value={`- ${formatCurrencyVND(shippingDiscount)}`}
-      color="text-green-600"
-      className="text-xs"
+              <Row
+                label="Giảm phí vận chuyển"
+                value={`- ${formatCurrencyVND(shippingDiscount)}`}
+                color="text-green-600"
+                className="text-xs"
+              />
+            </>
+          ) : (
+            <Row
+              label="Phí vận chuyển"
+              value={shippingFee === 0 ? 'Miễn phí' : formatCurrencyVND(shippingFee)}
+            />
+          )}
 
-    />
-  </>
-) : (
-  <Row
-    label="Phí vận chuyển"
-    value={shippingFee === 0 ? 'Miễn phí' : formatCurrencyVND(shippingFee)}
-  />
-)}
+          <Row label="Tổng khuyến mãi" value={formatCurrencyVND(totalDiscountDisplay)} />
 
-  {/* 3. Tổng khuyến mãi (hiển thị sau phí ship) */}
-<Row label="Tổng khuyến mãi" value={formatCurrencyVND(totalDiscountDisplay)} />
-
-  {/* 4. Tổng cần thanh toán */}
-  <div className="pt-2">
-    <div className="border-t border-dashed border-gray-300 mb-2" />
-   <Row
-  label="Cần thanh toán"
-  value={formatCurrencyVND(finalAmount)}
-  bold
-  color="text-red-600"
-/>
-<p className="text-sm text-green-600 mt-1 text-right">
-  Tiết kiệm {formatCurrencyVND(totalDiscountDisplay)}
-</p>
-    <p className="text-[11px] text-gray-400 text-right">
-      (Đã bao gồm VAT nếu có)
-    </p>
-  </div>
-</div>
-
+          <div className="pt-2">
+            <div className="border-t border-dashed border-gray-300 mb-2" />
+            <Row
+              label="Cần thanh toán"
+              value={formatCurrencyVND(finalAmount)}
+              bold
+              color="text-red-600"
+            />
+            <p className="text-sm text-green-600 mt-1 text-right">
+              Tiết kiệm {formatCurrencyVND(totalDiscountDisplay)}
+            </p>
+            <p className="text-[11px] text-gray-400 text-right">
+              (Đã bao gồm VAT nếu có)
+            </p>
+          </div>
+        </div>
 
         {/* BTN */}
         <button
@@ -373,7 +482,7 @@ if (isViettel) {
           onClose={() => setIsPromoModalOpen(false)}
           onApplySuccess={handleApplyPromo}
           appliedCode={selectedCoupon?.code || ''}
-           skuIds={[firstSkuId]}               // ✅ phải là mảng
+          skuIds={selectedItems.map(item => item.skuId)} // <--- TRUYỀN TẤT CẢ SKU IDS
           orderTotal={+totalAmount || 0}
         />
       )}

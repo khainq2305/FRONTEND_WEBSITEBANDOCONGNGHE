@@ -130,6 +130,7 @@ const FlashSaleForm = () => {
           id: item.flashSaleSku?.id,
           skuId: item.flashSaleSku?.id,
           salePrice: item.salePrice != null ? Number(item.salePrice) : '',
+originalQuantity: item.originalQuantity ?? item.quantity,
 
           quantity: item.quantity,
           maxPerUser: item.maxPerUser,
@@ -169,7 +170,8 @@ const FlashSaleForm = () => {
       const itemsPayload = formData.items.map((item) => ({
         skuId: item.id,
         salePrice: item.salePrice === '' ? null : Number(item.salePrice),
-        quantity: item.quantity === '' ? null : Number(item.quantity),
+     quantity: item.quantity === '' || item.quantity == null ? 0 : Number(item.quantity),
+ originalQuantity: item.originalQuantity ?? Number(item.quantity), // ✅ THÊM DÒNG NÀY
         maxPerUser: item.maxPerUser === '' ? null : Number(item.maxPerUser),
         note: item.note || ''
       }));
@@ -403,6 +405,7 @@ const FlashSaleForm = () => {
                             label: newItem.label,
                             originalPrice: newItem.originalPrice,
                             salePrice: '',
+                              originalQuantity: '', // ✅ THÊM DÒNG NÀY
                             quantity: '',
                             maxPerUser: '',
                             note: ''
@@ -465,17 +468,19 @@ const FlashSaleForm = () => {
                               <Typography variant="body2" sx={{ mb: 0.5 }}>
                                 &nbsp;
                               </Typography>
-                              <TextField
-                                fullWidth
-                                type="number"
-                                label="Số lượng bán"
-                                size="small"
-                                value={sku.quantity || ''}
-                                onChange={(e) => handleItemChange(field, index, 'quantity', e.target.value)}
-                                InputProps={{ inputProps: { min: 1 } }}
-                                error={!!errors.items?.[index]?.quantity}
-                                helperText={errors.items?.[index]?.quantity?.message}
-                              />
+                          <TextField
+  fullWidth
+  type="number"
+  label="Số lượng bán"
+  size="small"
+  value={sku.quantity ?? ''}
+  onChange={(e) => handleItemChange(field, index, 'quantity', e.target.value)}
+  InputProps={{ inputProps: { min: 0 } }}
+  placeholder="Mặc định 0 nếu không nhập"
+  error={!!errors.items?.[index]?.quantity}
+  helperText={errors.items?.[index]?.quantity?.message}
+/>
+
                             </Grid>
                             <Grid item xs={6} sm={4}>
                               <Typography variant="body2" sx={{ mb: 0.5 }}>

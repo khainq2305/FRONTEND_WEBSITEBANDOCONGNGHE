@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { User, ShoppingBag, MapPin, Eye, Ticket, Heart, ChevronDown, X } from 'lucide-react';
 import { Outlet, useParams, useNavigate } from 'react-router-dom';
-  // ⬅ thêm useParams
 import ProfileContent from './ProfileContent';
 import RenderDonMuaContentTuyChinh from './PurchaseHistoryPage';
 import AddressPageContent from './RenderDiaChiContent';
@@ -14,7 +13,9 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const UserProfilePage = () => {
   const [activeTab, setActiveTab] = useState(() => {
-    return window.location.hash.replace('#', '') || 'thong-tin-tai-khoan';
+    const hashTab = window.location.hash.replace('#', '');
+    const savedTab = localStorage.getItem('activeTab');
+    return hashTab || savedTab || 'thong-tin-tai-khoan';
   });
 
   const [sidebarUserInfo, setSidebarUserInfo] = useState({
@@ -25,9 +26,12 @@ const UserProfilePage = () => {
   });
   const [isSidebarLoading, setIsSidebarLoading] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
- const { orderCode } = useParams(); 
- const navigate = useNavigate();
+  const { orderCode } = useParams();
+  const navigate = useNavigate();
   const dropdownRef = useRef(null);
+  useEffect(() => {
+    document.documentElement.classList.remove('dark');
+  }, []);
 
   useEffect(() => {
     const fetchSidebarUserInfo = async () => {
@@ -85,6 +89,7 @@ const UserProfilePage = () => {
   useEffect(() => {
     const onHashChange = () => {
       const tabFromHash = window.location.hash.replace('#', '');
+
       setActiveTab(tabFromHash || 'thong-tin-tai-khoan');
       if (isDropdownOpen) {
         setIsDropdownOpen(false);
@@ -96,6 +101,7 @@ const UserProfilePage = () => {
       window.removeEventListener('hashchange', onHashChange);
     };
   }, [isDropdownOpen]);
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -146,39 +152,46 @@ const UserProfilePage = () => {
   }, []);
 
   const handleTabClick = (tabId) => {
-    setActiveTab(tabId);
-    
-      if (orderCode) {
-    // Đang ở /user-profile/orders/xxx  -> chuyển về /user-profile rồi gắn hash
-    navigate(`/user-profile#${tabId}`, { replace: true });
-  } else {
-    // Đã ở /user-profile -> chỉ đổi hash
-    window.location.hash = tabId;
- }
+    localStorage.setItem('activeTab', tabId); // ✅ Lưu vào localStorage
 
-  setIsDropdownOpen(false);
+    if (tabId === 'san-pham-da-xem') {
+      navigate('/san-pham-da-xem');
+    } else {
+      setActiveTab(tabId);
+      if (orderCode) {
+        navigate(`/user-profile#${tabId}`, { replace: true });
+      } else {
+        window.location.hash = tabId;
+      }
+    }
+    setIsDropdownOpen(false);
   };
 
   const sidebarNavItems = [
     { id: 'thong-tin-tai-khoan', label: 'Thông tin tài khoản', icon: User, href: '#thong-tin-tai-khoan' },
     { id: 'quan-ly-don-hang', label: 'Quản lý đơn hàng', icon: ShoppingBag, href: '#quan-ly-don-hang' },
     { id: 'so-dia-chi', label: 'Sổ địa chỉ', icon: MapPin, href: '#so-dia-chi' },
-    { id: 'san-pham-da-xem', label: 'Sản phẩm đã xem', icon: Eye, href: '#san-pham-da-xem' },
+    { id: 'san-pham-da-xem', label: 'Sản phẩm đã xem', icon: Eye, href: '/san-pham-da-xem' }, // Thay đổi href thành đường dẫn tuyệt đối
     { id: 'san-pham-yeu-thich', label: 'Sản phẩm yêu thích', icon: Heart, href: '#san-pham-yeu-thich' },
     { id: 'doi-mat-khau', label: 'Đổi mật khẩu', icon: Eye, href: '#doi-mat-khau' }
   ];
+
   const breadcrumbItems = [
     { label: 'Trang chủ', href: '/' },
     {
       label: sidebarNavItems.find((item) => item.id === activeTab)?.label || 'Tài khoản',
-      href: window.location.hash || '#thong-tin-tai-khoan'
+
+      href: activeTab === 'san-pham-da-xem' ? '/san-pham-da-xem' : window.location.hash || '#thong-tin-tai-khoan'
     }
   ];
+
   const DesktopSidebar = () => {
     const HEADER_HEIGHT_PX = 64;
 
     return (
-      <div className={`w-[250px] flex-shrink-0 dark:border-gray-700 h-screen overflow-y-auto sticky top-[${HEADER_HEIGHT_PX}px] dark:bg-gray-850 hidden lg:block`}>
+      <div
+        className={`w-[250px] flex-shrink-0 dark:border-gray-700 h-screen overflow-y-auto sticky top-[${HEADER_HEIGHT_PX}px] dark:bg-gray-850 hidden lg:block`}
+      >
         <div className="pb-4 pt-6">
           <div className="flex items-center pl-1 dark:border-gray-700 ">
             <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center mr-2.5 flex-shrink-0 overflow-hidden">
@@ -199,7 +212,10 @@ const UserProfilePage = () => {
             <ul>
               {sidebarNavItems.map((item) => {
                 const itemIsActive = activeTab === item.id;
-                const currentIconColor = itemIsActive ? 'text-primary' : item.iconColor || 'text-gray-600 dark:text-gray-400';
+
+                const isViewedProductsActive = item.id === 'san-pham-da-xem' && window.location.pathname === '/san-pham-da-xem';
+                const currentIconColor =
+                  itemIsActive || isViewedProductsActive ? 'text-primary' : item.iconColor || 'text-gray-600 dark:text-gray-400';
 
                 return (
                   <li key={item.id} className={`mb-0.5 ${item.id === 'thong-tin-tai-khoan' ? 'mt-4' : ''}`}>
@@ -211,7 +227,7 @@ const UserProfilePage = () => {
                       }}
                       className={`flex items-center py-2.5 px-3 rounded-md text-sm transition-all duration-200 relative
                         ${
-                          itemIsActive
+                          itemIsActive || isViewedProductsActive
                             ? 'bg-white border-l-4 border-primary text-primary font-semibold'
                             : 'text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
                         }
@@ -219,7 +235,11 @@ const UserProfilePage = () => {
                     >
                       {item.icon && (
                         <div className="relative mr-3 flex-shrink-0">
-                          <item.icon size={18} className={`${currentIconColor}`} strokeWidth={itemIsActive ? 2.5 : 2} />
+                          <item.icon
+                            size={18}
+                            className={`${currentIconColor}`}
+                            strokeWidth={itemIsActive || isViewedProductsActive ? 2.5 : 2}
+                          />
                           {item.id === 'thong-bao' && item.notification && (
                             <span className="absolute top-[1px] right-[1px] block h-1.5 w-1.5 transform translate-x-1/2 -translate-y-1/2 rounded-full bg-red-500 ring-1 ring-white dark:ring-gray-800"></span>
                           )}
@@ -273,7 +293,10 @@ const UserProfilePage = () => {
               <ul>
                 {sidebarNavItems.map((item) => {
                   const itemIsActive = activeTab === item.id;
-                  const currentIconColor = itemIsActive ? 'text-primary' : item.iconColor || 'text-gray-600 dark:text-gray-400';
+
+                  const isViewedProductsActive = item.id === 'san-pham-da-xem' && window.location.pathname === '/san-pham-da-xem';
+                  const currentIconColor =
+                    itemIsActive || isViewedProductsActive ? 'text-primary' : item.iconColor || 'text-gray-600 dark:text-gray-400';
 
                   return (
                     <li key={item.id} className="mb-0.5 last:mb-0">
@@ -285,7 +308,7 @@ const UserProfilePage = () => {
                         }}
                         className={`flex items-center py-2.5 px-3 rounded-md text-sm transition-all duration-200 relative
                           ${
-                            itemIsActive
+                            itemIsActive || isViewedProductsActive
                               ? 'bg-primary-100 dark:bg-primary-900 text-primary font-semibold'
                               : 'text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
                           }
@@ -293,7 +316,11 @@ const UserProfilePage = () => {
                       >
                         {item.icon && (
                           <div className="relative mr-3 flex-shrink-0">
-                            <item.icon size={18} className={`${currentIconColor}`} strokeWidth={itemIsActive ? 2.5 : 2} />
+                            <item.icon
+                              size={18}
+                              className={`${currentIconColor}`}
+                              strokeWidth={itemIsActive || isViewedProductsActive ? 2.5 : 2}
+                            />
                             {item.id === 'thong-bao' && item.notification && (
                               <span className="absolute top-[1px] right-[1px] block h-1.5 w-1.5 transform translate-x-1/2 -translate-y-1/2 rounded-full bg-red-500 ring-1 ring-white dark:ring-gray-800"></span>
                             )}
@@ -331,22 +358,20 @@ const UserProfilePage = () => {
           <DesktopSidebar />
 
           <div className="flex-1 min-w-0 lg:pl-8 md:pl-6 pl-0 pb-8">
-             {orderCode ? (
-            <Outlet />
-          ) : (
-            <>
-              {activeTab === 'thong-tin-tai-khoan' && <ProfileContent />}
-              {activeTab === 'quan-ly-don-hang' && <RenderDonMuaContentTuyChinh />}
-              {activeTab === 'so-dia-chi' && <AddressPageContent />}
-              {activeTab === 'san-pham-da-xem' && <EmptyContent title="Sản phẩm đã xem" />}
-              {activeTab === 'san-pham-yeu-thich' && <FavoriteProductsPage />}
-              {activeTab === 'doi-mat-khau' && <ChangePasswordTab />}
-            </>
-          )}
-          </div>
+            {orderCode ? (
+              <Outlet />
+            ) : (
+              <>
+                {activeTab === 'thong-tin-tai-khoan' && <ProfileContent />}
+                {activeTab === 'quan-ly-don-hang' && <RenderDonMuaContentTuyChinh />}
+                {activeTab === 'so-dia-chi' && <AddressPageContent />}
 
+                {activeTab === 'san-pham-yeu-thich' && <FavoriteProductsPage />}
+                {activeTab === 'doi-mat-khau' && <ChangePasswordTab />}
+              </>
+            )}
+          </div>
         </div>
-             
       </div>
       <style jsx global>{`
         body {
@@ -429,7 +454,6 @@ const UserProfilePage = () => {
           background-color: transparent;
         }
       `}</style>
-
     </div>
   );
 };

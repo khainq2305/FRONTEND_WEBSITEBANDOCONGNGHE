@@ -25,13 +25,13 @@ export const reviewService = {
     return get(`${base}${API_ENDPOINT.client.review.check(skuId)}`, { withCredentials: true });
   },
 update: (id, data) => {
-  const token = localStorage.getItem('token'); // ✅ lấy token từ localStorage
+  const token = localStorage.getItem('token'); 
 
   return fetch(`${base}/${id}`, {
     method: 'PUT',
     body: data,
     headers: {
-      Authorization: `Bearer ${token}` // ✅ thêm token vào header
+      Authorization: `Bearer ${token}`
     },
     credentials: 'include'
   }).then((res) => {

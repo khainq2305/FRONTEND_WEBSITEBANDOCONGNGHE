@@ -14,7 +14,9 @@ export const sectionService = {
     const query = new URLSearchParams(cleanParams).toString();
     return get(`${base}${API_ENDPOINT.admin.section.list}?${query}`);
   },
-  updateOrder: (orderedIds) => patch(`${base}${API_ENDPOINT.admin.section.updateOrder}`, { orderedIds }),
+  updateOrder: (orderedItems) =>
+  patch(`${base}${API_ENDPOINT.admin.section.updateOrder}`, { orderedItems }),
+
   create: (data) => post(`${base}${API_ENDPOINT.admin.section.create}`, data),
 
   update: (slug, data) => put(`${base}${API_ENDPOINT.admin.section.update(slug)}`, data),
