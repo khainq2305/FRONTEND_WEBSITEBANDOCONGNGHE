@@ -25,7 +25,8 @@ const NewsCategoryEdit = Loadable(lazy(() => import('pages/Admin/News/CategoryEd
 const ProductAddPage = Loadable(lazy(() => import('pages/Admin/Product/ProductAddPage')));
 const VariantValueList = Loadable(lazy(() => import('pages/Admin/VariantValue/index.jsx')));
 const VariantValueForm = Loadable(lazy(() => import('pages/Admin/VariantValue/VariantValueForm')));
-
+const PaymentMethodList = Loadable(lazy(() => import('pages/Admin/PaymentMethodList')));
+const ShippingProviderList = Loadable(lazy(() => import('pages/Admin/ShippingProviderList')));
 
 const AdminReviewsPage = Loadable(lazy(() => import('pages/Admin/Comment/AdminReviewsPage')));
 
@@ -54,6 +55,7 @@ import RequireAuth from '@/components/Admin/RequireAuth';
 const RoleIndex = Loadable(lazy(() => import('pages/Admin/Role/index')));
 const RoleManagement = Loadable(lazy(() => import('pages/Admin/Role/RoleManagement')));
 import { UserProvider } from '@/contexts/UserContext';
+const Skulist =  Loadable(lazy(() => import('pages/Admin/Skus')));
 const NotFound = Loadable(lazy(() => import('pages/Admin/NotFound')));
 const AdminRoutes = {
   path: '/admin',
@@ -65,6 +67,8 @@ const AdminRoutes = {
   children: [
     { index: true, element: <DashboardDefault /> },
     { path: 'dashboard/default', element: <DashboardDefault /> },
+    { path: 'payment-methods', element: <PaymentMethodList /> },
+    { path: 'shipping-providers', element: <ShippingProviderList /> },
     { path: 'users', element: <UserList /> },
     { path: 'users/create', element: <UserAdd /> },
     { path: 'users/:id', element: <UserDetailPage /> },
@@ -255,7 +259,7 @@ const AdminRoutes = {
     { path: 'quan-ly-vai-tro/danh-sach-vai-tro', element: <RoleManagement /> },
     {
       path: 'comments/all',
-      element: <AdminReviewsPage/>
+      element: <AdminReviewsPage />
     },
 
     {
@@ -269,14 +273,14 @@ const AdminRoutes = {
       path: 'system-settings',
       element: <SystemSettings />
     },
+     {
+      path: 'skulist',
+      element: <Skulist />
+    },
     {
       path: '*',
       element: <NotFound />
-    },
-
-
-
-
+    }
   ]
 };
 

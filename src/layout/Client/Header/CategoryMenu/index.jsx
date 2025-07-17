@@ -65,7 +65,7 @@ const CategoryMenu = ({ topLevelCategories = [], allCategories = [], isOpen = fa
 
     return (
         <div
-            className="absolute top-full left-0 z-200 bg-white shadow-lg text-black flex border border-gray-200 border-t-0 rounded-b-lg min-w-[780px] overflow-hidden"
+            className="absolute top-full left-0 z-[9999 bg-white shadow-lg text-black flex border border-gray-200 border-t-0 rounded-b-lg min-w-[780px] overflow-hidden"
             style={{ height: '460px' }}
         >
             {/* Cột trái - danh mục cha */}
@@ -101,7 +101,7 @@ const CategoryMenu = ({ topLevelCategories = [], allCategories = [], isOpen = fa
                         {activeL1Category.id && (
                             <Link
                                 to={getCategoryLink(activeL1Category)}
-                                className="text-xs text-blue-600 hover:text-orange-500 hover:underline font-medium flex items-center"
+                                className="text-xs text-primary hover:text-orange-500 hover:underline font-medium flex items-center"
                             >
                                 Xem tất cả <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
                             </Link>

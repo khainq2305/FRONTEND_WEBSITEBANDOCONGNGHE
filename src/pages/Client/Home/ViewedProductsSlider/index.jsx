@@ -5,6 +5,7 @@ import "slick-carousel/slick/slick-theme.css";
 import { ChevronLeft, ChevronRight, X as XIcon } from 'lucide-react';
 import { productViewService } from "../../../../services/client/productViewService";
 import { Link } from 'react-router-dom';
+
 const CustomArrow = (props) => {
     const { className, onClick, type } = props;
     return (
@@ -75,31 +76,32 @@ const ViewedProductsSlider = () => {
             localStorage.removeItem('viewed_products');
         }
     };
-const getPriceJsx = (product) => {
-  const sale = parseFloat(product.price) || 0;
-  const orig = parseFloat(product.originalPrice) || 0;
-  if (sale === 0 && orig === 0) return <p className="italic">Liên hệ</p>;
-  if (sale > 0) {
-    const hasDiscount = orig > sale;
-    return (
-      <div>
-        <span className="text-red-600 font-semibold">
-          {sale.toLocaleString('vi-VN')}₫
-        </span>
-        {hasDiscount && (
-          <span className="line-through ml-1 text-gray-500">
-            {orig.toLocaleString('vi-VN')}₫
-          </span>
-        )}
-      </div>
-    );
-  }
-  return (
-    <span className="text-red-600 font-semibold">
-      {orig.toLocaleString('vi-VN')}₫
-    </span>
-  );
-};
+
+    const getPriceJsx = (product) => {
+        const sale = parseFloat(product.price) || 0;
+        const orig = parseFloat(product.originalPrice) || 0;
+        if (sale === 0 && orig === 0) return <p className="italic">Liên hệ</p>;
+        if (sale > 0) {
+            const hasDiscount = orig > sale;
+            return (
+                <div>
+                    <span className="text-red-600 font-semibold">
+                        {sale.toLocaleString('vi-VN')}₫
+                    </span>
+                    {hasDiscount && (
+                        <span className="line-through ml-2 text-gray-500 text-xs">
+                            {orig.toLocaleString('vi-VN')}₫
+                        </span>
+                    )}
+                </div>
+            );
+        }
+        return (
+            <span className="text-red-600 font-semibold">
+                {orig.toLocaleString('vi-VN')}₫
+            </span>
+        );
+    };
 
     const numProducts = products.length;
 
@@ -116,19 +118,18 @@ const getPriceJsx = (product) => {
         pauseOnHover: true,
         nextArrow: <CustomArrow type="next" />,
         prevArrow: <CustomArrow type="prev" />,
-        responsive: [
-            { breakpoint: 1280, settings: { slidesToShow: 4, infinite: numProducts > 4, arrows: numProducts > 4 } },
-            { breakpoint: 1024, settings: { slidesToShow: 3, infinite: numProducts > 3, arrows: numProducts > 3 } },
-            { breakpoint: 768, settings: { slidesToShow: 2, infinite: numProducts > 2, arrows: numProducts > 2 } },
-            { breakpoint: 640, settings: { slidesToShow: 1.5, slidesToScroll: 1, arrows: false, infinite: numProducts > 1 } },
-            { breakpoint: 480, settings: { slidesToShow: 1.2, slidesToScroll: 1, arrows: false, infinite: numProducts > 1 } }
-        ]
+responsive: [
+    { breakpoint: 1280, settings: { slidesToShow: 4, infinite: numProducts > 4, arrows: numProducts > 4 } },
+    { breakpoint: 1024, settings: { slidesToShow: 3, infinite: numProducts > 3, arrows: numProducts > 3 } },
+    { breakpoint: 768, settings: { slidesToShow: 2.2, slidesToScroll: 1, infinite: numProducts > 2, arrows: false } }, // Thử 2.2 để hiển thị 2 sản phẩm đầy đủ và một phần sản phẩm thứ 3
+    { breakpoint: 640, settings: { slidesToShow: 1.5, slidesToScroll: 1, arrows: false, infinite: numProducts > 1 } },
+    { breakpoint: 480, settings: { slidesToShow: 1.2, slidesToScroll: 1, arrows: false, infinite: numProducts > 1 } }
+]
     };
 
     if (loading || numProducts === 0) {
         return null;
     }
-
 
     return (
         <div className="bg-white p-3 md:p-4 rounded-lg shadow-md w-full viewed-products-slider-container group relative">

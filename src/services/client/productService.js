@@ -38,9 +38,14 @@ export const productService = {
       excludeId: excludeProductId // TÊN PHẢI GIỐNG BÊN BACKEND NHẬN
     });
   },
-  getCompareByIds: (ids = []) => {
+   getCompareByIds: (ids = []) => {
     if (!ids.length) throw new Error('Thiếu danh sách ID sản phẩm để so sánh');
-    const query = ids.join(',');
-    return get(`/admin/product-compare?ids=${query}`);
+    // Sử dụng trực tiếp hàm đã định nghĩa trong API_ENDPOINT
+    const path = API_ENDPOINT.client.product.getCompareByIds(ids);
+    // Hàm 'get' của bạn có thể cần base URL hoặc nó tự xử lý
+    // Nếu 'get' đã có base URL mặc định (ví dụ API_BASE_URL/api/...),
+    // thì bạn chỉ cần truyền '/product/compare-ids?ids=...'
+    // Nếu không, bạn cần nối thêm API_BASE_URL
+    return get(`${API_BASE_URL}${path}`); // Giả định get cần full URL
   }
 };

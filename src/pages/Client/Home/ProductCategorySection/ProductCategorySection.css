@@ -1,5 +1,3 @@
-/* ProductCategorySection.css */
-
 .category-slider-wrapper .slick-slider {
   position: relative;
 }
@@ -33,17 +31,19 @@
   background-color: var(--arrow-button-bg-normal, #FFFFFF);
   border: 1px solid var(--arrow-button-border-normal, #e5e7eb);
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  transition: opacity 0.2s ease-in-out, background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out; /* Cập nhật transition */
+  transition: opacity 0.2s ease-in-out, background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out;
   color: var(--primary-color, #1CA7EC) !important;
-  opacity: 0; 
-  pointer-events: none; 
+  opacity: 0;
+  pointer-events: none;
 }
+
 .category-slider-wrapper:hover .slick-arrow:not(.slick-disabled) {
   opacity: 1;
   pointer-events: auto;
 }
+
 .category-slider-wrapper .slick-arrow.slick-disabled {
-  opacity: 0.3 !important; 
+  opacity: 0.3 !important;
   pointer-events: none !important;
   cursor: default !important;
   background-color: #f3f4f6 !important;
@@ -63,5 +63,60 @@
 
 .category-slider-wrapper .slick-prev:before,
 .category-slider-wrapper .slick-next:before {
-  display: none !important; 
+  display: none !important;
+}
+
+@media (min-width: 768px) {
+  .category-slider-wrapper .slick-arrow:not(.slick-disabled) {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+@media (max-width: 767px) {
+  .category-slider-wrapper:hover .slick-arrow:not(.slick-disabled) {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+.category-section-container {
+
+}
+
+.category-grid-item,
+.category-slide-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@media (max-width: 639px) {
+  .category-static-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 640px) and (max-width: 767px) {
+  .category-static-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .category-static-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .category-static-grid {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .category-static-grid {
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+  }
 }

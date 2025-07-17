@@ -1,14 +1,13 @@
-// AuthPage.jsx
+// // pages/AuthPage.jsx
 import { useForm } from 'react-hook-form';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { authService } from 'services/client/authService';
-import Loader from 'components/common/Loader';
+import { authService } from '@/services/client/authService';
+import useAuthStore from '@/stores/AuthStore';
+import Loader from '@/components/common/Loader';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
+import GradientButton from '@/components/Client/GradientButton';
 import { useGoogleLogin } from '@react-oauth/google';
-
-import GradientButton from '../../../components/Client/GradientButton';
-
 const AuthPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -17,12 +16,9 @@ const AuthPage = () => {
   const {
     register,
     handleSubmit,
-    setError,
     watch,
     formState: { errors, isValid }
-  } = useForm({
-    mode: 'onChange'
-  });
+  } = useForm({ mode: 'onChange' });
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -33,58 +29,58 @@ const AuthPage = () => {
   const toggleConfirmPasswordVisibility = () => setShowConfirmPassword((prev) => !prev);
 
   useEffect(() => {
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    const token = localStorage.getItem('token');
+
     if (token) navigate('/');
   }, [navigate]);
 
   useEffect(() => {
-    if (isLoading) {
-      const originalOverflow = document.body.style.overflow;
-
-      document.body.style.overflow = 'hidden';
-
-      return () => {
-        document.body.style.overflow = originalOverflow;
-      };
-    } else {
+    document.body.style.overflow = isLoading ? 'hidden' : 'auto';
+    return () => {
       document.body.style.overflow = 'auto';
-    }
+    };
   }, [isLoading]);
 
   const onSubmit = async (data) => {
-    try {
-      setIsLoading(true);
-      setErrorMessage('');
+  const authStore = useAuthStore.getState();
+  try {
+    setIsLoading(true);
+    setErrorMessage('');
 
-      if (isLogin) {
-        const response = await authService.login(data);
-        const { token } = response.data;
-        if (data.remember) {
-          localStorage.setItem('token', token);
-        } else {
-          sessionStorage.setItem('token', token);
-        }
-        navigate('/');
-      } else {
-        const response = await authService.register(data);
-        const { otpToken } = response.data;
-        navigate('/register-email-sent', {
-          state: {
-            email: data.email,
-            fullName: data.fullName,
-            password: data.password,
-            otpToken
-          }
-        });
-      }
-    } catch (err) {
-      console.error(err);
-      setErrorMessage(err?.response?.data?.message || 'Email hoặc mật khẩu không chính xác.');
-    } finally {
-      setIsLoading(false);
+    const response = isLogin
+      ? await authService.login(data)
+      : await authService.register(data);
+
+    if (isLogin) {
+  const { token, user } = response.data;
+
+  authStore.login(user, token);
+  await authStore.fetchUserInfo();
+
+  localStorage.setItem('token', token);
+  localStorage.setItem('user', JSON.stringify(user));
+
+  navigate('/');
+
+    } else {
+      const { otpToken } = response.data;
+      navigate('/register-email-sent', {
+        state: {
+          email: data.email,
+          fullName: data.fullName,
+          password: data.password,
+          otpToken,
+        },
+      });
     }
-  };
-  const googleLogin = useGoogleLogin({
+  } catch (err) {
+    setErrorMessage(err?.response?.data?.message || 'Email hoặc mật khẩu không chính xác.');
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+ const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
         setIsLoading(true);
@@ -105,7 +101,9 @@ const AuthPage = () => {
     onError: () => alert('Đăng nhập Google thất bại!')
   });
 
-  return (
+
+
+ return (
     <div className="flex flex-col lg:flex-row min-h-screen">
       {isLoading && (
         <div
@@ -302,19 +300,9 @@ const AuthPage = () => {
               <img src="src/assets/Client/images/auth/Google__G__logo.svg.webp" alt="Google" className="w-7 h-7 object-cover" />
             </button>
 
-            <button
-              onClick={() => facebookLogin()}
-              className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100 shadow"
-            >
-              <img src="src/assets/Client/images/auth/2021_Facebook_icon.svg.webp" alt="Facebook" className="w-7 h-7 object-cover" />
-            </button>
+          
 
-            <button
-              onClick={() => appleLogin()}
-              className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100 shadow"
-            >
-              <img src="src/assets/Client/images/auth/747.png" alt="Apple" className="w-7 h-7 object-cover" />
-            </button>
+          
           </div>
         </div>
       </div>

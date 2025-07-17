@@ -443,7 +443,7 @@ export default function CouponForm() {
                   value={userList.filter((u) => selectedUserIds.includes(u.id))}
                   onChange={(e, val) => setSelectedUserIds(val.map((u) => u.id))}
                   renderInput={(params) =>
-                    +(<TextField {...params} label="Chọn người dùng" error={!!errors.userIds} helperText={errors.userIds?.message} />)
+                    (<TextField {...params} label="Chọn người dùng" error={!!errors.userIds} helperText={errors.userIds?.message} />)
                   }
                   isOptionEqualToValue={(o, v) => o.id === v.id}
                 />
@@ -459,7 +459,7 @@ export default function CouponForm() {
                   value={productList.filter((p) => selectedProductIds.includes(p.id))}
                   onChange={(e, val) => setSelectedProductIds(val.map((p) => p.id))}
                   renderInput={(params) =>
-                    +(
+                    (
                       <TextField
                         {...params}
                         label="Chọn sản phẩm"

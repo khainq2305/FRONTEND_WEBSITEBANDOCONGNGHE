@@ -21,7 +21,8 @@ const badgeOptions = [
   { label: 'Giao nhanh', value: 'GIAO NHANH' },
   { label: 'Thu cũ đổi mới', value: 'THU CŨ ĐỔI MỚI' },
   { label: 'Giá tốt', value: 'GIÁ TỐT' },
-  { label: 'Trả góp 0%', value: 'TRẢ GÓP 0%' }
+  { label: 'Trả góp 0%', value: 'TRẢ GÓP 0%' },
+  { label: 'Giá kho', value: 'GIÁ KHO' } 
 ];
 
 const ProductInformationSection = ({

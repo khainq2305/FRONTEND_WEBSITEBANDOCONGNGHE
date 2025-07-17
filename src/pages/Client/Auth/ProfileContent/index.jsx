@@ -66,7 +66,7 @@ const ProfileContent = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successModalMessage, setSuccessModalMessage] = useState('');
 
-  const fileInputRef = useRef(null); // Ref for file input to clear it
+  const fileInputRef = useRef(null); 
 
   const fetchProfileData = useCallback(async () => {
     setIsLoading(true);

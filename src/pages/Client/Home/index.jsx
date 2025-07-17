@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import moment from 'moment';
+import { useShallow } from 'zustand/react/shallow';
+import io from 'socket.io-client';
 
 import SliderBanner from './SliderBanner';
 import ProductCategorySection from './ProductCategorySection';
@@ -7,181 +9,298 @@ import ViewedProductsSlider from './ViewedProductsSlider';
 import FreshProductSlider from './FreshProductSlider';
 import PromoGridSection from './PromoGridSection';
 import MainBannerSlider from './MainBannerSlider';
-import TwoRowMarketSlider from './TwoRowMarketSlider';
+import TwoRowMarketSlider from './TwoRowMarketSlider'; // Đảm bảo import đúng
 import StickyBannerItem from './StickyBannerItem';
 import { formatCurrencyVND } from '../../../utils/formatCurrency';
 import { bannerService } from '../../../services/client/bannerService';
 import { flashSaleService } from '../../../services/client/flashSaleService';
 import { sectionService } from '../../../services/client/sectionService';
+import RecommendedProductsSection from './RecommendedProductsSection';
 
 import { API_BASE_URL } from '../../../constants/environment';
+import useAuthStore from '../../../stores/AuthStore';
 
 const HomePage = () => {
-  const [sections, setSections] = useState([]);
-  const [flashSales, setFlashSales] = useState([]);
-  const [stickyBanners, setStickyBanners] = useState([]);
+    const [sections, setSections] = useState([]);
+    const [flashSales, setFlashSales] = useState([]);
+    const [stickyBanners, setStickyBanners] = useState([]);
 
-  const constructImageUrl = (path) => {
-    if (!path) {
-      return 'https://placehold.co/300x300/e2e8f0/94a3b8?text=No+Image';
-    }
-    if (path.startsWith('http')) {
-      return path;
-    }
-    return `${API_BASE_URL}${path}`;
+    const {
+        user,
+        loading: authLoading,
+        fetchUserInfo
+    } = useAuthStore(
+        useShallow((state) => ({
+            user: state.user,
+            loading: state.loading,
+            fetchUserInfo: state.fetchUserInfo
+        }))
+    );
+
+    const userId = user ? user.id : null;
+useEffect(() => {
+  const socket = io(API_BASE_URL, {
+    withCredentials: true,
+  });
+
+  socket.on('connect', () => {
+    console.log('Socket.IO connected:', socket.id);
+  });
+
+  socket.on('flash-sale-updated', () => {
+    console.log('Đã nhận sự kiện cập nhật flash sale, đang reload...');
+    flashSaleService.list()
+      .then((res) => setFlashSales(res.data.data || []))
+      .catch((err) => console.error('Lỗi khi reload Flash Sale:', err));
+  });
+
+  return () => {
+    socket.disconnect();
   };
+}, []);
 
-  useEffect(() => {
-    const fetchAllData = async () => {
-      try {
-        const [sectionsRes, flashSalesRes, stickyBannersRes] = await Promise.all([
-          sectionService.list(),
-          flashSaleService.list(),
-          bannerService.getByType('banner-left-right')
-        ]);
+    useEffect(() => {
+        fetchUserInfo();
+    }, [fetchUserInfo]);
 
-        setSections(sectionsRes.data?.data || []);
-        setFlashSales(flashSalesRes.data.data || []);
-        setStickyBanners(stickyBannersRes.data?.data || []);
-      } catch (error) {
-        console.error('Lỗi khi tải dữ liệu trang chủ:', error);
-      }
+    const constructImageUrl = (path) => {
+        if (!path) {
+            return 'https://placehold.co/300x300/e2e8f0/94a3b8?text=No+Image';
+        }
+        if (path.startsWith('http')) {
+            return path;
+        }
+        return `${API_BASE_URL}${path}`;
     };
-    fetchAllData();
-  }, []);
 
-  const leftBanner = stickyBanners[0];
-  const rightBanner = stickyBanners[1];
+    useEffect(() => {
+        const fetchAllData = async () => {
+            try {
+                const [sectionsRes, flashSalesRes, stickyBannersRes] = await Promise.all([
+                    sectionService.list(),
+                    flashSaleService.list(),
+                    bannerService.getByType('banner-left-right')
+                ]);
+
+                setSections(sectionsRes.data?.data || []);
+                setFlashSales(flashSalesRes.data.data || []);
+                setStickyBanners(stickyBannersRes.data?.data || []);
+            } catch (error) {
+                console.error('Lỗi khi tải dữ liệu trang chủ:', error);
+            }
+        };
+        fetchAllData();
+    }, []);
+
+    const leftBanner = stickyBanners[0];
+    const rightBanner = stickyBanners[1];
+
+    return (
+        <div className="w-full bg-gray-100 xl:grid xl:grid-cols-[1fr_auto_1fr] xl:gap-x-5">
+            <div className="hidden xl:flex justify-end items-start pl-5">
+                <StickyBannerItem banner={leftBanner} />
+            </div>
+            <main className="w-full max-w-[1200px] flex flex-col gap-4 py-4">
+                <section>
+                    <SliderBanner />
+                </section>
+                <section>
+                    <ProductCategorySection />
+                </section>
+
+                <section>
+                    <ViewedProductsSlider />
+                </section>
+                <section>
+                    <PromoGridSection />
+                </section>
+{flashSales.map((saleEvent) => {
+  const currentTime = moment();
+  const startTime = moment(saleEvent.startTime);
+  const endTime = moment(saleEvent.endTime);
+
+  let saleStatus;
+  let targetCountdownTime;
+  let countdownMode;
+
+  if (currentTime.isBefore(startTime)) {
+    saleStatus = 'upcoming';
+    targetCountdownTime = startTime;
+    countdownMode = 'start';
+  } else if (currentTime.isBetween(startTime, endTime)) {
+    saleStatus = 'active';
+    targetCountdownTime = endTime;
+    countdownMode = 'end';
+  } else {
+    saleStatus = 'ended';
+    targetCountdownTime = null;
+    countdownMode = null;
+  }
+
+  const categories = saleEvent.categories || [];
+  const skuItems = saleEvent.flashSaleItems || [];
+
+  const skuFromCats = categories.flatMap((cat) =>
+    (cat.category?.products || []).flatMap((p) => p.skus || [])
+  );
+
+  const skuMap = new Map();
+  [...skuItems.map((i) => i.sku), ...skuFromCats].forEach((s) => {
+    if (s && !skuMap.has(s.id)) skuMap.set(s.id, s);
+  });
+  const allSkus = Array.from(skuMap.values());
+
+  const productsForSlider = allSkus.map((sku) => {
+    const product = sku.product || sku.Product || {};
+    const saleItem = skuItems.find((i) => i.skuId === sku.id);
+
+    const quantity = saleItem?.quantity ?? null;
+    const limitPerUser = saleItem?.maxPerUser ?? 1;
+    const isSoldOut = quantity === 0;
+
+    const rawPrice = sku.price ?? 0;
+    const originalPrice = sku.originalPrice ?? 0;
+    const salePrice = saleItem?.salePrice ?? sku.salePrice ?? null;
+
+    let priceToDisplay = originalPrice;
+    let oldPrice = null;
+
+    if (isSoldOut) {
+      if (rawPrice && rawPrice > 0 && rawPrice !== originalPrice) {
+        priceToDisplay = rawPrice;
+        oldPrice = originalPrice;
+      } else {
+        priceToDisplay = originalPrice;
+        oldPrice = null;
+      }
+    } else if (salePrice && salePrice > 0) {
+      priceToDisplay = salePrice;
+      oldPrice = originalPrice;
+    } else if (rawPrice && rawPrice > 0 && rawPrice !== originalPrice) {
+      priceToDisplay = rawPrice;
+      oldPrice = originalPrice;
+    } else {
+      priceToDisplay = originalPrice;
+      oldPrice = null;
+    }
+
+    const imageUrl =
+      sku.ProductMedia?.find((m) => m.type === 'image')?.mediaUrl ||
+      product.thumbnail ||
+      sku.product?.thumbnail ||
+      sku.Product?.thumbnail;
+
+    return {
+      id: product.id,
+      productId: product.id,
+      name: product.name || 'N/A',
+      slug: product.slug,
+      price: formatCurrencyVND(priceToDisplay),
+      oldPrice: oldPrice ? formatCurrencyVND(oldPrice) : null,
+      discount: oldPrice ? Math.round(100 - (priceToDisplay * 100) / oldPrice) : 0,
+      image: constructImageUrl(imageUrl),
+      badge: product.badge || null,
+      badgeImage: product.badgeImage ? constructImageUrl(product.badgeImage) : null,
+      rating: parseFloat(sku.averageRating) || 0,
+      inStock: (sku.stock || 0) > 0,
+      soldCount: parseInt(sku.soldCount || 0),
+      quantity: quantity,
+      limitPerUser,
+      saleStatus,
+      isSoldOut
+    };
+  });
+
+  if (!productsForSlider.length || saleStatus === 'ended') return null;
 
   return (
-    <div className="w-full bg-gray-100 xl:grid xl:grid-cols-[1fr_auto_1fr] xl:gap-x-5">
-      <div className="hidden xl:flex justify-end items-start pl-5">
-        <StickyBannerItem banner={leftBanner} />
-      </div>
-      <main className="w-full max-w-[1200px] flex flex-col gap-4 py-4">
-        <section>
-          <SliderBanner />
-        </section>
-        <section>
-          <ProductCategorySection />
-        </section>
-        <section>
-          <ViewedProductsSlider />
-        </section>
-        <section>
-          <PromoGridSection />
-        </section>
-        {flashSales.map((saleEvent) => {
-          const categories = saleEvent.categories || [];
+    <section key={saleEvent.id}>
+      <TwoRowMarketSlider
+        productsInput={productsForSlider}
+        imageBannerUrl={saleEvent.bannerUrl}
+        targetCountdownTime={targetCountdownTime}
+        countdownMode={countdownMode}
+        bgColor={saleEvent.bgColor}
+        saleStatus={saleStatus}
+      />
+    </section>
+  );
+})}
 
-          const skuItems = saleEvent.flashSaleItems || [];
 
-          const skuFromCats = categories.flatMap((cat) => (cat.category?.products || []).flatMap((p) => p.skus || []));
+                {!authLoading && userId && (
+                    <section>
+                        <RecommendedProductsSection userId={userId} />
+                    </section>
+                )}
+               {sections.map((section) => {
+    if (!section.products || section.products.length === 0) return null;
 
-          const skuMap = new Map();
-          [...skuItems.map((i) => i.sku), ...skuFromCats].forEach((s) => {
-            if (s && !skuMap.has(s.id)) skuMap.set(s.id, s);
-          });
-          const allSkus = Array.from(skuMap.values());
+    const productsForSlider = section.products
+        .map((product) => {
+            // Lấy defaultSku đã được tính toán và gán ở backend
+            const displaySku = product.defaultSku;
 
-          const productsForSlider = allSkus.map((sku) => {
-            const product = sku.product || sku.Product || {};
-            const originalPrice = sku.originalPrice || 0;
-            const saleItem = skuItems.find((i) => i.skuId === sku.id);
-            const salePrice = saleItem?.salePrice ?? sku.salePrice ?? sku.price;
-            const limitPerUser = saleItem?.maxPerUser ?? 1;
+            if (!displaySku) return null; // Nếu không có SKU nào để hiển thị, bỏ qua sản phẩm này
 
-            const imageUrl = sku.ProductMedia?.[0]?.mediaUrl || product.thumbnail;
+            const isProductInStock = (displaySku.stock || 0) > 0;
+            const mediaImage = displaySku.ProductMedia?.find((m) => m.type === 'image')?.mediaUrl;
+            
+            // Lấy giá đã được xử lý từ backend (price đã là giá cuối cùng)
+            const finalPriceNum = parseFloat(displaySku.price); 
+            // originalPrice cũng được backend xử lý để thể hiện giá gốc hoặc giá trước khuyến mãi
+            const oldPriceNum = parseFloat(displaySku.originalPrice); 
+
+            // Tính toán discount dựa trên originalPrice (giá ban đầu của SKU hoặc giá mặc định) và finalPriceNum
+            const discount = oldPriceNum > finalPriceNum && oldPriceNum > 0
+                ? Math.round(100 - (finalPriceNum * 100) / oldPriceNum)
+                : 0;
 
             return {
-              id: product.id,
-              productId: product.id,
-              name: product.name || 'N/A',
-              slug: product.slug,
-              price: formatCurrencyVND(salePrice),
-              oldPrice: originalPrice > 0 ? formatCurrencyVND(originalPrice) : null,
-              discount: originalPrice > 0 && salePrice < originalPrice ? Math.round(100 - (salePrice * 100) / originalPrice) : 0,
-              image: constructImageUrl(imageUrl),
-                badge     : product.badge || null,
- badgeImage  : product.badgeImage             // CHỈ convert khi có giá trị
-                ? constructImageUrl(product.badgeImage)
-               : null,
-              rating: parseFloat(sku.averageRating) || 0,
-              inStock: (sku.stock || 0) > 0,
-              soldCount: parseInt(sku.soldCount) || 0,
-              quantity: saleItem?.quantity ?? null,
-              limitPerUser
-            };
-          });
-
-          if (!productsForSlider.length) return null;
-
-          return (
-            <section key={saleEvent.id}>
-              <TwoRowMarketSlider
-                productsInput={productsForSlider}
-                imageBannerUrl={saleEvent.bannerUrl}
-                endTime={saleEvent.endTime}
-                bgColor={saleEvent.bgColor}
-              />
-            </section>
-          );
-        })}
-
-        {sections.map((section) => {
-          if (!section.products || section.products.length === 0) return null;
-
-          const productsForSlider = section.products
-            .map((product) => {
-              const skus = product.skus || [];
-              if (skus.length === 0) return null;
-
-              const isProductInStock = skus.some((s) => (s.stock || 0) > 0);
-              const displaySku = skus.find((s) => (s.stock || 0) > 0) || skus[0];
-              const oldPriceNum = parseFloat(displaySku.originalPrice);
-              const finalPriceNum = parseFloat(displaySku.price);
-
-              return {
-                id: displaySku.id,
+                id: displaySku.id, // ID của SKU
                 productId: product.id,
                 name: product.name || 'N/A',
-               badgeImage: product.badgeImage    ,
+                badgeImage: product.badgeImage ? constructImageUrl(product.badgeImage) : null,
                 slug: product.slug,
                 badge: product.badge || null,
                 price: formatCurrencyVND(finalPriceNum),
-                oldPrice: oldPriceNum > 0 ? formatCurrencyVND(oldPriceNum) : null,
-                image: constructImageUrl(displaySku.ProductMedia?.[0]?.url || product.thumbnail),
-                discount: oldPriceNum > finalPriceNum ? Math.round(100 - (finalPriceNum * 100) / oldPriceNum) : 0,
-                rating: parseFloat(product.averageRating) || 0,
+                oldPrice: oldPriceNum > finalPriceNum ? formatCurrencyVND(oldPriceNum) : null, // Chỉ hiển thị oldPrice nếu có giảm giá
+                image: constructImageUrl(mediaImage || product.thumbnail),
+                discount: discount,
+                rating: parseFloat(product.rating) || 0,
                 soldCount: parseInt(product.soldCount) || 0,
-                inStock: isProductInStock
-              };
-            })
-            .filter((p) => p && p.id);
+                inStock: isProductInStock,
+                sortOrder: product.ProductHomeSection?.sortOrder ?? 0,
+                flashSaleInfo: displaySku.flashSaleInfo || null, // Truyền thông tin flash sale
+                currentPrice: finalPriceNum // Truyền giá thực tế để so sánh
+            };
+        })
+        .filter((p) => p && p.id) // Lọc bỏ các sản phẩm không có displaySku
+        .sort((a, b) => a.sortOrder - b.sortOrder);
 
-          if (productsForSlider.length === 0 && (!section.banners || section.banners.length === 0)) return null;
+    if (productsForSlider.length === 0 && (!section.banners || section.banners.length === 0)) return null;
 
-          return (
-            <section key={section.id}>
-              <FreshProductSlider
+    return (
+        <section key={section.id}>
+            <FreshProductSlider
                 title={section.title}
                 bannersData={section.banners || []}
                 productsData={productsForSlider}
                 linkedCategories={section.linkedCategories || []}
-              />
-            </section>
-          );
-        })}
-
-        <section>
-          <MainBannerSlider />
+            />
         </section>
-      </main>
-      <div className="hidden xl:flex justify-start items-start pr-5">
-        <StickyBannerItem banner={rightBanner} />
-      </div>
-    </div>
-  );
+    );
+})}
+
+                <section>
+                    <MainBannerSlider />
+                </section>
+            </main>
+            <div className="hidden xl:flex justify-start items-start pr-5">
+                <StickyBannerItem banner={rightBanner} />
+            </div>
+        </div>
+    );
 };
 
 export default HomePage;

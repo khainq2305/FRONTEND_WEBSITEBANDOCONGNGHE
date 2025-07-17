@@ -51,7 +51,7 @@ export default function CancelOrderDialog({ isOpen, onClose, orderId, onSuccess 
       {loading && <Loader fullscreen={true} />}
 
       
-
+<div className="fixed inset-0 bg-black/40" aria-hidden="true" />
       {/* Dialog content */}
       <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
         <Dialog.Panel className="relative w-full max-w-md transform rounded-lg bg-white p-6 text-left align-middle shadow-xl transition-all">

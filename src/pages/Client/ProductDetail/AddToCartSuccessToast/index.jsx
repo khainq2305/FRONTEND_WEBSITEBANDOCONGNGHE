@@ -1,8 +1,38 @@
-
-// export default AddToCartSuccessToast;
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom'; // Import ReactDOM để sử dụng Portal
 
 const AddToCartSuccessToast = ({ closeToast, productName, productImage, productPrice, extraMessage }) => {
+  const [isMobileOrTablet, setIsMobileOrTablet] = useState(false);
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      // Giả định màn hình mobile/tablet là <= 1024px
+      setIsMobileOrTablet(window.innerWidth <= 1024);
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
+  // Nếu là mobile/tablet, render một modal đơn giản bằng Portal
+  if (isMobileOrTablet) {
+    // Sử dụng Portal để div này được render ngoài cây DOM chính,
+    // cho phép nó nổi lên trên tất cả các phần tử khác như một modal.
+    return ReactDOM.createPortal(
+      <div
+        className="fixed inset-0 flex items-center justify-center p-4 z-[999999]"
+        // Auto-close sẽ xử lý việc đóng, không cần click backdrop
+      >
+        <div className="bg-black/70 text-white rounded-md px-6 py-6 text-center pointer-events-auto">
+          <p className="text-sm font-semibold whitespace-nowrap">Sản phẩm đã được thêm vào giỏ hàng của bạn.</p>
+        </div>
+      </div>,
+      document.body // Portal vào thẳng body
+    );
+  }
+
+  // Toast chi tiết cho desktop (giữ nguyên)
   return (
     <div className="max-w-xs w-full font-sans bg-white shadow-lg rounded-lg pointer-events-auto overflow-hidden">
       <div className="bg-primary py-1 px-2 flex items-center justify-between">
@@ -43,6 +73,5 @@ const AddToCartSuccessToast = ({ closeToast, productName, productImage, productP
     </div>
   );
 };
-
 
 export default AddToCartSuccessToast;

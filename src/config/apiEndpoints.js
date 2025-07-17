@@ -35,6 +35,16 @@ export const API_ENDPOINT = {
       create: '/',
       getDefault: '/default'
     },
+    recommendation: {
+      base: `${API_BASE_URL}/recommendations`,
+      get: (userId, currentProductId = null) => {
+        let query = `?userId=${userId}`;
+        if (currentProductId) {
+          query += `&currentProductId=${currentProductId}`;
+        }
+        return query;
+      }
+    },
     category: {
       base: `${API_BASE_URL}/api/client/categories`,
       combinedMenu: '/combined-menu'
@@ -47,7 +57,8 @@ export const API_ENDPOINT = {
       base: `${API_BASE_URL}/product`,
       baseList: `${API_BASE_URL}`,
       getBySlug: (slug) => `/product/${slug}`,
-      getRelated: () => `/related`
+      getRelated: () => `/related`,
+       getCompareByIds: (ids) => `/product/compare-ids?ids=${ids.join(',')}`
     },
     highlightedCategory: {
       base: `${API_BASE_URL}`,
@@ -70,7 +81,7 @@ export const API_ENDPOINT = {
     systemSettings: {
       base: `${API_BASE_URL}/system-settings`,
       update: '/update',
-       get: '' // 👈 thêm dòng này vào
+      get: '' 
     },
     cart: {
       base: `${API_BASE_URL}/cart`,
@@ -96,14 +107,17 @@ export const API_ENDPOINT = {
       momoPay: '/momo',
       reorder: (orderId) => `/${orderId}/reorder`,
       momoCallback: '/momo-callback',
-
-      vnpayCallback : '/vnpay-callback',         // VNPay redirect
+  paymentMethods: '/payment-methods', // <-- ⭐ thêm dòng này
+      vnpayCallback: '/vnpay-callback', 
       zaloPay: '/zalopay',
-       payAgain: (id) => `/${id}/pay-again`,     
+      payAgain: (id) => `/${id}/pay-again`,
       vnpay: '/vnpay',
-      shippingOptions: '/shipping/options',     // ← endpoint mới
-        viettelMoney: '/viettel-money',          // 👈 THÊM
-  viettelMoneyCallback: '/viettel-money/callback', // 👈 THÊM
+       uploadProof: (orderId) => `/${orderId}/proof`,  // ← thêm đây
+      shippingOptions: '/shippings/options',
+      viettelMoney: '/viettel-money', 
+      stripePay: '/stripe', // vào mục order
+  updatePaymentStatus: (orderId) => `/${orderId}/payment-status`,
+      viettelMoneyCallback: '/viettel-money/callback', 
       bookPickup: (id) => `/return/${id}/book-pickup`,
       vietqrPay: '/generate-vietqr',
       markAsCompleted: (orderId) => `/${orderId}/mark-completed`,
@@ -117,12 +131,6 @@ export const API_ENDPOINT = {
       byCategory: '/theo-danh-muc',
       calculateFee: '/calculate-fee'
     },
-    wishlist: {
-      base: `${API_BASE_URL}/wishlist`,
-      list: '', // KHÔNG có slash
-      add: (productId) => `/${productId}`,
-      remove: (productId) => `/${productId}`
-    },
 
     banner: {
       base: `${API_BASE_URL}`,
@@ -133,6 +141,12 @@ export const API_ENDPOINT = {
     flashSale: {
       base: `${API_BASE_URL}`,
       list: '/flash-sale/list'
+    },
+    wishlist: {
+      base: `${API_BASE_URL}/wishlist`,
+      list: '',
+      add: (productId) => `/${productId}`,
+      remove: (productId) => `/${productId}`
     },
     review: {
       base: `${API_BASE_URL}/review`,
@@ -161,7 +175,9 @@ export const API_ENDPOINT = {
       base: `${API_BASE_URL}/productviews`,
       track: '/',
       listByIds: '/list',
-      top: '/top'
+      top: '/top',
+        recentlyViewedByCategoryLevel1: '/recently-viewed-by-category-level1',
+         searchForCompare: '/search-compare' 
     },
     productQuestion: {
       base: `${API_BASE_URL}/product-questions`,
@@ -171,7 +187,6 @@ export const API_ENDPOINT = {
     }
   },
   admin: {
-   
     permissions: {
       base: `${API_BASE_URL}/admin/permissions`,
       getAll: '/permissions',
@@ -201,6 +216,20 @@ export const API_ENDPOINT = {
       getOrdersByDate: '/orders-by-date',
       getTopSellingProducts: '/top-selling-products',
       getFavoriteProducts: '/favorite-products'
+    },
+     sku: {
+      base: `${API_BASE_URL}/admin/sku`,
+      getAll: '/',
+      logsBySkuId: (id) => `/${id}/logs`,
+      importStock: (id) => `/${id}/import`,
+      // getById: (slug) => `/product/${slug}`,
+      exportStock: (id) =>  `/${id}/export`,
+      softDelete: (id) => `/product/soft/${id}`,
+      softDeleteMany: '/product/soft-delete-many',
+      restore: (id) => `/product/restore/${id}`,
+      restoreMany: '/product/restore-many',
+      forceDelete: (id) => `/product/force/${id}`,
+      updateOrderIndexBulk: '/product/update-order'
     },
     product: {
       base: `${API_BASE_URL}/admin`,
@@ -275,14 +304,13 @@ export const API_ENDPOINT = {
       list: '/order/list',
       getById: '/order/:id',
       updateStatus: (id) => `/order/${id}/status`,
-      // ✅ THÊM MỚI CHO TRẢ HÀNG
       getReturns: (orderId) => `/order/${orderId}/returns`,
       updateReturnStatus: (id) => `/returns/${id}/status`,
       chooseReturnMethod: (id) => `/return/${id}/choose-method`,
-      // ✅ THÊM MỚI CHO HOÀN TIỀN
       getRefunds: (orderId) => `/order/${orderId}/refunds`,
       updateRefundStatus: (id) => `/refunds/${id}/status`,
-      cancel: '/order/:id/cancel'
+      cancel: '/order/:id/cancel',
+        updatePaymentStatus: (id) => `/order/${id}/payment-status`, 
     },
     variant: {
       base: `${API_BASE_URL}/admin`,
@@ -358,7 +386,7 @@ export const API_ENDPOINT = {
       getById: (slug) => `/flash-sales/${slug}`,
       delete: (id) => `/flash-sales/${id}`,
       deleteMany: '/flash-sales/delete-many',
-updateSortOrder: (slug) => `/flash-sales/${slug}/items/sort-order`,  
+      updateSortOrder: (slug) => `/flash-sales/${slug}/items/sort-order`,
       softDelete: (id) => `/flash-sales/soft-delete/${id}`,
       softDeleteMany: '/flash-sales/soft-delete-many',
       restore: (id) => `/flash-sales/restore/${id}`,
@@ -401,6 +429,21 @@ updateSortOrder: (slug) => `/flash-sales/${slug}/items/sort-order`,
       forceDelete: '/xoa-vinh-vien',
       restorePost: '/khoi-phuc',
       postCount: '/tong-so-bai-viet'
+    },
+    paymentMethod: {
+      base: `${API_BASE_URL}/admin/payment-methods`,
+      list: '',
+      create: '',
+      update: (id) => `/${id}`,
+      toggle: (id) => `/${id}/toggle`
+    },
+
+    shippingProvider: {
+      base: `${API_BASE_URL}/admin/shipping-providers`,
+      list: '',
+      create: '',
+      update: (id) => `/${id}`,
+      toggle: (id) => `/${id}/toggle`
     },
     brand: {
       base: `${API_BASE_URL}/admin/brands`,

@@ -1,24 +1,26 @@
-import { useEffect } from 'react';
-import { Navigate, Outlet, useMatches } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
+
 import useAuthStore from '@/stores/AuthStore';
 import LoaderAdmin from './LoaderVip';
-import { toast } from 'react-toastify';
 
-/**
- * 
- * @function RequireAuth check user nếu có thì vào @param children, user === null thì tới @Navigate đăng nhập
- * 
- *
- */
 const RequireAuth = ({ children }) => {
-  const { user, loading, } = useAuthStore();
-  
+  const { user, loading } = useAuthStore();
+
   if (loading) return <LoaderAdmin />;
 
-  if (!user) {
-    return <Navigate to="/dang-nhap-dashboard" replace />;
-  }
+  // // ✅ Không có user => về login
+  // if (!user) {
+  //   return <Navigate to="/dang-nhap" replace />;
+  // }
   
+  // // ✅ Check ít nhất 1 role có canAccess: true
+  // const hasAccess = (user.roles || []).some(role => role.canAccess === true);
+  
+  // if (!hasAccess) {
+  //   return <Navigate to="/403" replace />;
+  //   // Hoặc bạn muốn về 403 thì đổi: <Navigate to="/403" replace />
+  // }
+
   return children;
 };
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { formatCurrencyVND } from '../../../../utils/formatCurrency';
 
 const ProductList = ({ products }) => (
-    <div className="bg-white p-4 rounded-lg shadow mb-4">
+    <div className="bg-white p-4 rounded-lg shadow mb-2">
         <h2 className="text-base font-semibold text-gray-700 mb-4">
             Sản phẩm trong đơn ({products.length})
         </h2>
@@ -22,11 +22,12 @@ const ProductList = ({ products }) => (
                         <div className="text-sm text-red-600 font-semibold">
                             {formatCurrencyVND(product.price ?? 0)}
                         </div>
-                        {(product.originalPrice && product.originalPrice > product.price) && (
-                            <div className="text-xs text-gray-400 line-through">
-                                {formatCurrencyVND(product.originalPrice)}
-                            </div>
-                        )}
+                      {Number(product.originalPrice) > Number(product.price) && (
+  <div className="text-xs text-gray-400 line-through">
+    {formatCurrencyVND(product.originalPrice)}
+  </div>
+)}
+
                     </div>
                 </div>
             ))}

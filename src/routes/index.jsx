@@ -4,25 +4,25 @@ import ClientRoutes from './ClientRoutes';
 import Page403 from '@/components/Admin/Page403';
 import LoginAdmin from '@/pages/Admin/Auth/index'
 const SystemRoutes = [
-  {
-    path: '/dang-nhap-dashboard',
-    element: <LoginAdmin />
-  },
-  {
-    path: "/403",
-    element: <Page403 />
-  },
+{
+path: '/dang-nhap-dashboard',
+element: <LoginAdmin />
+},
+{
+path: "/403",
+element: <Page403 />
+},
 ];
 
 const router = createBrowserRouter(
-  [
-    ClientRoutes,
-    AdminRoutes,
-    ...SystemRoutes
-  ],
-  {
-    basename: import.meta.env.VITE_APP_BASE_NAME,
-  }
+[
+ClientRoutes,
+AdminRoutes,
+...SystemRoutes
+],
+{
+basename: import.meta.env.VITE_APP_BASE_NAME,
+}
 );
 
 export default router;

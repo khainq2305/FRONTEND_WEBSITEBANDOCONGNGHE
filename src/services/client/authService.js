@@ -26,7 +26,10 @@ export const authService = {
   resendForgotPassword: (data) => post(`${base}${API_ENDPOINT.client.auth.resendForgotPassword}`, data),
 
   resetPassword: (data) => post(`${base}${API_ENDPOINT.client.auth.resetPassword}`, data),
-
+  isLoggedIn: () => {
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    return !!token;
+  },
   verifyResetToken: (token) => get(`${base}${API_ENDPOINT.client.auth.verifyResetToken}?token=${token}`),
   checkResetStatus: (email) => get(`${API_ENDPOINT.client.auth.base}${API_ENDPOINT.client.auth.checkResetStatus}?email=${email}`),
   getUserInfo: () => {

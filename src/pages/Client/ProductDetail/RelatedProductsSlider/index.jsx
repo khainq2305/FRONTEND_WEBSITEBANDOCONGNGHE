@@ -2,34 +2,30 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Slider from 'react-slick';
 
-// Import các ảnh badge trực tiếp từ assets
 import giaoNhanhImg from '@/assets/Client/images/1717405144807-Left-Tag-Giao-Nhanh.webp';
 import thuCuDoiMoiImg from '@/assets/Client/images/1740550907303-Left-tag-TCDM (1).webp';
 import traGopImg from '@/assets/Client/images/1717405144808-Left-Tag-Tra-Gop-0.webp';
 import giaTotImg from '@/assets/Client/images/1732077440142-Left-tag-Bestprice-0.gif';
+import giaKhoImg from '@/assets/Client/images/1739182448835-Left-tag-GK-Choice.gif';
 
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import './RelatedProductsSlider.css'; // Đảm bảo file CSS này tồn tại nếu bạn có các style riêng
+import './RelatedProductsSlider.css';
 import { Link } from 'react-router-dom';
-import { productService } from '../../../../services/client/productService'; 
-// import useFavorites from '../../../../hooks/useFavorites'; // Đã bỏ vì không dùng nút yêu thích
+import { productService } from '../../../../services/client/productService';
 import { formatCurrencyVND } from '../../../../utils/formatCurrency';
 import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
-
-// Cố định map các badge image ở ngoài component để tránh re-render không cần thiết
 const BADGE_IMAGE_MAP = {
   'GIAO NHANH': giaoNhanhImg,
   'THU CŨ ĐỔI MỚI': thuCuDoiMoiImg,
   'TRẢ GÓP 0%': traGopImg,
   'GIÁ TỐT': giaTotImg,
+  'GIÁ KHO': giaKhoImg
 };
-
-// Hàm render badge đã được chỉnh sửa để tương đồng với FreshProductSlider
 const renderBadge = (badge) => {
   if (!badge) {
-    return <div className="mb-2 h-[28px]"></div>; // Giữ khoảng trống nếu không có badge
+    return <div className="mb-2 h-[28px]"></div>;
   }
 
   const upperCaseBadge = badge.toUpperCase();
@@ -38,8 +34,8 @@ const renderBadge = (badge) => {
   if (upperCaseBadge.includes('GIAO NHANH')) imageUrl = BADGE_IMAGE_MAP['GIAO NHANH'];
   else if (upperCaseBadge.includes('THU CŨ')) imageUrl = BADGE_IMAGE_MAP['THU CŨ ĐỔI MỚI'];
   else if (upperCaseBadge.includes('TRẢ GÓP')) imageUrl = BADGE_IMAGE_MAP['TRẢ GÓP 0%'];
-  else if (upperCaseBadge.includes('GIÁ TỐT') || upperCaseBadge.includes('BEST PRICE'))
-    imageUrl = BADGE_IMAGE_MAP['GIÁ TỐT'];
+  else if (upperCaseBadge.includes('GIÁ KHO')) imageUrl = BADGE_IMAGE_MAP['GIÁ KHO'];
+  else if (upperCaseBadge.includes('GIÁ TỐT') || upperCaseBadge.includes('BEST PRICE')) imageUrl = BADGE_IMAGE_MAP['GIÁ TỐT'];
 
   if (imageUrl) {
     return (
@@ -49,26 +45,21 @@ const renderBadge = (badge) => {
     );
   }
 
-  return <div className="mb-2 h-[28px]"></div>; // Vẫn giữ khoảng trống nếu badge không match
+  return <div className="mb-2 h-[28px]"></div>;
 };
 
-// Hàm render sao được giữ nguyên, đảm bảo đồng nhất
-const renderStars = (rate, productId) => { // Thêm productId để key duy nhất
+const renderStars = (rate, productId) => {
   const stars = [];
   const numRating = parseFloat(rate);
-  if (isNaN(numRating) || numRating <= 0) return <div className="h-[14px] sm:h-[16px] w-auto"></div>; // Đảm bảo chiều cao
+  if (isNaN(numRating) || numRating <= 0) return <div className="h-[14px] sm:h-[16px] w-auto"></div>;
   for (let i = 1; i <= 5; i++) {
-    if (numRating >= i)
-      stars.push(<FaStar key={`star-${i}-${productId}`} className="text-yellow-400 text-[10.5px] sm:text-[11.5px]" />);
+    if (numRating >= i) stars.push(<FaStar key={`star-${i}-${productId}`} className="text-yellow-400 text-[10.5px] sm:text-[11.5px]" />);
     else if (numRating >= i - 0.5)
       stars.push(<FaStarHalfAlt key={`half-${i}-${productId}`} className="text-yellow-400 text-[10.5px] sm:text-[11.5px]" />);
-    else
-      stars.push(<FaRegStar key={`empty-${i}-${productId}`} className="text-yellow-400 text-[10.5px] sm:text-[11.5px]" />);
+    else stars.push(<FaRegStar key={`empty-${i}-${productId}`} className="text-yellow-400 text-[10.5px] sm:text-[11.5px]" />);
   }
   return stars;
 };
-
-// Hàm parsePrice để xử lý định dạng giá nếu cần
 const parsePrice = (priceString) => {
   if (typeof priceString === 'number') return priceString;
   if (typeof priceString === 'string') {
@@ -76,23 +67,15 @@ const parsePrice = (priceString) => {
   }
   return 0;
 };
-
-// Component InlinedProductCard đã được đồng nhất UI và bỏ nút yêu thích/so sánh
-const InlinedProductCard = ({
-  id, name, price, slug, oldPrice, discount, image,
-  rating, soldCount, inStock, badge, badgeImage,
-}) => {
-  // Lấy giá trị số của giá hiện tại và giá cũ
+const InlinedProductCard = ({ id, name, price, slug, oldPrice, discount, image, rating, soldCount, inStock, badge, badgeImage }) => {
   const currentPriceNum = parsePrice(price);
   const oldPriceNum = oldPrice ? parsePrice(oldPrice) : 0;
 
-  // Quyết định ảnh overlay: ưu tiên badgeImage, sau đó đến badge từ BADGE_IMAGE_MAP
   const overlaySrc = badgeImage || BADGE_IMAGE_MAP[badge?.toUpperCase()] || null;
 
   return (
     <div className="product-card-item w-full h-full flex flex-col bg-white relative transition-all duration-300 ease-in-out group/productCard border-l border-r border-transparent hover:shadow-2xl hover:z-20 hover:border-l-gray-200 hover:border-r-gray-200 rounded-lg overflow-hidden">
       <div className="relative">
-        {/* Lớp phủ khi hết hàng */}
         {!inStock && (
           <div className="absolute inset-0 bg-white/40 flex items-center justify-center z-20 rounded-t-lg pointer-events-none">
             <span className="text-rose-600 font-bold text-base border-2 border-rose-500 rounded-lg px-4 py-2 transform -rotate-12 shadow-lg bg-white">
@@ -101,14 +84,12 @@ const InlinedProductCard = ({
           </div>
         )}
 
-        {/* % giảm giá */}
         {discount > 0 && (
-          <div className="absolute top-2 left-2 bg-red-500 text-white text-[9px] sm:text-xs font-bold px-1.5 py-0.5 rounded z-10">
+          <div className="absolute top-2 left-2 bg-red-500 text-white text-[9px] sm:text-xs font-bold px-1.5 py-0.5 rounded z-20">
             -{discount}%
           </div>
         )}
 
-        {/* ------------ Ảnh sản phẩm ------------- */}
         <Link
           to={`/product/${slug ?? id}`}
           className="product-card-image-link block w-full h-[125px] xs:h-[140px] sm:h-[160px] mt-3 mb-1.5 sm:mt-4 sm:mb-2 flex items-center justify-center px-3 relative"
@@ -120,7 +101,6 @@ const InlinedProductCard = ({
             loading="lazy"
           />
 
-          {/* ========= overlay chỉ khi có overlaySrc (badgeImage hoặc badge) ========= */}
           {overlaySrc && (
             <img
               src={overlaySrc}
@@ -132,7 +112,6 @@ const InlinedProductCard = ({
         </Link>
       </div>
 
-      {/* ------------ Thông tin sản phẩm ------------- */}
       <div className="product-card-info px-2 xs:px-1.5 sm:px-2.5 pt-1 pb-2 sm:pb-2.5 flex flex-col flex-grow overflow-hidden">
         {renderBadge(badge)}
 
@@ -169,9 +148,7 @@ const InlinedProductCard = ({
             className="product-card-saving text-[10px] sm:text-[10.5px] font-medium mb-1 sm:mb-1.5 min-h-[16px]"
             style={{ color: 'rgb(80, 171, 95)' }}
           >
-            {currentPriceNum > 0 && oldPriceNum > currentPriceNum
-              ? `Tiết kiệm ${formatCurrencyVND(oldPriceNum - currentPriceNum)}`
-              : ''}
+            {currentPriceNum > 0 && oldPriceNum > currentPriceNum ? `Tiết kiệm ${formatCurrencyVND(oldPriceNum - currentPriceNum)}` : ''}
           </div>
 
           <div className="pt-1.5">
@@ -187,7 +164,6 @@ const InlinedProductCard = ({
                 </span>
               )}
             </div>
-            {/* Các nút yêu thích/so sánh đã được loại bỏ */}
           </div>
         </div>
       </div>
@@ -197,32 +173,29 @@ const InlinedProductCard = ({
 
 const CustomSlickArrow = ({ type, onClick, className, style }) => (
   <button type="button" className={className} style={style} onClick={onClick}>
-    {type === 'prev'
-      ? <ChevronLeftIcon className="w-6 h-6 text-gray-700" />
-      : <ChevronRightIcon className="w-6 h-6 text-gray-700" />}
+    {type === 'prev' ? <ChevronLeftIcon className="w-6 h-6 text-gray-700" /> : <ChevronRightIcon className="w-6 h-6 text-gray-700" />}
   </button>
 );
 
-export default function RelatedProductsSlider({
-  categoryId,
-  currentProductId,
-  mainSectionTitle = "SẢN PHẨM TƯƠNG TỰ"
-}) {
+export default function RelatedProductsSlider({ categoryId, currentProductId, mainSectionTitle = 'SẢN PHẨM TƯƠNG TỰ' }) {
   const sliderRef = useRef(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  // const { isFavorite, toggleFavorite } = useFavorites(); // Đã bỏ vì không dùng nút yêu thích
+
   const SLIDES_THRESHOLD = 5;
 
   useEffect(() => {
     (async () => {
-      if (!categoryId) { setLoading(false); return; }
+      if (!categoryId) {
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       try {
         const res = await productService.getRelated(categoryId, currentProductId, 12);
         setProducts(res.data.products || []);
-      } catch (error) { // Nên bắt lỗi để biết vấn đề gì xảy ra
-        console.error("Failed to fetch related products:", error);
+      } catch (error) {
+        console.error('Failed to fetch related products:', error);
         setProducts([]);
       } finally {
         setLoading(false);
@@ -231,11 +204,7 @@ export default function RelatedProductsSlider({
   }, [categoryId, currentProductId]);
 
   if (loading) {
-    return (
-      <div className="py-10 text-center text-gray-500">
-        Đang tải sản phẩm tương tự...
-      </div>
-    );
+    return <div className="py-10 text-center text-gray-500">Đang tải sản phẩm tương tự...</div>;
   }
   if (!products.length) return null;
 
@@ -264,35 +233,21 @@ export default function RelatedProductsSlider({
     <div className="max-w-[1200px] mx-auto bg-gray-50 rounded-lg shadow-md my-8">
       <h2 className="px-4 py-4 pt-4 text-xl font-bold text-[#c51813]">{mainSectionTitle}</h2>
       <div className="px-2 pb-4">
-        {products.length <= SLIDES_THRESHOLD
-          ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-              {products.map(p => (
-                <InlinedProductCard
-                  key={p.id}
-                  {...p}
-                  // onAddToFavorites={toggleFavorite} // Đã bỏ
-                  // onCompare={() => alert(`So sánh ${p.id}`)} // Đã bỏ
-                  // isFavorite={isFavorite(p.id)} // Đã bỏ
-                />
-              ))}
-            </div>
-          ) : (
-            <Slider ref={sliderRef} {...settings}>
-              {products.map(p => (
-                <div key={p.id} className="p-1.5">
-                  <InlinedProductCard
-                    key={p.id} // Thêm key ở đây nữa để đảm bảo React hoạt động tối ưu
-                    {...p}
-                    // onAddToFavorites={toggleFavorite} // Đã bỏ
-                    // onCompare={() => alert(`So sánh ${p.id}`)} // Đã bỏ
-                    // isFavorite={isFavorite(p.id)} // Đã bỏ
-                  />
-                </div>
-              ))}
-            </Slider>
-          )
-        }
+        {products.length <= SLIDES_THRESHOLD ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            {products.map((p) => (
+              <InlinedProductCard key={p.id} {...p} />
+            ))}
+          </div>
+        ) : (
+          <Slider ref={sliderRef} {...settings}>
+            {products.map((p) => (
+              <div key={p.id} className="p-1.5">
+                <InlinedProductCard key={p.id} {...p} />
+              </div>
+            ))}
+          </Slider>
+        )}
       </div>
     </div>
   );

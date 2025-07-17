@@ -157,8 +157,10 @@ export default function HomeSectionList() {
         id: item.id,
         orderIndex: index
       }));
-      await sectionService.updateOrder({ orderedItems: orderedItemsPayload });
+     await sectionService.updateOrder(orderedItemsPayload);
+
       toast.success('Cập nhật thứ tự thành công');
+      fetchSections(); 
     } catch (err) {
       console.error('Lỗi cập nhật thứ tự:', err);
       toast.error(err?.response?.data?.message || 'Cập nhật thứ tự thất bại');

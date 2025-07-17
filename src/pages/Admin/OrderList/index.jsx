@@ -151,16 +151,23 @@ toast.success(`Đã cập nhật trạng thái đơn ${selectedOrder?.code} thà
     const [label, color] = map[orderStatus] || [orderStatus, 'default'];
     return <Chip label={label} color={color} size="small" />;
   };
-const PAYMENT_CHIP_MAP = {
-  unpaid : ['Chưa thanh toán', 'warning'],
-  waiting: ['Chờ xác thực',    'info'],
-  paid   : ['Đã thanh toán',   'success']
-};
+const getPaymentChip = (paymentStatus, paymentMethodCode) => {
+  if (paymentStatus === 'waiting') {
+    if (paymentMethodCode === 'atm') {
+      return <Chip label="Chờ xác nhận chuyển khoản" color="info" size="small" />;
+    }
+    return <Chip label="Chờ thanh toán" color="warning" size="small" />;
+  }
 
-const getChip = (value, map) => {
-  const [label, color] = map[value] || [value, 'default'];
+  const map = {
+    unpaid: ['Chưa thanh toán', 'default'],
+    paid: ['Đã thanh toán', 'success']
+  };
+
+  const [label, color] = map[paymentStatus] || [paymentStatus, 'default'];
   return <Chip label={label} color={color} size="small" />;
 };
+
 
   return (
     <Box sx={{ p: 2 }}>
@@ -249,7 +256,8 @@ const getChip = (value, map) => {
                         {Number(order.total).toLocaleString('vi-VN')} ₫
                       </TableCell>
                       <TableCell>{getStatusChip(order.status)}</TableCell>
-                      <TableCell>{getChip(order.paymentStatus, PAYMENT_CHIP_MAP)}</TableCell>
+                      <TableCell>{getPaymentChip(order.paymentStatus, order.paymentMethodCode)}</TableCell>
+
                       <TableCell>
   {new Date(order.createdAt).toLocaleString('vi-VN')}
 </TableCell>

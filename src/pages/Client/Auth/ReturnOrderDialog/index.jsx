@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo  } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
     Box,
@@ -30,7 +30,8 @@ const returnReasons = [
     { id: 'OTHER', label: 'Lý do khác (vui lòng mô tả bên dưới)' },
 ];
 
-const steps = ['Chọn lý do', 'Chọn sản phẩm', 'Tải bằng chứng', 'Thông tin hoàn tiền', 'Xác nhận'];
+// CHỈNH SỬA MẢNG STEPS: Gộp "Tải bằng chứng" vào bước đầu tiên
+const steps = ['Chọn lý do & Bằng chứng', 'Chọn sản phẩm', 'Thông tin hoàn tiền', 'Xác nhận'];
 
 const ReturnOrderPage = () => {
     const navigate = useNavigate();
@@ -43,26 +44,22 @@ const ReturnOrderPage = () => {
     const [loading, setLoading] = useState(true);
     const [orderData, setOrderData] = useState(null);
 
-    // Step 1 states
+    // Step 1 states (giờ bao gồm cả bằng chứng)
     const [selectedReason, setSelectedReason] = useState('');
     const [detailedReason, setDetailedReason] = useState('');
+    const [evidenceFiles, setEvidenceFiles] = useState([]); // Đã di chuyển lên đây
+    const fileInputRef = useRef(null); // Đã di chuyển lên đây
 
-    // Step 2 states (chọn sản phẩm muốn trả toàn bộ số lượng)
-    const [selectedReturnItems, setSelectedReturnItems] = useState({}); // { skuId: quantityToReturn, ... }
-    const [selectAll, setSelectAll] = useState(false); // ✅ State mới cho checkbox "Chọn tất cả"
+    // Step 2 (Mới) states (chọn sản phẩm muốn trả toàn bộ số lượng)
+    const [selectedReturnItems, setSelectedReturnItems] = useState({});
+    const [selectAll, setSelectAll] = useState(false);
 
-    // Step 3 states
-    const [evidenceFiles, setEvidenceFiles] = useState([]);
-    const fileInputRef = useRef(null);
-
-    // Step 4 states
+    // Step 3 (Mới) states
     const [bankName, setBankName] = useState('');
     const [accountNumber, setAccountNumber] = useState('');
     const [accountHolderName, setAccountHolderName] = useState('');
     const [showBankInfoForm, setShowBankInfoForm] = useState(false);
-
-    // Added for Step 4 (as per image)
-    const [refundEmail, setRefundEmail] = useState('nguyenquockhai.2006@gmail.com'); // Example email, replace with actual user email
+    const [refundEmail, setRefundEmail] = useState('nguyenquockhai.2006@gmail.com');
 
     // Submission state
     const [submitting, setSubmitting] = useState(false);
@@ -76,14 +73,14 @@ const ReturnOrderPage = () => {
         }
 
         if (initialOrderProducts && initialOrderProducts.length > 0) {
-           setOrderData({
-   products   : initialOrderProducts,
-   finalPrice : location.state?.finalPrice || 0,   
- });
-  console.log('[DEBUG] orderData', orderData);
+            setOrderData({
+                products: initialOrderProducts,
+                finalPrice: location.state?.finalPrice || 0,
+            });
+            console.log('[DEBUG] orderData', orderData); // Đây vẫn là giá trị cũ
             const initialItems = {};
             initialOrderProducts.forEach(product => {
-                initialItems[product.skuId] = 0; 
+                initialItems[product.skuId] = 0;
             });
             setSelectedReturnItems(initialItems);
             setLoading(false);
@@ -93,10 +90,10 @@ const ReturnOrderPage = () => {
                     setLoading(true);
                     const res = await orderService.getOrderDetail(orderId);
                     if (res.data?.data) {
-                      setOrderData({
-    ...res.data.data,          // giữ nguyên mọi field
-    finalPrice: res.data.data.finalPrice, // đảm bảo có finalPrice
-  });
+                        setOrderData({
+                            ...res.data.data,
+                            finalPrice: res.data.data.finalPrice,
+                        });
                         const initialItems = {};
                         res.data.data.products.forEach(product => {
                             initialItems[product.skuId] = 0;
@@ -141,24 +138,35 @@ const ReturnOrderPage = () => {
 
 
     const handleNext = () => {
-  if (currentStep === 1) {
-    // phải có ít nhất 1 sản phẩm
-    const hasItem = Object.values(selectedReturnItems).some(q => q > 0);
-    if (!hasItem) return toast.error('Vui lòng chọn ít nhất một SP');
+        // VALIDATION CHO STEP 0 (chọn lý do & bằng chứng)
+        if (currentStep === 0) {
+            if (!selectedReason) {
+                return toast.error('Vui lòng chọn lý do trả hàng.');
+            }
+            if (selectedReason === 'OTHER' && !detailedReason.trim()) {
+                return toast.error('Vui lòng mô tả chi tiết lý do khác.');
+            }
+        }
+        // VALIDATION CHO STEP 1 (chọn sản phẩm) - giờ là currentStep === 1
+        else if (currentStep === 1) {
+            const hasItem = Object.values(selectedReturnItems).some(q => q > 0);
+            if (!hasItem) {
+                return toast.error('Vui lòng chọn ít nhất một sản phẩm để trả.');
+            }
+            // Logic check lại sau micro-task nếu cần (nhưng thường không cần với React state update bình thường)
+        }
+        // VALIDATION CHO STEP 2 (thông tin hoàn tiền) - giờ là currentStep === 2
+        else if (currentStep === 2) {
+            if (showBankInfoForm) {
+                if (!bankName.trim() || !accountNumber.trim() || !accountHolderName.trim()) {
+                    return toast.error('Vui lòng điền đầy đủ thông tin tài khoản ngân hàng.');
+                }
+            }
+            // refundEmail hiện đang là readOnly nên không cần validate
+        }
 
-    /* NEW: check lại sau micro-task */
-    Promise.resolve().then(() => {
-      // nếu lúc này vẫn không có item => user bấm quá nhanh
-      const ok = Object.values(selectedReturnItems).some(q => q > 0);
-      if (!ok) return;                // giữ nguyên step
-      setCurrentStep(s => s + 1);     // sang bước kế
-    });
-    return;
-  }
-
-  // các step khác giữ nguyên
-  setCurrentStep(s => s + 1);
-};
+        setCurrentStep(s => s + 1);
+    };
 
 
     const handleBack = () => {
@@ -166,17 +174,16 @@ const ReturnOrderPage = () => {
     };
 
     // ✅ Xử lý checkbox cho từng sản phẩm (luôn trả hết số lượng đã mua nếu được chọn)
- 
-  const handleItemCheckboxChange = (skuIdRaw, isChecked) => {
-  const skuId   = Number(skuIdRaw);                               // ép kiểu về number
-  const product = orderData?.products?.find(p => p.skuId === skuId);
-  if (!product) return;
+    const handleItemCheckboxChange = (skuIdRaw, isChecked) => {
+        const skuId = Number(skuIdRaw);
+        const product = orderData?.products?.find(p => p.skuId === skuId);
+        if (!product) return;
 
-  setSelectedReturnItems(prev => ({
-    ...prev,
-    [skuId]: isChecked ? product.quantity : 0,                    // check → lấy hết qty
-  }));
-};
+        setSelectedReturnItems(prev => ({
+            ...prev,
+            [skuId]: isChecked ? product.quantity : 0,
+        }));
+    };
 
     // ✅ Xử lý checkbox "Chọn tất cả"
     const handleSelectAllChange = (e) => {
@@ -191,16 +198,17 @@ const ReturnOrderPage = () => {
     };
 
 
-    // Step 3 handlers
+    // Step 0 (Mới) handlers - Bằng chứng
     const handleFileChange = (e) => {
         if (e.target.files) {
             const newFiles = Array.from(e.target.files);
+            // Kiểm tra tổng số file sau khi thêm
             if (evidenceFiles.length + newFiles.length > 7) {
                 toast.error('Chỉ có thể tải lên tối đa 7 file ảnh/video.');
                 return;
             }
             setEvidenceFiles((prevFiles) => [...prevFiles, ...newFiles]);
-            e.target.value = null;
+            e.target.value = null; // Reset input file để có thể chọn cùng file lại
         }
     };
 
@@ -209,47 +217,46 @@ const ReturnOrderPage = () => {
     };
 
 
-/* ============================================================
- * 2. Tổng tiền hoàn lại
- * ========================================================== */
-const allChosen =
-  orderData?.products?.length &&
-  orderData.products.every(p => selectedReturnItems[p.skuId] === p.quantity);
+    /* ============================================================
+     * Tính Tổng tiền hoàn lại
+     * ========================================================== */
+    const totalRefundAmount = useMemo(() => {
+        if (!orderData) return 0;
 
-/* ----------------------------------------------------------
- * Tổng tiền hoàn trả
- *  -------------------------------------------------------- */
-const totalRefundAmount = useMemo(() => {
-  if (!orderData) return 0;
+        // 1) Tổng tiền sản phẩm đang chọn trả
+        const productSubtotal = Object.entries(selectedReturnItems).reduce(
+            (sum, [skuId, qty]) => {
+                if (!qty) return sum;
+                const prod = orderData.products.find(p => p.skuId === Number(skuId));
+                return prod ? sum + prod.price * qty : sum;
+            },
+            0,
+        );
 
-  // 1) Tổng tiền sản phẩm đang chọn trả
-  const productSubtotal = Object.entries(selectedReturnItems).reduce(
-    (sum, [skuId, qty]) => {
-      if (!qty) return sum;
-      const prod = orderData.products.find(p => p.skuId === Number(skuId));
-      return prod ? sum + prod.price * qty : sum;
-    },
-    0,
-  );
+        // 2) Kiểm tra có phải trả hết đơn hay không
+        // Logic này cần dựa vào tổng số lượng sản phẩm trong đơn hàng
+        const totalProductsInOrder = orderData.products.reduce((sum, p) => sum + p.quantity, 0);
+        const totalSelectedToReturn = Object.values(selectedReturnItems).reduce((sum, qty) => sum + qty, 0);
 
-  // 2) Kiểm tra có phải trả hết đơn hay không
-  const allChosen =
-    orderData.products.length &&
-    orderData.products.every(p => selectedReturnItems[p.skuId] === p.quantity);
+        const allItemsSelectedForReturn = totalSelectedToReturn === totalProductsInOrder && totalProductsInOrder > 0;
 
-  if (allChosen) {
-    // ⚠️ finalPrice = tổng tiền KH thực trả, đã bao gồm ship – đã trừ voucher
-    return orderData.finalPrice ?? productSubtotal;
-  }
+        if (allItemsSelectedForReturn) {
+            // ✅ Hoàn lại finalPrice (đã bao gồm ship và trừ voucher) nếu trả hết đơn
+            return orderData.finalPrice ?? productSubtotal;
+        }
 
-  // 3) TÍNH TỶ LỆ PHÍ SHIP (tuỳ chính sách)
-  // Ví dụ: hoàn lại ship theo % giá trị hàng hoàn so với tổng giá trị đơn
-  // const percent = productSubtotal / orderData.productsTotalPrice;
-  // const shipRefund = orderData.shippingFee * percent;
-  // return productSubtotal + shipRefund;
+        // 3) Chỉ hoàn phần sản phẩm (và có thể phí ship theo tỷ lệ nếu muốn)
+        // Ví dụ: hoàn lại ship theo % giá trị hàng hoàn so với tổng giá trị đơn
+        // Để làm được điều này, bạn cần total price của các sản phẩm trong đơn gốc (trước khi trừ coupon/ship)
+        // const originalProductsTotalPrice = orderData.products.reduce((sum, p) => sum + p.price * p.quantity, 0);
+        // if (originalProductsTotalPrice > 0 && orderData.shippingFee > 0) {
+        //     const percent = productSubtotal / originalProductsTotalPrice;
+        //     const shipRefund = orderData.shippingFee * percent;
+        //     return productSubtotal + shipRefund;
+        // }
 
-  return productSubtotal;         // chỉ hoàn phần sản phẩm
-}, [selectedReturnItems, orderData]);
+        return productSubtotal; // Mặc định chỉ hoàn tiền sản phẩm
+    }, [selectedReturnItems, orderData]);
 
 
     const handleSubmitFinal = async () => {
@@ -262,17 +269,19 @@ const totalRefundAmount = useMemo(() => {
             .filter(skuId => selectedReturnItems[skuId] > 0)
             .map(skuId => ({
                 skuId: skuId,
-                quantity: selectedReturnItems[skuId], // Lấy số lượng đã được thiết lập (toàn bộ hoặc 0)
+                quantity: selectedReturnItems[skuId],
             }));
 
         formData.append('itemsToReturn', JSON.stringify(itemsToReturn));
 
+        // Bank info chỉ gửi nếu cần
         if (showBankInfoForm) {
             formData.append('bankName', bankName.trim());
             formData.append('accountNumber', accountNumber.trim());
             formData.append('accountHolderName', accountHolderName.trim());
         }
 
+        // Thêm bằng chứng vào formData
         evidenceFiles.forEach((file) => {
             if (file.type.startsWith('image/')) {
                 formData.append('images', file);
@@ -285,7 +294,6 @@ const totalRefundAmount = useMemo(() => {
             await orderService.returnRequest(formData);
             setSubmissionSuccess(true);
             toast.success('Yêu cầu trả hàng đã được gửi thành công!');
-            // navigate('/purchase'); // Có thể điều hướng về trang đơn hàng
         } catch (err) {
             toast.error(err?.response?.data?.message || 'Gửi yêu cầu thất bại, vui lòng thử lại.');
             console.error("Return request failed:", err);
@@ -327,6 +335,7 @@ const totalRefundAmount = useMemo(() => {
                 Yêu cầu Trả hàng / Hoàn tiền
             </Typography>
 
+            {/* CHỈNH SỬA STEPS ĐỂ PHẢN ÁNH THAY ĐỔI */}
             <Stepper activeStep={currentStep} alternativeLabel sx={{ mb: 4 }}>
                 {steps.map((label) => (
                     <Step key={label}>
@@ -336,7 +345,7 @@ const totalRefundAmount = useMemo(() => {
             </Stepper>
 
             <Box>
-                {/* Step 1: Chọn lý do & mô tả */}
+                {/* Step 0 (MỚI): Chọn lý do & Tải bằng chứng */}
                 {currentStep === 0 && (
                     <Box>
                         <Typography variant="h6" component="p" className="font-semibold text-gray-800 mb-3">1. Lý do trả hàng của bạn là gì?</Typography>
@@ -354,91 +363,9 @@ const totalRefundAmount = useMemo(() => {
                             onChange={(e) => setDetailedReason(e.target.value)}
                             className="w-full border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                         />
-                    </Box>
-                )}
 
-                {/* Step 2: Chọn sản phẩm muốn trả */}
-                {currentStep === 1 && (
-                    <Box>
-                        <Typography variant="h6" component="p" className="font-semibold text-gray-800 mb-3">3. Chọn sản phẩm muốn trả:</Typography>
-
-                        {/* Checkbox "Chọn tất cả" */}
-                        {orderData?.products && orderData.products.length > 0 && (
-                            <Box mb={2} display="flex" alignItems="center" className="bg-orange-50 p-3 rounded-lg border border-orange-200">
-                                <Checkbox
-                                    checked={selectAll}
-                                    onChange={handleSelectAllChange}
-                                    size="medium"
-                                    sx={{ p: 0, mr: 1, '& .MuiSvgIcon-root': { color: '#f97316' } }} // Orange color for checkbox
-                                />
-                                <Typography variant="body1" fontWeight="bold" className="text-orange-700">
-                                    Chọn tất cả ({orderData.products.length} sản phẩm)
-                                </Typography>
-                            </Box>
-                        )}
-
-                        {orderData?.products && orderData.products.length > 0 ? (
-                           orderData.products.map(product => {
- const isChecked = selectedReturnItems[product.skuId] === product.quantity;
-
- const handleWrapperClick = () => {
-   handleItemCheckboxChange(product.skuId, !isChecked);
- };
-
- return (
-   <Box
-     key={product.skuId}
-     onClick={handleWrapperClick}
-     display="flex"
-     alignItems="center"
-     mb={2}
-     p={1.5}
-     border={1}
-     borderColor="grey.300"
-     borderRadius={1}
-     bgcolor="white"
-     sx={{ cursor: 'pointer' }}
-   >
-     <Checkbox
-       checked={isChecked}
-       onClick={(e) => e.stopPropagation()} // Ngăn click bubble
-       onChange={(e) => handleItemCheckboxChange(product.skuId, e.target.checked)}
-       size="medium"
-       sx={{ p: 0, mr: 1, '& .MuiSvgIcon-root': { color: '#f97316' } }}
-     />
-     <img
-       src={product.imageUrl}
-       alt={product.name}
-       className="w-16 h-16 object-cover rounded-sm border border-gray-200 mr-3 flex-shrink-0"
-     />
-     <Box flexGrow={1}>
-       <Typography variant="body2" fontWeight="medium" sx={{ mb: 0.5 }}>{product.name}</Typography>
-       {product.variation && (
-         <Typography variant="caption" color="text.secondary">
-           Phân loại: {product.variation}
-         </Typography>
-       )}
-       <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-         x{product.quantity}
-       </Typography>
-     </Box>
-     <Typography variant="body2" color="text.secondary" sx={{ mr: 2 }}>
-       {formatCurrencyVND(product.price * product.quantity)}
-     </Typography>
-   </Box>
- );
-})
-
-                        ) : (
-                            <Typography variant="body2" color="text.secondary">Không có sản phẩm nào trong đơn hàng này.</Typography>
-                        )}
-                    </Box>
-                )}
-
-                {/* Step 3: Tải lên bằng chứng */}
-                {currentStep === 2 && (
-                    <Box>
-                        <Typography variant="h6" component="p" className="font-semibold text-gray-800 mb-3">4. Tải lên bằng chứng (ảnh/video)</Typography>
+                        {/* PHẦN TẢI BẰNG CHỨNG ĐÃ ĐƯỢC GỘP VÀO ĐÂY */}
+                        <Typography variant="h6" component="p" className="font-semibold text-gray-800 mt-6 mb-3">3. Tải lên bằng chứng (ảnh/video)</Typography>
                         <Box
                             onClick={() => fileInputRef.current.click()}
                             className="mt-1 flex justify-center w-full px-6 py-8 border-2 border-gray-300 border-dashed rounded-md cursor-pointer hover:border-sky-500 bg-white"
@@ -484,8 +411,85 @@ const totalRefundAmount = useMemo(() => {
                     </Box>
                 )}
 
-                {/* Step 4: Thông tin hoàn tiền */}
-                {currentStep === 3 && (
+                {/* Step 1 (MỚI): Chọn sản phẩm muốn trả (trước đây là Step 2) */}
+                {currentStep === 1 && (
+                    <Box>
+                        <Typography variant="h6" component="p" className="font-semibold text-gray-800 mb-3">4. Chọn sản phẩm muốn trả:</Typography>
+
+                        {/* Checkbox "Chọn tất cả" */}
+                        {orderData?.products && orderData.products.length > 0 && (
+                            <Box mb={2} display="flex" alignItems="center" className="bg-orange-50 p-3 rounded-lg border border-orange-200">
+                                <Checkbox
+                                    checked={selectAll}
+                                    onChange={handleSelectAllChange}
+                                    size="medium"
+                                    sx={{ p: 0, mr: 1, '& .MuiSvgIcon-root': { color: '#f97316' } }}
+                                />
+                                <Typography variant="body1" fontWeight="bold" className="text-orange-700">
+                                    Chọn tất cả ({orderData.products.length} sản phẩm)
+                                </Typography>
+                            </Box>
+                        )}
+
+                        {orderData?.products && orderData.products.length > 0 ? (
+                            orderData.products.map(product => {
+                                const isChecked = selectedReturnItems[product.skuId] === product.quantity;
+
+                                const handleWrapperClick = () => {
+                                    handleItemCheckboxChange(product.skuId, !isChecked);
+                                };
+
+                                return (
+                                    <Box
+                                        key={product.skuId}
+                                        onClick={handleWrapperClick}
+                                        display="flex"
+                                        alignItems="center"
+                                        mb={2}
+                                        p={1.5}
+                                        border={1}
+                                        borderColor="grey.300"
+                                        borderRadius={1}
+                                        bgcolor="white"
+                                        sx={{ cursor: 'pointer' }}
+                                    >
+                                        <Checkbox
+                                            checked={isChecked}
+                                            onClick={(e) => e.stopPropagation()} // Ngăn click bubble
+                                            onChange={(e) => handleItemCheckboxChange(product.skuId, e.target.checked)}
+                                            size="medium"
+                                            sx={{ p: 0, mr: 1, '& .MuiSvgIcon-root': { color: '#f97316' } }}
+                                        />
+                                        <img
+                                            src={product.imageUrl}
+                                            alt={product.name}
+                                            className="w-16 h-16 object-cover rounded-sm border border-gray-200 mr-3 flex-shrink-0"
+                                        />
+                                        <Box flexGrow={1}>
+                                            <Typography variant="body2" fontWeight="medium" sx={{ mb: 0.5 }}>{product.name}</Typography>
+                                            {product.variation && (
+                                                <Typography variant="caption" color="text.secondary">
+                                                    Phân loại: {product.variation}
+                                                </Typography>
+                                            )}
+                                            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                                                x{product.quantity}
+                                            </Typography>
+                                        </Box>
+                                        <Typography variant="body2" color="text.secondary" sx={{ mr: 2 }}>
+                                            {formatCurrencyVND(product.price * product.quantity)}
+                                        </Typography>
+                                    </Box>
+                                );
+                            })
+                        ) : (
+                            <Typography variant="body2" color="text.secondary">Không có sản phẩm nào trong đơn hàng này.</Typography>
+                        )}
+                    </Box>
+                )}
+
+                {/* Step 2 (MỚI): Thông tin hoàn tiền (trước đây là Step 4) */}
+                {currentStep === 2 && (
                     <Box sx={{ p: 2, border: 1, borderColor: 'grey.300', borderRadius: 1, bgcolor: 'white' }}>
                         <Typography variant="h6" component="p" className="font-semibold text-gray-800 mb-3">Thông tin hoàn tiền</Typography>
                         
@@ -560,15 +564,15 @@ const totalRefundAmount = useMemo(() => {
                                 fullWidth
                                 value={refundEmail}
                                 onChange={(e) => setRefundEmail(e.target.value)}
-                                InputProps={{ readOnly: true }} // Email is read-only as per image
+                                InputProps={{ readOnly: true }}
                                 sx={{ bgcolor: 'grey.100' }}
                             />
                         </Box>
                     </Box>
                 )}
 
-                {/* Step 5: Xác nhận */}
-                {currentStep === 4 && (
+                {/* Step 3 (MỚI): Xác nhận (trước đây là Step 5) */}
+                {currentStep === 3 && (
                     <Box className="flex flex-col items-center p-4">
                         <Typography variant="h6" component="p" className="font-semibold text-gray-800 mb-4">Xác nhận thông tin yêu cầu trả hàng:</Typography>
                         <Box className="w-full text-left space-y-3">
@@ -613,6 +617,7 @@ const totalRefundAmount = useMemo(() => {
                 )}
             </Box>
 
+            {/* Điều hướng Buttons */}
             <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
                 <Button
                     color="inherit"
