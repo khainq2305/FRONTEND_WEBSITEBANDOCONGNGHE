@@ -42,5 +42,15 @@ export const productService = {
     if (!ids.length) throw new Error('Thiếu danh sách ID sản phẩm để so sánh');
     const query = ids.join(',');
     return get(`/admin/product-compare?ids=${query}`);
-  }
+  },
+searchForCompare: ({ keyword, categoryId }) => {
+    console.log("🛰️ Gửi request với categoryId:", categoryId); // ✅ debug
+
+  const params = { keyword };
+if (categoryId !== undefined && categoryId !== null) {
+  params.categoryId = categoryId;
+}
+  return get('/admin/search', { params }); // ✅ PHẢI CÓ { params }
+}
+
 };

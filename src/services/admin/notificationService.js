@@ -1,6 +1,7 @@
 import API from '../common/api';
 import { get, post, put, del } from '../common/crud';
 import { API_ENDPOINT } from '../../config/apiEndpoints';
+import axios from 'axios'; // ✅ Import axios nếu dùng trực tiếp
 
 const base = API_ENDPOINT.admin.notification.base;
 //
@@ -32,5 +33,8 @@ export const notificationService = {
 
   delete: (id) => del(`${base}${API_ENDPOINT.admin.notification.delete.replace(':id', id)}`),
 
-  deleteMany: (ids) => post(`${base}${API_ENDPOINT.admin.notification.deleteMany}`, { ids })
+  deleteMany: (ids) => post(`${base}${API_ENDPOINT.admin.notification.deleteMany}`, { ids }),
+// Đúng theo cách dùng instance API của bạn
+getByRole: () => API.get('/admin/notifications/by-role'),
+
 };

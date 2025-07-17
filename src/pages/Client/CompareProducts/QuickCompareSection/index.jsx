@@ -1,4 +1,3 @@
-// src/pages/Client/CompareProducts/QuickCompareSection/index.jsx
 import React from 'react';
 
 const ChevronDownIcon = () => (
@@ -7,13 +6,14 @@ const ChevronDownIcon = () => (
   </svg>
 );
 
-const QuickCompareSection = ({ products, specs = [], sidebarWidthClass, productColumnMinWidthClass }) => {
+const QuickCompareSection = ({
+  products,
+  specs = [],
+  sidebarWidthClass,
+  productColumnMinWidthClass,
+  showOnlyDifferences // ✅ Dù chưa dùng vẫn giữ nếu sau này cần lọc
+}) => {
   const CELL_PADDING = 'py-2 px-2.5';
-
-  const quickSpecs = [...specs]
-    .filter(spec => typeof spec.sortOrder === 'number')
-    .sort((a, b) => a.sortOrder - b.sortOrder)
-    .slice(0, 5);
 
   const columnsToRender = [...products];
   while (columnsToRender.length < 3) {
@@ -22,6 +22,7 @@ const QuickCompareSection = ({ products, specs = [], sidebarWidthClass, productC
 
   return (
     <div className="mb-2">
+      {/* Header: So sánh nhanh */}
       <div className={`flex items-center p-3 ${sidebarWidthClass}`}>
         <ChevronDownIcon />
         <h2 className="text-[13px] font-semibold text-gray-800 ml-1.5 uppercase">
@@ -29,27 +30,29 @@ const QuickCompareSection = ({ products, specs = [], sidebarWidthClass, productC
         </h2>
       </div>
 
-      {quickSpecs.map((spec) => (
-        <div key={spec.specKey} className="flex border-t border-gray-300 bg-white">
-          <div className={`${sidebarWidthClass} flex-shrink-0 ${CELL_PADDING} text-left font-medium whitespace-nowrap border-r border-gray-300 flex items-center`}>
-            {spec.specKey}
-          </div>
-          <div className="flex-grow grid grid-cols-1 sm:grid-cols-3">
-            {columnsToRender.map((product, idx) => {
-              const value = spec?.values?.[String(product?.id)];
-              console.log('🧵 QuickSpec:', spec.specKey, '| Product:', product?.id, '| Value:', value);
-              return (
-                <div
-                  key={`${spec.specKey}-${product?.id || 'empty'}`}
-                  className={`${CELL_PADDING} text-center ${idx < columnsToRender.length - 1 ? 'sm:border-r border-gray-300' : ''} bg-white min-h-[38px] flex flex-col justify-center whitespace-normal break-words`}
-                >
-                  {value || '-'}
-                </div>
-              );
-            })}
-          </div>
+      {/* Hàng mô tả so sánh nhanh */}
+      <div className="flex border-t border-gray-300 bg-white">
+        {/* Cột tiêu đề cố định bên trái */}
+        <div className={`${sidebarWidthClass} flex-shrink-0 ${CELL_PADDING} text-left font-medium whitespace-nowrap border-r border-gray-300 flex items-start`}>
+          So sánh nhanh
         </div>
-      ))}
+
+        {/* Các cột mô tả của từng sản phẩm */}
+        <div className="flex-grow grid grid-cols-1 sm:grid-cols-3">
+          {columnsToRender.map((product, idx) => (
+            <div
+              key={`summary-${product?.id || 'empty'}`}
+              className={`${CELL_PADDING} text-left ${idx < columnsToRender.length - 1 ? 'sm:border-r border-gray-300' : ''} bg-white whitespace-normal break-words`}
+            >
+              {(product?.summary || '').split('\n').map((line, i) => (
+                <div key={i} className="text-[11.5px] leading-snug text-gray-700">
+                  • {line}
+                </div>
+              )) || <span className="text-gray-400">Trống</span>}
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

@@ -20,6 +20,31 @@ export default function ProductCard({
   badge,
   skus
 }) {
+    // so sanh
+const handleCompare = (productId, name, thumbnail) => {
+  let compareList = JSON.parse(localStorage.getItem("compareIds") || "[]");
+
+  // Nếu sản phẩm đã tồn tại → xoá khỏi danh sách và hiện thanh lại.
+  const existingIndex = compareList.findIndex(item => item.id === productId);
+  if (existingIndex !== -1) {
+    compareList.splice(existingIndex, 1);
+    localStorage.setItem("compareIds", JSON.stringify(compareList));
+    window.dispatchEvent(new Event("storage"));
+    return;
+  }
+
+  // Nếu quá 3 sản phẩm thì cảnh báo
+  if (compareList.length >= 3) {
+    alert("Chỉ được so sánh tối đa 3 sản phẩm");
+    return;
+  }
+
+  // Thêm mới
+  compareList.push({ id: productId, name, thumbnail });
+  localStorage.setItem("compareIds", JSON.stringify(compareList));
+  window.dispatchEvent(new Event("storage"));
+};
+
   const calculateSavings = () => {
     if (!isNaN(priceNum) && !isNaN(originalPriceNum) && originalPriceNum > priceNum) {
       const diff = originalPriceNum - priceNum;
@@ -131,7 +156,7 @@ export default function ProductCard({
         </div>
 
         <div className="product-card-actions flex items-center justify-between min-h-[26px] pt-1">
-          <button
+          {/* <button
             onClick={(e) => {
               e.stopPropagation();
               if (onCompare) onCompare(id);
@@ -141,6 +166,17 @@ export default function ProductCard({
               isProductTotallyOutOfStock ? 'opacity-50 cursor-not-allowed' : ''
             }`}
             disabled={isProductTotallyOutOfStock}
+          >
+            <CompareIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="leading-none whitespace-nowrap">So sánh</span>
+          </button> */}
+           <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleCompare(id, name, image); // ✅ truyền đủ name & image
+            }}
+            aria-label="So sánh sản phẩm"
+            className="flex items-center gap-1 text-[10px] sm:text-xs text-gray-600 hover:text-blue-700 transition-colors focus:outline-none p-1 rounded-md hover:bg-gray-100"
           >
             <CompareIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span className="leading-none whitespace-nowrap">So sánh</span>

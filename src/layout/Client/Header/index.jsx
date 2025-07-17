@@ -15,6 +15,7 @@ import { notificationService } from '../../../services/client/notificationServic
 import Loader from '../../../components/common/Loader';
 import { useSystemSetting } from '@/contexts/SystemSettingContext';
 import FeatureBar from './FeatureBar';
+import socket from '../../../socket';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -57,6 +58,15 @@ const Header = () => {
 
     fetchNotifications();
   }, []);
+useEffect(() => {
+  socket.on('new-client-notification', (newNoti) => {
+    setNotifications((prev) => [newNoti, ...prev]);
+  });
+
+  return () => {
+    socket.off('new-client-notification');
+  };
+}, []);
 
   const fetchCartItemCount = async () => {
     try {

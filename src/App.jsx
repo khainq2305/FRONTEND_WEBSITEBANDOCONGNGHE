@@ -13,6 +13,8 @@ import ScrollTop from './components/Admin/ScrollTop';
 import './assets/Client/css/global.css';
 import './index.css';
 
+import { subscribeUser } from './utils/push'; // thong bao day
+
 const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 function DynamicTitleUpdater() {
@@ -30,6 +32,11 @@ export default function App() {
   useEffect(() => {
     fetchUserInfo();
   }, []);
+
+  useEffect(() => {
+    subscribeUser(); // Gọi push notification desktop
+  }, []);
+
   useEffect(() => {
     const fetchSystemSettings = async () => {
       try {
