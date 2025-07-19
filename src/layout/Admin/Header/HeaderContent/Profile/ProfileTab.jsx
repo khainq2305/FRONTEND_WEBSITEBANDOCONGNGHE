@@ -12,10 +12,12 @@ import ProfileOutlined from '@ant-design/icons/ProfileOutlined';
 import LogoutOutlined from '@ant-design/icons/LogoutOutlined';
 import UserOutlined from '@ant-design/icons/UserOutlined';
 import WalletOutlined from '@ant-design/icons/WalletOutlined';
+import useAuthStore from '@/stores/AuthStore';
 
 // ==============================|| HEADER PROFILE - PROFILE TAB ||============================== //
 
 export default function ProfileTab() {
+  const { logout } = useAuthStore()
   return (
     <List component="nav" sx={{ p: 0, '& .MuiListItemIcon-root': { minWidth: 32 } }}>
       <ListItemButton>
@@ -47,7 +49,7 @@ export default function ProfileTab() {
         <ListItemIcon>
           <LogoutOutlined />
         </ListItemIcon>
-        <ListItemText primary="Logout" />
+        <ListItemText primary="Logout" onClick={logout}/>
       </ListItemButton>
     </List>
   );

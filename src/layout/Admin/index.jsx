@@ -1,27 +1,31 @@
 import { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-
+import { useNavigate } from 'react-router-dom';
+import { injectNavigate } from '@/services/common/api';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import Toolbar from '@mui/material/Toolbar';
 import Box from '@mui/material/Box';
-
-// project imports
+import ThemeCustomization from '../../themes';
 import Drawer from './Drawer';
 import Header from './Header';
 import Footer from './Footer';
 import Loader from 'components/Admin/Loader';
 import Breadcrumbs from 'components/Admin/@extended/Breadcrumbs';
 
+
 import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 
-// ==============================|| MAIN LAYOUT ||============================== //
 
 export default function DashboardLayout() {
   const { pathname } = useLocation();
   const { menuMasterLoading } = useGetMenuMaster();
   const downXL = useMediaQuery((theme) => theme.breakpoints.down('xl'));
+  const navigate = useNavigate();
 
-  // set media wise responsive drawer
+  useEffect(() => {
+    injectNavigate(navigate);
+  }, [navigate]);
+
   useEffect(() => {
     handlerDrawerOpen(!downXL);
   }, [downXL]);
@@ -29,26 +33,29 @@ export default function DashboardLayout() {
   if (menuMasterLoading) return <Loader />;
 
   return (
-    <Box sx={{ display: 'flex', width: '100%' }}>
-      <Header />
-      <Drawer />
+    <ThemeCustomization>
+      <Box sx={{ display: 'flex', width: '100%' }}>
+        <Header />
+        <Drawer />
 
-      <Box component="main" sx={{ width: 'calc(100% - 260px)', flexGrow: 1, p: { xs: 2, sm: 3 } }}>
-        <Toolbar sx={{ mt: 'inherit' }} />
-        <Box
-          sx={{
-            ...{ px: { xs: 0, sm: 2 } },
-            position: 'relative',
-            minHeight: 'calc(100vh - 110px)',
-            display: 'flex',
-            flexDirection: 'column'
-          }}
-        >
-          {pathname !== '/apps/profiles/account/my-account' && <Breadcrumbs />}
-          <Outlet />
-          <Footer />
+        <Box component="main" sx={{ width: 'calc(100% - 260px)', flexGrow: 1, p: { xs: 2, sm: 3 } }}>
+          <Toolbar sx={{ mt: 'inherit' }} />
+          <Box
+            sx={{
+              px: { xs: 0, sm: 2 },
+              position: 'relative',
+              minHeight: 'calc(100vh - 110px)',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+          >
+           
+            {pathname !== '/apps/profiles/account/my-account' && <Breadcrumbs />}
+            <Outlet />
+            <Footer />
+          </Box>
         </Box>
       </Box>
-    </Box>
+    </ThemeCustomization>
   );
 }

@@ -1,0 +1,104 @@
+
+.viewed-products-section.group {
+  position: relative;
+}
+
+.viewed-products-slick-slider.slick-slider {
+  position: relative;
+  
+}
+
+
+.viewed-products-slick-slider .slick-slide {
+  box-sizing: border-box;
+}
+
+
+.viewed-products-slick-slider .slick-slide > div {
+  display: flex;
+  height: 100%; 
+}
+
+.viewed-products-slick-slider .slick-arrow { 
+  position: absolute;
+  top: 50%; 
+  transform: translateY(-50%);
+  z-index: 20; 
+  cursor: pointer;
+  border-radius: 50%;
+  width: 40px; 
+  height: 40px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.75); 
+  border: 1px solid #e5e7eb; 
+  color: #374151; 
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  transition: all 0.2s ease-in-out;
+  
+ 
+  opacity: 0; 
+  pointer-events: none;
+  transform: translateY(-50%) scale(0.9); 
+}
+
+
+.viewed-products-section.group:hover .viewed-products-slick-slider .slick-arrow:not(.slick-disabled) {
+  opacity: 1; 
+  pointer-events: auto;
+  transform: translateY(-50%) scale(1);
+}
+
+
+
+.viewed-products-slick-slider .slick-arrow.slick-disabled {
+  opacity: 0 !important; 
+  pointer-events: none !important;
+  cursor: default;
+}
+
+.viewed-products-section.group:hover .viewed-products-slick-slider .slick-arrow.slick-disabled {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+
+.viewed-products-slick-slider .slick-arrow:hover:not(.slick-disabled) {
+  background-color: white; 
+  color: #111827;
+  border-color: #d1d5db; 
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15); 
+}
+
+
+.viewed-products-slick-slider .slick-prev {
+  left: 8px; 
+ 
+}
+.viewed-products-slick-slider .slick-next {
+  right: 8px;
+  
+}
+
+
+.viewed-products-slick-slider .slick-arrow:before {
+  display: none !important; 
+}
+
+
+.slick-arrow-icon { 
+  width: 20px; 
+  height: 20px;
+}
+
+
+.viewed-products-slick-slider .product-card-item p.line-clamp-2 { 
+  display: -webkit-box;
+  -webkit-line-clamp: 2; 
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+}
+

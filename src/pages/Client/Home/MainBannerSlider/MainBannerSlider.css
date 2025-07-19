@@ -1,0 +1,119 @@
+/* MainBannerSlider.css */
+
+.main-banner-slider-wrapper {
+  /* max-width: 1280px; */ /* Hoặc max-w-[1200px] nếu bạn muốn giới hạn chiều rộng */
+  /* margin: 0 auto; */ /* Để căn giữa nếu có max-width */
+  /* overflow: hidden; */ /* QUAN TRỌNG: Nếu nút mũi tên nằm TRONG wrapper này và bạn không muốn chúng bị cắt
+                           khi dịch chuyển ra ngoài một chút thì không nên đặt overflow:hidden ở đây.
+                           Tuy nhiên, nếu wrapper này là full-width và bạn muốn nút nằm trong viewport,
+                           thì overflow:hidden ở một container cha hơn nữa (ví dụ body) là cần thiết.
+                           Thông thường, .slick-list đã có overflow:hidden rồi.
+                        */
+}
+
+.main-banner-slick-slider.slick-slider {
+  /* Không cần margin âm ở đây vì mỗi slide chiếm 100% và không có padding giữa các slide banner */
+}
+
+.main-banner-slick-slider .slick-list {
+  border-radius: 8px; /* Bo góc cho cả slider nếu muốn */
+  overflow: hidden; /* Đảm bảo nội dung không tràn ra khỏi list */
+}
+
+.banner-slide-item img {
+  /* Nếu bạn muốn tất cả banner có cùng chiều cao, có thể đặt ở đây */
+  /* height: 395px; */ /* Ví dụ, dựa trên tỷ lệ ảnh 984x395 */
+  /* object-fit: cover; */ /* Đảm bảo ảnh lấp đầy và giữ tỷ lệ, có thể bị cắt */
+  display: block; /* Loại bỏ khoảng trắng thừa dưới ảnh */
+}
+
+/* --- Nút điều hướng cho Main Banner --- */
+.main-banner-slick-slider .slick-arrow.main-banner-arrow { 
+  position: absolute;
+  top: 50%; 
+  transform: translateY(-50%);
+  z-index: 20; /* Đảm bảo nút nổi lên trên */
+  cursor: pointer;
+  border-radius: 50%;
+  width: 44px; /* Kích thước nút như trong ảnh ví dụ của bạn */
+  height: 44px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.7); /* Nền mờ */
+  color: #333; /* Màu icon */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  transition: all 0.2s ease-in-out;
+  
+  /* Ẩn nút mặc định, chỉ hiện khi hover vào wrapper */
+  opacity: 0;
+  pointer-events: none;
+  /* transition cho opacity và transform (nếu có hiệu ứng trượt vào) */
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.main-banner-slider-wrapper.group:hover .main-banner-slick-slider .slick-arrow {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.main-banner-slick-slider .slick-arrow.main-banner-arrow.slick-disabled {
+  /* Giữ lại style ẩn khi disabled, ngay cả khi group hover */
+  opacity: 0 !important; 
+  pointer-events: none !important;
+  cursor: default;
+}
+/* Ghi đè để đảm bảo khi group hover mà nút disabled thì vẫn ẩn */
+.main-banner-slider-wrapper.group:hover .main-banner-slick-slider .slick-arrow.main-banner-arrow.slick-disabled {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+
+.main-banner-slick-slider .slick-arrow.main-banner-arrow:hover:not(.slick-disabled) {
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #000;
+  box-shadow: 0 3px 7px rgba(0,0,0,0.2);
+}
+
+.main-banner-slick-slider .slick-arrow.main-banner-arrow-prev {
+  left: 15px; /* Khoảng cách từ mép trái */
+  /* transform: translateY(-50%) translateX(-100%); */ /* Hiệu ứng trượt vào từ trái khi hover */
+}
+.main-banner-slider-wrapper.group:hover .main-banner-slick-slider .slick-arrow.main-banner-arrow-prev {
+  /* transform: translateY(-50%) translateX(0); */
+}
+
+
+.main-banner-slick-slider .slick-arrow.main-banner-arrow-next {
+  right: 15px; /* Khoảng cách từ mép phải */
+  /* transform: translateY(-50%) translateX(100%); */ /* Hiệu ứng trượt vào từ phải khi hover */
+}
+.main-banner-slider-wrapper.group:hover .main-banner-slick-slider .slick-arrow.main-banner-arrow-next {
+  /* transform: translateY(-50%) translateX(0); */
+}
+
+
+.main-banner-slick-slider .slick-arrow.main-banner-arrow:before {
+  display: none !important; /* Bỏ icon font mặc định */
+}
+
+.main-banner-arrow-icon { 
+  width: 24px; /* Kích thước icon */
+  height: 24px;
+}
+
+/* --- Dots điều hướng cho Main Banner --- */
+.main-banner-slick-slider .slick-dots {
+  bottom: 15px; /* Khoảng cách từ đáy slider */
+}
+.main-banner-slick-slider .slick-dots li button:before {
+  font-size: 10px; /* Kích thước của dot */
+  color: white; /* Màu của dot không active (có thể cần nền tối hơn để thấy rõ) */
+  opacity: 0.5;
+  text-shadow: 0 0 3px rgba(0,0,0,0.5); /* Thêm shadow cho dễ nhìn trên nhiều nền banner */
+}
+.main-banner-slick-slider .slick-dots li.slick-active button:before {
+  color: white; /* Màu của dot active */
+  opacity: 1;
+}
