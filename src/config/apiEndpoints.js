@@ -205,7 +205,15 @@ export const API_ENDPOINT = {
       create: '/create',
       reply: '/reply',
       getByProductId: (productId) => `/product/${productId}`
-    }
+    },
+    spin: {
+      base: `${API_BASE_URL}/spin`,
+      rewards: '/rewards',
+      status: '/status',
+      roll: '/roll',
+      history: '/history',
+      claimTask: '/task'
+    },
   },
   admin: {
     permissions: {
@@ -494,6 +502,34 @@ export const API_ENDPOINT = {
       reply: (questionId) => `/reply/${questionId}`,
       toggleVisibility: (answerId) => `/answer/${answerId}/toggle`,
       toggleQuestionVisibility: (questionId) => `/${questionId}/toggle-visibility`
+    },
+    spinReward: {
+      base: `${API_BASE_URL}/admin/spin-rewards`,
+      list: '/list',
+      create: '/create',
+      update: (id) => `/${id}`,
+      delete: (id) => `/${id}`,
+      getById: (id) => get(`${base}/${id}`),
+    },
+    spinHistory: {
+      base: `${API_BASE_URL}/admin/spin-history`,
+      list: '/list',
+      getById: (id) => `/${id}`
+    },
+    userTask: {
+      base: `${API_BASE_URL}/admin/user-tasks`,
+      list: '/list',
+      create: '/create',
+      delete: (id) => `/${id}`
+    },
+    taskDefinition: {
+      base: `${API_BASE_URL}/admin/task-definitions`,
+      list: '/list',
+      create: '/create',
+      update: (id) => `/${id}`,
+      delete: (id) => `/${id}`,
+      getById: (id) => `/${id}`,
+      createDefaultTasks: '/create-default-tasks'
     }
   }
 };

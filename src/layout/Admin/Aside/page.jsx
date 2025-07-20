@@ -24,7 +24,10 @@ import {
   HistoryOutlined,
   SafetyCertificateOutlined,
   ToolOutlined,
-  SettingOutlined
+  SettingOutlined,
+  GiftOutlined,
+  HistoryOutlined,
+  CheckSquareOutlined
 } from '@ant-design/icons';
 
 const icons = {
@@ -52,7 +55,10 @@ const icons = {
   HistoryOutlined,
   SafetyCertificateOutlined,
   ToolOutlined,
-  SettingOutlined
+  SettingOutlined,
+  GiftOutlined,
+  HistoryOutlined,
+  CheckSquareOutlined
 };
 
 const pages = [
@@ -107,7 +113,7 @@ const pages = [
         action: 'read',
         subject: 'ProductCategory'
       },
-       {
+      {
         id: 'sku-list',
         title: 'Sản phẩm tồn kho',
         type: 'item',
@@ -197,6 +203,7 @@ const pages = [
         type: 'item',
         url: '/admin/banners',
         icon: icons.FileTextOutlined,
+        icon: TableOutlined,
         breadcrumbs: false,
         action: 'read',
         subject: 'Banner'
@@ -247,16 +254,16 @@ const pages = [
     action: 'read',
     subject: 'Order'
   },
-{
-  id: 'return-requests',
-  title: 'Yêu cầu đổi/trả',
-  type: 'item',
-  url: '/admin/return-requests',
-  icon: icons.HistoryOutlined,
-  breadcrumbs: false,
-  action: 'read',
-  subject: 'ReturnRequest'
-},
+  {
+    id: 'return-requests',
+    title: 'Yêu cầu đổi/trả',
+    type: 'item',
+    url: '/admin/return-requests',
+    icon: icons.HistoryOutlined,
+    breadcrumbs: false,
+    action: 'read',
+    subject: 'ReturnRequest'
+  },
 
   // ===== Posts =====
   {
@@ -455,27 +462,56 @@ const pages = [
     subject: 'Role'
   },
   // ===== NEW – Payment & Shipping =====
-{
-  id: 'payment-methods',
-  title: 'Phương thức thanh toán',
-  type: 'item',
-  url: '/admin/payment-methods',
-  icon: icons.DollarOutlined,
-  breadcrumbs: false,
-  action: 'read',
-  subject: 'PaymentMethod'
-},
-{
-  id: 'shipping-providers',
-  title: 'Hãng vận chuyển',
-  type: 'item',
-  url: '/admin/shipping-providers',
-  icon: icons.CarOutlined,
-  breadcrumbs: false,
-  action: 'read',
-  subject: 'ShippingProvider'
-},
-
+  {
+    id: 'payment-methods',
+    title: 'Phương thức thanh toán',
+    type: 'item',
+    url: '/admin/payment-methods',
+    icon: icons.DollarOutlined,
+    breadcrumbs: false,
+    action: 'read',
+    subject: 'PaymentMethod'
+  },
+  {
+    id: 'shipping-providers',
+    title: 'Hãng vận chuyển',
+    type: 'item',
+    url: '/admin/shipping-providers',
+    icon: icons.CarOutlined,
+    breadcrumbs: false,
+    action: 'read',
+    subject: 'ShippingProvider'
+  },
+  {
+    id: 'mini-game-section',
+    title: 'Mini Game',
+    type: 'collapse',
+    icon: icons.GiftOutlined, // Sử dụng icons.GiftOutlined từ đối tượng icons
+    action: 'read',
+    subject: 'SpinReward',
+    children: [
+      {
+        id: 'spin-reward-list',
+        title: 'Vòng quay may mắn',
+        type: 'item',
+        url: '/admin/spin-rewards',
+        icon: icons.TableOutlined,
+        breadcrumbs: false,
+        action: 'read',
+        subject: 'SpinReward'
+      },
+      {
+        id: 'spin-history-list',
+        title: 'Lịch sử quay',
+        type: 'item',
+        url: '/admin/spin-history',
+        icon: icons.HistoryOutlined,
+        breadcrumbs: false,
+        action: 'read',
+        subject: 'SpinHistory'
+      }
+    ]
+  }
 ];
 
 export default pages;

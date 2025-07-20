@@ -52,6 +52,11 @@ const NotificationCreatePage = Loadable(lazy(() => import('pages/Admin/Notificat
 const NotificationEditPage = Loadable(lazy(() => import('pages/Admin/Notification/NotificationEditPage')));
 const QuestionDetailPage = Loadable(lazy(() => import('pages/Admin/ProductQuestion/QuestionDetailPage/index.jsx')));
 const SystemSettings = Loadable(lazy(() => import('pages/Admin/SystemSettings/index')));
+const SpinRewardAdminPage = Loadable(lazy(() => import('pages/Admin/MiniGame/SpinRewards')));
+const SpinRewardFormPage = Loadable(lazy(() => import('pages/Admin/MiniGame/SpinRewards/SpinRewardFormPage')));
+const SpinHistoryAdminPage = Loadable(lazy(() => import('pages/Admin/MiniGame/SpinHistory')));
+
+
 import RequireAuth from '@/components/Admin/RequireAuth';
 const ReturnRefundDetail = Loadable(lazy(() => import('pages/Admin/Returns/ReturnRefundDetail'))); // <-- Thêm dòng này
 
@@ -280,7 +285,17 @@ const AdminRoutes = {
     },
      {
       path: 'skulist',
-      element: <Skulist />
+      element: <Skulist />,
+      path: 'spin-rewards',
+      children: [
+        { index: true, element: <SpinRewardAdminPage /> },
+        { path: 'create', element: <SpinRewardFormPage /> },
+        { path: 'edit/:id', element: <SpinRewardFormPage /> }
+      ]
+    },
+    {
+      path: 'spin-history',
+      element: <SpinHistoryAdminPage />
     },
     {
       path: '*',

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import moment from 'moment';
 import { useShallow } from 'zustand/react/shallow';
 import io from 'socket.io-client';
+import LuckyWheel from '@/components/Client/LuckyWheel';
 
 import SliderBanner from './SliderBanner';
 import ProductCategorySection from './ProductCategorySection';
@@ -299,6 +300,8 @@ useEffect(() => {
             <div className="hidden xl:flex justify-start items-start pr-5">
                 <StickyBannerItem banner={rightBanner} />
             </div>
+              <LuckyWheel />
+
         </div>
     );
 };
