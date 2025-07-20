@@ -12,7 +12,7 @@ import { notificationService } from '../../../services/client/notificationServic
 import Loader from '../../../components/common/Loader';
 import { useSystemSetting } from '@/contexts/SystemSettingContext';
 import FeatureBar from './FeatureBar';
-import useAuthStore from '../../../stores/AuthStore';
+import socket from '../../../socket'; // realtime
 
 const Header = () => {
   const navigate = useNavigate();

@@ -32,5 +32,26 @@ export const notificationService = {
 
   delete: (id) => del(`${base}${API_ENDPOINT.admin.notification.delete.replace(':id', id)}`),
 
-  deleteMany: (ids) => post(`${base}${API_ENDPOINT.admin.notification.deleteMany}`, { ids })
+  deleteMany: (ids) => post(`${base}${API_ENDPOINT.admin.notification.deleteMany}`, { ids }),
+  getByRole: () => API.get('/admin/notifications/by-role'),
+ markAsRead: async (id) => {
+    try {
+      const res = await API.patch(`/admin/notification-users/${id}/read`);
+      return res;
+    } catch (error) {
+      console.error("Lỗi khi gọi markAsRead API:", error);
+      throw error;
+    }
+  },
+
+  markAllAsRead: async () => {
+    try {
+      const res = await API.patch('/admin/notification-users/read-all');
+      return res;
+    } catch (error) {
+      console.error("Lỗi khi gọi markAllAsRead API:", error);
+      throw error;
+    }
+  }
+
 };
