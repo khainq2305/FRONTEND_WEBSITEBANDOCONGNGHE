@@ -58,18 +58,40 @@ export default function Notification() {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  useEffect(() => {
-  // Lắng nghe khi backend gửi event
-  socket.on('new-admin-notification', (newNoti) => {
-    setNotifications((prev) => [newNoti, ...prev]);
-    setUnreadCount((prev) => prev + 1);
-  });
-
-  return () => {
-    // Dọn sự kiện khi unmount component
-    socket.off('new-admin-notification');
+  // --- Hàm đánh dấu 1 thông báo đã đọc ---
+  const handleMarkAsRead = async (id) => {
+    try {
+      await notificationService.markAsRead(id);
+      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
+      setUnreadCount((prev) => (prev > 0 ? prev - 1 : 0));
+    } catch (err) {
+      console.error('Lỗi đánh dấu đã đọc:', err);
+    }
   };
-}, []);
+
+  // --- Hàm đánh dấu tất cả đã đọc ---
+  const handleMarkAllAsRead = async () => {
+    try {
+      await notificationService.markAllAsRead();
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      setUnreadCount(0);
+    } catch (err) {
+      console.error('Lỗi đánh dấu tất cả đã đọc:', err);
+    }
+  };
+
+  useEffect(() => {
+    // Lắng nghe khi backend gửi event
+    socket.on('new-admin-notification', (newNoti) => {
+      setNotifications((prev) => [newNoti, ...prev]);
+      setUnreadCount((prev) => prev + 1);
+    });
+
+    return () => {
+      // Dọn sự kiện khi unmount component
+      socket.off('new-admin-notification');
+    };
+  }, []);
 
   const handleToggle = () => setOpen((prev) => !prev);
   const handleClose = (event) => {
@@ -104,17 +126,17 @@ export default function Notification() {
             bgcolor: isSystem
               ? 'warning.lighter'
               : item.type === 'order'
-              ? 'primary.lighter'
-              : item.type === 'promotion'
-              ? 'success.lighter'
-              : 'grey.200',
+                ? 'primary.lighter'
+                : item.type === 'promotion'
+                  ? 'success.lighter'
+                  : 'grey.200',
             color: isSystem
               ? 'warning.main'
               : item.type === 'order'
-              ? 'primary.main'
-              : item.type === 'promotion'
-              ? 'success.main'
-              : 'grey.800'
+                ? 'primary.main'
+                : item.type === 'promotion'
+                  ? 'success.main'
+                  : 'grey.800'
           }}
         >
           {isSystem ? (
@@ -138,11 +160,7 @@ export default function Notification() {
           <Typography variant="h6" fontStyle="italic" sx={{ mb: 0.25 }}>
             {title}
           </Typography>
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            dangerouslySetInnerHTML={{ __html: item.message }}
-          />
+          <Typography variant="body2" color="text.secondary" dangerouslySetInnerHTML={{ __html: item.message }} />
         </>
       )
     };
@@ -183,12 +201,7 @@ export default function Notification() {
         }}
       >
         {({ TransitionProps }) => (
-          <Transitions
-            type="grow"
-            position={downMD ? 'top' : 'top-right'}
-            in={open}
-            {...TransitionProps}
-          >
+          <Transitions type="grow" position={downMD ? 'top' : 'top-right'} in={open} {...TransitionProps}>
             <Paper
               sx={(theme) => ({
                 boxShadow: theme.customShadows.z1,
@@ -209,7 +222,7 @@ export default function Notification() {
                         <IconButton
                           color="success"
                           size="small"
-                          onClick={() => setUnreadCount(0)}
+                          onClick={handleMarkAllAsRead} // Gọi hàm xử lý mới
                         >
                           <CheckCircleOutlined style={{ fontSize: '1.15rem' }} />
                         </IconButton>
@@ -218,35 +231,33 @@ export default function Notification() {
                   }
                 >
                   <List
-  component="nav"
-  sx={{
-    p: 0,
-    maxHeight: 505, // giới hạn chiều cao tối đa
-    overflowY: 'auto', // bật scroll dọc khi tràn
-    '& .MuiListItemButton-root': {
-      py: 0.5,
-      px: 2,
-      '&.Mui-selected': {
-        bgcolor: 'grey.50',
-        color: 'text.primary'
-      },
-      '& .MuiAvatar-root': avatarSX,
-      '& .MuiListItemSecondaryAction-root': {
-        ...actionSX,
-        position: 'relative'
-      }
-    }
-  }}
->
-
+                    component="nav"
+                    sx={{
+                      p: 0,
+                      maxHeight: 505,
+                      overflowY: 'auto',
+                      '& .MuiListItemButton-root': {
+                        py: 0.5,
+                        px: 2,
+                        '&.Mui-selected': {
+                          bgcolor: 'grey.50',
+                          color: 'text.primary'
+                        },
+                        '& .MuiAvatar-root': avatarSX,
+                        '& .MuiListItemSecondaryAction-root': {
+                          ...actionSX,
+                          position: 'relative'
+                        }
+                      }
+                    }}
+                  >
                     {notifications.length === 0 ? (
                       <ListItem>
                         <ListItemText primary="Không có thông báo nào" />
                       </ListItem>
                     ) : (
                       notifications.map((item) => {
-                        const { avatar, primaryText, secondaryText } =
-                          renderNotificationContent(item);
+                        const { avatar, primaryText, secondaryText } = renderNotificationContent(item);
 
                         return (
                           <ListItem
@@ -254,6 +265,7 @@ export default function Notification() {
                             component={ListItemButton}
                             divider
                             selected={!item.isRead}
+                            onClick={() => handleMarkAsRead(item.id)} // Gọi hàm đánh dấu đọc từng thông báo
                             secondaryAction={
                               <Typography variant="caption" noWrap>
                                 {dayjs(item.createdAt).fromNow()}
@@ -261,23 +273,26 @@ export default function Notification() {
                             }
                           >
                             <ListItemAvatar>{avatar}</ListItemAvatar>
-                            <ListItemText
-                              primary={primaryText}
-                              secondary={secondaryText}
-                            />
+                            <ListItemText primary={primaryText} secondary={secondaryText} />
+                            {/* Hiện chấm xanh khi chưa đọc */}
+                            {!item.isRead && (
+                              <Box
+                                sx={{
+                                  width: 12,
+                                  height: 12,
+                                  bgcolor: 'primary.main',
+                                  borderRadius: '50%',
+                                  position: 'absolute',
+                                  top: 12,
+                                  right: 12
+                                }}
+                                title="Chưa đọc"
+                              />
+                            )}
                           </ListItem>
                         );
                       })
                     )}
-                    {/* <ListItemButton sx={{ textAlign: 'center', py: `${12}px !important` }}>
-                      <ListItemText
-                        primary={
-                          <Typography variant="h6" color="primary">
-                            Xem tất cả
-                          </Typography>
-                        }
-                      />
-                    </ListItemButton> */}
                   </List>
                 </MainCard>
               </ClickAwayListener>
