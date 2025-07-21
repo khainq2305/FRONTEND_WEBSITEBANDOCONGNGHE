@@ -9,6 +9,9 @@ import { Coins } from 'lucide-react';
 import defaultShippingIcon from '../../../../assets/Client/images/image 12.png';
 const CartSummary = ({ hasSelectedItems, selectedItems, orderTotals, appliedCoupon, setAppliedCoupon, onCheckout }) => {
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
+const [usePoints, setUsePoints] = useState(false);
+const userPointBalance = 21; // TODO: fetch từ API nếu cần
+const exchangeRate = 10; // 1 điểm = 10đ, tùy bạn set
 
   const openPromoModal = () => {
     if (!hasSelectedItems) {
@@ -240,6 +243,24 @@ const handleCheckout = async () => {
             </button>
           )}
         </div>
+<div className="flex items-center justify-between px-3 py-2 border border-gray-200 rounded-md">
+  <div className="flex items-center gap-2 text-sm text-gray-700">
+    <Coins size={16} className="text-yellow-500" />
+    <span>Đổi {userPointBalance} điểm</span>
+    <span className="text-gray-400 text-xs">(~{formatCurrencyVND(userPointBalance * exchangeRate)})</span>
+  </div>
+  <label className="inline-flex items-center cursor-pointer">
+    <input
+      type="checkbox"
+      checked={usePoints}
+      onChange={() => setUsePoints(!usePoints)}
+      className="sr-only peer"
+    />
+    <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:bg-green-500 relative transition-colors">
+      <div className="absolute left-1 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4"></div>
+    </div>
+  </label>
+</div>
 
         <div className="text-sm text-gray-700 space-y-2">
           <h3 className="font-semibold text-base text-gray-800">Thông tin đơn hàng</h3>
