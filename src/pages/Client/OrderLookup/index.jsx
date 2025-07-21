@@ -9,35 +9,34 @@ const OrderLookup = () => {
   const [error, setError] = useState("");
 
   const handleLookup = async (phone, code) => {
-    try {
-      setError("");
-      const res = await orderService.lookupOrder(code, phone);
-      const order = res?.data;
+  try {
+    setError("");
+    const res = await orderService.lookupOrder(code, phone);
+    const order = res?.data;
 
-      const products = order.items.map(item => ({
-        name: item.Sku?.product?.name || "Sản phẩm",
-        quantity: item.quantity,
-        price: item.price
-      }));
-
-      setOrderData({
-        customer: order.shippingAddress?.fullName || "Khách hàng",
-        phone: order.shippingAddress?.phone || phone,
-        code: order.code,
-        status: order.status,
-        total: order.totalPrice || 0,
-        products
-      });
-    } catch (err) {
-      console.error(err);
-      if (err.response?.status === 404) {
-        setError("Không tìm thấy đơn hàng. Vui lòng kiểm tra lại.");
-      } else {
-        setError("Lỗi hệ thống. Vui lòng thử lại sau.");
-      }
-      setOrderData(null);
+    setOrderData({
+      customer: order.customer,
+      phone: order.phone,
+      code: order.code,
+       address: order.address, // ✅ THÊM DÒNG NÀY
+      status: order.status,
+      totalPrice: order.totalPrice || 0,
+      shippingProviderId: order.shippingProviderId,
+      paymentMethod: order.paymentMethod,
+      shippingFee: order.shippingFee,
+      products: order.products || []
+    });
+  } catch (err) {
+    console.error(err);
+    if (err.response?.status === 404) {
+      setError("Không tìm thấy đơn hàng. Vui lòng kiểm tra lại.");
+    } else {
+      setError("Lỗi hệ thống. Vui lòng thử lại sau.");
     }
-  };
+    setOrderData(null);
+  }
+};
+
 
   return (
     <div className="w-full min-h-screen px-2 bg-gray-100">

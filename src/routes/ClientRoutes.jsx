@@ -27,6 +27,8 @@ const NewsDetails = Loadable(lazy(() => import('pages/Client/BlogDetail')));
 
 const OrderLookup = Loadable(lazy(() => import('pages/Client/OrderLookup')));
 const ProductComparison = Loadable(lazy(() => import('pages/Client/CompareProducts')));
+const ReturnOrderDetailPage = Loadable(lazy(() => import('pages/Client/Auth/ReturnOrderDetailPage')));
+const ReturnMethodPage = Loadable(lazy(() => import('@/pages/Client/Auth/ReturnMethodPage'))); // <-- Thêm dòng này
 
 const ReturnOrderPage = Loadable(lazy(() => import('pages/Client/Auth/ReturnOrderDialog')));
 const OrderDetailPage = Loadable(lazy(() => import('pages/Client/Auth/OrderDetailPage')));
@@ -52,19 +54,21 @@ const ClientRoutes = {
       element: <ForgotPasswordNotice />
     },
     { path: 'dat-lai-mat-khau', element: <ResetPasswordPage /> },
-    {
-      path: 'user-profile',
-      element: (
-        <RequireAuth>
-          <UserProfilePage />
-        </RequireAuth>
-      ),
-      children: [
-        { index: true, element: <></> },
+{
+  path: 'user-profile',
+  element: <UserProfilePage />,
+  children: [
+    { index: true, element: <></> }, // ← giữ trống
+    { path: 'orders/:orderCode', element: <OrderDetailPage /> },
+    { path: 'return-order/:id', element: <ReturnOrderDetailPage /> }, // ✅ Đã sửa
+  { path: 'return-order/code/:returnCode/choose-method', element: <ReturnMethodPage /> }
 
-        { path: 'orders/:orderCode', element: <OrderDetailPage /> }
-      ]
-    },
+
+  ]
+}
+
+,
+
     {
       path: 'register-email-sent',
       element: <RegisterEmailSentNotice />
@@ -85,7 +89,9 @@ const ClientRoutes = {
     { path: 'news/:id', element: <NewsDetails /> },
     { path: 'orderlookup', element: <OrderLookup /> },
     { path: 'compare-products', element: <ProductComparison /> },
-    { path: 'return-order', element: <ReturnOrderPage /> }
+    { path: 'return-order', element: <ReturnOrderPage /> },
+    
+
   ]
 };
 

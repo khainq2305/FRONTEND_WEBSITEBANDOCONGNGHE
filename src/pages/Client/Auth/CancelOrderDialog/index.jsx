@@ -15,7 +15,9 @@ const reasons = [
   "Tôi không tìm thấy lý do hủy phù hợp",
 ];
 
-export default function CancelOrderDialog({ isOpen, onClose, orderId, onSuccess }) {
+export default function CancelOrderDialog({ open, onClose, orderId, orderCode, onSuccess }) {
+
+
   const [selectedReason, setSelectedReason] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -46,7 +48,7 @@ export default function CancelOrderDialog({ isOpen, onClose, orderId, onSuccess 
   };
 
   return (
-    <Dialog open={isOpen} onClose={handleClose} className="relative z-50">
+    <Dialog open={open} onClose={handleClose} className="relative z-50">
       {/* Lớp nền mờ */}
       {loading && <Loader fullscreen={true} />}
 
@@ -63,9 +65,11 @@ export default function CancelOrderDialog({ isOpen, onClose, orderId, onSuccess 
             </div>
           )}
 
-          <Dialog.Title as="h3" className="text-xl font-semibold leading-6 text-gray-900 text-center mb-2">
-            Lý Do Hủy
-          </Dialog.Title>
+         <Dialog.Title as="h3" className="text-xl font-semibold leading-6 text-gray-900 text-center mb-2">
+  Lý do hủy đơn hàng #{orderCode}
+</Dialog.Title>
+
+
           
           {/* Khung thông báo */}
           <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">

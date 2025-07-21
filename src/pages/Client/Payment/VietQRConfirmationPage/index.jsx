@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { orderService } from '@/services/client/orderService';
+import { paymentService } from '../../../../services/client/paymentService';
+
 import { toast } from 'react-toastify';
 import Loader from '@/components/common/Loader';
 import { ArrowDownTrayIcon, ClockIcon, CloudArrowUpIcon, XMarkIcon } from '@heroicons/react/24/outline';
@@ -75,7 +77,7 @@ const [hasConfirmed, setHasConfirmed] = useState(false);
 
                 // Nếu thanh toán ATM thì sinh QR
                 if (orderData.paymentMethod.code.toLowerCase() === 'atm') {
-                    const qrRes = await orderService.generateVietQR({
+                 const qrRes = await paymentService.generateVietQR({
                         accountNumber: hardcodedBankInfo.accountNumber,
                         accountName: hardcodedBankInfo.accountName,
                         bankCode: hardcodedBankInfo.bankCode,

@@ -8,6 +8,7 @@ import { authService } from '../../../services/client/authService';
 import FavoriteProductsPage from './FavoriteProductsPage';
 import ChangePasswordTab from './ChangePasswordTab';
 import Breadcrumb from '../../../components/common/Breadcrumb';
+import RewardPage from './RewardPage';                // đường dẫn thư mục RewardPage
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -26,7 +27,9 @@ const UserProfilePage = () => {
   });
   const [isSidebarLoading, setIsSidebarLoading] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const { orderCode } = useParams();
+ const { orderCode, id, returnCode } = useParams();
+
+
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
   useEffect(() => {
@@ -171,6 +174,7 @@ const UserProfilePage = () => {
     { id: 'thong-tin-tai-khoan', label: 'Thông tin tài khoản', icon: User, href: '#thong-tin-tai-khoan' },
     { id: 'quan-ly-don-hang', label: 'Quản lý đơn hàng', icon: ShoppingBag, href: '#quan-ly-don-hang' },
     { id: 'so-dia-chi', label: 'Sổ địa chỉ', icon: MapPin, href: '#so-dia-chi' },
+    { id: 'khach-hang-than-thiet', label: 'Khách hàng thân thiết', icon: Ticket, href: '#khach-hang-than-thiet' },
     { id: 'san-pham-da-xem', label: 'Sản phẩm đã xem', icon: Eye, href: '/san-pham-da-xem' }, // Thay đổi href thành đường dẫn tuyệt đối
     { id: 'san-pham-yeu-thich', label: 'Sản phẩm yêu thích', icon: Heart, href: '#san-pham-yeu-thich' },
     { id: 'doi-mat-khau', label: 'Đổi mật khẩu', icon: Eye, href: '#doi-mat-khau' }
@@ -358,13 +362,14 @@ const UserProfilePage = () => {
           <DesktopSidebar />
 
           <div className="flex-1 min-w-0 lg:pl-8 md:pl-6 pl-0 pb-8">
-            {orderCode ? (
+         {(orderCode || id || returnCode) ? (
               <Outlet />
             ) : (
               <>
                 {activeTab === 'thong-tin-tai-khoan' && <ProfileContent />}
                 {activeTab === 'quan-ly-don-hang' && <RenderDonMuaContentTuyChinh />}
                 {activeTab === 'so-dia-chi' && <AddressPageContent />}
+ {activeTab === 'khach-hang-than-thiet' && <RewardPage />}
 
                 {activeTab === 'san-pham-yeu-thich' && <FavoriteProductsPage />}
                 {activeTab === 'doi-mat-khau' && <ChangePasswordTab />}

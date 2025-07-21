@@ -9,18 +9,23 @@ import {
     FormControlLabel,
     TextField,
     TextareaAutosize,
-    Stepper,
-    Step,
-    StepLabel,
     CircularProgress,
     Checkbox,
+    IconButton,
+    Divider
 } from '@mui/material';
 import { toast } from 'react-toastify';
-import { Upload, X, FileImage, Video, ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
+import {
+    Camera,
+    Video,
+    X,
+    // CheckCircle, // Không cần icon này nếu không hiện màn hình thành công riêng
+} from 'lucide-react';
 import { orderService } from '../../../../services/client/orderService';
+import { returnRefundService } from '../../../../services/client/returnRefundService';
 import Loader from '../../../../components/common/Loader';
 import { formatCurrencyVND } from '../../../../utils/formatCurrency';
-import { IconButton } from '@mui/material';
+import useAuthStore from '../../../../stores/AuthStore';
 
 const returnReasons = [
     { id: 'WRONG_SIZE_COLOR', label: 'Nhận sai kích cỡ, màu sắc, hoặc sai sản phẩm' },
@@ -30,40 +35,42 @@ const returnReasons = [
     { id: 'OTHER', label: 'Lý do khác (vui lòng mô tả bên dưới)' },
 ];
 
-// CHỈNH SỬA MẢNG STEPS: Gộp "Tải bằng chứng" vào bước đầu tiên
-const steps = ['Chọn lý do & Bằng chứng', 'Chọn sản phẩm', 'Thông tin hoàn tiền', 'Xác nhận'];
-
 const ReturnOrderPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const orderId = location.state?.orderId;
     const orderPaymentMethodCode = location.state?.orderPaymentMethodCode;
     const initialOrderProducts = location.state?.orderProducts;
+    const user = useAuthStore((state) => state.user);
 
-    const [currentStep, setCurrentStep] = useState(0);
     const [loading, setLoading] = useState(true);
     const [orderData, setOrderData] = useState(null);
 
-    // Step 1 states (giờ bao gồm cả bằng chứng)
     const [selectedReason, setSelectedReason] = useState('');
     const [detailedReason, setDetailedReason] = useState('');
-    const [evidenceFiles, setEvidenceFiles] = useState([]); // Đã di chuyển lên đây
-    const fileInputRef = useRef(null); // Đã di chuyển lên đây
+    const [evidenceFiles, setEvidenceFiles] = useState([]);
+    const [errors, setErrors] = useState({});
 
-    // Step 2 (Mới) states (chọn sản phẩm muốn trả toàn bộ số lượng)
+    const imageInputRef = useRef(null);
+    const videoInputRef = useRef(null);
+
     const [selectedReturnItems, setSelectedReturnItems] = useState({});
     const [selectAll, setSelectAll] = useState(false);
 
-    // Step 3 (Mới) states
     const [bankName, setBankName] = useState('');
     const [accountNumber, setAccountNumber] = useState('');
     const [accountHolderName, setAccountHolderName] = useState('');
     const [showBankInfoForm, setShowBankInfoForm] = useState(false);
-    const [refundEmail, setRefundEmail] = useState('nguyenquockhai.2006@gmail.com');
+    const [refundEmail, setRefundEmail] = useState('');
 
-    // Submission state
     const [submitting, setSubmitting] = useState(false);
-    const [submissionSuccess, setSubmissionSuccess] = useState(false);
+    // const [submissionSuccess, setSubmissionSuccess] = useState(false); // Không cần state này nữa
+
+    useEffect(() => {
+      if (user?.email) {
+        setRefundEmail(user.email);
+      }
+    }, [user]);
 
     useEffect(() => {
         if (!orderId) {
@@ -72,33 +79,38 @@ const ReturnOrderPage = () => {
             return;
         }
 
+        const processOrderProducts = (products) => {
+            const initialItems = {};
+            if (products && products.length > 0) {
+                // Tự động chọn sản phẩm đầu tiên với số lượng đầy đủ
+                products.forEach((product, index) => {
+                    initialItems[product.skuId] = index === 0 ? product.quantity : 0;
+                });
+            }
+            setSelectedReturnItems(initialItems);
+            // Cập nhật trạng thái selectAll dựa trên việc sản phẩm đầu tiên được chọn
+            setSelectAll(products.length === 1 && products[0] && initialItems[products[0].skuId] === products[0].quantity);
+        };
+
         if (initialOrderProducts && initialOrderProducts.length > 0) {
             setOrderData({
                 products: initialOrderProducts,
                 finalPrice: location.state?.finalPrice || 0,
             });
-            console.log('[DEBUG] orderData', orderData); // Đây vẫn là giá trị cũ
-            const initialItems = {};
-            initialOrderProducts.forEach(product => {
-                initialItems[product.skuId] = 0;
-            });
-            setSelectedReturnItems(initialItems);
+            processOrderProducts(initialOrderProducts);
             setLoading(false);
         } else {
             const fetchOrderDetail = async () => {
                 try {
                     setLoading(true);
-                    const res = await orderService.getOrderDetail(orderId);
+                    const res = await orderService.getOrderById(orderId);
                     if (res.data?.data) {
                         setOrderData({
                             ...res.data.data,
+                            products: res.data.data.products,
                             finalPrice: res.data.data.finalPrice,
                         });
-                        const initialItems = {};
-                        res.data.data.products.forEach(product => {
-                            initialItems[product.skuId] = 0;
-                        });
-                        setSelectedReturnItems(initialItems);
+                        processOrderProducts(res.data.data.products);
                     } else {
                         toast.error('Không tải được chi tiết đơn hàng.');
                         navigate('/purchase');
@@ -118,8 +130,8 @@ const ReturnOrderPage = () => {
         setShowBankInfoForm(orderPaymentMethodCode && methodsRequiringBankInfo.includes(orderPaymentMethodCode));
     }, [orderId, orderPaymentMethodCode, initialOrderProducts, navigate]);
 
-    // ✅ useEffect để cập nhật trạng thái "Chọn tất cả"
     useEffect(() => {
+        // Logic này để cập nhật trạng thái selectAll khi người dùng tương tác
         if (orderData?.products && orderData.products.length > 0) {
             const allSelected = orderData.products.every(product => selectedReturnItems[product.skuId] === product.quantity);
             const anySelected = orderData.products.some(product => selectedReturnItems[product.skuId] > 0);
@@ -127,9 +139,9 @@ const ReturnOrderPage = () => {
             if (allSelected) {
                 setSelectAll(true);
             } else if (anySelected) {
-                setSelectAll(false); // Không phải tất cả nhưng có ít nhất một được chọn
+                setSelectAll(false);
             } else {
-                setSelectAll(false); // Không có cái nào được chọn
+                setSelectAll(false);
             }
         } else {
             setSelectAll(false);
@@ -137,43 +149,6 @@ const ReturnOrderPage = () => {
     }, [selectedReturnItems, orderData]);
 
 
-    const handleNext = () => {
-        // VALIDATION CHO STEP 0 (chọn lý do & bằng chứng)
-        if (currentStep === 0) {
-            if (!selectedReason) {
-                return toast.error('Vui lòng chọn lý do trả hàng.');
-            }
-            if (selectedReason === 'OTHER' && !detailedReason.trim()) {
-                return toast.error('Vui lòng mô tả chi tiết lý do khác.');
-            }
-        }
-        // VALIDATION CHO STEP 1 (chọn sản phẩm) - giờ là currentStep === 1
-        else if (currentStep === 1) {
-            const hasItem = Object.values(selectedReturnItems).some(q => q > 0);
-            if (!hasItem) {
-                return toast.error('Vui lòng chọn ít nhất một sản phẩm để trả.');
-            }
-            // Logic check lại sau micro-task nếu cần (nhưng thường không cần với React state update bình thường)
-        }
-        // VALIDATION CHO STEP 2 (thông tin hoàn tiền) - giờ là currentStep === 2
-        else if (currentStep === 2) {
-            if (showBankInfoForm) {
-                if (!bankName.trim() || !accountNumber.trim() || !accountHolderName.trim()) {
-                    return toast.error('Vui lòng điền đầy đủ thông tin tài khoản ngân hàng.');
-                }
-            }
-            // refundEmail hiện đang là readOnly nên không cần validate
-        }
-
-        setCurrentStep(s => s + 1);
-    };
-
-
-    const handleBack = () => {
-        setCurrentStep((prevActiveStep) => prevActiveStep - 1);
-    };
-
-    // ✅ Xử lý checkbox cho từng sản phẩm (luôn trả hết số lượng đã mua nếu được chọn)
     const handleItemCheckboxChange = (skuIdRaw, isChecked) => {
         const skuId = Number(skuIdRaw);
         const product = orderData?.products?.find(p => p.skuId === skuId);
@@ -185,7 +160,6 @@ const ReturnOrderPage = () => {
         }));
     };
 
-    // ✅ Xử lý checkbox "Chọn tất cả"
     const handleSelectAllChange = (e) => {
         const checked = e.target.checked;
         setSelectAll(checked);
@@ -198,32 +172,68 @@ const ReturnOrderPage = () => {
     };
 
 
-    // Step 0 (Mới) handlers - Bằng chứng
-    const handleFileChange = (e) => {
-        if (e.target.files) {
-            const newFiles = Array.from(e.target.files);
-            // Kiểm tra tổng số file sau khi thêm
-            if (evidenceFiles.length + newFiles.length > 7) {
-                toast.error('Chỉ có thể tải lên tối đa 7 file ảnh/video.');
-                return;
+    const handleFileChange = (event, fileType) => {
+        const files = Array.from(event.target.files);
+        const newFiles = [...evidenceFiles];
+        
+        files.forEach(file => {
+          const isImage = file.type.startsWith('image/');
+          const isVideo = file.type.startsWith('video/');
+        
+          if (fileType === 'image' && isImage) {
+            if (newFiles.filter(f => f.type.startsWith('image/')).length < 6) {
+              newFiles.push({
+                file,
+                name: file.name,
+                type: file.type,
+                preview: URL.createObjectURL(file)
+              });
+            } else {
+              toast.error('Chỉ có thể tải lên tối đa 6 ảnh.');
             }
-            setEvidenceFiles((prevFiles) => [...prevFiles, ...newFiles]);
-            e.target.value = null; // Reset input file để có thể chọn cùng file lại
-        }
+          } else if (fileType === 'video' && isVideo) {
+            if (newFiles.filter(f => f.type.startsWith('video/')).length < 1) {
+              newFiles.push({
+                file,
+                name: file.name,
+                type: file.type,
+                preview: URL.createObjectURL(file)
+              });
+            } else {
+              toast.error('Chỉ có thể tải lên tối đa 1 video.');
+            }
+          } else {
+            toast.error('Loại file không hợp lệ.');
+          }
+        });
+        setEvidenceFiles(newFiles);
+        event.target.value = null;
     };
 
     const removeFile = (indexToRemove) => {
-        setEvidenceFiles((prevFiles) => prevFiles.filter((_, index) => index !== indexToRemove));
+        setEvidenceFiles((prevFiles) => {
+            const fileToRemove = prevFiles[indexToRemove];
+            if (fileToRemove && fileToRemove.preview) {
+                URL.revokeObjectURL(fileToRemove.preview);
+            }
+            return prevFiles.filter((_, index) => index !== indexToRemove);
+        });
     };
 
+    useEffect(() => {
+        return () => {
+            evidenceFiles.forEach(file => {
+                if (file.preview) {
+                    URL.revokeObjectURL(file.preview);
+                }
+            });
+        };
+    }, [evidenceFiles]);
 
-    /* ============================================================
-     * Tính Tổng tiền hoàn lại
-     * ========================================================== */
+
     const totalRefundAmount = useMemo(() => {
         if (!orderData) return 0;
 
-        // 1) Tổng tiền sản phẩm đang chọn trả
         const productSubtotal = Object.entries(selectedReturnItems).reduce(
             (sum, [skuId, qty]) => {
                 if (!qty) return sum;
@@ -233,67 +243,98 @@ const ReturnOrderPage = () => {
             0,
         );
 
-        // 2) Kiểm tra có phải trả hết đơn hay không
-        // Logic này cần dựa vào tổng số lượng sản phẩm trong đơn hàng
         const totalProductsInOrder = orderData.products.reduce((sum, p) => sum + p.quantity, 0);
         const totalSelectedToReturn = Object.values(selectedReturnItems).reduce((sum, qty) => sum + qty, 0);
 
         const allItemsSelectedForReturn = totalSelectedToReturn === totalProductsInOrder && totalProductsInOrder > 0;
 
         if (allItemsSelectedForReturn) {
-            // ✅ Hoàn lại finalPrice (đã bao gồm ship và trừ voucher) nếu trả hết đơn
-            return orderData.finalPrice ?? productSubtotal;
+            return orderData.finalPrice ?? productSubtotal; 
         }
 
-        // 3) Chỉ hoàn phần sản phẩm (và có thể phí ship theo tỷ lệ nếu muốn)
-        // Ví dụ: hoàn lại ship theo % giá trị hàng hoàn so với tổng giá trị đơn
-        // Để làm được điều này, bạn cần total price của các sản phẩm trong đơn gốc (trước khi trừ coupon/ship)
-        // const originalProductsTotalPrice = orderData.products.reduce((sum, p) => sum + p.price * p.quantity, 0);
-        // if (originalProductsTotalPrice > 0 && orderData.shippingFee > 0) {
-        //     const percent = productSubtotal / originalProductsTotalPrice;
-        //     const shipRefund = orderData.shippingFee * percent;
-        //     return productSubtotal + shipRefund;
-        // }
-
-        return productSubtotal; // Mặc định chỉ hoàn tiền sản phẩm
+        return productSubtotal;
     }, [selectedReturnItems, orderData]);
 
 
     const handleSubmitFinal = async () => {
         setSubmitting(true);
+        const newErrors = {};
+
+        // Validate "Chọn sản phẩm" (bây giờ là mục 1)
+        const hasItem = Object.values(selectedReturnItems).some(q => q > 0);
+        if (!hasItem) {
+            newErrors.selectedItems = 'Vui lòng chọn ít nhất một sản phẩm để trả.';
+        }
+
+        // Validate "Lý do & Mô tả" (bây giờ là mục 2)
+        if (!selectedReason) {
+            newErrors.selectedReason = 'Vui lòng chọn lý do trả hàng.';
+        }
+        if (selectedReason === 'OTHER' && !detailedReason.trim()) {
+            newErrors.detailedReason = 'Vui lòng mô tả lý do khác.';
+        }
+        
+        // Validate "Bằng chứng" (bây giờ là mục 3)
+        const hasImage = evidenceFiles.some(file => file.type.startsWith('image/'));
+        if (!hasImage) {
+            newErrors.evidenceFiles = 'Vui lòng tải lên ít nhất một hình ảnh.';
+        }
+        const videoCount = evidenceFiles.filter(file => file.type.startsWith('video/')).length;
+        if (videoCount === 0) {
+            newErrors.evidenceFilesVideo = 'Vui lòng tải lên một video.';
+        } else if (videoCount > 1) {
+            newErrors.evidenceFilesVideo = 'Chỉ có thể tải lên tối đa 1 video.';
+        }
+
+        // Validate "Thông tin hoàn tiền" (bây giờ là mục 4)
+        if (showBankInfoForm) {
+            if (!bankName.trim()) newErrors.bankName = 'Nhập tên ngân hàng.';
+            if (!accountNumber.trim()) newErrors.accountNumber = 'Nhập số tài khoản.';
+            if (!accountHolderName.trim()) newErrors.accountHolderName = 'Nhập tên chủ tài khoản.';
+        }
+
+        setErrors(newErrors);
+        if (Object.keys(newErrors).length > 0) {
+            toast.error('Vui lòng nhập đủ thông tin.');
+            setSubmitting(false);
+            return;
+        }
+
         const formData = new FormData();
         formData.append("orderId", String(Number(orderId)));
-        formData.append('reason', selectedReason === 'OTHER' ? detailedReason : selectedReason);
+        formData.append('reason', selectedReason);
+        if (selectedReason === 'OTHER') {
+            formData.append('detailedReason', detailedReason.trim());
+        }
 
         const itemsToReturn = Object.keys(selectedReturnItems)
             .filter(skuId => selectedReturnItems[skuId] > 0)
             .map(skuId => ({
-                skuId: skuId,
+                skuId: Number(skuId),
                 quantity: selectedReturnItems[skuId],
             }));
 
         formData.append('itemsToReturn', JSON.stringify(itemsToReturn));
 
-        // Bank info chỉ gửi nếu cần
         if (showBankInfoForm) {
             formData.append('bankName', bankName.trim());
             formData.append('accountNumber', accountNumber.trim());
             formData.append('accountHolderName', accountHolderName.trim());
         }
 
-        // Thêm bằng chứng vào formData
-        evidenceFiles.forEach((file) => {
-            if (file.type.startsWith('image/')) {
-                formData.append('images', file);
-            } else if (file.type.startsWith('video/')) {
-                formData.append('videos', file);
+        evidenceFiles.forEach((fileData) => {
+            if (fileData.file.type.startsWith('image/')) {
+                formData.append('images', fileData.file);
+            } else if (fileData.file.type.startsWith('video/')) {
+                formData.append('videos', fileData.file);
             }
         });
 
         try {
-            await orderService.returnRequest(formData);
-            setSubmissionSuccess(true);
+            await returnRefundService.requestReturn(formData);
+            // setSubmissionSuccess(true); // Xóa dòng này
             toast.success('Yêu cầu trả hàng đã được gửi thành công!');
+            navigate('/purchase'); // Điều hướng trực tiếp sau khi thành công
         } catch (err) {
             toast.error(err?.response?.data?.message || 'Gửi yêu cầu thất bại, vui lòng thử lại.');
             console.error("Return request failed:", err);
@@ -306,6 +347,8 @@ const ReturnOrderPage = () => {
         return <Loader fullscreen={true} />;
     }
 
+    // Xóa toàn bộ khối if (submissionSuccess) này
+    /*
     if (submissionSuccess) {
         return (
             <Box className="flex flex-col items-center justify-center min-h-[50vh] bg-white p-6 rounded-lg shadow-md">
@@ -326,6 +369,7 @@ const ReturnOrderPage = () => {
             </Box>
         );
     }
+    */
 
     return (
         <Box className="w-full p-6 sm:p-8 bg-white rounded-lg shadow-md mt-4 mb-16"
@@ -335,312 +379,334 @@ const ReturnOrderPage = () => {
                 Yêu cầu Trả hàng / Hoàn tiền
             </Typography>
 
-            {/* CHỈNH SỬA STEPS ĐỂ PHẢN ÁNH THAY ĐỔI */}
-            <Stepper activeStep={currentStep} alternativeLabel sx={{ mb: 4 }}>
-                {steps.map((label) => (
-                    <Step key={label}>
-                        <StepLabel>{label}</StepLabel>
-                    </Step>
-                ))}
-            </Stepper>
-
             <Box>
-                {/* Step 0 (MỚI): Chọn lý do & Tải bằng chứng */}
-                {currentStep === 0 && (
-                    <Box>
-                        <Typography variant="h6" component="p" className="font-semibold text-gray-800 mb-3">1. Lý do trả hàng của bạn là gì?</Typography>
-                        <RadioGroup value={selectedReason} onChange={(e) => setSelectedReason(e.target.value)} sx={{ mb: 3 }}>
-                            {returnReasons.map((reason) => (
-                                <FormControlLabel key={reason.id} value={reason.id} control={<Radio size="small" />} label={reason.label} />
-                            ))}
-                        </RadioGroup>
+                {/* PHẦN 1: CHỌN SẢN PHẨM */}
+                <Typography variant="h6" component="p" className="font-semibold text-gray-800 mb-3">1. Chọn sản phẩm muốn trả:</Typography>
 
-                        <Typography variant="h6" component="p" className="font-semibold text-gray-800 mb-1">2. Mô tả chi tiết (không bắt buộc)</Typography>
-                        <TextareaAutosize
-                            minRows={3}
-                            placeholder="Để yêu cầu được xử lý nhanh hơn, bạn có thể mô tả thêm về vấn đề..."
-                            value={detailedReason}
-                            onChange={(e) => setDetailedReason(e.target.value)}
-                            className="w-full border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                {orderData?.products && orderData.products.length > 0 && (
+                    <Box mb={2} display="flex" alignItems="center" className="bg-orange-50 p-3 rounded-lg border border-orange-200">
+                        <Checkbox
+                            checked={selectAll}
+                            onChange={handleSelectAllChange}
+                            size="medium"
+                            sx={{ p: 0, mr: 1, '& .MuiSvgIcon-root': { color: '#f97316' } }}
                         />
-
-                        {/* PHẦN TẢI BẰNG CHỨNG ĐÃ ĐƯỢC GỘP VÀO ĐÂY */}
-                        <Typography variant="h6" component="p" className="font-semibold text-gray-800 mt-6 mb-3">3. Tải lên bằng chứng (ảnh/video)</Typography>
-                        <Box
-                            onClick={() => fileInputRef.current.click()}
-                            className="mt-1 flex justify-center w-full px-6 py-8 border-2 border-gray-300 border-dashed rounded-md cursor-pointer hover:border-sky-500 bg-white"
-                        >
-                            <div className="space-y-1 text-center">
-                                <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                                <p className="text-sm text-gray-600">
-                                    <span className="font-medium text-sky-600">Nhấn để chọn file</span>
-                                </p>
-                                <p className="text-xs text-gray-500">Hỗ trợ PNG, JPG, MP4... Tối đa 7 files.</p>
-                            </div>
-                        </Box>
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleFileChange}
-                            multiple
-                            accept="image/*,video/*"
-                            className="hidden"
-                        />
-                        {evidenceFiles.length > 0 && (
-                            <div className="mt-4 space-y-2">
-                                <Typography variant="body2" className="font-medium text-gray-700">Các file đã chọn:</Typography>
-                                {evidenceFiles.map((file, index) => (
-                                    <div key={index} className="flex items-center justify-between bg-white p-2 rounded-md border border-gray-200">
-                                        <div className="flex items-center gap-3 overflow-hidden">
-                                            {file.type.startsWith('image/') ? (
-                                                <FileImage className="h-5 w-5 text-blue-500 flex-shrink-0" />
-                                            ) : (
-                                                <Video className="h-5 w-5 text-purple-500 flex-shrink-0" />
-                                            )}
-                                            <span className="text-sm text-gray-800 truncate" title={file.name}>
-                                                {file.name}
-                                            </span>
-                                        </div>
-                                        <IconButton size="small" onClick={() => removeFile(index)} aria-label="Xóa file">
-                                            <X className="h-4 w-4 text-red-500 hover:text-red-700" />
-                                        </IconButton>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                        <Typography variant="body1" fontWeight="bold" className="text-orange-700">
+                            Chọn tất cả ({orderData.products.length} sản phẩm)
+                        </Typography>
                     </Box>
                 )}
+                {errors.selectedItems && (
+                    <Typography variant="caption" color="error" sx={{ mt: -1, mb: 2, display: 'block' }}>
+                        {errors.selectedItems}
+                    </Typography>
+                )}
 
-                {/* Step 1 (MỚI): Chọn sản phẩm muốn trả (trước đây là Step 2) */}
-                {currentStep === 1 && (
-                    <Box>
-                        <Typography variant="h6" component="p" className="font-semibold text-gray-800 mb-3">4. Chọn sản phẩm muốn trả:</Typography>
+                {orderData?.products && orderData.products.length > 0 ? (
+                    orderData.products.map(product => {
+                        const isChecked = selectedReturnItems[product.skuId] === product.quantity;
 
-                        {/* Checkbox "Chọn tất cả" */}
-                        {orderData?.products && orderData.products.length > 0 && (
-                            <Box mb={2} display="flex" alignItems="center" className="bg-orange-50 p-3 rounded-lg border border-orange-200">
+                        const handleWrapperClick = () => {
+                            handleItemCheckboxChange(product.skuId, !isChecked);
+                        };
+
+                        return (
+                            <Box
+                                key={product.skuId}
+                                onClick={handleWrapperClick}
+                                display="flex"
+                                alignItems="center"
+                                mb={2}
+                                p={1.5}
+                                border={1}
+                                borderColor="grey.300"
+                                borderRadius={1}
+                                bgcolor="white"
+                                sx={{ cursor: 'pointer' }}
+                            >
                                 <Checkbox
-                                    checked={selectAll}
-                                    onChange={handleSelectAllChange}
+                                    checked={isChecked}
+                                    onClick={(e) => e.stopPropagation()}
+                                    onChange={(e) => handleItemCheckboxChange(product.skuId, e.target.checked)}
                                     size="medium"
                                     sx={{ p: 0, mr: 1, '& .MuiSvgIcon-root': { color: '#f97316' } }}
                                 />
-                                <Typography variant="body1" fontWeight="bold" className="text-orange-700">
-                                    Chọn tất cả ({orderData.products.length} sản phẩm)
+                                <img
+                                    src={product.imageUrl}
+                                    alt={product.name}
+                                    className="w-16 h-16 object-cover rounded-sm border border-gray-200 mr-3 flex-shrink-0"
+                                />
+                                <Box flexGrow={1}>
+                                    <Typography variant="body2" fontWeight="medium" sx={{ mb: 0.5 }}>{product.name}</Typography>
+                                    {product.variation && (
+                                        <Typography variant="caption" color="text.secondary">
+                                            Phân loại: {product.variation}
+                                        </Typography>
+                                    )}
+                                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                                        x{product.quantity}
+                                    </Typography>
+                                </Box>
+                                <Typography variant="body2" color="text.secondary" sx={{ mr: 2 }}>
+                                    {formatCurrencyVND(product.price * product.quantity)}
                                 </Typography>
                             </Box>
-                        )}
-
-                        {orderData?.products && orderData.products.length > 0 ? (
-                            orderData.products.map(product => {
-                                const isChecked = selectedReturnItems[product.skuId] === product.quantity;
-
-                                const handleWrapperClick = () => {
-                                    handleItemCheckboxChange(product.skuId, !isChecked);
-                                };
-
-                                return (
-                                    <Box
-                                        key={product.skuId}
-                                        onClick={handleWrapperClick}
-                                        display="flex"
-                                        alignItems="center"
-                                        mb={2}
-                                        p={1.5}
-                                        border={1}
-                                        borderColor="grey.300"
-                                        borderRadius={1}
-                                        bgcolor="white"
-                                        sx={{ cursor: 'pointer' }}
-                                    >
-                                        <Checkbox
-                                            checked={isChecked}
-                                            onClick={(e) => e.stopPropagation()} // Ngăn click bubble
-                                            onChange={(e) => handleItemCheckboxChange(product.skuId, e.target.checked)}
-                                            size="medium"
-                                            sx={{ p: 0, mr: 1, '& .MuiSvgIcon-root': { color: '#f97316' } }}
-                                        />
-                                        <img
-                                            src={product.imageUrl}
-                                            alt={product.name}
-                                            className="w-16 h-16 object-cover rounded-sm border border-gray-200 mr-3 flex-shrink-0"
-                                        />
-                                        <Box flexGrow={1}>
-                                            <Typography variant="body2" fontWeight="medium" sx={{ mb: 0.5 }}>{product.name}</Typography>
-                                            {product.variation && (
-                                                <Typography variant="caption" color="text.secondary">
-                                                    Phân loại: {product.variation}
-                                                </Typography>
-                                            )}
-                                            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                                                x{product.quantity}
-                                            </Typography>
-                                        </Box>
-                                        <Typography variant="body2" color="text.secondary" sx={{ mr: 2 }}>
-                                            {formatCurrencyVND(product.price * product.quantity)}
-                                        </Typography>
-                                    </Box>
-                                );
-                            })
-                        ) : (
-                            <Typography variant="body2" color="text.secondary">Không có sản phẩm nào trong đơn hàng này.</Typography>
-                        )}
-                    </Box>
+                        );
+                    })
+                ) : (
+                    <Typography variant="body2" color="text.secondary">Không có sản phẩm nào trong đơn hàng này.</Typography>
                 )}
 
-                {/* Step 2 (MỚI): Thông tin hoàn tiền (trước đây là Step 4) */}
-                {currentStep === 2 && (
-                    <Box sx={{ p: 2, border: 1, borderColor: 'grey.300', borderRadius: 1, bgcolor: 'white' }}>
-                        <Typography variant="h6" component="p" className="font-semibold text-gray-800 mb-3">Thông tin hoàn tiền</Typography>
-                        
-                        <Box mb={2}>
-                            <Typography variant="body1" sx={{ color: 'text.secondary', mb: 0.5 }}>Số tiền hoàn lại:</Typography>
-                            <Typography variant="h5" component="div" className="font-bold text-red-500">
-                                {formatCurrencyVND(totalRefundAmount)}
-                            </Typography>
+                <Divider sx={{ my: 4 }} />
+
+                {/* PHẦN 2: LÝ DO & MÔ TẢ CHI TIẾT */}
+                <Typography variant="h6" component="p" className="font-semibold text-gray-800 mb-3">2. Lý do trả hàng của bạn là gì?</Typography>
+                <RadioGroup value={selectedReason} onChange={(e) => { setSelectedReason(e.target.value); setErrors(prev => ({ ...prev, selectedReason: undefined })); }} sx={{ mb: 3 }}>
+                    {returnReasons.map((reason) => (
+                        <FormControlLabel key={reason.id} value={reason.id} control={<Radio size="small" />} label={reason.label} />
+                    ))}
+                </RadioGroup>
+                {errors.selectedReason && (
+                    <Typography variant="caption" color="error" sx={{ mt: -2, mb: 2, display: 'block' }}>
+                        {errors.selectedReason}
+                    </Typography>
+                )}
+
+                <Typography variant="h6" component="p" className="font-semibold text-gray-800 mb-1">3. Mô tả chi tiết (không bắt buộc)</Typography>
+                <TextareaAutosize
+                    minRows={3}
+                    placeholder="Để yêu cầu được xử lý nhanh hơn, bạn có thể mô tả thêm về vấn đề..."
+                    value={detailedReason}
+                    onChange={(e) => { setDetailedReason(e.target.value); setErrors(prev => ({ ...prev, detailedReason: undefined })); }}
+                    className="w-full border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                />
+                {errors.detailedReason && (
+                    <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
+                        {errors.detailedReason}
+                    </Typography>
+                )}
+                
+                <Divider sx={{ my: 4 }} />
+
+                {/* PHẦN 4: TẢI LÊN BẰNG CHỨNG */}
+                <Typography variant="h6" component="p" className="font-semibold text-gray-800 mb-1">4. Tải lên bằng chứng (ảnh/video) <span className="text-red-500">*</span></Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Đăng tải hình ảnh/video bằng chứng bạn nhận được và tình trạng của sản phẩm (tối đa 6 ảnh và 1 video).
+                </Typography>
+                <Box className="flex flex-wrap gap-2">
+                    {evidenceFiles.filter(f => f.type.startsWith('image/')).map((fileData, index) => (
+                       <Box
+                            key={index}
+                            className="relative w-[130px] h-[130px] border border-gray-300 rounded-md overflow-hidden bg-gray-100 group"
+                        >
+                            <img
+                                src={fileData.preview}
+                                alt={`Preview ${index}`}
+                                className="w-full h-full object-cover"
+                            />
+                            <Box
+                                className="absolute top-0 right-0 z-10 m-1 w-[24px] h-[24px] bg-black bg-opacity-60 text-white rounded-full flex items-center justify-center hover:bg-opacity-80 cursor-pointer"
+                                onClick={() => removeFile(index)}
+                            >
+                                <X size={16} />
+                            </Box>
                         </Box>
 
-                        <Box mb={2}>
-                            <Typography variant="body1" sx={{ color: 'text.secondary', mb: 0.5 }}>Hoàn trả vào:</Typography>
-                            {showBankInfoForm ? (
-                                <Box className="bg-orange-50 p-3 rounded-lg border border-orange-200">
-                                    <Typography variant="body2" sx={{ color: 'orange.700', fontWeight: 'medium' }}>
-                                        Ngân hàng:
-                                    </Typography>
-                                    <TextField
-                                        label="Tên ngân hàng"
-                                        variant="outlined"
-                                        size="small"
-                                        fullWidth
-                                        margin="normal"
-                                        value={bankName}
-                                        onChange={(e) => setBankName(e.target.value)}
-                                        required
-                                        InputLabelProps={{ shrink: true }}
-                                    />
-                                    <TextField
-                                        label="Số tài khoản"
-                                        variant="outlined"
-                                        size="small"
-                                        fullWidth
-                                        margin="normal"
-                                        value={accountNumber}
-                                        onChange={(e) => setAccountNumber(e.target.value)}
-                                        required
-                                        InputLabelProps={{ shrink: true }}
-                                    />
-                                    <TextField
-                                        label="Tên chủ tài khoản"
-                                        variant="outlined"
-                                        size="small"
-                                        fullWidth
-                                        margin="normal"
-                                        value={accountHolderName}
-                                        onChange={(e) => setAccountHolderName(e.target.value)}
-                                        required
-                                        InputLabelProps={{ shrink: true }}
-                                    />
-                                </Box>
-                            ) : (
-                                <Box className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                                    <Typography variant="body2" sx={{ color: 'blue.700', fontWeight: 'medium' }}>
-                                        Phương thức thanh toán ban đầu:
-                                    </Typography>
-                                    <Typography variant="body1" fontWeight="bold" sx={{ color: 'blue.800', mt: 0.5 }}>
+                    ))}
+
+                    {evidenceFiles.filter(f => f.type.startsWith('image/')).length < 6 && (
+                        <Box
+                            className="w-[130px] h-[130px] border border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center cursor-pointer text-gray-500 hover:border-blue-500 hover:text-blue-500 transition-colors"
+                            onClick={() => imageInputRef.current?.click()}
+                        >
+                            <Camera size={24} />
+                            <Typography variant="caption" className="mt-1 text-center" sx={{ whiteSpace: 'nowrap' }}>
+                                Thêm hình ảnh ({evidenceFiles.filter(f => f.type.startsWith('image/')).length}/6)
+                            </Typography>
+                            <Typography variant="caption" className="text-xs text-gray-400">
+                                Tối đa 5MB
+                            </Typography>
+                        </Box>
+                    )}
+                    <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={(e) => handleFileChange(e, 'image')}
+                        ref={imageInputRef}
+                        style={{ display: 'none' }}
+                    />
+
+                    {evidenceFiles.filter(f => f.type.startsWith('video/')).map((fileData, index) => (
+                        <Box
+                            key={index}
+                            className="relative w-[130px] h-[130px] border border-gray-300 rounded-md overflow-hidden bg-gray-100 group"
+                        >
+                            <video
+                                src={fileData.preview}
+                                controls
+                                preload="metadata"
+                                className="w-full h-full object-cover"
+                            />
+                            <Box
+                                className="absolute top-0 right-0 z-10 m-1 w-[24px] h-[24px] bg-black bg-opacity-60 text-white rounded-full flex items-center justify-center hover:bg-opacity-80 cursor-pointer"
+                                onClick={() => removeFile(index)}
+                            >
+                                <X size={16} />
+                            </Box>
+                        </Box>
+                    ))}
+
+
+                    {evidenceFiles.filter(f => f.type.startsWith('video/')).length < 1 && (
+                        <Box
+                            className="w-[130px] h-[130px] border border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center cursor-pointer text-gray-500 hover:border-blue-500 hover:text-blue-500 transition-colors"
+                            onClick={() => videoInputRef.current?.click()}
+                        >
+                            <Video size={24} />
+                            <Typography variant="caption" className="mt-1 text-center" sx={{ whiteSpace: 'nowrap' }}>
+                                Thêm video (0/1)
+                            </Typography>
+                            <Typography variant="caption" className="text-xs text-gray-400">
+                                Tối đa 100MB
+                            </Typography>
+                        </Box>
+                    )}
+                    <input
+                        type="file"
+                        accept="video/*"
+                        onChange={(e) => handleFileChange(e, 'video')}
+                        ref={videoInputRef}
+                        style={{ display: 'none' }}
+                    />
+                </Box>
+                {(errors.evidenceFiles || errors.evidenceFilesVideo) && (
+                    <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+                        {errors.evidenceFiles || errors.evidenceFilesVideo}
+                    </Typography>
+                )}
+
+                <Divider sx={{ my: 4 }} />
+
+                {/* PHẦN 5: THÔNG TIN HOÀN TIỀN */}
+                <Box sx={{ p: 2, border: 1, borderColor: 'grey.300', borderRadius: 1, bgcolor: 'white' }}>
+                    <Typography variant="h6" component="p" className="font-semibold text-gray-800 mb-3">5. Thông tin hoàn tiền</Typography>
+                    
+                    <Box mb={2}>
+                        <Typography variant="body1" sx={{ color: 'text.secondary', mb: 0.5 }}>Số tiền hoàn lại:</Typography>
+                        <Typography variant="h5" component="div" className="font-bold text-red-500">
+                            {formatCurrencyVND(totalRefundAmount)}
+                        </Typography>
+                    </Box>
+
+                    <Box mb={2}>
+                        <Typography variant="body1" sx={{ color: 'text.secondary', mb: 0.5 }}>Hoàn trả vào:</Typography>
+                        {showBankInfoForm ? (
+                            <Box className="bg-orange-50 p-3 rounded-lg border border-orange-200">
+                                <Typography variant="body2" sx={{ color: 'orange.700', fontWeight: 'medium' }}>
+                                    Ngân hàng:
+                                </Typography>
+                                <TextField
+                                    label="Tên ngân hàng"
+                                    variant="outlined"
+                                    size="small"
+                                    fullWidth
+                                    margin="normal"
+                                    value={bankName}
+                                    onChange={(e) => { setBankName(e.target.value); setErrors(prev => ({ ...prev, bankName: undefined })); }}
+                                    error={!!errors.bankName}
+                                    helperText={errors.bankName}
+                                    required
+                                    InputLabelProps={{ shrink: true }}
+                                />
+                                <TextField
+                                    label="Số tài khoản"
+                                    variant="outlined"
+                                    size="small"
+                                    fullWidth
+                                    margin="normal"
+                                    value={accountNumber}
+                                    onChange={(e) => { setAccountNumber(e.target.value); setErrors(prev => ({ ...prev, accountNumber: undefined })); }}
+                                    error={!!errors.accountNumber}
+                                    helperText={errors.accountNumber}
+                                    required
+                                    InputLabelProps={{ shrink: true }}
+                                />
+                                <TextField
+                                    label="Tên chủ tài khoản"
+                                    variant="outlined"
+                                    size="small"
+                                    fullWidth
+                                    margin="normal"
+                                    value={accountHolderName}
+                                    onChange={(e) => { setAccountHolderName(e.target.value); setErrors(prev => ({ ...prev, accountHolderName: undefined })); }}
+                                    error={!!errors.accountHolderName}
+                                    helperText={errors.accountHolderName}
+                                    required
+                                    InputLabelProps={{ shrink: true }}
+                                />
+                            </Box>
+                        ) : (
+                            <Box className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                                    {orderPaymentMethodCode && paymentIconMap[orderPaymentMethodCode.toLowerCase()] && (
+                                        <img
+                                            src={paymentIconMap[orderPaymentMethodCode.toLowerCase()]}
+                                            alt={orderPaymentMethodCode}
+                                            style={{ width: 24, height: 24, objectFit: 'contain', verticalAlign: 'middle', marginRight: 8 }}
+                                        />
+                                    )}
+                                    <Typography variant="body1" fontWeight="bold" sx={{ color: 'blue.800' }}>
                                         {orderPaymentMethodCode?.toUpperCase() || 'PHƯƠNG THỨC ĐIỆN TỬ'}
                                     </Typography>
-                                    <Typography variant="caption" sx={{ color: 'blue.600', mt: 1 }}>
-                                        Tiền hoàn sẽ được xử lý tự động về phương thức thanh toán ban đầu của bạn.
-                                    </Typography>
                                 </Box>
-                            )}
-                        </Box>
-
-                        <Box>
-                            <Typography variant="body1" sx={{ color: 'text.secondary', mb: 0.5 }}>Email:</Typography>
-                            <TextField
-                                variant="outlined"
-                                size="small"
-                                fullWidth
-                                value={refundEmail}
-                                onChange={(e) => setRefundEmail(e.target.value)}
-                                InputProps={{ readOnly: true }}
-                                sx={{ bgcolor: 'grey.100' }}
-                            />
-                        </Box>
-                    </Box>
-                )}
-
-                {/* Step 3 (MỚI): Xác nhận (trước đây là Step 5) */}
-                {currentStep === 3 && (
-                    <Box className="flex flex-col items-center p-4">
-                        <Typography variant="h6" component="p" className="font-semibold text-gray-800 mb-4">Xác nhận thông tin yêu cầu trả hàng:</Typography>
-                        <Box className="w-full text-left space-y-3">
-                            <Typography variant="body1">
-                                <span className="font-semibold">Lý do:</span> {returnReasons.find(r => r.id === selectedReason)?.label || selectedReason}
-                                {selectedReason === 'OTHER' && detailedReason && ` - ${detailedReason}`}
-                            </Typography>
-                            <Typography variant="body1" className="font-semibold">Sản phẩm muốn trả:</Typography>
-                            {Object.keys(selectedReturnItems).filter(skuId => selectedReturnItems[skuId] > 0).map(skuId => {
-                                const product = orderData?.products?.find(p => p.skuId === skuId);
-                                return product ? (
-                                    <Typography key={skuId} variant="body2" className="ml-4">
-                                        - {product.name} ({product.variation}): {selectedReturnItems[skuId]} sản phẩm
-                                    </Typography>
-                                ) : null;
-                            })}
-                            <Typography variant="body1">
-                                <span className="font-semibold">Bằng chứng:</span> {evidenceFiles.length > 0 ? `${evidenceFiles.length} file đã tải lên` : 'Không có'}
-                            </Typography>
-                            {showBankInfoForm && (
-                                <Box>
-                                    <Typography variant="body1" className="font-semibold">Thông tin hoàn tiền:</Typography>
-                                    <Typography variant="body2" className="ml-4">- Tên ngân hàng: {bankName}</Typography>
-                                    <Typography variant="body2" className="ml-4">- Số tài khoản: {accountNumber}</Typography>
-                                    <Typography variant="body2" className="ml-4">- Tên chủ tài khoản: {accountHolderName}</Typography>
-                                </Box>
-                            )}
-                            {!showBankInfoForm && (
-                                <Typography variant="body1" className="font-semibold">Thông tin hoàn tiền: Hoàn tự động qua {orderPaymentMethodCode?.toUpperCase() || 'phương thức điện tử'}</Typography>
-                            )}
-                            <Typography variant="body1">
-                                <span className="font-semibold">Email nhận thông báo:</span> {refundEmail}
-                            </Typography>
-                            <Box className="flex justify-end items-center mt-4">
-                                <Typography variant="h6" className="font-bold text-gray-800 mr-2">Tổng tiền hoàn lại:</Typography>
-                                <Typography variant="h5" className="font-bold text-red-500">
-                                    {formatCurrencyVND(totalRefundAmount)}
+                                <Typography variant="caption" sx={{ color: 'blue.600', display: 'block' }}>
+                                    Tiền hoàn sẽ được xử lý tự động về phương thức thanh toán ban đầu của bạn.
                                 </Typography>
                             </Box>
-                        </Box>
+                        )}
                     </Box>
-                )}
+
+                    <Box>
+                        <Typography variant="body1" sx={{ color: 'text.secondary', mb: 0.5 }}>Email nhận thông báo:</Typography>
+                        <TextField
+                            variant="outlined"
+                            size="small"
+                            fullWidth
+                            value={refundEmail}
+                            onChange={(e) => setRefundEmail(e.target.value)}
+                            InputProps={{ readOnly: true }}
+                            sx={{ bgcolor: 'grey.100' }}
+                        />
+                    </Box>
+                </Box>
             </Box>
 
-            {/* Điều hướng Buttons */}
-            <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
-                <Button
-                    color="inherit"
-                    disabled={currentStep === 0 || submitting}
-                    onClick={handleBack}
-                    sx={{ mr: 1 }}
-                    startIcon={<ArrowLeft size={16} />}
+            {/* Nút gửi yêu cầu duy nhất */}
+            <Box sx={{ display: 'flex', flexDirection: 'row', pt: 4, justifyContent: 'center' }}>
+                <Button 
+                    onClick={handleSubmitFinal} 
+                    variant="contained" 
+                    className="bg-primary text-white" 
+                    disabled={submitting} 
+                    endIcon={submitting ? <CircularProgress size={20} className="text-white" /> : null} 
                 >
-                    Quay lại
+                    {submitting ? 'Đang gửi yêu cầu...' : 'Gửi yêu cầu'}
                 </Button>
-                <Box sx={{ flex: '1 1 auto' }} />
-                {currentStep === steps.length - 1 ? (
-                    <Button onClick={handleSubmitFinal} variant="contained" color="primary" disabled={submitting} endIcon={submitting ? <CircularProgress size={20} color="inherit" /> : null}>
-                        {submitting ? 'Đang gửi...' : 'Gửi yêu cầu'}
-                    </Button>
-                ) : (
-                    <Button onClick={handleNext} variant="contained" color="primary" endIcon={<ArrowRight size={16} />}>
-                        Tiếp theo
-                    </Button>
-                )}
             </Box>
         </Box>
     );
 };
 
 export default ReturnOrderPage;
+
+const paymentIconMap = {
+    cod: 'https://salt.tikicdn.com/ts/upload/92/b2/78/1b3b9cda5208b323eb9ec56b84c7eb87.png',
+    atm: 'http://googleusercontent.com/file_content/0', 
+    vnpay: 'https://salt.tikicdn.com/ts/upload/77/6a/df/a35cb9c62b9215dbc6d334a77cda4327.png',
+    momo: 'https://s3-sgn09.fptcloud.com/ict-payment-icon/payment/momo.png',
+    zalopay: 'https://s3-sgn09.fptcloud.com/ict-payment-icon/payment/zalopay.png',
+    viettel_money: 'https://i.imgur.com/ttZPvTx.png',
+    stripe: 'https://salt.tikicdn.com/ts/upload/7e/48/50/7fb406156d0827b736cf0fe66c90ed78.png',
+    credit: 'https://salt.tikicdn.com/ts/upload/16/f8/f3/0c02ea827b71cd89ffadb7a22babbdd6.png',
+};

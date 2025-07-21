@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { orderService } from '../../../../services/client/orderService';
+import { paymentService } from '../../../../services/client/paymentService';
 import { toast } from 'react-toastify';
-import { FiChevronUp, FiInfo, FiChevronRight } from 'react-icons/fi';
-import { useCartStore } from '@/stores/useCartStore'; // đầu file nếu chưa có
+import { FiInfo, FiChevronRight } from 'react-icons/fi';
+import { useCartStore } from '@/stores/useCartStore';
 import { formatCurrencyVND } from '../../../../utils/formatCurrency';
 
 import { FaPercentage } from 'react-icons/fa';
 
 import PromoModal, { CouponCard } from '../../Cart/PromoModal';
 import { couponService } from '../../../../services/client/couponService';
+import { Coins } from 'lucide-react';
 
 const OrderSummary = ({
   totalAmount,
@@ -19,7 +21,7 @@ const OrderSummary = ({
   selectedPaymentMethod,
   selectedCoupon: propCoupon,
   selectedAddress,
-  selectedItems = [], // <--- ĐÃ THÊM GIÁ TRỊ MẶC ĐỊNH LÀ MẢNG RỖNG TẠI ĐÂY
+  selectedItems = [],
 }) => {
   const navigate = useNavigate();
 
@@ -27,7 +29,6 @@ const OrderSummary = ({
   const [selectedCoupon, setSelectedCoupon] = useState(null);
   const [isPlacing, setIsPlacing] = useState(false);
 
-  /* ===== Lấy coupon từ prop hoặc localStorage ===== */
   useEffect(() => {
     if (propCoupon) {
       setSelectedCoupon(propCoupon);
@@ -45,12 +46,11 @@ const OrderSummary = ({
     }
   }, [propCoupon]);
 
-  /* ================ Áp / Bỏ mã khuyến mãi ================ */
   const handleApplyPromo = async (coupon) => {
     if (!coupon) {
       setSelectedCoupon(null);
       localStorage.removeItem('selectedCoupon');
-      localStorage.removeItem('appliedCoupon'); // Đồng bộ
+      localStorage.removeItem('appliedCoupon');
       toast.success('Đã bỏ mã giảm giá.');
       setIsPromoModalOpen(false);
       return;
@@ -68,7 +68,7 @@ const OrderSummary = ({
     try {
       const res = await couponService.applyCoupon({
         code: code.trim(),
-        skuIds: currentSkuIds, // <--- SỬ DỤNG TẤT CẢ SKU IDS
+        skuIds: currentSkuIds,
         orderTotal: Number(totalAmount),
       });
       const applied = res.data?.coupon;
@@ -76,7 +76,7 @@ const OrderSummary = ({
       if (applied && res.data?.isValid) {
         setSelectedCoupon(applied);
         localStorage.setItem('selectedCoupon', JSON.stringify(applied));
-        localStorage.setItem('appliedCoupon', JSON.stringify(applied)); // Đồng bộ
+        localStorage.setItem('appliedCoupon', JSON.stringify(applied));
         toast.success(`Áp dụng mã ${code} thành công!`);
       } else {
         if (res.data?.isOutOfUsage) {
@@ -89,17 +89,15 @@ const OrderSummary = ({
       toast.error(err?.response?.data?.message || err.message || 'Lỗi khi áp mã giảm giá!');
       setSelectedCoupon(null);
       localStorage.removeItem('selectedCoupon');
-      localStorage.removeItem('appliedCoupon'); // Đồng bộ
+      localStorage.removeItem('appliedCoupon');
     } finally {
       setIsPromoModalOpen(false);
     }
   };
 
-  // useEffect để re-validate coupon khi selectedItems hoặc totalAmount thay đổi
   const prevRef = useRef({ skuIds: [], orderTotal: null });
 
   useEffect(() => {
-    // selectedItems đã có giá trị mặc định là [] nên không cần kiểm tra undefined
     if (!selectedCoupon || selectedItems.length === 0) return;
 
     const currentSkuIds = selectedItems.map((i) => i.skuId).sort();
@@ -159,8 +157,6 @@ const OrderSummary = ({
     prevRef.current = { skuIds: currentSkuIds, orderTotal: currentOrderTotal };
   }, [selectedItems, totalAmount, selectedCoupon]);
 
-
-  /* ===================== TÍNH TOÁN TIỀN ===================== */
   const couponDiscount =
     selectedCoupon?.discountType !== 'shipping'
       ? Number(selectedCoupon?.discountAmount || 0)
@@ -176,7 +172,6 @@ const OrderSummary = ({
   const finalAmount =
     totalAmount - discount - couponDiscount + shippingFee - shippingDiscount;
 
-  /* ======================== ĐẶT HÀNG ========================= */
   const handlePlaceOrder = async () => {
     if (!selectedAddress || !selectedAddress.id) {
       toast.error('Vui lòng nhập địa chỉ giao hàng!');
@@ -193,12 +188,11 @@ const OrderSummary = ({
     setIsPlacing(true);
 
     try {
-      // Lại kiểm tra coupon lần cuối trước khi đặt hàng
       if (selectedCoupon) {
         const res = await couponService.applyCoupon({
           code: selectedCoupon.code,
           orderTotal: Number(totalAmount),
-          skuIds: itemsToCheckout.map((i) => i.skuId), // <-- Đảm bảo gửi tất cả SKU
+          skuIds: itemsToCheckout.map((i) => i.skuId),
         });
 
         if (!res.data?.isValid || !res.data?.coupon) {
@@ -206,7 +200,7 @@ const OrderSummary = ({
 
           if (msg.includes('hết lượt') || msg.includes('hết hạn')) {
             toast.error(res.data.message || 'Mã giảm giá không còn hiệu lực');
-            return; // Dừng checkout, không xóa mã
+            return;
           }
 
           setSelectedCoupon(null);
@@ -223,19 +217,18 @@ const OrderSummary = ({
         localStorage.setItem('appliedCoupon', JSON.stringify(updatedCoupon));
       }
 
-
       const payload = {
         addressId: selectedAddress.id,
         paymentMethodId: selectedPaymentMethod,
         couponCode: selectedCoupon?.code || null,
         note: '',
-        items: itemsToCheckout.map((i) => ({ // Sử dụng itemsToCheckout
+        items: itemsToCheckout.map((i) => ({
           skuId: i.skuId,
           quantity: i.quantity,
           price: i.finalPrice,
           flashSaleId: i.flashSaleId || null,
         })),
-        cartItemIds: itemsToCheckout.map((i) => i.id), // Sử dụng itemsToCheckout
+        cartItemIds: itemsToCheckout.map((i) => i.id),
 
         shippingProviderId: selectedShipMethod?.providerId || null,
         shippingService: selectedShipMethod?.serviceId || selectedShipMethod?.serviceCode,
@@ -251,31 +244,28 @@ const OrderSummary = ({
       const orderCode = res.data?.orderCode || res.data?.data?.orderCode;
       if (!orderId || !orderCode) throw new Error('Không lấy được mã đơn hàng!');
 
-      /** Xử lý thanh toán online */
       const isQR = selectedPaymentMethod === 2;
       const isVNPay = selectedPaymentMethod === 3;
       const isMoMo = selectedPaymentMethod === 4;
       const isZalo = selectedPaymentMethod === 5;
-   const isViettel = selectedPaymentMethod === 6;
-
-const isStripe = selectedPaymentMethod === 7;
+      const isViettel = selectedPaymentMethod === 6;
+      const isStripe = selectedPaymentMethod === 7;
 
       const fullCart = JSON.parse(localStorage.getItem('cartItems') || '[]');
       const updatedCart = fullCart.filter(
-        (c) => !itemsToCheckout.some((sel) => sel.skuId === c.skuId), // Sử dụng itemsToCheckout
+        (c) => !itemsToCheckout.some((sel) => sel.skuId === c.skuId),
       );
       localStorage.setItem('cartItems', JSON.stringify(updatedCart));
       localStorage.removeItem('selectedCartItems');
       localStorage.removeItem('selectedCoupon');
-      localStorage.removeItem('appliedCoupon'); // Đảm bảo clear cả appliedCoupon
-useCartStore.getState().clearCart();
-window.dispatchEvent(new Event('cartUpdated'));
+      localStorage.removeItem('appliedCoupon');
+      useCartStore.getState().clearCart();
+      window.dispatchEvent(new Event('cartUpdated'));
 
       if (isQR) {
-        const payableNow = finalAmount; // Sử dụng finalAmount đã tính ở trên
-        // Hoặc có thể tính lại chi tiết nếu muốn đảm bảo: totalAmount - totalDiscountDisplay + shippingFee - shippingDiscount;
+        const payableNow = finalAmount;
 
-        const qrRes = await orderService.vietqrPay({
+        const qrRes = await paymentService.vietqrPay({ // Use paymentService
           accountNumber: '2222555552005',
           accountName: 'NGUYEN QUOC KHAI',
           bankCode: 'MB',
@@ -284,22 +274,22 @@ window.dispatchEvent(new Event('cartUpdated'));
         });
         const qrImg = qrRes.data?.qrImage;
         navigate(
-        `/vietqr-confirmation/${orderCode}?qr=${encodeURIComponent(qrImg||'')}`
+          `/vietqr-confirmation/${orderCode}?qr=${encodeURIComponent(qrImg||'')}`
         );
         return;
       }
-if (isStripe) {
-  const stripeRes = await orderService.stripePay({ orderId });
+      if (isStripe) {
+        const stripeRes = await paymentService.stripePay({ orderId }); // Use paymentService
 
-  const redirectUrl = stripeRes?.data?.url;
-  if (!redirectUrl) throw new Error('Không nhận được URL thanh toán từ Stripe');
+        const redirectUrl = stripeRes?.data?.url;
+        if (!redirectUrl) throw new Error('Không nhận được URL thanh toán từ Stripe');
 
-  window.location.href = redirectUrl; // Chuyển hướng người dùng sang Stripe
-  return;
-}
+        window.location.href = redirectUrl;
+        return;
+      }
 
       if (isVNPay) {
-        const url = (await orderService.vnpay({
+        const url = (await paymentService.vnpay({ // Use paymentService
           orderId,
           bankCode: 'NCB',
         })).data?.payUrl;
@@ -309,20 +299,20 @@ if (isStripe) {
       }
 
       if (isMoMo) {
-        const url = (await orderService.momoPay({ orderId })).data?.payUrl;
+        const url = (await paymentService.momoPay({ orderId })).data?.payUrl; // Use paymentService
         if (!url) throw new Error('Không nhận được link MoMo');
         window.location.href = url;
         return;
       }
 
       if (isZalo) {
-        const url = (await orderService.zaloPay({ orderId })).data?.payUrl;
+        const url = (await paymentService.zaloPay({ orderId })).data?.payUrl; // Use paymentService
         if (!url) throw new Error('Không nhận được link ZaloPay');
         window.location.href = url;
         return;
       }
       if (isViettel) {
-        const url = (await orderService.viettelMoney({ orderId })).data?.payUrl;
+        const url = (await paymentService.viettelMoney({ orderId })).data?.payUrl; // Use paymentService
         if (!url) throw new Error('Không nhận được link Viettel Money');
         window.location.href = url;
         return;
@@ -338,7 +328,6 @@ if (isStripe) {
     }
   };
 
-  /* ========================= UI ========================= */
   return (
     <div className="relative">
       <aside className="bg-white rounded-md p-3 sm:p-4 border border-gray-200 shadow-sm sticky top-6 h-fit">
@@ -353,7 +342,6 @@ if (isStripe) {
         </div>
         <div className="border border-gray-200 rounded-md p-3 mb-3">
           {selectedCoupon ? (
-            /* Đã có coupon – hiện pill + link đổi mã */
             <div className="flex flex-col gap-2">
               <CouponCard
                 compact
@@ -385,7 +373,6 @@ if (isStripe) {
               </button>
             </div>
           ) : (
-            /* Chưa có coupon – nút chọn mã */
             <button
               onClick={() => setIsPromoModalOpen(true)}
               className="flex justify-between items-center w-full text-sm text-gray-800"
@@ -399,7 +386,6 @@ if (isStripe) {
           )}
         </div>
 
-        {/* Thông tin tiền */}
         <div className="text-xs sm:text-sm text-gray-600 mb-4">
           <h3 className="font-semibold mb-2 text-gray-800">Thông tin đơn hàng</h3>
 
@@ -445,16 +431,26 @@ if (isStripe) {
               bold
               color="text-red-600"
             />
+                        {finalAmount > 0 && (
+  <div className="flex justify-between text-xs text-yellow-600 font-medium items-center mt-1">
+    <span>Điểm thưởng</span>
+    <span className="flex items-center gap-1">
+      <Coins size={14} className="text-yellow-500" />
+      {'+ ' + Math.floor(finalAmount / 4000).toLocaleString('vi-VN')} điểm
+    </span>
+  </div>
+)}
             <p className="text-sm text-green-600 mt-1 text-right">
               Tiết kiệm {formatCurrencyVND(totalDiscountDisplay)}
             </p>
+
+
             <p className="text-[11px] text-gray-400 text-right">
               (Đã bao gồm VAT nếu có)
             </p>
           </div>
         </div>
 
-        {/* BTN */}
         <button
           onClick={handlePlaceOrder}
           disabled={isPlacing}
@@ -476,13 +472,12 @@ if (isStripe) {
         </p>
       </aside>
 
-      {/* Modal Coupon */}
       {isPromoModalOpen && (
         <PromoModal
           onClose={() => setIsPromoModalOpen(false)}
           onApplySuccess={handleApplyPromo}
           appliedCode={selectedCoupon?.code || ''}
-          skuIds={selectedItems.map(item => item.skuId)} // <--- TRUYỀN TẤT CẢ SKU IDS
+          skuIds={selectedItems.map(item => item.skuId)}
           orderTotal={+totalAmount || 0}
         />
       )}
@@ -490,7 +485,6 @@ if (isStripe) {
   );
 };
 
-/* ==== Component nhỏ hiển thị từng dòng tiền ==== */
 const Row = ({ label, value, bold, color, className, pl }) => (
   <div
     className={`flex justify-between mb-2 text-sm ${

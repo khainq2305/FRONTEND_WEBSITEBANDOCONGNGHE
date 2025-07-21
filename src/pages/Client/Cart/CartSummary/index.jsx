@@ -5,7 +5,7 @@ import PromoModal, { CouponCard } from '../PromoModal';
 import { couponService } from '../../../../services/client/couponService';
 import { formatCurrencyVND } from '../../../../utils/formatCurrency';
 import { toast } from 'react-toastify';
-
+import { Coins } from 'lucide-react';
 import defaultShippingIcon from '../../../../assets/Client/images/image 12.png';
 const CartSummary = ({ hasSelectedItems, selectedItems, orderTotals, appliedCoupon, setAppliedCoupon, onCheckout }) => {
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
@@ -263,15 +263,29 @@ const handleCheckout = async () => {
             <span className="font-medium text-gray-800">{formatCurrencyVND(totals.totalDiscount + discountAmount)}</span>
           </div>
 
+
+
+
           <hr className="border-dashed" />
           <div className="flex justify-between text-gray-800 font-semibold">
             <span>Cần thanh toán</span>
             <span className="text-red-600">{formatCurrencyVND(payableAfterDiscount)}</span>
           </div>
-
+{payableAfterDiscount > 0 && (
+  <div className="flex justify-between text-xs text-yellow-600 font-medium items-center">
+    <span>Điểm thưởng</span>
+    <span className="flex items-center gap-1">
+      <Coins size={14} className="text-yellow-500" />
+      {'+' + Math.floor(payableAfterDiscount / 4000).toLocaleString('vi-VN')} điểm
+    </span>
+  </div>
+)}
           <div className="text-sm text-green-600 mt-1 text-right">Tiết kiệm {formatCurrencyVND(totals.totalDiscount + discountAmount)}</div>
+          
           <p className="text-[11px] text-gray-400 text-right">(Đã bao gồm VAT nếu có)</p>
+          
         </div>
+
 
         <button
           onClick={handleCheckout}

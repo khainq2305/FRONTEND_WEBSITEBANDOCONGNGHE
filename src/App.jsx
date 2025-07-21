@@ -9,7 +9,7 @@ import { systemSettingService } from "@/services/admin/systemSettingService";
 import useAuthStore from "@/stores/AuthStore";
 
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import ThemeCustomization from "./themes";
+import ThemeCustomization from "./themes"; // <-- Đây là component chứa ThemeProvider
 import Toastify from "components/common/Toastify";
 import ScrollTop from "./components/Admin/ScrollTop";
 
@@ -57,12 +57,13 @@ function AppContent() {
   }, []);
 
   return (
-    <ThemeCustomization>
+    <> {/* Sử dụng Fragment hoặc Box nếu bạn muốn wrap bằng một div */}
       <ScrollTop />
       <Toastify />
       <DynamicTitleUpdater />
+      {/* <ThemeCustomization> đã được di chuyển ra ngoài AppContent và bao bọc RouterProvider */}
       <RouterProvider router={router} />
-    </ThemeCustomization>
+    </>
   );
 }
 
@@ -70,7 +71,10 @@ export default function App() {
   return (
     <GoogleOAuthProvider clientId={clientId}>
       <SystemSettingProvider>
-        <AppContent />
+        {/* Đặt ThemeCustomization ở đây, bao bọc AppContent hoặc trực tiếp RouterProvider */}
+        <ThemeCustomization> {/* <-- Đặt ThemeCustomization ở cấp cao hơn */}
+          <AppContent />
+        </ThemeCustomization>
       </SystemSettingProvider>
     </GoogleOAuthProvider>
   );

@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { orderService } from '../../../../services/client/orderService';
 import { toast } from 'react-toastify';
+import { paymentService } from '../../../../services/client/paymentService'; // Updated import
 import vietqrIcon from '../../../../assets/Client/images/566d62fd25cf0867e0033fb1b9b47927.png';
+const creditIcons = 'https://salt.tikicdn.com/ts/upload/16/f8/f3/0c02ea827b71cd89ffadb7a22babbdd6.png';
 
 const paymentIconMap = {
-  cod: 'https://s3-sgn09.fptcloud.com/ict-payment-icon/payment/cod.png',
+  cod: 'https://salt.tikicdn.com/ts/upload/92/b2/78/1b3b9cda5208b323eb9ec56b84c7eb87.png',
   atm: vietqrIcon,
-  vnpay: 'https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-VNPAY-QR-1-300x96.png',
+  vnpay: 'https://salt.tikicdn.com/ts/upload/77/6a/df/a35cb9c62b9215dbc6d334a77cda4327.png',
   momo: 'https://s3-sgn09.fptcloud.com/ict-payment-icon/payment/momo.png',
   zalopay: 'https://s3-sgn09.fptcloud.com/ict-payment-icon/payment/zalopay.png',
   viettel_money: 'https://i.imgur.com/ttZPvTx.png',
-  stripe: 'https://seeklogo.com/images/V/visa-logo-6F4057663D-seeklogo.com.png',
+  stripe: 'https://salt.tikicdn.com/ts/upload/7e/48/50/7fb406156d0827b736cf0fe66c90ed78.png',
+  credit: creditIcons
 
 };
 
@@ -20,7 +22,7 @@ const PaymentMethod = ({ selectedPaymentMethod, setSelectedPaymentMethod }) => {
   useEffect(() => {
     const fetchPaymentMethods = async () => {
       try {
-        const res = await orderService.getPaymentMethods();
+        const res = await paymentService.getPaymentMethods(); // Call from paymentService
         setPaymentMethods(res.data?.data || []);
       } catch (err) {
         console.error('Lỗi lấy phương thức thanh toán:', err);
@@ -61,8 +63,19 @@ const PaymentMethod = ({ selectedPaymentMethod, setSelectedPaymentMethod }) => {
             />
 
             <div className="flex-1">
-              <p className="text-sm font-medium">{method.name}</p>
+              <p className="text-sm font-medium">
+                {method.code === 'stripe' ? 'Thẻ tín dụng / Ghi nợ' : method.name}
+              </p>
+
+              {method.code === 'stripe' && (
+                <img
+                  src={creditIcons}
+                  alt="Thẻ tín dụng icons"
+                  className="mt-1 h-5 w-auto object-contain"
+                />
+              )}
             </div>
+
           </label>
         ))}
       </div>

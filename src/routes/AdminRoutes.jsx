@@ -27,6 +27,7 @@ const VariantValueList = Loadable(lazy(() => import('pages/Admin/VariantValue/in
 const VariantValueForm = Loadable(lazy(() => import('pages/Admin/VariantValue/VariantValueForm')));
 const PaymentMethodList = Loadable(lazy(() => import('pages/Admin/PaymentMethodList')));
 const ShippingProviderList = Loadable(lazy(() => import('pages/Admin/ShippingProviderList')));
+const OrderReturnRefund = Loadable(lazy(() => import('pages/Admin/Returns')));
 
 const AdminReviewsPage = Loadable(lazy(() => import('pages/Admin/Comment/AdminReviewsPage')));
 
@@ -52,6 +53,8 @@ const NotificationEditPage = Loadable(lazy(() => import('pages/Admin/Notificatio
 const QuestionDetailPage = Loadable(lazy(() => import('pages/Admin/ProductQuestion/QuestionDetailPage/index.jsx')));
 const SystemSettings = Loadable(lazy(() => import('pages/Admin/SystemSettings/index')));
 import RequireAuth from '@/components/Admin/RequireAuth';
+const ReturnRefundDetail = Loadable(lazy(() => import('pages/Admin/Returns/ReturnRefundDetail'))); // <-- Thêm dòng này
+
 const RoleIndex = Loadable(lazy(() => import('pages/Admin/Role/index')));
 const RoleManagement = Loadable(lazy(() => import('pages/Admin/Role/RoleManagement')));
 import { UserProvider } from '@/contexts/UserContext';
@@ -123,7 +126,7 @@ const AdminRoutes = {
       path: 'categories/edit/:id',
       element: <CategoryEdit />
     },
-
+  { path: 'return-requests/:id', element: <ReturnRefundDetail /> }, // <-- Thêm route này
     {
       path: 'notifications',
       children: [
@@ -157,6 +160,8 @@ const AdminRoutes = {
       path: 'orders/:id',
       element: <OrderDetail />
     },
+    { path: '/admin/return-requests', element: <OrderReturnRefund /> },
+
     {
       path: 'highlighted-category-items',
       children: [

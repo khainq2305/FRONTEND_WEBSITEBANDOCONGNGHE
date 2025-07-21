@@ -100,30 +100,41 @@ export const API_ENDPOINT = {
     systemSettings: {
       base: `${API_BASE_URL}/system-settings`
     },
-    order: {
-      base: `${API_BASE_URL}/orders`,
-      create: '/create',
-      calculateFee: '/calculate-fee',
-      momoPay: '/momo',
-      reorder: (orderId) => `/${orderId}/reorder`,
-      momoCallback: '/momo-callback',
-  paymentMethods: '/payment-methods', // <-- ⭐ thêm dòng này
-      vnpayCallback: '/vnpay-callback', 
-      zaloPay: '/zalopay',
-      payAgain: (id) => `/${id}/pay-again`,
-      vnpay: '/vnpay',
-       uploadProof: (orderId) => `/${orderId}/proof`,  // ← thêm đây
-      shippingOptions: '/shippings/options',
-      viettelMoney: '/viettel-money', 
-      stripePay: '/stripe', // vào mục order
-  updatePaymentStatus: (orderId) => `/${orderId}/payment-status`,
-      viettelMoneyCallback: '/viettel-money/callback', 
-      bookPickup: (id) => `/return/${id}/book-pickup`,
-      vietqrPay: '/generate-vietqr',
-      markAsCompleted: (orderId) => `/${orderId}/mark-completed`,
-      return: '/return',
-      cancel: (orderId) => `/${orderId}/cancel`,
-      lookup: (code, phone) => `/lookup?code=${code}&phone=${phone}`
+     order: {
+        base: `${API_BASE_URL}/orders`,
+        create: '/create',
+        reorder: (orderId) => `/${orderId}/reorder`,
+        shippingOptions: '/shippings/options',
+        markAsCompleted: (orderId) => `/${orderId}/mark-completed`,
+        cancel: (orderId) => `/${orderId}/cancel`,
+        lookup: (code, phone) => `/lookup?code=${code}&phone=${phone}`
+    },
+    payment: {
+        base: `${API_BASE_URL}/payment`,
+        momoPay: '/momo',
+        momoCallback: '/momo-callback',
+        paymentMethods: '/payment-methods',
+        vnpayCallback: '/vnpay-callback',
+        zaloPay: '/zalopay',
+        payAgain: (id) => `/${id}/pay-again`,
+        vnpay: '/vnpay',
+        uploadProof: (orderId) => `/${orderId}/proof`,
+        viettelMoney: '/viettel-money',
+        stripePay: '/stripe',
+        updatePaymentStatus: (orderId) => `/${orderId}/update-payment-status`, // Assuming this is a payment-specific status update
+        viettelMoneyCallback: '/viettel-money/callback',
+        vietqrPay: '/generate-vietqr',
+        stripeWebhook: '/stripe-webhook', // This is a webhook, typically not accessed directly by frontend
+    },
+    returnRefund: {
+        base: `${API_BASE_URL}/return-refund`,
+        request: '/',
+        getDetail: (id) => `/${id}/detail`,
+        cancel: (id) => `/${id}/cancel`,
+        getByReturnCode: (code) => `/by-code/${code}`,
+
+        chooseMethod: (id) => `/${id}/choose-method`,
+        bookPickup: (id) => `/${id}/book-pickup`,
     },
     news: {
       base: `${API_BASE_URL}/tin-noi-bat`,
@@ -154,6 +165,12 @@ export const API_ENDPOINT = {
       getBySku: (id) => `/sku/${id}`,
       check: (id) => `/check-can-review/${id}`
     },
+    userPoint: {
+  base: `${API_BASE_URL}/points`,
+  total: '', // GET /points
+  history: '/history' // GET /points/history
+},
+
     news: {
       base: `${API_BASE_URL}/tin-noi-bat`,
       featurePost: '',
@@ -299,19 +316,24 @@ export const API_ENDPOINT = {
       forceDeleteMany: '/coupon/force-delete-many'
     },
 
-    order: {
-      base: `${API_BASE_URL}/admin`,
-      list: '/order/list',
-      getById: '/order/:id',
-      updateStatus: (id) => `/order/${id}/status`,
-      getReturns: (orderId) => `/order/${orderId}/returns`,
-      updateReturnStatus: (id) => `/returns/${id}/status`,
-      chooseReturnMethod: (id) => `/return/${id}/choose-method`,
-      getRefunds: (orderId) => `/order/${orderId}/refunds`,
-      updateRefundStatus: (id) => `/refunds/${id}/status`,
-      cancel: '/order/:id/cancel',
-        updatePaymentStatus: (id) => `/order/${id}/payment-status`, 
-    },
+order: {
+  base: `${API_BASE_URL}/admin`,
+  list: '/order/list',
+  getById: '/order/:id',
+  updateStatus: (id) => `/order/${id}/status`,
+  cancel: (id) => `/order/${id}/cancel`,
+  updatePaymentStatus: (id) => `/order/${id}/payment-status`,
+},
+returnRefund: {
+  base: `${API_BASE_URL}/admin`,
+  getReturnsByOrder: (orderId) => `/order/${orderId}/returns`,     // GET
+  updateReturnStatus: (id) => `/returns/${id}/status`,             // PUT
+getReturnDetail: (id) => `/returns/${id}`, // ← thêm dòng này
+
+  getRefundsByOrder: (orderId) => `/order/${orderId}/refunds`,     // GET
+  updateRefundStatus: (id) => `/refunds/${id}/status`,             // PUT
+},
+
     variant: {
       base: `${API_BASE_URL}/admin`,
       list: '/variants/list',

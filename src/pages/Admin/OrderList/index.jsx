@@ -3,16 +3,18 @@ import { useEffect, useState, useCallback } from 'react';
 import {
   Table, TableHead, TableBody, TableRow, TableCell,
   TableContainer, Paper, Chip, Box,
-  Menu, MenuItem, IconButton, CircularProgress, Typography
+  Menu, MenuItem, IconButton, CircularProgress, Typography,
+  Tooltip // Import Tooltip
 } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber'; // Import icon cảnh báo
 import SearchInput from 'components/common/SearchInput';
 import Pagination from 'components/common/Pagination';
 import Toastify from 'components/common/Toastify';
 import CancelOrderDialog from './CancelOrderDialog';
 import UpdateOrderStatusDialog from './UpdateOrderStatusDialog';
 import HighlightText from '../../../components/Admin/HighlightText';
-import { toast } from 'react-toastify'; // ✅ import đúng
+import { toast } from 'react-toastify';
 
 import { useNavigate } from 'react-router-dom';
 import { orderService } from '../../../services/admin/orderService';
@@ -49,10 +51,10 @@ const MoreActionsMenu = ({ actions }) => {
 };
 const statusTabs = [
   { value: '', label: 'Tất cả', color: 'gray' },
- { value: 'processing', label: 'Đang xử lý', color: '#2196f3' },
+  { value: 'processing', label: 'Đang xử lý', color: '#2196f3' },
   { value: 'shipping', label: 'Vận chuyển', color: '#3f51b5' },
   { value: 'delivered', label: 'Đã giao', color: '#4caf50' },
-  { value: 'completed', label: 'Hoàn thành', color: '#009688' }, // ✅ thêm dòng này
+  { value: 'completed', label: 'Hoàn thành', color: '#009688' },
   { value: 'cancelled', label: 'Đã hủy', color: '#f44336' }
 ];
 
@@ -75,26 +77,26 @@ const OrderList = () => {
   const itemsPerPage = 10;
 
   const loadOrders = useCallback(async () => {
-  setLoading(true);
-  try {
-  const { data } = await orderService.getAll({
-  page,
-  limit: itemsPerPage,
-  search,
-  status
-});
+    setLoading(true);
+    try {
+      const { data } = await orderService.getAll({
+        page,
+        limit: itemsPerPage,
+        search,
+        status
+      });
 
-setOrders(data.data || []);
-setTotalItems(data.totalItems || 0);
-setTotalPages(data.totalPages || 1);
+      setOrders(data.data || []);
+      setTotalItems(data.totalItems || 0);
+      setTotalPages(data.totalPages || 1);
 
-  } catch (err) {
-    console.error('Lỗi fetch orders:', err);
-   toast.error('Không tải được danh sách đơn hàng');
-  } finally {
-    setLoading(false);
-  }
-}, [page, search, status]);
+    } catch (err) {
+      console.error('Lỗi fetch orders:', err);
+      toast.error('Không tải được danh sách đơn hàng');
+    } finally {
+      setLoading(false);
+    }
+  }, [page, search, status]);
 
 
   useEffect(() => {
@@ -114,112 +116,110 @@ setTotalPages(data.totalPages || 1);
     setSelectedOrder(order);
     setUpdateStatusDialogOpen(true);
   };
-const handleUpdateStatus = async (newStatus) => {
-  try {
-    await orderService.updateStatus(selectedOrder.id, newStatus);
-    const statusMap = {
- processing : 'Đang xử lý',   // thay thế cho pending / confirmed cũ
-  shipping: 'Vận chuyển',
-  delivered: 'Đã giao',
-  completed: 'Hoàn thành',
-  cancelled: 'Đã hủy'
-};
+  const handleUpdateStatus = async (newStatus) => {
+    try {
+      await orderService.updateStatus(selectedOrder.id, newStatus);
+      const statusMap = {
+        processing: 'Đang xử lý',
+        shipping: 'Vận chuyển',
+        delivered: 'Đã giao',
+        completed: 'Hoàn thành',
+        cancelled: 'Đã hủy'
+      };
 
-toast.success(`Đã cập nhật trạng thái đơn ${selectedOrder?.code} thành "${statusMap[newStatus] || newStatus}"`);
+      toast.success(`Đã cập nhật trạng thái đơn ${selectedOrder?.code} thành "${statusMap[newStatus] || newStatus}"`);
 
-    setUpdateStatusDialogOpen(false);
-    loadOrders();
-  } catch (err) {
-    console.error('Lỗi cập nhật trạng thái:', err);
+      setUpdateStatusDialogOpen(false);
+      loadOrders();
+    } catch (err) {
+      console.error('Lỗi cập nhật trạng thái:', err);
 
-    // 👉 Bắt message cụ thể từ backend trả về (ví dụ: không được quay lại trạng thái cũ)
-    const message = err?.response?.data?.message || 'Cập nhật trạng thái thất bại';
-    toast.error(message); // ✅ hiển thị đúng nội dung lỗi
-  }
-};
+      const message = err?.response?.data?.message || 'Cập nhật trạng thái thất bại';
+      toast.error(message);
+    }
+  };
 
 
   const getStatusChip = (orderStatus) => {
     const map = {
-    processing: ['Đang xử lý', 'info'   ],
+      processing: ['Đang xử lý', 'info'],
       shipping: ['Vận chuyển', 'primary'],
       delivered: ['Đã giao', 'success'],
-      completed : ['Hoàn thành', 'success'],
+      completed: ['Hoàn thành', 'success'],
       cancelled: ['Đã hủy', 'error'],
       refunded: ['Trả hàng/Hoàn tiền', 'default']
     };
     const [label, color] = map[orderStatus] || [orderStatus, 'default'];
     return <Chip label={label} color={color} size="small" />;
   };
-const getPaymentChip = (paymentStatus, paymentMethodCode) => {
-  if (paymentStatus === 'waiting') {
-    if (paymentMethodCode === 'atm') {
-      return <Chip label="Chờ xác nhận chuyển khoản" color="info" size="small" />;
+  const getPaymentChip = (paymentStatus, paymentMethodCode) => {
+    if (paymentStatus === 'waiting') {
+      if (paymentMethodCode === 'atm') {
+        return <Chip label="Chờ xác nhận chuyển khoản" color="info" size="small" />;
+      }
+      return <Chip label="Chờ thanh toán" color="warning" size="small" />;
     }
-    return <Chip label="Chờ thanh toán" color="warning" size="small" />;
-  }
 
-  const map = {
-    unpaid: ['Chưa thanh toán', 'default'],
-    paid: ['Đã thanh toán', 'success']
+    const map = {
+      unpaid: ['Chưa thanh toán', 'default'],
+      paid: ['Đã thanh toán', 'success'],
+      refunded: ['Đã hoàn tiền', 'default']
+    };
+
+    const [label, color] = map[paymentStatus] || [paymentStatus, 'default'];
+    return <Chip label={label} color={color} size="small" />;
   };
-
-  const [label, color] = map[paymentStatus] || [paymentStatus, 'default'];
-  return <Chip label={label} color={color} size="small" />;
-};
 
 
   return (
     <Box sx={{ p: 2 }}>
-    <Box
-  sx={{
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 2,
-    p: 2,
-    mb: 2,
-    border: '1px solid #eee',
-    borderRadius: 2,
-    backgroundColor: '#fafafa'
-  }}
->
-  {/* Tabs lọc trạng thái */}
-  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-    {statusTabs.map((tab) => (
       <Box
-        key={tab.value}
-        onClick={() => setStatus(tab.value)}
         sx={{
-          cursor: 'pointer',
-          px: 2,
-          py: 1,
-          borderRadius: '20px',
-          fontSize: 14,
-          fontWeight: 500,
-          backgroundColor: status === tab.value ? tab.color : '#f5f5f5',
-          color: status === tab.value ? '#fff' : '#333',
-          border: `1px solid ${tab.color}`,
-          transition: '0.2s ease-in-out',
-          '&:hover': {
-            backgroundColor: tab.color,
-            color: '#fff'
-          }
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+          p: 2,
+          mb: 2,
+          border: '1px solid #eee',
+          borderRadius: 2,
+          backgroundColor: '#fafafa'
         }}
       >
-        {tab.label}
-      </Box>
-    ))}
-  </Box>
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+          {statusTabs.map((tab) => (
+            <Box
+              key={tab.value}
+              onClick={() => setStatus(tab.value)}
+              sx={{
+                cursor: 'pointer',
+                px: 2,
+                py: 1,
+                borderRadius: '20px',
+                fontSize: 14,
+                fontWeight: 500,
+                backgroundColor: status === tab.value ? tab.color : '#f5f5f5',
+                color: status === tab.value ? '#fff' : '#333',
+                border: `1px solid ${tab.color}`,
+                transition: '0.2s ease-in-out',
+                '&:hover': {
+                  backgroundColor: tab.color,
+                  color: '#fff'
+                }
+              }}
+            >
+              {tab.label}
+            </Box>
+          ))}
+        </Box>
 
-  {/* Ô tìm kiếm */}
-  <Box sx={{ width: '300px' }}>
-    <SearchInput
-      placeholder="Tìm mã đơn hoặc khách hàng..."
-      value={search}
-      onChange={setSearch}
-    />
-  </Box>
-</Box>
+        <Box sx={{ width: '300px' }}>
+          <SearchInput
+            placeholder="Tìm mã đơn hoặc khách hàng..."
+            value={search}
+            onChange={setSearch}
+          />
+        </Box>
+      </Box>
 
 
       <TableContainer component={Paper}>
@@ -239,53 +239,62 @@ const getPaymentChip = (paymentStatus, paymentMethodCode) => {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
+                <TableCell colSpan={8} align="center" sx={{ py: 4 }}> {/* Cập nhật colSpan */}
                   <CircularProgress size={24} />
                 </TableCell>
               </TableRow>
             ) : (
               orders.length > 0
                 ? orders.map((order, idx) => (
-                    <TableRow key={order.id}>
-                      <TableCell>{(page - 1) * itemsPerPage + idx + 1}</TableCell>
+                  <TableRow key={order.id}>
+                    <TableCell>{(page - 1) * itemsPerPage + idx + 1}</TableCell>
                     <TableCell><HighlightText text={order.code} highlight={search} /></TableCell>
 
-                      <TableCell><HighlightText text={order.customerName || order.customer} highlight={search} /></TableCell>
+                    <TableCell><HighlightText text={order.customerName || order.customer} highlight={search} /></TableCell>
 
-                      <TableCell>
-                        {Number(order.total).toLocaleString('vi-VN')} ₫
-                      </TableCell>
-                      <TableCell>{getStatusChip(order.status)}</TableCell>
-                      <TableCell>{getPaymentChip(order.paymentStatus, order.paymentMethodCode)}</TableCell>
+                    <TableCell>
+                      {Number(order.total).toLocaleString('vi-VN')} ₫
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {getStatusChip(order.status)}
+                        {order.hasPendingReturn && (
+                          <Tooltip title="Đơn hàng có yêu cầu trả hàng đang chờ xử lý">
+                            <WarningAmberIcon color="warning" fontSize="small" />
+                          </Tooltip>
+                        )}
+                      </Box>
+                    </TableCell>
+                    <TableCell>{getPaymentChip(order.paymentStatus, order.paymentMethodCode)}</TableCell>
 
-                      <TableCell>
-  {new Date(order.createdAt).toLocaleString('vi-VN')}
-</TableCell>
+                    <TableCell>
+                      {new Date(order.createdAt).toLocaleString('vi-VN')}
+                    </TableCell>
 
-                      <TableCell align="right">
-                        <MoreActionsMenu
-                          actions={[
-                            {
-                              label: 'Xem chi tiết',
-                              onClick: () => navigate(`/admin/orders/${order.id}`)
-                            },
-                            {
-                              label: 'Cập nhật trạng thái',
-                              onClick: () => openUpdateStatusDialog(order)
-                            },
-                            {
-                              label: 'Hủy đơn',
-                              onClick: () => openCancelDialog(order),
-                              color: 'error'
-                            }
-                          ]}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))
+                    <TableCell align="right">
+                      <MoreActionsMenu
+                        actions={[
+                          {
+                            label: 'Xem chi tiết',
+                            onClick: () => navigate(`/admin/orders/${order.id}`)
+                          },
+                          {
+                            label: 'Cập nhật trạng thái',
+                            onClick: () => openUpdateStatusDialog(order)
+                          },
+                          {
+                            label: 'Hủy đơn',
+                            onClick: () => openCancelDialog(order),
+                            color: 'error'
+                          }
+                        ]}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))
                 : (
                   <TableRow>
-                    <TableCell colSpan={7} align="center">
+                    <TableCell colSpan={8} align="center"> {/* Cập nhật colSpan */}
                       <Typography variant="body2" color="textSecondary">
                         Không có đơn hàng phù hợp
                       </Typography>
@@ -313,27 +322,27 @@ const getPaymentChip = (paymentStatus, paymentMethodCode) => {
         open={cancelDialogOpen}
         onClose={() => setCancelDialogOpen(false)}
         order={selectedOrder}
-       onConfirm={async (reason) => {
-  try {
-    await orderService.cancel(selectedOrder.id, reason);
-    toast.success(`Đã hủy đơn ${selectedOrder?.code} với lý do: ${reason}`);
-    setCancelDialogOpen(false);
-    loadOrders();
-  } catch (err) {
-    console.error('Lỗi huỷ đơn:', err);
-    const message = err?.response?.data?.message || 'Huỷ đơn thất bại';
-    toast.error(message);
-  }
-}}
+        onConfirm={async (reason) => {
+          try {
+            await orderService.cancel(selectedOrder.id, reason);
+            toast.success(`Đã hủy đơn ${selectedOrder?.code} với lý do: ${reason}`);
+            setCancelDialogOpen(false);
+            loadOrders();
+          } catch (err) {
+            console.error('Lỗi huỷ đơn:', err);
+            const message = err?.response?.data?.message || 'Huỷ đơn thất bại';
+            toast.error(message);
+          }
+        }}
 
       />
 
       <UpdateOrderStatusDialog
-  open={updateStatusDialogOpen}
-  onClose={() => setUpdateStatusDialogOpen(false)}
-  order={selectedOrder}
-  onConfirm={handleUpdateStatus}
-/>
+        open={updateStatusDialogOpen}
+        onClose={() => setUpdateStatusDialogOpen(false)}
+        order={selectedOrder}
+        onConfirm={handleUpdateStatus}
+      />
 
     </Box>
   );

@@ -16,6 +16,7 @@ export const confirmDelete = async (actionLabel = 'xoá', itemLabel = 'mục nà
     confirmButtonColor: '#d33',
     cancelButtonColor: '#3085d6',
     confirmButtonText: 'Đồng ý',
+    
     cancelButtonText: 'Hủy'
   });
 

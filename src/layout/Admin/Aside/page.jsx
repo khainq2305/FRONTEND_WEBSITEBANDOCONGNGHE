@@ -247,6 +247,16 @@ const pages = [
     action: 'read',
     subject: 'Order'
   },
+{
+  id: 'return-requests',
+  title: 'Yêu cầu đổi/trả',
+  type: 'item',
+  url: '/admin/return-requests',
+  icon: icons.HistoryOutlined,
+  breadcrumbs: false,
+  action: 'read',
+  subject: 'ReturnRequest'
+},
 
   // ===== Posts =====
   {

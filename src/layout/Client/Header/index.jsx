@@ -12,10 +12,19 @@ import { notificationService } from '../../../services/client/notificationServic
 import Loader from '../../../components/common/Loader';
 import { useSystemSetting } from '@/contexts/SystemSettingContext';
 import FeatureBar from './FeatureBar';
+import useAuthStore from '../../../stores/AuthStore';
 
 const Header = () => {
   const navigate = useNavigate();
-  const [userInfo, setUserInfo] = useState(null);
+const { user, logout } = useAuthStore();
+
+const userInfo = user
+  ? {
+      fullName: user.fullName || '',
+      avatarUrl: user.avatarUrl || null,
+    }
+  : null;
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const [flatCategoriesFromAPI, setFlatCategoriesFromAPI] = useState([]);
@@ -122,22 +131,18 @@ const Header = () => {
     const intervalId = setInterval(fetchCombinedCategories, 300000);
     return () => clearInterval(intervalId);
   }, []);
-  useEffect(() => {
-    const fetchUserInfo = async () => {
-      try {
-        const response = await authService.getUserInfo();
-        const user = response.data?.user || {};
-        setUserInfo({
-          fullName: user.fullName || '',
-          avatarUrl: user.avatarUrl || null
-        });
-      } catch (err) {
-        console.error('Lỗi lấy thông tin người dùng:', err);
-        setUserInfo(null);
-      }
-    };
-    fetchUserInfo();
-  }, []);
+useEffect(() => {
+  const fetchUserInfo = async () => {
+    try {
+      const response = await authService.getUserInfo();
+      const user = response.data?.user || {};
+      useAuthStore.getState().login(user); // ✅ Gọi hàm login có sẵn trong store
+    } catch (err) {
+      console.error('Lỗi lấy thông tin người dùng:', err);
+    }
+  };
+  fetchUserInfo();
+}, []);
 
   const getDisplayName = (fullName, maxLength = 8) => {
     if (!fullName) return '';
@@ -175,32 +180,11 @@ const Header = () => {
     };
   }, []);
 
-  const handleLogout = async () => {
-  try {
-    await authService.logout();
-
-    localStorage.removeItem('token');
-    sessionStorage.removeItem('token');
-
-    delete axios.defaults.headers.common['Authorization']; // <- BẮT BUỘC THÊM
-
-    setUserInfo(null);
-    setIsDropdownOpen(false);
-
-    navigate('/dang-nhap');
-  } catch (error) {
-    console.error('Lỗi khi gọi API đăng xuất:', error);
-
-    localStorage.removeItem('token');
-    sessionStorage.removeItem('token');
-
-    delete axios.defaults.headers.common['Authorization']; // <- BẮT BUỘC THÊM
-
-    setUserInfo(null);
-    setIsDropdownOpen(false);
-    navigate('/dang-nhap');
-  }
+const handleLogout = async () => {
+  await logout();
+  
 };
+
 
 
   const handleOutsideClick = (e) => {

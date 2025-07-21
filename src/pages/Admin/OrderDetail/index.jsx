@@ -7,7 +7,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { orderService } from '../../../services/admin/orderService';
-import OrderReturnRefund from './OrderReturnRefund';
+// import OrderReturnRefund from './OrderReturnRefund'; // Đã loại bỏ import này
 import { toast } from 'react-toastify'; // Import toast cho thông báo
 
 const orderStatusLabels = {
@@ -120,8 +120,8 @@ const OrderDetail = () => {
   const isManualTransfer = ['atm', 'bank_transfer', 'manual_transfer'].includes(order.paymentMethod?.code?.toLowerCase());
   const shouldShowProofAndConfirmButton = isManualTransfer && (
     order.paymentStatus === 'waiting' || // Nếu đang chờ khách hàng chuyển tiền
-    order.paymentStatus === 'unpaid' ||  // Nếu là unpaid (như COD) và sau đó chuyển thành thủ công
-    order.paymentStatus === 'processing' // KHI KHÁCH HÀNG ĐÃ BẤM "TÔI ĐÃ CHUYỂN KHOẢN"
+    order.paymentStatus === 'unpaid' ||   // Nếu là unpaid (như COD) và sau đó chuyển thành thủ công
+    order.paymentStatus === 'processing'  // KHI KHÁCH HÀNG ĐÃ BẤM "TÔI ĐÃ CHUYỂN KHOẢN"
   );
 
   return (
@@ -278,8 +278,7 @@ const OrderDetail = () => {
           </Typography>
         </Box>
       </Paper>
-      {/* Truyền orderId cho OrderReturnRefund để component này có thể fetch dữ liệu liên quan */}
-      <OrderReturnRefund orderId={order.id} />
+      {/* Đã loại bỏ component OrderReturnRefund ở đây */}
     </Box>
   );
 };

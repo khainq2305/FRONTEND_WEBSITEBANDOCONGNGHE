@@ -4,7 +4,7 @@ const paymentOptions = [
   {
     id: 1,
     label: 'Thanh toán khi nhận hàng',
-    icon: 'https://s3-sgn09.fptcloud.com/ict-payment-icon/payment/cod.png',
+    icon: 'https://salt.tikicdn.com/ts/upload/92/b2/78/1b3b9cda5208b323eb9ec56b84c7eb87.png',
   },
   {
     id: 2,
@@ -14,7 +14,7 @@ const paymentOptions = [
   {
     id: 3,
     label: 'Thanh toán bằng ví VNPay',
-    icon: 'https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-VNPAY-QR-1-300x96.png',
+    icon: 'https://salt.tikicdn.com/ts/upload/77/6a/df/a35cb9c62b9215dbc6d334a77cda4327.png',
   },
   {
     id: 4,
@@ -23,6 +23,11 @@ const paymentOptions = [
   },
   {
     id: 5,
+    label: 'Thanh toán bằng ví ZaloPay',
+    icon: 'https://s3-sgn09.fptcloud.com/ict-payment-icon/payment/zalopay.png',
+  },
+  {
+    id: 6,
     label: 'Thanh toán bằng ví ZaloPay',
     icon: 'https://s3-sgn09.fptcloud.com/ict-payment-icon/payment/zalopay.png',
   },

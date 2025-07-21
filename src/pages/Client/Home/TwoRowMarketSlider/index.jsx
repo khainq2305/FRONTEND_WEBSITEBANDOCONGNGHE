@@ -256,7 +256,7 @@ const displaySoldQuantityText = (() => {
         <img
           src="src/assets/Client/images/flash-sale.png"
           alt="🔥"
-          className="absolute top-[-4px] left-[-4px] h-[27px] w-[24px] select-none pointer-events-none z-20"
+          className="absolute top-[-2px] left-[-2px] h-[29px] w-[24px] select-none pointer-events-none z-20"
         />
       )}
       <span className="absolute inset-0 flex items-center justify-center text-[11px] font-semibold text-orange-800 z-10">

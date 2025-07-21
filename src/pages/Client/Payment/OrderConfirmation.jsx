@@ -6,6 +6,7 @@ import ProductList from './OrderConfirmation/ProductList';
 import CustomerInfo from './OrderConfirmation/CustomerInfo';
 import DeliveryMethod from './OrderConfirmation/DeliveryMethod';
 import PaymentMethod from './OrderConfirmation/PaymentMethod';
+import { paymentService } from '../../../services/client/paymentService';
 
 import { orderService } from '../../../services/client/orderService';
 import { toast } from 'react-toastify';
@@ -118,7 +119,7 @@ const fetchOrderDetails = async (code) => {
       const isPaymentPending = orderData.paymentStatus === 'waiting' || orderData.paymentStatus === 'unpaid';
       if (paymentCode === 'atm' && isPaymentPending) {
         try {
-          const qrRes = await orderService.generateVietQR({
+          const qrRes = await paymentService.generateVietQR({
             accountNumber: '2222555552005', // CÓ THỂ THAY BẰNG CONFIG TỪ ENV
             accountName: 'NGUYEN QUOC KHAI',
             bankCode: 'MB',
