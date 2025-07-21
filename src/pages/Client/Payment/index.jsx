@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { orderService } from '../../../services/client/orderService';
+import { cartService } from '../../../services/client/cartService';
 import { userAddressService } from '../../../services/client/userAddressService';
 import CheckoutForm from './CheckoutForm';
 import PaymentMethod from './PaymentMethod';
@@ -19,6 +20,28 @@ const CheckoutPage = () => {
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [isLoadingAddress, setIsLoadingAddress] = useState(true);
   const [selectedShipMethod, setSelectedShipMethod] = useState(null);
+const [usePoints, setUsePoints] = useState(() => {
+  const stored = localStorage.getItem('usePoints');
+  return stored ? JSON.parse(stored) : false;
+});
+const [pointInfo, setPointInfo] = useState({ maxUsablePoints: 0, canUsePoints: false });
+
+useEffect(() => {
+  const fetchCart = async () => {
+    try {
+      const res = await cartService.getCart();
+      setPointInfo(res.data?.pointInfo || { maxUsablePoints: 0, canUsePoints: false });
+    } catch (err) {
+      console.error('❌ Lỗi lấy điểm thưởng ở CheckoutPage:', err);
+    }
+  };
+  fetchCart();
+}, []);
+
+useEffect(() => {
+  localStorage.setItem('usePoints', JSON.stringify(usePoints));
+}, [usePoints]);
+
 
   useEffect(() => {
     const storedItems = localStorage.getItem('selectedCartItems');
@@ -208,16 +231,20 @@ setSelectedAddress(savedAddress || allAddresses.find(addr => addr.isDefault) || 
         </div>
 
         <div className="w-full mb-2 lg:w-[30%] lg:sticky lg:top-35 lg:h-fit"> {/* Changed top value to top-28 */}
-          <OrderSummary
-            totalAmount={totals.totalAmount}
-            discount={totals.discount}
-            shippingFee={shippingFee}
-            selectedPaymentMethod={selectedPaymentMethod}
-            selectedCoupon={selectedCoupon}
-            selectedAddress={selectedAddress}
-            selectedShipMethod={selectedShipMethod}
-            selectedItems={productsInOrder}
-          />
+         <OrderSummary
+  totalAmount={totals.totalAmount}
+  discount={totals.discount}
+  shippingFee={shippingFee}
+  selectedPaymentMethod={selectedPaymentMethod}
+  selectedCoupon={selectedCoupon}
+  selectedAddress={selectedAddress}
+  selectedShipMethod={selectedShipMethod}
+  selectedItems={productsInOrder}
+  usePoints={usePoints}
+  pointInfo={pointInfo}
+  setUsePoints={setUsePoints}
+/>
+
         </div>
       </div>
     </div>

@@ -20,6 +20,11 @@ const CartPage = () => {
     const [isCartLoaded, setIsCartLoaded] = useState(false);
     const hasSelectedItems = cartItems.length > 0 && checkedItems.some(Boolean);
     const selectedItems = cartItems.filter((_, index) => checkedItems[index]);
+const [usePoints, setUsePoints] = useState(false);
+const [pointInfo, setPointInfo] = useState({});
+useEffect(() => {
+  localStorage.setItem('usePoints', JSON.stringify(usePoints));
+}, [usePoints]);
 
     useEffect(() => {
         if (!appliedCoupon) return;
@@ -58,7 +63,9 @@ const CartPage = () => {
 
     const fetchCart = async () => {
         try {
-            const response = await cartService.getCart();
+      const response = await cartService.getCart();
+setPointInfo(response.data?.pointInfo || {});
+
             const items = response.data?.cartItems || [];
             const formattedItems = items.map((item) => ({
                 ...item,
@@ -298,20 +305,25 @@ const CartPage = () => {
                     </section>
 
                     <aside className="w-full xl:w-[30%] xl:sticky xl:top-35 self-start h-fit mt-6 xl:mt-0"> {/* THAY ĐỔI Ở ĐÂY: lg -> xl */}
-                        <CartSummary
-                            hasSelectedItems={hasSelectedItems}
-                            selectedItems={selectedItems}
-                            appliedCoupon={appliedCoupon}
+<CartSummary
+  hasSelectedItems={hasSelectedItems}
+  selectedItems={selectedItems}
+  appliedCoupon={appliedCoupon}
+  setAppliedCoupon={setAppliedCoupon}
+  usePoints={usePoints}
+  setUsePoints={setUsePoints}
+  orderTotals={{
+    totalPrice: totals.totalPrice,
+    totalDiscount: totals.totalDiscount,
+    payablePrice: totals.payablePrice,
+    rewardPoints: totals.rewardPoints,
+    ...pointInfo,
 
-                            orderTotals={{
-                                totalPrice: totals.totalPrice,
-                                totalDiscount: totals.totalDiscount,
-                                payablePrice: totals.payablePrice,
-                                rewardPoints: totals.rewardPoints
-                            }}
-                            onCheckout={handleProceedToCheckout}
-                            setAppliedCoupon={setAppliedCoupon}
-                        />
+  }}
+  onCheckout={handleProceedToCheckout}
+/>
+
+
                     </aside>
                 </div>
             ) : (

@@ -17,17 +17,24 @@ const OrderSummary = ({
   totalAmount,
   discount,
   shippingFee,
+   pointInfo, // ✅ TRUYỀN VÀO
   selectedShipMethod,
   selectedPaymentMethod,
   selectedCoupon: propCoupon,
   selectedAddress,
   selectedItems = [],
+  usePoints,
+  setUsePoints
 }) => {
+
   const navigate = useNavigate();
 
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
   const [selectedCoupon, setSelectedCoupon] = useState(null);
   const [isPlacing, setIsPlacing] = useState(false);
+
+
+const pointDiscountAmount = usePoints ? pointInfo.maxUsablePoints * 10 : 0;
 
   useEffect(() => {
     if (propCoupon) {
@@ -169,8 +176,8 @@ const OrderSummary = ({
 
   const totalDiscountDisplay = discount + couponDiscount + shippingDiscount;
 
-  const finalAmount =
-    totalAmount - discount - couponDiscount + shippingFee - shippingDiscount;
+const finalAmount =
+  totalAmount - discount - couponDiscount + shippingFee - shippingDiscount - pointDiscountAmount;
 
   const handlePlaceOrder = async () => {
     if (!selectedAddress || !selectedAddress.id) {
@@ -220,6 +227,8 @@ const OrderSummary = ({
       const payload = {
         addressId: selectedAddress.id,
         paymentMethodId: selectedPaymentMethod,
+        usePoints: usePoints,
+  pointsToSpend: usePoints ? pointInfo.maxUsablePoints : 0, // ✅
         couponCode: selectedCoupon?.code || null,
         note: '',
         items: itemsToCheckout.map((i) => ({
@@ -385,6 +394,32 @@ const OrderSummary = ({
             </button>
           )}
         </div>
+<div className="border border-gray-200 rounded-md p-3 mb-3">
+  <div className="flex justify-between items-center text-sm">
+    <div className="flex items-center text-gray-800 font-medium">
+  <Coins size={16} className="text-yellow-500 mr-1" />
+  Đổi {pointInfo.maxUsablePoints} điểm (~{formatCurrencyVND(pointInfo.maxUsablePoints * 10)})
+</div>
+
+    <label className="inline-flex items-center cursor-pointer ml-2">
+     <input
+  type="checkbox"
+  checked={usePoints}
+  onChange={() => setUsePoints((prev) => !prev)}
+  className="sr-only peer"
+  disabled={!pointInfo.canUsePoints}
+/>
+
+      <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-primary transition-all duration-300 relative">
+        <div
+          className={`absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow-md transform transition-transform ${
+            usePoints ? 'translate-x-5' : ''
+          }`}
+        />
+      </div>
+    </label>
+  </div>
+</div>
 
         <div className="text-xs sm:text-sm text-gray-600 mb-4">
           <h3 className="font-semibold mb-2 text-gray-800">Thông tin đơn hàng</h3>

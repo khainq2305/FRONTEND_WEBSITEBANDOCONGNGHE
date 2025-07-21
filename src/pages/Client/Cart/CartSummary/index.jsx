@@ -7,11 +7,31 @@ import { formatCurrencyVND } from '../../../../utils/formatCurrency';
 import { toast } from 'react-toastify';
 import { Coins } from 'lucide-react';
 import defaultShippingIcon from '../../../../assets/Client/images/image 12.png';
-const CartSummary = ({ hasSelectedItems, selectedItems, orderTotals, appliedCoupon, setAppliedCoupon, onCheckout }) => {
+import { rewardPointService } from '../../../../services/client/rewardPointService';
+
+
+const CartSummary = ({
+  hasSelectedItems,
+  selectedItems,
+  orderTotals,
+  appliedCoupon,
+  setAppliedCoupon,
+  onCheckout,
+  usePoints,            // ✅ thêm dòng này
+  setUsePoints          // ✅ thêm dòng này
+}) => {
+
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
-const [usePoints, setUsePoints] = useState(false);
-const userPointBalance = 21; // TODO: fetch từ API nếu cần
-const exchangeRate = 10; // 1 điểm = 10đ, tùy bạn set
+
+
+const {
+  userPointBalance = 0,
+  exchangeRate = 10,
+  minPointRequired = 0,
+  canUsePoints = false,
+  maxUsablePoints = 0,
+  pointDiscountAmount = 0,
+} = orderTotals || {};
 
   const openPromoModal = () => {
     if (!hasSelectedItems) {
@@ -68,6 +88,8 @@ const handleApplySuccess = async (couponObject) => {
     localStorage.removeItem('selectedCoupon');
   }
 };
+
+
 
 
 const prevRef = useRef({ skuIds: [], orderTotal: null });
@@ -144,7 +166,8 @@ const discountAmount =
 
   const payableBeforeDiscount = Number(orderTotals?.payablePrice || 0);
 
-  const payableAfterDiscount = Math.max(0, payableBeforeDiscount - discountAmount);
+const payableAfterDiscount = Math.max(0, payableBeforeDiscount - discountAmount - (usePoints ? pointDiscountAmount : 0));
+
   const payableAfterDiscountFormatted = formatCurrencyVND(payableAfterDiscount > 0 ? payableAfterDiscount : 0);
 
   const totals = orderTotals || {
@@ -246,21 +269,38 @@ const handleCheckout = async () => {
 <div className="flex items-center justify-between px-3 py-2 border border-gray-200 rounded-md">
   <div className="flex items-center gap-2 text-sm text-gray-700">
     <Coins size={16} className="text-yellow-500" />
-    <span>Đổi {userPointBalance} điểm</span>
-    <span className="text-gray-400 text-xs">(~{formatCurrencyVND(userPointBalance * exchangeRate)})</span>
+   <span>Đổi {maxUsablePoints} điểm</span>
+<span className="text-gray-400 text-xs">
+  (~{formatCurrencyVND(pointDiscountAmount)})
+</span>
+
   </div>
+
   <label className="inline-flex items-center cursor-pointer">
-    <input
-      type="checkbox"
-      checked={usePoints}
-      onChange={() => setUsePoints(!usePoints)}
-      className="sr-only peer"
-    />
-    <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:bg-green-500 relative transition-colors">
-      <div className="absolute left-1 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4"></div>
+   <input
+  type="checkbox"
+  checked={usePoints}
+  disabled={!canUsePoints}
+  onChange={() => {
+    if (!canUsePoints) {
+      toast.warn(`Bạn cần ít nhất ${minPointRequired} điểm để sử dụng`);
+      return;
+    }
+    setUsePoints(!usePoints);
+  }}
+  className="sr-only peer"
+/>
+
+    {/* CÁCH SỬA: CHỈNH SỬA Ở ĐÂY */}
+    <div className="w-9 h-5 bg-gray-200 rounded-full relative transition-colors peer-checked:bg-green-500">
+      <div
+        className="absolute top-[2px] w-4 h-4 bg-white rounded-full transition-transform duration-200"
+        style={{ left: usePoints ? 'calc(100% - 18px)' : '2px' }} // Sử dụng style inline để điều khiển vị trí chính xác
+      ></div>
     </div>
   </label>
 </div>
+
 
         <div className="text-sm text-gray-700 space-y-2">
           <h3 className="font-semibold text-base text-gray-800">Thông tin đơn hàng</h3>
