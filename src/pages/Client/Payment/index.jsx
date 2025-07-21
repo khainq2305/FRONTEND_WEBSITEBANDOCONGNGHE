@@ -20,28 +20,27 @@ const CheckoutPage = () => {
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [isLoadingAddress, setIsLoadingAddress] = useState(true);
   const [selectedShipMethod, setSelectedShipMethod] = useState(null);
-const [usePoints, setUsePoints] = useState(() => {
-  const stored = localStorage.getItem('usePoints');
-  return stored ? JSON.parse(stored) : false;
-});
-const [pointInfo, setPointInfo] = useState({ maxUsablePoints: 0, canUsePoints: false });
+  const [usePoints, setUsePoints] = useState(() => {
+    const stored = localStorage.getItem('usePoints');
+    return stored ? JSON.parse(stored) : false;
+  });
+  const [pointInfo, setPointInfo] = useState({ maxUsablePoints: 0, canUsePoints: false });
 
-useEffect(() => {
-  const fetchCart = async () => {
-    try {
-      const res = await cartService.getCart();
-      setPointInfo(res.data?.pointInfo || { maxUsablePoints: 0, canUsePoints: false });
-    } catch (err) {
-      console.error('❌ Lỗi lấy điểm thưởng ở CheckoutPage:', err);
-    }
-  };
-  fetchCart();
-}, []);
+  useEffect(() => {
+    const fetchCart = async () => {
+      try {
+        const res = await cartService.getCart();
+        setPointInfo(res.data?.pointInfo || { maxUsablePoints: 0, canUsePoints: false });
+      } catch (err) {
+        console.error('❌ Lỗi lấy điểm thưởng ở CheckoutPage:', err);
+      }
+    };
+    fetchCart();
+  }, []);
 
-useEffect(() => {
-  localStorage.setItem('usePoints', JSON.stringify(usePoints));
-}, [usePoints]);
-
+  useEffect(() => {
+    localStorage.setItem('usePoints', JSON.stringify(usePoints));
+  }, [usePoints]);
 
   useEffect(() => {
     const storedItems = localStorage.getItem('selectedCartItems');
@@ -88,10 +87,9 @@ useEffect(() => {
         allAddresses.sort((a, b) => (a.isDefault ? -1 : b.isDefault ? 1 : 0));
         setAddressList(allAddresses);
         const savedAddressId = localStorage.getItem('selectedAddressId');
-const savedAddress = allAddresses.find(addr => addr.id === Number(savedAddressId));
+        const savedAddress = allAddresses.find((addr) => addr.id === Number(savedAddressId));
 
-setSelectedAddress(savedAddress || allAddresses.find(addr => addr.isDefault) || allAddresses[0]);
-
+        setSelectedAddress(savedAddress || allAddresses.find((addr) => addr.isDefault) || allAddresses[0]);
       } else {
         setAddressList([]);
         setSelectedAddress(null);
@@ -106,9 +104,9 @@ setSelectedAddress(savedAddress || allAddresses.find(addr => addr.isDefault) || 
 
   const cartPayload = useMemo(
     () =>
-      productsInOrder.map(i => ({
-        skuId   : i.skuId,
-        quantity: i.quantity,
+      productsInOrder.map((i) => ({
+        skuId: i.skuId,
+        quantity: i.quantity
       })),
     [productsInOrder]
   );
@@ -129,11 +127,7 @@ setSelectedAddress(savedAddress || allAddresses.find(addr => addr.isDefault) || 
     { totalAmount: 0, discount: 0 }
   );
 
-  const breadcrumbItems = [
-    { label: 'Trang chủ', href: '/' },
-    { label: 'Giỏ hàng', href: '/cart' },
-    { label: 'Thanh toán' }
-  ];
+  const breadcrumbItems = [{ label: 'Trang chủ', href: '/' }, { label: 'Giỏ hàng', href: '/cart' }, { label: 'Thanh toán' }];
 
   return (
     <div className="bg-gray-100 max-w-[1200px] mx-auto min-h-screen ">
@@ -148,10 +142,7 @@ setSelectedAddress(savedAddress || allAddresses.find(addr => addr.isDefault) || 
             <div className="product-list-inner-box bg-gray-50 p-3 rounded-md space-y-3 sm:space-y-4">
               {productsInOrder.length > 0 ? (
                 productsInOrder.map((product, index) => (
-                  <div
-                    key={product.id || `product-${index}`}
-                    className="flex items-center gap-2 sm:gap-3"
-                  >
+                  <div key={product.id || `product-${index}`} className="flex items-center gap-2 sm:gap-3">
                     <img
                       src={
                         product.image ||
@@ -167,9 +158,7 @@ setSelectedAddress(savedAddress || allAddresses.find(addr => addr.isDefault) || 
                     />
 
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium leading-snug line-clamp-2">
-                        {product.productName}
-                      </p>
+                      <p className="font-medium leading-snug line-clamp-2">{product.productName}</p>
 
                       {product.variant && (
                         <div className="mt-1 text-xs text-gray-600 flex flex-wrap gap-x-1">
@@ -184,10 +173,7 @@ setSelectedAddress(savedAddress || allAddresses.find(addr => addr.isDefault) || 
                       )}
 
                       <div className="text-xs text-gray-500 mt-1">
-                        Số lượng:{' '}
-                        <span className="font-medium text-gray-800">
-                          {product.quantity || 1}
-                        </span>
+                        Số lượng: <span className="font-medium text-gray-800">{product.quantity || 1}</span>
                       </div>
                     </div>
 
@@ -196,27 +182,18 @@ setSelectedAddress(savedAddress || allAddresses.find(addr => addr.isDefault) || 
                         {Number(product.price || 0).toLocaleString('vi-VN')} ₫
                       </p>
 
-                      {product.oldPrice &&
-                        product.oldPrice > (product.price || 0) && (
-                          <p className="text-gray-400 text-xs line-through mt-0.5">
-                            {Number(product.oldPrice).toLocaleString('vi-VN')} ₫
-                          </p>
-                        )}
+                      {product.oldPrice && product.oldPrice > (product.price || 0) && (
+                        <p className="text-gray-400 text-xs line-through mt-0.5">{Number(product.oldPrice).toLocaleString('vi-VN')} ₫</p>
+                      )}
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="text-center text-gray-500 py-4">
-                  Không có sản phẩm nào được chọn để thanh toán.
-                </p>
+                <p className="text-center text-gray-500 py-4">Không có sản phẩm nào được chọn để thanh toán.</p>
               )}
             </div>
           </div>
-          <ShippingMethodSelector
-            selectedAddress={selectedAddress}
-            cartItems={cartPayload}
-            onSelect={setSelectedShipMethod}
-          />
+          <ShippingMethodSelector selectedAddress={selectedAddress} cartItems={cartPayload} onSelect={setSelectedShipMethod} />
           <CheckoutForm
             isLoading={isLoadingAddress}
             addressList={addressList}
@@ -225,26 +202,27 @@ setSelectedAddress(savedAddress || allAddresses.find(addr => addr.isDefault) || 
             onAddressCreated={refetchAddresses}
           />
 
-          <div className='mb-2'>
+          <div className="mb-2">
             <PaymentMethod selectedPaymentMethod={selectedPaymentMethod} setSelectedPaymentMethod={setSelectedPaymentMethod} />
           </div>
         </div>
 
-        <div className="w-full mb-2 lg:w-[30%] lg:sticky lg:top-35 lg:h-fit"> {/* Changed top value to top-28 */}
-         <OrderSummary
-  totalAmount={totals.totalAmount}
-  discount={totals.discount}
-  shippingFee={shippingFee}
-  selectedPaymentMethod={selectedPaymentMethod}
-  selectedCoupon={selectedCoupon}
-  selectedAddress={selectedAddress}
-  selectedShipMethod={selectedShipMethod}
-  selectedItems={productsInOrder}
-  usePoints={usePoints}
-  pointInfo={pointInfo}
-  setUsePoints={setUsePoints}
-/>
-
+        <div className="w-full mb-2 lg:w-[30%] lg:sticky lg:top-35 lg:h-fit">
+          {' '}
+          {/* Changed top value to top-28 */}
+          <OrderSummary
+            totalAmount={totals.totalAmount}
+            discount={totals.discount}
+            shippingFee={shippingFee}
+            selectedPaymentMethod={selectedPaymentMethod}
+            selectedCoupon={selectedCoupon}
+            selectedAddress={selectedAddress}
+            selectedShipMethod={selectedShipMethod}
+            selectedItems={productsInOrder}
+            usePoints={usePoints}
+            pointInfo={pointInfo}
+            setUsePoints={setUsePoints}
+          />
         </div>
       </div>
     </div>
