@@ -43,6 +43,19 @@ useEffect(() => {
     { value: 'no-seo', label: 'Chưa có SEO' }
   ];
 
+  // Schema options
+  const schemaOptions = [
+    { value: '', label: 'Tất cả Schema' },
+    { value: 'Article', label: 'Article' },
+    { value: 'NewsArticle', label: 'NewsArticle' },
+    { value: 'BlogPosting', label: 'BlogPosting' },
+    { value: 'Product', label: 'Product' },
+    { value: 'Event', label: 'Event' },
+    { value: 'Recipe', label: 'Recipe' },
+    { value: 'Review', label: 'Review' },
+    { value: 'no-schema', label: 'Chưa có Schema' }
+  ];
+
   return (
     <div className="flex gap-4 mb-5">
       <div className="w-1/4 flex gap-2">
@@ -71,6 +84,15 @@ useEffect(() => {
           value={filters.category}
           onChange={(v) => handleChange('category', v)}
           options={categoryOptions}
+        />
+      </div>
+
+      <div className="w-1/6">
+        <FilterSelect
+          label="Schema Type"
+          value={filters.schemaType}
+          onChange={(v) => handleChange('schemaType', v)}
+          options={schemaOptions}
         />
       </div>
 

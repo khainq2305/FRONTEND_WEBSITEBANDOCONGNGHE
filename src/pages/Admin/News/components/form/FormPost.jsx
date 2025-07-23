@@ -3,6 +3,7 @@ import { Grid, FormControlLabel, Switch } from "@mui/material";
 import Content from "@/pages/Admin/News/components/form/Content";
 import Sidebar from "@/pages/Admin/News/components/sidebar/Sidebar";
 import SEORealtimeAnalyzerEnhanced from "@/components/Admin/SEO/SEORealtimeAnalyzerEnhanced";
+import SchemaEditor from "@/components/Admin/SEO/SchemaEditor";
 import { newsCategoryService } from "@/services/admin/newCategoryService";
 import { normalizeCategoryList } from "@/utils";
 import { tagService } from "@/services/admin/tagService";
@@ -21,6 +22,7 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
   const [isFeature, setIsFeature] = useState(false);
   const [errors, setErrors] = useState({});
   const [focusKeyword, setFocusKeyword] = useState("");
+  const [schema, setSchema] = useState(null);
 
   useEffect(() => {
     if (initialData) {
@@ -82,6 +84,7 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
   formData.append("thumbnail", thumbnail);
   formData.append('tags', JSON.stringify(tags));
   formData.append('focusKeyword', focusKeyword);
+  formData.append('schema', JSON.stringify(schema));
 
   try {
     await onSubmit?.(formData);
@@ -125,6 +128,16 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
             onFocusKeywordChange={setFocusKeyword}
             mode={mode}
             slug={initialData?.slug || ''}
+          />
+          
+          {/* Schema Editor */}
+          <SchemaEditor
+            postId={initialData?.id}
+            postTitle={title}
+            postContent={content}
+            postSlug={initialData?.slug || ''}
+            mode={mode}
+            onSchemaChange={setSchema}
           />
           
           <Sidebar

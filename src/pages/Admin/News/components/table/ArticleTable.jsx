@@ -69,6 +69,7 @@ const ArticleTable = ({
                   <TableCell>Tiêu đề</TableCell>
                   <TableCell>Tác giả</TableCell>
                   <TableCell>Danh mục</TableCell>
+                  <TableCell align="center">Schema</TableCell>
                   <TableCell align="center">SEO Score</TableCell>
                   <TableCell>Trạng thái</TableCell>
                   <TableCell align="right">Hành động</TableCell>
@@ -115,6 +116,41 @@ const ArticleTable = ({
                         </TableCell>
                         <TableCell>{row.author?.fullName || 'không có'}</TableCell>
                         <TableCell>{row.category?.name || `#${row.categoryId}` || 'không có'}</TableCell>
+                        
+                        {/* Schema Column */}
+                        <TableCell align="center">
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                            {row.seoData?.schema ? (
+                              <Tooltip title={`Schema Type: ${row.seoData.schema['@type'] || 'Unknown'}`}>
+                                <Chip
+                                  label={row.seoData.schema['@type'] || 'Schema'}
+                                  size="small"
+                                  sx={{
+                                    background: 'linear-gradient(135deg, #2196F3, #1976D2)',
+                                    color: 'white',
+                                    fontWeight: 'bold',
+                                    fontSize: '0.7rem',
+                                    '& .MuiChip-label': {
+                                      px: 1
+                                    }
+                                  }}
+                                />
+                              </Tooltip>
+                            ) : (
+                              <Chip
+                                label="No Schema"
+                                size="small"
+                                variant="outlined"
+                                sx={{
+                                  color: '#666',
+                                  borderColor: '#ddd',
+                                  fontSize: '0.7rem'
+                                }}
+                              />
+                            )}
+                          </Box>
+                        </TableCell>
+                        
                         <TableCell align="center">
                           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                             <Box sx={{ 

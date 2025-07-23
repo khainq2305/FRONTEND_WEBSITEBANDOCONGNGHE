@@ -21,7 +21,8 @@ const News = () => {
     status: '',
     category: '',
     action: '',
-    seoScore: ''
+    seoScore: '',
+    schemaType: ''
   });
   const [articles, setArticles] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
@@ -80,8 +81,8 @@ const News = () => {
         })
       );
       
-      // Apply SEO filter on frontend if needed
-      const finalArticles = filters.seoScore ? applyClientSideFilters(articlesWithSEO) : articlesWithSEO;
+      // Apply SEO and Schema filters on frontend if needed
+      const finalArticles = (filters.seoScore || filters.schemaType) ? applyClientSideFilters(articlesWithSEO) : articlesWithSEO;
       
       setArticles(finalArticles);
       setTotal(res.data.total);
@@ -92,12 +93,13 @@ const News = () => {
     }
   };
 
-  // Apply client-side filters for SEO
+  // Apply client-side filters for SEO and Schema
   const applyClientSideFilters = (articles) => {
     let filtered = articles;
     
+    // SEO Score filter
     if (filters.seoScore) {
-      filtered = articles.filter(article => {
+      filtered = filtered.filter(article => {
         const seoScore = article.seoData?.seoScore || 0;
         
         switch (filters.seoScore) {
@@ -111,6 +113,20 @@ const News = () => {
             return !article.seoData || seoScore === 0;
           default:
             return true;
+        }
+      });
+    }
+    
+    // Schema Type filter
+    if (filters.schemaType) {
+      filtered = filtered.filter(article => {
+        const schema = article.seoData?.schema;
+        
+        switch (filters.schemaType) {
+          case 'no-schema':
+            return !schema;
+          default:
+            return schema && schema['@type'] === filters.schemaType;
         }
       });
     }
@@ -413,6 +429,16 @@ const News = () => {
     needsImprovement: articles.filter(a => !a.seoData?.seoScore || a.seoData?.seoScore < 50).length
   };
 
+  // Calculate Schema stats
+  const schemaStats = {
+    total: articles.length,
+    withSchema: articles.filter(a => a.seoData?.schema).length,
+    withoutSchema: articles.filter(a => !a.seoData?.schema).length,
+    articleType: articles.filter(a => a.seoData?.schema?.['@type'] === 'Article').length,
+    newsType: articles.filter(a => a.seoData?.schema?.['@type'] === 'NewsArticle').length,
+    blogType: articles.filter(a => a.seoData?.schema?.['@type'] === 'BlogPosting').length
+  };
+
   // SEO Handlers
   const handleEditSEO = async (post) => {
     try {
@@ -656,6 +682,79 @@ const News = () => {
                   </Typography>
                   <Typography variant="body2" sx={{ opacity: 0.9 }}>
                     Cần cải thiện
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+        </Box>
+
+        {/* Schema Stats Cards */}
+        <Box sx={{ px: 3, py: 2 }}>
+          <Typography variant="h6" sx={{ color: 'white', mb: 2, fontWeight: 'bold' }}>
+            Thống kê Schema Markup
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6} md={3}>
+              <Card sx={{ 
+                background: 'linear-gradient(135deg, #9C27B0, #7B1FA2)',
+                color: 'white',
+                boxShadow: '0 8px 32px rgba(156, 39, 176, 0.3)'
+              }}>
+                <CardContent sx={{ textAlign: 'center', py: 2 }}>
+                  <Typography variant="h3" sx={{ fontWeight: 'bold', mb: 1 }}>
+                    {schemaStats.withSchema}
+                  </Typography>
+                  <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                    Có Schema
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Card sx={{ 
+                background: 'linear-gradient(135deg, #00BCD4, #0097A7)',
+                color: 'white',
+                boxShadow: '0 8px 32px rgba(0, 188, 212, 0.3)'
+              }}>
+                <CardContent sx={{ textAlign: 'center', py: 2 }}>
+                  <Typography variant="h3" sx={{ fontWeight: 'bold', mb: 1 }}>
+                    {schemaStats.articleType}
+                  </Typography>
+                  <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                    Article Schema
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Card sx={{ 
+                background: 'linear-gradient(135deg, #3F51B5, #303F9F)',
+                color: 'white',
+                boxShadow: '0 8px 32px rgba(63, 81, 181, 0.3)'
+              }}>
+                <CardContent sx={{ textAlign: 'center', py: 2 }}>
+                  <Typography variant="h3" sx={{ fontWeight: 'bold', mb: 1 }}>
+                    {schemaStats.newsType}
+                  </Typography>
+                  <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                    NewsArticle Schema
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Card sx={{ 
+                background: 'linear-gradient(135deg, #607D8B, #455A64)',
+                color: 'white',
+                boxShadow: '0 8px 32px rgba(96, 125, 139, 0.3)'
+              }}>
+                <CardContent sx={{ textAlign: 'center', py: 2 }}>
+                  <Typography variant="h3" sx={{ fontWeight: 'bold', mb: 1 }}>
+                    {schemaStats.withoutSchema}
+                  </Typography>
+                  <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                    Chưa có Schema
                   </Typography>
                 </CardContent>
               </Card>
