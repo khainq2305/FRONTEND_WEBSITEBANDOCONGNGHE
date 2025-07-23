@@ -287,7 +287,7 @@ export const API_ENDPOINT = {
       forceDelete: '/force-delete/:id'
     },
     roles: {
-      base: `${API_BASE_URL}/admin/quan-ly-vai-tro`,
+      base: `${API_BASE_URL}/admin/roles`,
       getAll: '',
       create: '/',
       getById: '/',
@@ -440,29 +440,29 @@ export const API_ENDPOINT = {
       getByRole: '/by-role'
     },
     news: {
-      base: `${API_BASE_URL}/admin/quan-ly-bai-viet`,
+      base: `${API_BASE_URL}/admin/post`,
       getAll: '',
-      create: '/them-bai-viet-moi',
-      getBySlug: '/chinh-sua-bai-viet',
-      update: '/cap-nhat-bai-viet',
-      trashPost: '/chuyen-vao-thung-rac',
-      forceDelete: '/xoa-vinh-vien',
-      restorePost: '/khoi-phuc'
+      create: '/create',
+      getBySlug: '/edit',
+      update: '/update',
+      trashPost: '/trash',
+      forceDelete: '/force-delete',
+      restorePost: '/restore'
     },
     tags: {
       base: `${API_BASE_URL}/admin/tags`,
       getAll: ''
     },
     newsCategory: {
-      base: `${API_BASE_URL}/admin/quan-ly-danh-muc`,
+      base: `${API_BASE_URL}/admin/post-category`,
       getAll: '',
-      create: '/them-danh-muc-moi',
-      getBySlug: '/chinh-sua-danh-muc',
-      update: '/cap-nhat-danh-muc',
-      trashPost: '/chuyen-vao-thung-rac',
-      forceDelete: '/xoa-vinh-vien',
-      restorePost: '/khoi-phuc',
-      postCount: '/tong-so-bai-viet'
+      create: '/create',
+      getBySlug: '/edit',
+      update: '/update',
+      trashPost: '/trash',
+      forceDelete: '/force-delete',
+      restorePost: '/restore',
+      postCount: '/total-post'
     },
     paymentMethod: {
       base: `${API_BASE_URL}/admin/payment-methods`,

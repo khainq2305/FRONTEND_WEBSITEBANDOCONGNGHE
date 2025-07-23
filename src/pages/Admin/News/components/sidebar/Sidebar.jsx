@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   TextField,
   Button,
@@ -10,7 +10,8 @@ import {
   Select,
   MenuItem,
   Switch,
-  FormHelperText
+  FormHelperText,
+  Typography
 } from '@mui/material';
 
 import Tag from './Tag';
@@ -36,7 +37,13 @@ const Sidebar = ({
   allTags,
   isFeature,
   setIsFeature,
-  mode
+  mode,
+  newCategory,
+  setNewCategory,
+  onAddCategory,
+  onCancelAddCategory
+  
+  
 }) => {
   useEffect(() => {
     if (isScheduled && publishAt) {
@@ -68,9 +75,12 @@ const Sidebar = ({
     return `Sẽ đăng sau ${days} ngày ${hours} giờ ${minutes} phút`;
   };
 
+  const [showAddCategoryInput, setShowAddCategoryInput] = useState(false);
+
   return (
     <div style={{ width: '100%' }}>
       <Stack spacing={2}>
+        <Box>
         <FormControl fullWidth error={!!errors.category}>
           <InputLabel>Danh mục</InputLabel>
           <Select
@@ -88,7 +98,54 @@ const Sidebar = ({
           </Select>
           {errors.category && <FormHelperText>{errors.category}</FormHelperText>} {/* <-- Đảm bảo dòng này có */}
         </FormControl>
-
+        <Typography
+          variant="body1"
+          
+          sx={{ fontSize:'14px', cursor: 'pointer', color: 'secondary.main',textDecoration: 'underline', margin: '2px 0px' }}
+          onClick={() => setShowAddCategoryInput(true)}
+        >
+          Thêm danh mục
+        </Typography>
+        {showAddCategoryInput && (
+          <Box>
+            <TextField
+          size="small"
+          value={newCategory}
+          onChange={e => setNewCategory(e.target.value)}
+          placeholder="Tên danh mục mới"
+          fullWidth
+        />
+          <Box display="flex" gap={1} mt={1}>
+            
+            <Button
+              variant="text"
+              onClick={() => {
+                if (onAddCategory) {
+                  onAddCategory(newCategory);
+                }
+                setShowAddCategoryInput(false);
+                setNewCategory('');
+              }}
+              disabled={!newCategory}
+            >
+              Thêm
+            </Button>
+            <Button
+              variant="text"
+              color="secondary"
+              onClick={() => {
+                setShowAddCategoryInput(false);
+                setNewCategory('');
+              }}
+            >
+              Hủy
+            </Button>
+          </Box>
+          </Box>
+        )}
+        </Box>
+        
+        
         <FormControl fullWidth>
           <InputLabel>Trạng thái</InputLabel>
           <Select

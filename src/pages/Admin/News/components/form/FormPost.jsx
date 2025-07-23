@@ -19,7 +19,8 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
   const [publishAt, setPublishAt] = useState("");
   const [isFeature, setIsFeature] = useState(false);
   const [errors, setErrors] = useState({});
-
+  const [newCategory, setNewCategory] = useState('');
+  
   useEffect(() => {
     if (initialData) {
       setTitle(initialData.title || "");
@@ -74,7 +75,6 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
     await onSubmit?.(formData);
     console.log('form data',formData);
     setErrors({}); // Reset lỗi nếu thành công
-  // ...
 } catch (err) {
   const res = err.response;
   if (res?.status === 400 && typeof res.data?.errors === "object") {
@@ -85,6 +85,18 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
 }
 };
 
+const onAddCategory = async () => {
+  try {
+    const res = await newsCategoryService.create({ name: newCategory });
+    const newCat = res.data.data;
+    // Thêm danh mục mới vào state
+    setCategories(prev => [...prev, newCat]);
+    // Reset input nếu muốn
+    setNewCategory('');
+  } catch (error) {
+    console.error('Lỗi tạo danh mục mới', error.response ? error.response.data : error);
+  }
+}
 
 
 
@@ -125,6 +137,9 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
             isFeature={isFeature}
             setIsFeature={setIsFeature}
             mode={mode}
+            newCategory={newCategory}
+            setNewCategory={setNewCategory}
+            onAddCategory={onAddCategory}
           />
         </Grid>
       </Grid>

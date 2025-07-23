@@ -41,6 +41,7 @@ const Content = ({
   error={!!errors.title}
   helperText={errors.title}
   fullWidth
+  sx={{ mb: 2 }}
 />
 
       <Box sx={{ mb: 2 }}>

@@ -4,8 +4,6 @@ import { get, post, put } from '@/services/common/crud';
 const base = API_ENDPOINT.admin.newsCategory.base;
 
 export const newsCategoryService = {
-  register: (data) =>
-    post(`${base}${API_ENDPOINT.client.auth.register}`, data),
 
   getAll: (params) => {
   console.log('danh mục url đây:', `${base}${API_ENDPOINT.admin.newsCategory.getAll}`, params );

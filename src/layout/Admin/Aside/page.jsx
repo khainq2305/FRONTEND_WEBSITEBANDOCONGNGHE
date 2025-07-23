@@ -101,7 +101,7 @@ const pages = [
         icon: icons.StarOutlined,
         breadcrumbs: false,
         action: 'read',
-        subject: 'Product'
+        subject: 'Section'
       },
       {
         id: 'highlighted-category',
@@ -141,7 +141,7 @@ const pages = [
         icon: icons.SlidersOutlined,
         breadcrumbs: false,
         action: 'read',
-        subject: 'VariantProduct'
+        subject: 'Product'
       },
       {
         id: 'brand-list',
