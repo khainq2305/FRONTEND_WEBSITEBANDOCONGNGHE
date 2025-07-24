@@ -153,7 +153,7 @@ const LuckyWheel = () => {
             setShowPopup(true);
           }
         }}
-        className="fixed bottom-24 right-6 z-50 w-16 h-16 rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-500 text-white shadow-lg border-4 border-white flex items-center justify-center animate-bounce"
+        className="fixed bottom-24 left-6 z-50 w-16 h-16 rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-500 text-white shadow-lg border-4 border-white flex items-center justify-center animate-bounce"
       >
         <Gift className="w-7 h-7" />
       </button>

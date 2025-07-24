@@ -7,6 +7,9 @@ import {
   ClusterOutlined,
   TagsOutlined,
   SlidersOutlined,
+  InboxOutlined,
+  TableOutlined,
+  CarOutlined,
   TrademarkOutlined,
   ThunderboltOutlined,
   DollarOutlined,
@@ -26,7 +29,6 @@ import {
   ToolOutlined,
   SettingOutlined,
   GiftOutlined,
-  HistoryOutlined,
   CheckSquareOutlined
 } from '@ant-design/icons';
 
@@ -45,6 +47,9 @@ const icons = {
   ShoppingCartOutlined,
   FileTextOutlined,
   ReadOutlined,
+  InboxOutlined,
+  TableOutlined,
+  CarOutlined,
   EditOutlined,
   BookOutlined,
   UserOutlined,

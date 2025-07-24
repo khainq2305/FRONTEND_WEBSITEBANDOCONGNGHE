@@ -142,7 +142,14 @@ export const API_ENDPOINT = {
       byCategory: '/theo-danh-muc',
       calculateFee: '/calculate-fee'
     },
-
+ search: {
+      base: `${API_BASE_URL}`,
+      search: '/search-by-image',
+      history: '/search/history',
+      name: '/search-by-name',
+      suggestions: '/suggestions',
+      history: '/search/history'
+    },
     banner: {
       base: `${API_BASE_URL}`,
       getByType: (type) => `/banner?type=${type}`,

@@ -13,6 +13,8 @@ import Loader from '../../../components/common/Loader';
 import { useSystemSetting } from '@/contexts/SystemSettingContext';
 import FeatureBar from './FeatureBar';
 import socket from '../../../socket'; // realtime
+import ImageSearchBox from '@/components/common/ImageSearchBox';
+import  useAuthStore  from "../../../stores/AuthStore";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -86,7 +88,15 @@ const userInfo = user
     window.addEventListener('cartUpdated', handleCartUpdated);
     return () => window.removeEventListener('cartUpdated', handleCartUpdated);
   }, []);
+useEffect(() => {
+  socket.on('new-client-notification', (newNoti) => {
+    setNotifications((prev) => [newNoti, ...prev]);
+  });
 
+  return () => {
+    socket.off('new-client-notification');
+  };
+}, []);
   useEffect(() => {
     const fetchCombinedCategories = async () => {
       try {
@@ -98,7 +108,7 @@ const userInfo = user
             const standardizedItem = {
               id: item.id,
               name: item.name,
-              parent_id: parentId,
+          
               slug: item.slug,
               parent_id: parentId,
               imageUrl: item.thumbnail,
@@ -379,18 +389,7 @@ const handleLogout = async () => {
 
                 </div>
               </div>
-              <div className="flex-1 mx-4">
-                <div className="relative flex items-center bg-white text-gray-600 px-3 h-[40px] rounded-full w-full max-w-[600px] mx-auto shadow-sm">
-                  <input
-                    type="text"
-                    placeholder="Siêu phẩm Samsung Galaxy S25"
-                    className="flex-1 text-sm outline-none bg-transparent pr-10"
-                  />
-                  <button className="absolute right-[4px] top-1/2 -translate-y-1/2 flex items-center justify-center w-[36px] h-[36px] rounded-full bg-primary transition hover-secondary">
-                    <Search style={{ color: 'var(--text-primary)' }} strokeWidth={2} className="w-5 h-5 transition-all" />
-                  </button>
-                </div>
-              </div>
+               <ImageSearchBox />
               <div className="flex items-center gap-3 flex-shrink-0">
                 <Link to="orderlookup">
                   <button className="flex flex-col items-center gap-1 px-2 py-2 rounded-lg hover-primary transition-all">

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 
 // material-ui
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -16,42 +16,44 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 
+import socket from '../../../../socket'; // điều chỉnh đường dẫn nếu cần
+
 // project imports
 import MainCard from 'components/Admin/MainCard';
 import IconButton from 'components/Admin/@extended/IconButton';
 import Transitions from 'components/Admin/@extended/Transitions';
 
-// assets
+// services
+import { notificationService } from '../../../../services/admin/notificationService';
+
+// icons
 import BellOutlined from '@ant-design/icons/BellOutlined';
 import CheckCircleOutlined from '@ant-design/icons/CheckCircleOutlined';
 import GiftOutlined from '@ant-design/icons/GiftOutlined';
 import MessageOutlined from '@ant-design/icons/MessageOutlined';
 import SettingOutlined from '@ant-design/icons/SettingOutlined';
 
-// sx styles
-const avatarSX = {
-  width: 36,
-  height: 36,
-  fontSize: '1rem'
-};
+// dayjs for time formatting
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+dayjs.extend(relativeTime);
 
+// styles
+const avatarSX = { width: 36, height: 36, fontSize: '1rem' };
 const actionSX = {
   mt: '6px',
   ml: 1,
   top: 'auto',
   right: 'auto',
   alignSelf: 'flex-start',
-
   transform: 'none'
 };
 
-// ==============================|| HEADER CONTENT - NOTIFICATION ||============================== //
+// ==============================|| ADMIN HEADER - NOTIFICATION ||============================== //
 
 export default function Notification() {
   const downMD = useMediaQuery((theme) => theme.breakpoints.down('md'));
-
   const anchorRef = useRef(null);
-  const [read, setRead] = useState(2);
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -91,9 +93,20 @@ export default function Notification() {
     };
   }, []);
 
+  const handleToggle = () => setOpen((prev) => !prev);
   const handleClose = (event) => {
-    if (anchorRef.current && anchorRef.current.contains(event.target)) {
-      return;
+    if (anchorRef.current && anchorRef.current.contains(event.target)) return;
+    setOpen(false);
+  };
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await notificationService.getByRole();
+      const data = Array.isArray(res?.data) ? res.data : [];
+      setNotifications(data);
+      setUnreadCount(data.filter((n) => !n.isRead).length);
+    } catch (err) {
+      console.error('Lỗi khi lấy thông báo:', err);
     }
   };
 
@@ -161,18 +174,21 @@ export default function Notification() {
         sx={(theme) => ({
           color: 'text.primary',
           bgcolor: open ? 'grey.100' : 'transparent',
-          ...theme.applyStyles('dark', { bgcolor: open ? 'background.default' : 'transparent' })
+          ...theme.applyStyles('dark', {
+            bgcolor: open ? 'background.default' : 'transparent'
+          })
         })}
-        aria-label="open profile"
+        aria-label="open notifications"
         ref={anchorRef}
-        aria-controls={open ? 'profile-grow' : undefined}
+        aria-controls={open ? 'notification-grow' : undefined}
         aria-haspopup="true"
         onClick={handleToggle}
       >
-        <Badge badgeContent={read} color="primary">
+        <Badge badgeContent={unreadCount} color="primary">
           <BellOutlined />
         </Badge>
       </IconButton>
+
       <Popper
         placement={downMD ? 'bottom' : 'bottom-end'}
         open={open}
@@ -180,7 +196,9 @@ export default function Notification() {
         role={undefined}
         transition
         disablePortal
-        popperOptions={{ modifiers: [{ name: 'offset', options: { offset: [downMD ? -5 : 0, 9] } }] }}
+        popperOptions={{
+          modifiers: [{ name: 'offset', options: { offset: [downMD ? -5 : 0, 9] } }]
+        }}
       >
         {({ TransitionProps }) => (
           <Transitions type="grow" position={downMD ? 'top' : 'top-right'} in={open} {...TransitionProps}>
@@ -194,7 +212,7 @@ export default function Notification() {
             >
               <ClickAwayListener onClickAway={handleClose}>
                 <MainCard
-                  title="Notification"
+                  title="Thông báo"
                   elevation={0}
                   border={false}
                   content={false}

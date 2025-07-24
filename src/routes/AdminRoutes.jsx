@@ -56,14 +56,13 @@ const SpinRewardAdminPage = Loadable(lazy(() => import('pages/Admin/MiniGame/Spi
 const SpinRewardFormPage = Loadable(lazy(() => import('pages/Admin/MiniGame/SpinRewards/SpinRewardFormPage')));
 const SpinHistoryAdminPage = Loadable(lazy(() => import('pages/Admin/MiniGame/SpinHistory')));
 
-
 import RequireAuth from '@/components/Admin/RequireAuth';
 const ReturnRefundDetail = Loadable(lazy(() => import('pages/Admin/Returns/ReturnRefundDetail'))); // <-- Thêm dòng này
 
 const RoleIndex = Loadable(lazy(() => import('pages/Admin/Role/index')));
 const RoleManagement = Loadable(lazy(() => import('pages/Admin/Role/RoleManagement')));
 import { UserProvider } from '@/contexts/UserContext';
-const Skulist =  Loadable(lazy(() => import('pages/Admin/Skus')));
+const Skulist = Loadable(lazy(() => import('pages/Admin/Skus')));
 const NotFound = Loadable(lazy(() => import('pages/Admin/NotFound')));
 const AdminRoutes = {
   path: '/admin',
@@ -131,7 +130,7 @@ const AdminRoutes = {
       path: 'categories/edit/:id',
       element: <CategoryEdit />
     },
-  { path: 'return-requests/:id', element: <ReturnRefundDetail /> }, // <-- Thêm route này
+    { path: 'return-requests/:id', element: <ReturnRefundDetail /> }, // <-- Thêm route này
     {
       path: 'notifications',
       children: [
@@ -283,9 +282,11 @@ const AdminRoutes = {
       path: 'system-settings',
       element: <SystemSettings />
     },
-     {
+    {
       path: 'skulist',
-      element: <Skulist />,
+      element: <Skulist />
+    },
+    {
       path: 'spin-rewards',
       children: [
         { index: true, element: <SpinRewardAdminPage /> },

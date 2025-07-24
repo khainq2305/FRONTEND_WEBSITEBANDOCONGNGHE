@@ -21,7 +21,6 @@ const OrderConfirmation = Loadable(lazy(() => import('pages/Client/Payment/Order
 const VietQRConfirmationPage = Loadable(lazy(() => import('pages/Client/Payment/VietQRConfirmationPage')));
 const StripeCheckoutPage = Loadable(lazy(() => import('pages/Client/Payment/StripeCheckoutPage')));
 
-
 const News = Loadable(lazy(() => import('pages/Client/Blog')));
 const NewsDetails = Loadable(lazy(() => import('pages/Client/BlogDetail')));
 
@@ -29,6 +28,7 @@ const OrderLookup = Loadable(lazy(() => import('pages/Client/OrderLookup')));
 const ProductComparison = Loadable(lazy(() => import('pages/Client/CompareProducts')));
 const ReturnOrderDetailPage = Loadable(lazy(() => import('pages/Client/Auth/ReturnOrderDetailPage')));
 const ReturnMethodPage = Loadable(lazy(() => import('@/pages/Client/Auth/ReturnMethodPage'))); // <-- Thêm dòng này
+const SearchResult = Loadable(lazy(() => import('pages/Client/SearchResult')));
 
 const ReturnOrderPage = Loadable(lazy(() => import('pages/Client/Auth/ReturnOrderDialog')));
 const OrderDetailPage = Loadable(lazy(() => import('pages/Client/Auth/OrderDetailPage')));
@@ -54,20 +54,16 @@ const ClientRoutes = {
       element: <ForgotPasswordNotice />
     },
     { path: 'dat-lai-mat-khau', element: <ResetPasswordPage /> },
-{
-  path: 'user-profile',
-  element: <UserProfilePage />,
-  children: [
-    { index: true, element: <></> }, // ← giữ trống
-    { path: 'orders/:orderCode', element: <OrderDetailPage /> },
-    { path: 'return-order/:id', element: <ReturnOrderDetailPage /> }, // ✅ Đã sửa
-  { path: 'return-order/code/:returnCode/choose-method', element: <ReturnMethodPage /> }
-
-
-  ]
-}
-
-,
+    {
+      path: 'user-profile',
+      element: <UserProfilePage />,
+      children: [
+        { index: true, element: <></> }, // ← giữ trống
+        { path: 'orders/:orderCode', element: <OrderDetailPage /> },
+        { path: 'return-order/:id', element: <ReturnOrderDetailPage /> }, // ✅ Đã sửa
+        { path: 'return-order/code/:returnCode/choose-method', element: <ReturnMethodPage /> }
+      ]
+    },
 
     {
       path: 'register-email-sent',
@@ -76,22 +72,20 @@ const ClientRoutes = {
     { path: 'verify-email', element: <VerifyEmailPage /> },
 
     { path: 'category/:slug', element: <ProductListByCategory /> },
-{ path: 'vietqr-confirmation/:orderCode', element: <VietQRConfirmationPage /> },
-{ path: 'stripe-checkout/:orderCode', element: <StripeCheckoutPage /> },
+    { path: 'vietqr-confirmation/:orderCode', element: <VietQRConfirmationPage /> },
+    { path: 'stripe-checkout/:orderCode', element: <StripeCheckoutPage /> },
     { path: 'product/:slug', element: <ProductDetail /> },
     { path: 'tin-noi-bat', element: <News /> },
     { path: 'tin-noi-bat/:slug', element: <NewsDetails /> },
     { path: 'cart', element: <CartPage /> },
     { path: 'checkout', element: <CheckoutPage /> },
-   
- { path: 'order-confirmation', element: <OrderConfirmation /> },
+    { path: 'search-result', element: <SearchResult /> },
+    { path: 'order-confirmation', element: <OrderConfirmation /> },
     { path: 'news', element: <News /> },
     { path: 'news/:id', element: <NewsDetails /> },
     { path: 'orderlookup', element: <OrderLookup /> },
     { path: 'compare-products', element: <ProductComparison /> },
-    { path: 'return-order', element: <ReturnOrderPage /> },
-    
-
+    { path: 'return-order', element: <ReturnOrderPage /> }
   ]
 };
 
