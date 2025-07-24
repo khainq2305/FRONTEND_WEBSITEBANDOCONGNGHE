@@ -58,7 +58,7 @@ export const API_ENDPOINT = {
       baseList: `${API_BASE_URL}`,
       getBySlug: (slug) => `/product/${slug}`,
       getRelated: () => `/related`,
-       getCompareByIds: (ids) => `/product/compare-ids?ids=${ids.join(',')}`
+      getCompareByIds: (ids) => `/product/compare-ids?ids=${ids.join(',')}`
     },
     highlightedCategory: {
       base: `${API_BASE_URL}`,
@@ -81,7 +81,7 @@ export const API_ENDPOINT = {
     systemSettings: {
       base: `${API_BASE_URL}/system-settings`,
       update: '/update',
-      get: '' 
+      get: ''
     },
     cart: {
       base: `${API_BASE_URL}/cart`,
@@ -100,41 +100,41 @@ export const API_ENDPOINT = {
     systemSettings: {
       base: `${API_BASE_URL}/system-settings`
     },
-     order: {
-        base: `${API_BASE_URL}/orders`,
-        create: '/create',
-        reorder: (orderId) => `/${orderId}/reorder`,
-        shippingOptions: '/shippings/options',
-        markAsCompleted: (orderId) => `/${orderId}/mark-completed`,
-        cancel: (orderId) => `/${orderId}/cancel`,
-        lookup: (code, phone) => `/lookup?code=${code}&phone=${phone}`
+    order: {
+      base: `${API_BASE_URL}/orders`,
+      create: '/create',
+      reorder: (orderId) => `/${orderId}/reorder`,
+      shippingOptions: '/shippings/options',
+      markAsCompleted: (orderId) => `/${orderId}/mark-completed`,
+      cancel: (orderId) => `/${orderId}/cancel`,
+      lookup: (code, phone) => `/lookup?code=${code}&phone=${phone}`
     },
     payment: {
-        base: `${API_BASE_URL}/payment`,
-        momoPay: '/momo',
-        momoCallback: '/momo-callback',
-        paymentMethods: '/payment-methods',
-        vnpayCallback: '/vnpay-callback',
-        zaloPay: '/zalopay',
-        payAgain: (id) => `/${id}/pay-again`,
-        vnpay: '/vnpay',
-        uploadProof: (orderId) => `/${orderId}/proof`,
-        viettelMoney: '/viettel-money',
-        stripePay: '/stripe',
-        updatePaymentStatus: (orderId) => `/${orderId}/update-payment-status`, // Assuming this is a payment-specific status update
-        viettelMoneyCallback: '/viettel-money/callback',
-        vietqrPay: '/generate-vietqr',
-        stripeWebhook: '/stripe-webhook', // This is a webhook, typically not accessed directly by frontend
+      base: `${API_BASE_URL}/payment`,
+      momoPay: '/momo',
+      momoCallback: '/momo-callback',
+      paymentMethods: '/payment-methods',
+      vnpayCallback: '/vnpay-callback',
+      zaloPay: '/zalopay',
+      payAgain: (id) => `/${id}/pay-again`,
+      vnpay: '/vnpay',
+      uploadProof: (orderId) => `/${orderId}/proof`,
+      viettelMoney: '/viettel-money',
+      stripePay: '/stripe',
+      updatePaymentStatus: (orderId) => `/${orderId}/update-payment-status`, // Assuming this is a payment-specific status update
+      viettelMoneyCallback: '/viettel-money/callback',
+      vietqrPay: '/generate-vietqr',
+      stripeWebhook: '/stripe-webhook' // This is a webhook, typically not accessed directly by frontend
     },
     returnRefund: {
-        base: `${API_BASE_URL}/return-refund`,
-        request: '/',
-        getDetail: (id) => `/${id}/detail`,
-        cancel: (id) => `/${id}/cancel`,
-        getByReturnCode: (code) => `/by-code/${code}`,
+      base: `${API_BASE_URL}/return-refund`,
+      request: '/',
+      getDetail: (id) => `/${id}/detail`,
+      cancel: (id) => `/${id}/cancel`,
+      getByReturnCode: (code) => `/by-code/${code}`,
 
-        chooseMethod: (id) => `/${id}/choose-method`,
-        bookPickup: (id) => `/${id}/book-pickup`,
+      chooseMethod: (id) => `/${id}/choose-method`,
+      bookPickup: (id) => `/${id}/book-pickup`
     },
     news: {
       base: `${API_BASE_URL}/tin-noi-bat`,
@@ -166,10 +166,14 @@ export const API_ENDPOINT = {
       check: (id) => `/check-can-review/${id}`
     },
     userPoint: {
-  base: `${API_BASE_URL}/points`,
-  total: '', // GET /points
-  history: '/history' // GET /points/history
-},
+      base: `${API_BASE_URL}/points`,
+      total: '', // GET /points
+      history: '/history' // GET /points/history
+    },
+    membership: {
+      base: `${API_BASE_URL}/membership`,
+      info: '/me' // GET /membership/me
+    },
 
     news: {
       base: `${API_BASE_URL}/tin-noi-bat`,
@@ -193,8 +197,8 @@ export const API_ENDPOINT = {
       track: '/',
       listByIds: '/list',
       top: '/top',
-        recentlyViewedByCategoryLevel1: '/recently-viewed-by-category-level1',
-         searchForCompare: '/search-compare' 
+      recentlyViewedByCategoryLevel1: '/recently-viewed-by-category-level1',
+      searchForCompare: '/search-compare'
     },
     productQuestion: {
       base: `${API_BASE_URL}/product-questions`,
@@ -234,13 +238,13 @@ export const API_ENDPOINT = {
       getTopSellingProducts: '/top-selling-products',
       getFavoriteProducts: '/favorite-products'
     },
-     sku: {
+    sku: {
       base: `${API_BASE_URL}/admin/sku`,
       getAll: '/',
       logsBySkuId: (id) => `/${id}/logs`,
       importStock: (id) => `/${id}/import`,
       // getById: (slug) => `/product/${slug}`,
-      exportStock: (id) =>  `/${id}/export`,
+      exportStock: (id) => `/${id}/export`,
       softDelete: (id) => `/product/soft/${id}`,
       softDeleteMany: '/product/soft-delete-many',
       restore: (id) => `/product/restore/${id}`,
@@ -316,23 +320,23 @@ export const API_ENDPOINT = {
       forceDeleteMany: '/coupon/force-delete-many'
     },
 
-order: {
-  base: `${API_BASE_URL}/admin`,
-  list: '/order/list',
-  getById: '/order/:id',
-  updateStatus: (id) => `/order/${id}/status`,
-  cancel: (id) => `/order/${id}/cancel`,
-  updatePaymentStatus: (id) => `/order/${id}/payment-status`,
-},
-returnRefund: {
-  base: `${API_BASE_URL}/admin`,
-  getReturnsByOrder: (orderId) => `/order/${orderId}/returns`,     // GET
-  updateReturnStatus: (id) => `/returns/${id}/status`,             // PUT
-getReturnDetail: (id) => `/returns/${id}`, // ← thêm dòng này
+    order: {
+      base: `${API_BASE_URL}/admin`,
+      list: '/order/list',
+      getById: '/order/:id',
+      updateStatus: (id) => `/order/${id}/status`,
+      cancel: (id) => `/order/${id}/cancel`,
+      updatePaymentStatus: (id) => `/order/${id}/payment-status`
+    },
+    returnRefund: {
+      base: `${API_BASE_URL}/admin`,
+      getReturnsByOrder: (orderId) => `/order/${orderId}/returns`, // GET
+      updateReturnStatus: (id) => `/returns/${id}/status`, // PUT
+      getReturnDetail: (id) => `/returns/${id}`, // ← thêm dòng này
 
-  getRefundsByOrder: (orderId) => `/order/${orderId}/refunds`,     // GET
-  updateRefundStatus: (id) => `/refunds/${id}/status`,             // PUT
-},
+      getRefundsByOrder: (orderId) => `/order/${orderId}/refunds`, // GET
+      updateRefundStatus: (id) => `/refunds/${id}/status` // PUT
+    },
 
     variant: {
       base: `${API_BASE_URL}/admin`,
