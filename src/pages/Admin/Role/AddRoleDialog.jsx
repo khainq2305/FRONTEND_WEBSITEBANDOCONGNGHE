@@ -7,39 +7,47 @@ import {
   TextField,
   Button,
   Typography,
-  Box
+  Box,
+  Checkbox,
+  FormControlLabel
 } from '@mui/material';
 
 const AddRoleDialog = ({ open, onClose, onSubmit, initialData, mode = 'create' }) => {
   const [form, setForm] = useState({
     name: '',
-    description: ''
+    description: '',
+    canAccess: false
   });
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
   };
 
   const handleSubmit = () => {
-  if (!form.name.trim()) {
-    return alert('Vui lòng nhập tên vai trò');
-  }
-
-  const payload = {
-    name: form.name.trim(),
-    description: form.description.trim()
+    if (!form.name.trim()) {
+      return alert('Vui lòng nhập tên vai trò');
+    }
+    const payload = {
+      name: form.name.trim(),
+      description: form.description.trim(),
+      canAccess: form.canAccess
+    };
+    onSubmit?.(payload); // Truyền dữ liệu lên component cha
+    onClose();
+    setForm({ name: '', description: '', canAccess: false });
+    console.log('payload', payload);
+    debugger;
   };
-
-  onSubmit?.(form);// Truyền dữ liệu lên component cha
-  onClose();
-  setForm({ name: '', description: '' });
-};
   useEffect(() => {
     if (initialData) {
       setForm({
         name: initialData.name || '',
-        description: initialData.description || ''
+        description: initialData.description || '',
+        canAccess: initialData.canAccess ?? false
       });
     }
   }, [initialData]);
@@ -67,6 +75,18 @@ const AddRoleDialog = ({ open, onClose, onSubmit, initialData, mode = 'create' }
             fullWidth
             multiline
             rows={2}
+          />
+          {/* Checkbox quyền truy cập admin */}
+          <FormControlLabel
+            control={
+              <Checkbox
+                name="canAccess"
+                checked={form.canAccess}
+                onChange={handleChange}
+                color="primary"
+              />
+            }
+            label="Quyền truy cập admin"
           />
 
           {/* Xem trước vai trò */}
