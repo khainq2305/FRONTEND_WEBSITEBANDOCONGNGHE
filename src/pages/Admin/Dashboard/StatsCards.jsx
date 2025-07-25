@@ -1,36 +1,70 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Box, Card, CardContent, Typography, Grid, CircularProgress } from "@mui/material"
-import { TrendingUp, ShoppingCart, People, Star, Cancel } from "@mui/icons-material"
-import { dashboardService } from "@/services/admin/dashboardService"
+import React, { useState, useEffect } from 'react';
+import {
+  Typography,
+  Card,
+  CardContent,
+  Box,
+  CircularProgress
+} from '@mui/material';
+import { TrendingUp, ShoppingCart, Cancel, PersonAdd, Star } from '@mui/icons-material';
+import { dashboardService } from '@/services/admin/dashboardService';
+import { formatNumber } from '@/utils/formatNumber';
 
-export default function StatsCards({ dateRange }) {
-  const [stats, setStats] = useState({
-    totalRevenue: 0,
-    totalOrders: 0,
-    cancelledOrders: 0,
-    newUsers: 0,
-    averageRating: 0,
-    revenueChange: 0,
-    ordersChange: 0,
-    cancelledChange: 0,
-    usersChange: 0,
-    ratingChange: 0,
-  })
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+const statsInfo = [
+  {
+    label: 'Tổng doanh thu',
+    key: 'totalRevenue',
+    icon: TrendingUp,
+    color: '#1976d2',
+    gradient: "linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)"
+  },
+  {
+    label: 'Số đơn hàng',
+    key: 'totalOrders',
+    icon: ShoppingCart,
+    color: '#2e7d32',
+    gradient: "linear-gradient(135deg, #2e7d32 0%, #66bb6a 100%)"
+  },
+  {
+    label: 'Số đơn hủy',
+    key: 'cancelledOrders',
+    icon: Cancel,
+    color: '#d32f2f',
+    gradient: "linear-gradient(135deg, #d32f2f 0%, #ef5350 100%)"
+  },
+  {
+    label: 'Người dùng mới',
+    key: 'newUsers',
+    icon: PersonAdd,
+    color: '#0288d1',
+    gradient: "linear-gradient(135deg, #0288d1 0%, #29b6f6 100%)"
+  },
+  {
+    label: 'Trung bình đánh giá',
+    key: 'averageRating',
+    icon: Star,
+    color: '#f57c00',
+    gradient: "linear-gradient(135deg, #f57c00 0%, #ffb74d 100%)"
+  }
+];
+
+const StatsCards = ({ dateRange }) => {
+  const [stats, setStats] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchStats = async () => {
-      setLoading(true)
-      setError(null)
+    const fetchDashboardStats = async () => {
+      setLoading(true);
+      setError(null);
       try {
         const params = {
           from: dateRange.from ? dateRange.from.toISOString() : "",
           to: dateRange.to ? dateRange.to.toISOString() : "",
-        }
-        const data = await dashboardService.getStats(params)
+        };
+        const data = await dashboardService.getStats(params);
 
         setStats({
           totalRevenue: Number.parseFloat(data.totalRevenue) || 0,
@@ -43,193 +77,148 @@ export default function StatsCards({ dateRange }) {
           cancelledChange: Number.parseFloat(data.cancelledChange) || 0,
           usersChange: Number.parseFloat(data.usersChange) || 0,
           ratingChange: Number.parseFloat(data.ratingChange) || 0,
-        })
-      } catch (e) {
-        console.error("Lỗi khi lấy dữ liệu thống kê:", e)
-        setError("Không thể tải dữ liệu thống kê. Vui lòng thử lại sau.")
+        });
+      } catch (err) {
+        console.error("Lỗi khi tải thống kê dashboard:", err);
+        setError("Không thể tải thống kê.");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchStats()
-  }, [dateRange])
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(amount)
-  }
-
-  const getChangeDisplay = (value) => {
-    const numValue = Number.parseFloat(value)
-    if (isNaN(numValue)) return value
-    if (numValue > 0) return `+${numValue}%`
-    if (numValue < 0) return `${numValue}%`
-    return `0%`
-  }
-
-  const getRatingChangeDisplay = (value) => {
-    const numValue = Number.parseFloat(value)
-    if (isNaN(numValue)) return value
-    if (numValue > 0) return `+${numValue}`
-    if (numValue < 0) return `${numValue}`
-    return "0"
-  }
+    fetchDashboardStats();
+  }, [dateRange]);
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight={150}>
+      <Box sx={{ textAlign: 'center', py: 5 }}>
         <CircularProgress />
-        <Typography variant="body1" sx={{ ml: 2 }}>
-          Đang tải dữ liệu thống kê...
-        </Typography>
       </Box>
-    )
+    );
   }
 
   if (error) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight={150}>
-        <Typography color="error" variant="body1">
-          {error}
-        </Typography>
-      </Box>
-    )
+      <Typography color="error" sx={{ textAlign: 'center', mt: 2 }}>
+        {error}
+      </Typography>
+    );
   }
 
-  const statsData = [
-    {
-      title: "Tổng doanh thu",
-      value: formatCurrency(stats.totalRevenue),
-      change: getChangeDisplay(stats.revenueChange),
-      icon: <TrendingUp />,
-      color: "#1976d2",
-      gradient: "linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)",
-    },
-    {
-      title: "Số đơn hàng",
-      value: stats.totalOrders,
-      change: getChangeDisplay(stats.ordersChange),
-      icon: <ShoppingCart />,
-      color: "#2e7d32",
-      gradient: "linear-gradient(135deg, #2e7d32 0%, #66bb6a 100%)",
-    },
-    {
-      title: "Số đơn hủy",
-      value: stats.cancelledOrders,
-      change: getChangeDisplay(stats.cancelledChange),
-      icon: <Cancel />,
-      color: "#d32f2f",
-      gradient: "linear-gradient(135deg, #d32f2f 0%, #ef5350 100%)",
-    },
-    {
-      title: "Người dùng mới",
-      value: stats.newUsers,
-      change: getChangeDisplay(stats.usersChange),
-      icon: <People />,
-      color: "#0288d1",
-      gradient: "linear-gradient(135deg, #0288d1 0%, #29b6f6 100%)",
-    },
-    {
-      title: "Trung bình đánh giá",
-      value: `${stats.averageRating}/5`,
-      change: getRatingChangeDisplay(stats.ratingChange),
-      icon: <Star />,
-      color: "#f57c00",
-      gradient: "linear-gradient(135deg, #f57c00 0%, #ffb74d 100%)",
-    },
-  ]
-
   return (
-    <Grid container spacing={3}>
-      {statsData.map((stat, index) => (
-        <Grid item xs={12} sm={6} md={2.4} key={index}>
-          <Card
+    <Box
+      sx={{
+        display: 'flex',
+        gap: 3, // Keep the gap
+        flexWrap: 'nowrap', // Force items into a single row
+        justifyContent: 'space-between', // Distribute space between items
+        mb: 4,
+        overflowX: 'auto', // Enable horizontal scrolling if total width exceeds container
+        paddingBottom: 1 // Add some padding for scrollbar visibility
+      }}
+    >
+      {statsInfo.map((info) => {
+        const changeKey = `${info.key.replace('total', '').replace('cancelled', '').replace('new', '').replace('averageRating', '').toLowerCase()}Change`;
+        const changeValue = stats?.[changeKey];
+        let rawValue = stats?.[info.key];
+
+        if (info.key === 'averageRating' && typeof rawValue === 'string') {
+          rawValue = parseFloat(rawValue);
+        }
+
+        const displayValue = info.key === 'averageRating'
+          ? (typeof rawValue === 'number' && !isNaN(rawValue) ? rawValue.toFixed(1) : 'N/A') + '/5'
+          : (rawValue !== undefined && rawValue !== null ? formatNumber(rawValue) : 'N/A');
+
+        const displayChange =
+          typeof changeValue === 'number' && !isNaN(changeValue)
+            ? `${changeValue >= 0 ? '+' : ''}${changeValue.toFixed(1)}% so với trước`
+            : '0% so với trước';
+
+        return (
+          <Box
+            key={info.key}
             sx={{
-              borderRadius: 4,
-              background: "linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.95) 100%)",
-              backdropFilter: "blur(10px)",
-              border: "1px solid rgba(255, 255, 255, 0.2)",
-              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.08)",
-              transition: "all 0.3s ease",
-              height: 160, // FIXED HEIGHT FOR ALL CARDS
-              display: "flex",
-              flexDirection: "column",
-              "&:hover": {
-                transform: "translateY(-4px)",
-                boxShadow: "0 12px 40px rgba(0, 0, 0, 0.12)",
+              // Adjust minWidth based on desired responsiveness
+              minWidth: {
+                xs: '200px', // On extra small screens, ensure a minimum width. Will scroll horizontally.
+                sm: '220px', // On small screens
+                md: 'calc((100% / 3) - 16px)', // Example: 3 items per row on medium screens (adjust 16px based on actual gap)
+                lg: 'calc((100% / 5) - 24px)', // Example: 5 items per row on large screens.
+                // (4 gaps of 24px = 96px total gap across 5 items. 96px / 5 items = 19.2px per item.
+                // So, each item should be 20% - 19.2px. Simpler to use `calc((100% / 5) - gap_value_in_px)`)
+                xl: 'calc((100% / 5) - 24px)', // Consistent with large screens
               },
+              flexShrink: 0, // Prevents cards from shrinking below their minWidth
+              flexGrow: 1 // Allows cards to grow if there's extra space (up to their content's natural width or maxWidth if set)
             }}
           >
-            <CardContent sx={{ p: 3, flex: 1, display: "flex", alignItems: "center" }}>
-              <Box display="flex" alignItems="center" justifyContent="space-between" width="100%">
-                <Box flex={1}>
-                  <Typography
-                    color="textSecondary"
-                    gutterBottom
-                    variant="body2"
-                    sx={{
-                      fontWeight: 500,
-                      mb: 1,
-                      fontSize: "0.75rem",
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    {stat.title}
-                  </Typography>
-                  <Typography
-                    variant="h5"
-                    component="h2"
-                    sx={{
-                      fontWeight: 700,
-                      mb: 1,
-                      background: stat.gradient,
-                      backgroundClip: "text",
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      fontSize: "1.5rem",
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    {stat.value}
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: stat.change.startsWith("-") ? "#d32f2f" : "#2e7d32",
-                      fontWeight: 600,
-                      fontSize: "0.75rem",
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    {stat.change} so với kỳ trước
-                  </Typography>
-                </Box>
-                <Box
+            <Card
+              sx={{
+                p: 2.5,
+                borderRadius: 3,
+                display: 'flex',
+                alignItems: 'center',
+                boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+                transition: '0.3s',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 6px 20px rgba(0,0,0,0.1)',
+                }
+              }}
+            >
+              <Box
+                sx={{
+                  background: info.gradient,
+                  borderRadius: 2,
+                  p: 1.5,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minWidth: 48,
+                  minHeight: 48,
+                  boxShadow: `0 4px 12px ${info.color}33`,
+                }}
+              >
+                <info.icon sx={{ color: 'white', fontSize: 24 }} />
+              </Box>
+
+              <Box sx={{ ml: 2, flex: 1 }}>
+                <Typography
+                  variant="body2"
+                  sx={{ fontWeight: 500, color: 'text.secondary', mb: 0.5 }}
+                >
+                  {info.label}
+                </Typography>
+                <Typography
+                  variant="h5"
                   sx={{
-                    background: stat.gradient,
-                    borderRadius: 3,
-                    p: 1.5,
-                    color: "white",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    minWidth: 48,
-                    minHeight: 48,
-                    boxShadow: `0 4px 20px ${stat.color}40`,
-                    flexShrink: 0,
-                    ml: 2,
+                    fontWeight: 700,
+                    fontSize: '1.5rem',
+                    background: info.gradient,
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
                   }}
                 >
-                  {stat.icon}
-                </Box>
+                  {displayValue}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: 600,
+                    color: changeValue >= 0 ? 'success.main' : 'error.main'
+                  }}
+                >
+                  {displayChange}
+                </Typography>
               </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-      ))}
-    </Grid>
-  )
-}
+            </Card>
+          </Box>
+        );
+      })}
+    </Box>
+  );
+};
+
+export default StatsCards;

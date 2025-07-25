@@ -3,9 +3,9 @@
 @import 'slick-carousel/slick/slick-theme.css';
 @import 'tailwindcss';
 
-@import "tailwindcss";
+@import 'tailwindcss';
 
-@import "tw-animate-css";
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 /* Đặt font mặc định là Roboto */
@@ -349,3 +349,4 @@ body.swal2-shown {
     @apply bg-background text-foreground;
   }
 }
+
