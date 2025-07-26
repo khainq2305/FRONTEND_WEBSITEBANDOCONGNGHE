@@ -25,20 +25,20 @@ export default function AuthHeader() {
       <div className="w-full max-w-[1200px] mx-auto px-4 sm:px-6 py-3 flex items-center justify-center sm:justify-between">
         <div className="flex items-center min-w-0 hidden sm:flex">
           <Link to="/" className="no-underline flex-shrink-0">
-            <img src="src/assets/Client/images/Logo/logo.svg" alt="Logo" className="h-18 sm:h-[50px] w-[160px]" />
+            <img src="src/assets/Client/images/Logo/logo2.png" alt="Logo" className=" h-35 sm:h-[55px] w-[155px]  object-cover" />
           </Link>
 
           {pageTitle && (
             <>
-              <span className="mx-2 sm:mx-3 text-neutral-400">|</span>
-              <h2 className="text-xl text-neutral-700 font-semibold truncate">{pageTitle}</h2>
+              <span className="mx-1 sm:mx-2 text-neutral-400">|</span>
+              <h2 className="text-base text-primary font-medium truncate">{pageTitle}</h2>
             </>
           )}
         </div>
 
         <div className="flex items-center sm:hidden">
           <Link to="/" className="no-underline">
-            <img src="src/assets/Client/images/Logo/logo.svg" alt="Logo" className="h-18 sm:h-[50px] w-[160px] mx-auto" />
+            <img src="src/assets/Client/images/Logo/logo2.png" alt="Logo" className="h-18 sm:h-[50px] w-[200px] mx-auto object-cover" />
           </Link>
         </div>
 

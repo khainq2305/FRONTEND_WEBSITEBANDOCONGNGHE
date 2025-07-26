@@ -546,6 +546,51 @@ const handleLogout = async () => {
           </div>
         </div>
       )}
+      {isConfirmLogoutModalOpen && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-[1000]" onClick={toggleConfirmLogoutModal}>
+          <div
+            className="bg-white rounded-2xl shadow-xl w-full max-w-sm relative flex flex-col p-8 md:p-10 text-center animate-fade-in-scale"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={toggleConfirmLogoutModal}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-900 transition-colors duration-200"
+              aria-label="Đóng"
+            >
+              <X size={24} strokeWidth={2} />
+            </button>
+
+            <div className="mb-4">
+              <CircleUserRound size={48} className="text-gray-500 mx-auto" strokeWidth={1.5} />
+            </div>
+
+            <h2 className="text-2xl font-semibold text-gray-900 mb-3">Xác nhận đăng xuất</h2>
+
+            <p className="text-base text-gray-700 mb-8 leading-relaxed">
+              Bạn có chắc chắn muốn đăng xuất khỏi tài khoản của mình không? Tất cả các phiên làm việc hiện tại sẽ bị chấm dứt.
+            </p>
+
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
+              <button
+                onClick={toggleConfirmLogoutModal}
+                // ✅ Nút Hủy bỏ: Hover nền xám, viền xám, chữ giữ màu xám đậm
+                className="flex-1 px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium text-lg
+                               hover:bg-gray-100 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-all duration-200 ease-in-out"
+              >
+                Hủy bỏ
+              </button>
+              <button
+                onClick={confirmLogout}
+                // ✅ Nút Đăng xuất: Hover opacity 90
+                className="flex-1 px-5 py-2.5 bg-primary text-white rounded-lg font-medium text-lg
+                               hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200 ease-in-out"
+              >
+                Đăng xuất
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

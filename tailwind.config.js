@@ -1,4 +1,3 @@
-// tailwind.config.js
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -6,9 +5,16 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        primary: '#1CA7EC',        
+        secondary: '#0047AB',  
+        'text-primary': '#FFFFFF',
+        'text-secondary': '#1CA7EC'
+      }
+    },
   },
   plugins: [
-    require('@tailwindcss/line-clamp'), // <--- DÒNG QUAN TRỌNG NÀY
+    require('@tailwindcss/line-clamp'),
   ],
 }

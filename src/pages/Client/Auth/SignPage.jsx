@@ -42,49 +42,47 @@ const AuthPage = () => {
   }, [isLoading]);
 
   const onSubmit = async (data) => {
-  const authStore = useAuthStore.getState();
-  try {
-    setIsLoading(true);
-    setErrorMessage('');
+    const authStore = useAuthStore.getState();
+    try {
+      setIsLoading(true);
+      setErrorMessage('');
 
-    const response = isLogin
-      ? await authService.login(data)
-      : await authService.register(data);
+      const response = isLogin ? await authService.login(data) : await authService.register(data);
 
-    if (isLogin) {
-  const { token, user } = response.data;
+      if (isLogin) {
+        const { token, user } = response.data;
 
-  authStore.login(user, token);
-  await authStore.fetchUserInfo();
+        authStore.login(user, token);
+        await authStore.fetchUserInfo();
 
-  localStorage.setItem('token', token);
-  localStorage.setItem('user', JSON.stringify(user));
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
 
-  navigate('/');
-
-    } else {
-      const { otpToken } = response.data;
-      navigate('/register-email-sent', {
-        state: {
-          email: data.email,
-          fullName: data.fullName,
-          password: data.password,
-          otpToken,
-        },
-      });
+        navigate('/');
+      } else {
+        const { otpToken } = response.data;
+        navigate('/register-email-sent', {
+          state: {
+            email: data.email,
+            fullName: data.fullName,
+            password: data.password,
+            otpToken
+          }
+        });
+      }
+    } catch (err) {
+      setErrorMessage(err?.response?.data?.message || 'Email hoặc mật khẩu không chính xác.');
+    } finally {
+      setIsLoading(false);
     }
-  } catch (err) {
-    setErrorMessage(err?.response?.data?.message || 'Email hoặc mật khẩu không chính xác.');
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
- const googleLogin = useGoogleLogin({
+  const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
         setIsLoading(true);
-        const response = await authService.loginWithGoogle({ token: tokenResponse.access_token }, { withCredentials: true });
+        const response =await authService.loginWithGoogle({ token: tokenResponse.access_token });
+
         const { token, user } = response.data;
         if (user.fullName) {
           localStorage.setItem('token', token);
@@ -101,11 +99,8 @@ const AuthPage = () => {
     onError: () => alert('Đăng nhập Google thất bại!')
   });
 
-
-
- return (
+  return (
     <div className="flex flex-col lg:flex-row min-h-screen overflow-x-hidden">
-
       {isLoading && (
         <div
           style={{
@@ -131,8 +126,7 @@ const AuthPage = () => {
       <div
         className="hidden bg-primary-gradient lg:flex w-1/2 relative overflow-hidden text-white flex-col justify-center items-center p-10"
         style={{
-     clipPath: 'polygon(0 0, 95% 0, 85% 54%, 65% 100%, 0 100%, 0% 50%)'
-
+          clipPath: 'polygon(0 0, 95% 0, 85% 54%, 65% 100%, 0 100%, 0% 50%)'
         }}
       >
         <div className="relative z-10 flex flex-col justify-center items-center h-full text-center p-10">
@@ -159,22 +153,24 @@ const AuthPage = () => {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {!isLogin && (
               <div className="flex flex-col gap-0.5">
-                <label className="block text-sm font-medium text-text-color">Họ và Tên</label>
+                <label className="block text-sm font-medium text-text-color">
+                  Họ và Tên <span className="text-red-500">*</span>
+                </label>
+
                 <input
                   {...register('fullName', { required: 'Vui lòng nhập họ và tên.' })}
                   placeholder="Họ và Tên"
-                  className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 ${
-                    errors.fullName
-                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-                      : 'border-gray-300 focus:border-primary focus:ring-primary'
-                  }`}
+                  className={`input-style ${errors.fullName ? 'error' : ''}`}
                 />
                 {errors.fullName && <p className="text-red-500 text-sm mt-0.5">{errors.fullName.message}</p>}
               </div>
             )}
 
             <div className="flex flex-col gap-0.5">
-              <label className="block text-sm font-medium text-text-color">Email</label>
+              <label className="block text-sm font-medium text-text-color">
+                Email <span className="text-red-500">*</span>
+              </label>
+
               <input
                 {...register('email', {
                   required: 'Vui lòng nhập email.',
@@ -184,17 +180,16 @@ const AuthPage = () => {
                   }
                 })}
                 placeholder="Email"
-                className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 ${
-                  errors.email
-                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-                    : 'border-gray-300 focus:border-primary focus:ring-primary'
-                }`}
+                className={`input-style ${errors.email ? 'error' : ''}`}
               />
               {errors.email && <p className="text-red-500 text-sm mt-0.5">{errors.email.message}</p>}
             </div>
 
             <div className="flex flex-col gap-0.5 relative">
-              <label className="block text-sm font-medium">Mật khẩu</label>
+              <label className="block text-sm font-medium">
+                Mật khẩu <span className="text-red-500">*</span>
+              </label>
+
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -207,12 +202,8 @@ const AuthPage = () => {
                       }
                     })
                   })}
-                  className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 pr-10 ${
-                    errors.password
-                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-                      : 'border-gray-300 focus:border-primary focus:ring-primary'
-                  }`}
                   placeholder="Mật khẩu"
+                  className={`input-style pr-10 ${errors.password ? 'error' : ''}`}
                 />
                 <button
                   type="button"
@@ -227,7 +218,10 @@ const AuthPage = () => {
 
             {!isLogin && (
               <div className="flex flex-col gap-0.5 relative mt-4">
-                <label className="block text-sm font-medium">Xác nhận mật khẩu</label>
+                <label className="block text-sm font-medium">
+                  Xác nhận mật khẩu <span className="text-red-500">*</span>
+                </label>
+
                 <div className="relative">
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
@@ -235,11 +229,7 @@ const AuthPage = () => {
                       required: 'Vui lòng nhập lại mật khẩu.',
                       validate: (value) => value === watch('password') || 'Mật khẩu không khớp.'
                     })}
-                    className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 pr-10 ${
-                      errors.confirmPassword
-                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-                        : 'border-gray-300 focus:border-primary focus:ring-primary'
-                    }`}
+                    className={`input-style pr-10 ${errors.confirmPassword ? 'error' : ''}`}
                     placeholder="Xác nhận mật khẩu"
                   />
                   <button
@@ -258,7 +248,8 @@ const AuthPage = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <input type="checkbox" {...register('remember')} className="focus:ring-primary text-primary" />
-                  <label className="text-sm text-text-color">Ghi nhớ đăng nhập</label>
+                 <label className="text-sm text-text-color">Giữ tôi đăng nhập trong 7 ngày</label>
+
                 </div>
                 <Link to="/quen-mat-khau" className="text-primary text-sm font-semibold">
                   Quên mật khẩu?
@@ -301,10 +292,6 @@ const AuthPage = () => {
             >
               <img src="src/assets/Client/images/auth/Google__G__logo.svg.webp" alt="Google" className="w-7 h-7 object-cover" />
             </button>
-
-          
-
-          
           </div>
         </div>
       </div>

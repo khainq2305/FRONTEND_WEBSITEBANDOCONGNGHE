@@ -10,34 +10,33 @@ const FeatureBar = ({ isSticky }) => {
         { isHotline: true, icon: <Phone size={22} strokeWidth={1.5} />, text: "HOTLINE: ", phone: "1900 8922" }
     ];
 
-    return (
-        <div
-            className={`
-                max-w-[1200px] mx-auto bg-white py-3 px-2 shadow-md rounded-lg
-                flex flex-nowrap overflow-x-auto
-                justify-start lg:justify-around items-center gap-x-4
-                ${!isSticky ? 'my-4' : ''}
-                hidden lg:hidden xl:flex {/* ĐÂY LÀ DÒNG BẠN CẦN THAY ĐỔI */}
-            `}
-        >
-            {features.map((feature, index) => (
-                <div
-                    key={index}
-                    className="flex items-center gap-x-2.5 whitespace-nowrap px-2 py-1 min-w-fit"
-                >
-                    <span className={`${feature.isHotline ? 'text-orange-500' : 'text-gray-700'}`}>
-                        {feature.icon}
-                    </span>
-                    <span className="text-sm font-semibold text-gray-800">
-                        {feature.text}
-                        {feature.isHotline && (
-                            <span className="text-orange-500 font-bold">{feature.phone}</span>
-                        )}
-                    </span>
-                </div>
-            ))}
-        </div>
-    );
+return (
+  <div className={`w-full ${!isSticky ? 'my-4' : ''} hidden lg:flex`}>
+    <div className="w-full flex justify-center">
+      <div className="w-full max-w-[1200px] bg-white py-3 shadow-md px-4
+                      flex flex-wrap gap-x-6 justify-between items-center rounded-lg">
+        {features.map((feature, index) => (
+          <div
+            key={index}
+            className="flex items-center gap-x-2 whitespace-nowrap px-2 py-1"
+          >
+            <span className={`${feature.isHotline ? 'text-orange-500' : 'text-gray-700'}`}>
+              {feature.icon}
+            </span>
+            <span className="text-sm font-semibold text-gray-800">
+              {feature.text}
+              {feature.isHotline && (
+                <span className="text-orange-500 font-bold">{feature.phone}</span>
+              )}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+
 };
 
 export default FeatureBar;

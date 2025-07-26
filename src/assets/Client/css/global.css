@@ -72,6 +72,23 @@
   background-color: var(--primary-color);
   border-radius: 8px;
 }
+.input-style {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+.input-style.error {
+  border-color: #ef4444 !important; /* Tailwind border-red-500 */
+  box-shadow: 0 0 0 1px #ef4444 !important; /* Tailwind ring-red-500 */
+}
+
+.input-style:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 1px var(--primary-color);
+}
 
 .scrollbar-thin::-webkit-scrollbar-track {
   background-color: transparent;
