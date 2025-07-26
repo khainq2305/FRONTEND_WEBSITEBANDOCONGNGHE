@@ -5,7 +5,7 @@ const StickyBannerItem = ({ banner }) => {
   if (!banner) return null;
 
   return (
-    <div className="sticky top-24 w-[100px] rounded-lg overflow-hidden shadow-lg">
+    <div className="sticky w-[100px] rounded-lg overflow-hidden shadow-lg">
       <a
         href={banner.linkUrl || '#'}
         target="_blank"

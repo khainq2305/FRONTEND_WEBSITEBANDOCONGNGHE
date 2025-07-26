@@ -367,7 +367,7 @@ const handleLogout = async () => {
 
           {/* Desktop View */}
           <div className="hidden lg:block relative">
-            <div className="flex justify-between items-center max-w-[1200px] h-[80px] mx-auto py-2 px-4">
+            <div className="flex justify-between items-center max-w-[1200px] h-[80px] mx-auto py-2">
               <div className="flex items-center gap-4 flex-shrink-0">
                 <Link to="/">
                   <img src={logoSrc} alt="Logo" className="h-18 w-auto max-w-[700px]" />
