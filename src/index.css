@@ -10,6 +10,7 @@
 @custom-variant dark (&:is(.dark *));
 /* Đặt font mặc định là Roboto */
 body {
+   overflow-x: hidden !important;
   font-family: 'Roboto', sans-serif !important;
 }
 

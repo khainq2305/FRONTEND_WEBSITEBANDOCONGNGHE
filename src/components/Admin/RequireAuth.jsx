@@ -8,10 +8,10 @@ const RequireAuth = ({ children }) => {
 
   if (loading) return <LoaderAdmin />;
 
-  // // ✅ Không có user => về login
-  // if (!user) {
-  //   return <Navigate to="/dang-nhap" replace />;
-  // }
+  // ✅ Không có user => về login
+  if (!user) {
+    return <Navigate to="/dang-nhap" replace />;
+  }
   
   // // ✅ Check ít nhất 1 role có canAccess: true
   const hasAccess = (user.roles || []).some(role => role.canAccess === true);

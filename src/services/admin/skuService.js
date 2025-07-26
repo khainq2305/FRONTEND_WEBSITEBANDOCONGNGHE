@@ -5,7 +5,7 @@ const base = API_ENDPOINT.admin.sku.base;
 
 export const skuService = {
   getAll: (params) => get(`${base}${API_ENDPOINT.admin.sku.getAll}`,  params),
-  logBySkuId: (id, type) =>get(`${base}${API_ENDPOINT.admin.sku.logsBySkuId(id)}`, type && type !== 'all' ? { type } : {}), 
+  logBySkuId: (id, type) => get(`${base}${API_ENDPOINT.admin.sku.logsBySkuId(id)}`, {type}),
   importStock: (data, id) => post(`${base}${API_ENDPOINT.admin.sku.importStock(id)}`, data),
   exportStock: (data, id) => post(`${base}${API_ENDPOINT.admin.sku.exportStock(id)}`, data),
 

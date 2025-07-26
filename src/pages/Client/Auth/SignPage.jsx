@@ -104,7 +104,8 @@ const AuthPage = () => {
 
 
  return (
-    <div className="flex flex-col lg:flex-row min-h-screen">
+    <div className="flex flex-col lg:flex-row min-h-screen overflow-x-hidden">
+
       {isLoading && (
         <div
           style={{
@@ -130,7 +131,8 @@ const AuthPage = () => {
       <div
         className="hidden bg-primary-gradient lg:flex w-1/2 relative overflow-hidden text-white flex-col justify-center items-center p-10"
         style={{
-          clipPath: 'polygon(0 0, 100% 0, 90% 54%, 69% 100%, 0 100%, 0% 50%)'
+     clipPath: 'polygon(0 0, 95% 0, 85% 54%, 65% 100%, 0 100%, 0% 50%)'
+
         }}
       >
         <div className="relative z-10 flex flex-col justify-center items-center h-full text-center p-10">
