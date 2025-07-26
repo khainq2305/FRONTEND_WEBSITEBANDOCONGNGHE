@@ -12,7 +12,7 @@ import { notificationService } from '../../../services/client/notificationServic
 import Loader from '../../../components/common/Loader';
 import { useSystemSetting } from '@/contexts/SystemSettingContext';
 import FeatureBar from './FeatureBar';
-import socket from '../../../socket'; // realtime
+import socket from '../../../socket'; 
 import ImageSearchBox from '@/components/common/ImageSearchBox';
 import  useAuthStore  from "../../../stores/AuthStore";
 
@@ -35,7 +35,7 @@ const userInfo = user
   const unreadCount = notifications.filter((n) => !n.isRead).length;
   const [isSticky, setIsSticky] = useState(false);
   const { settings } = useSystemSetting() || {};
- const logoSrc = settings?.siteLogo || '/default-logo.png';
+  const logoSrc = settings?.siteLogo || '/default-logo.png';
 
   const sentinelRef = useRef(null);
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(true);
@@ -555,10 +555,10 @@ const handleLogout = async () => {
           >
             <button
               onClick={toggleConfirmLogoutModal}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-900 transition-colors duration-200"
+              className="absolute -top-4 -right-4 bg-white w-10 h-10 rounded-full shadow-md flex items-center justify-center text-gray-500 hover:text-gray-900 transition"
               aria-label="Đóng"
             >
-              <X size={24} strokeWidth={2} />
+              <X size={20} strokeWidth={2} />
             </button>
 
             <div className="mb-4">

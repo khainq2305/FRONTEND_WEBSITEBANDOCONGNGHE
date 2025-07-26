@@ -1,9 +1,7 @@
-// components/common/AddressModal.jsx (hoặc bất cứ đâu bạn đã lưu nó)
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, ChevronDown, Search as SearchIcon, X as CloseIcon } from 'lucide-react';
-import { shippingService } from '../../../../../services/client/shippingService'; // Đảm bảo đường dẫn đúng
-import Loader from '../../../../../components/common/Loader'; // Đảm bảo đường dẫn đúng
+import { shippingService } from '../../../../../services/client/shippingService';
+import Loader from '../../../../../components/common/Loader';
 
 const addressLabels = ['Nhà Riêng', 'Văn Phòng', 'Nhà Người Yêu'];
 
@@ -35,7 +33,7 @@ const AddressModal = ({ open, onClose, onSave, editingAddress, loading }) => {
     const [districtList, setDistrictList] = useState([]);
     const [wardList, setWardList] = useState([]);
 
-    // Fetch provinces when modal opens
+
     useEffect(() => {
         if (open) {
             shippingService
@@ -50,67 +48,60 @@ const AddressModal = ({ open, onClose, onSave, editingAddress, loading }) => {
         }
     }, [open]);
 
-    // Populate form data if editing an existing address
     useEffect(() => {
-        if (editingAddress && open) {
-            setFormErrors({}); // Clear errors when editing
+        if (!open) return;
+
+        setFormErrors({});
+        setDistrictList([]);
+        setWardList([]);
+
+        if (editingAddress) {
             const provObj = provinceList.find((p) => p.id === editingAddress.provinceId || p.ProvinceID === editingAddress.provinceId);
 
+            const init = {
+                fullName: editingAddress.fullName || '',
+                phone: editingAddress.phone || '',
+                city: '',
+                cityObj: null,
+                district: '',
+                districtObj: null,
+                ward: '',
+                wardObj: null,
+                streetAddress: editingAddress.streetAddress || '',
+                isDefault: editingAddress.isDefault || false,
+                label: editingAddress.label || 'Nhà Riêng'
+            };
+
             if (provObj) {
-                setFormData({
-                    fullName: editingAddress.fullName || '',
-                    phone: editingAddress.phone || '',
-                    city: provObj.name,
-                    cityObj: provObj,
-                    district: '',
-                    districtObj: null,
-                    ward: '',
-                    wardObj: null,
-                    streetAddress: editingAddress.streetAddress || '',
-                    isDefault: editingAddress.isDefault || false,
-                    label: editingAddress.label || 'Nhà Riêng'
-                });
+                init.city = provObj.name;
+                init.cityObj = provObj;
 
-                // Fetch districts and wards for existing address
-                shippingService.getDistricts(provObj.ProvinceID || provObj.id)
-                    .then((districts) => {
-                        setDistrictList(districts || []);
-                        const distObj = (districts || []).find((d) => d.id === editingAddress.districtId || d.DistrictID === editingAddress.districtId);
-                        if (distObj) {
-                            setFormData((prev) => ({ ...prev, district: distObj.name, districtObj: distObj }));
-                            shippingService.getWards(distObj.DistrictID || distObj.id)
-                                .then((wards) => {
-                                    setWardList(wards || []);
-                                    const wardObj = (wards || []).find((w) => w.id === editingAddress.wardId);
-                                    if (wardObj) {
-                                        setFormData((prev) => ({ ...prev, ward: wardObj.name, wardObj: wardObj }));
-                                    }
-                                })
-                                .catch((err) => console.error('Error fetching wards for edit:', err));
-                        }
-                    })
-                    .catch((err) => console.error('Error fetching districts for edit:', err));
+                shippingService.getDistricts(provObj.ProvinceID || provObj.id).then((districts) => {
+                    setDistrictList(districts || []);
+                    const distObj = districts.find((d) => d.id === editingAddress.districtId || d.DistrictID === editingAddress.districtId);
+                    if (distObj) {
+                        init.district = distObj.name;
+                        init.districtObj = distObj;
+
+                        shippingService.getWards(distObj.DistrictID || distObj.id).then((wards) => {
+                            setWardList(wards || []);
+                            const wardObj = wards.find((w) => String(w.id) === String(editingAddress.wardId));
+                            if (wardObj) {
+                                init.ward = wardObj.name;
+                                init.wardObj = wardObj;
+                            }
+                            setFormData(init);
+                        });
+                    } else {
+                        setFormData(init);
+                    }
+                });
             } else {
-                setFormData({
-                    fullName: editingAddress.fullName || '',
-                    phone: editingAddress.phone || '',
-                    city: '', cityObj: null,
-                    district: '', districtObj: null,
-                    ward: '', wardObj: null,
-                    streetAddress: editingAddress.streetAddress || '',
-                    isDefault: editingAddress.isDefault || false,
-                    label: editingAddress.label || 'Nhà Riêng'
-                });
+                setFormData(init);
             }
-        } else if (open && !editingAddress) {
-            setFormData(initialFormState); // Reset form for new address
-            setFormErrors({});
-            setDistrictList([]);
-            setWardList([]);
         }
-    }, [editingAddress, open, provinceList]); // Depend on provinceList to ensure it's loaded before processing editingAddress
+    }, [editingAddress, open, provinceList]);
 
-    // Handle clicks outside location picker
     useEffect(() => {
         function handleClickOutside(event) {
             if (
@@ -135,11 +126,11 @@ const AddressModal = ({ open, onClose, onSave, editingAddress, loading }) => {
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
         setFormData((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
-        setFormErrors((prev) => ({ ...prev, [name]: '' })); // Clear error when input changes
+        setFormErrors((prev) => ({ ...prev, [name]: '' }));
     };
 
     const handleLocationSelect = async (type, value) => {
-        setFormErrors((prev) => ({ ...prev, city: '', district: '', ward: '' })); // Clear location errors
+        setFormErrors((prev) => ({ ...prev, city: '', district: '', ward: '' }));
 
         if (type === 'city') {
             const selected = provinceList.find((p) => p.name === value);
@@ -230,7 +221,7 @@ const AddressModal = ({ open, onClose, onSave, editingAddress, loading }) => {
             return;
         }
 
-        // Pass data and selected objects back to parent for saving
+
         onSave({
             ...formData,
             provinceId,
@@ -247,24 +238,26 @@ const AddressModal = ({ open, onClose, onSave, editingAddress, loading }) => {
     return (
         <div
             style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
-            // THAY ĐỔI z-index TỪ z-[1000] LÊN z-[2000] HOẶC CAO HƠN
-            className="fixed inset-0 flex items-center justify-center z-[2000] p-4 sm:p-6 md:p-8" // Đã thay đổi z-index
-            onClick={onClose} // Close on backdrop click
+            className="fixed inset-0 flex items-center justify-center z-[2000] p-4 sm:p-6 md:p-8"
+            onClick={onClose}
         >
-            <div
-                className="bg-white dark:bg-gray-800 p-0 rounded-sm shadow-xl w-full max-w-md h-[80vh] sm:h-[75vh] flex flex-col"
-                onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside modal
+
+            <div className="relative bg-white dark:bg-gray-800 p-0 rounded-sm shadow-xl w-full max-w-md h-[80vh] sm:h-[75vh] flex flex-col"
+
+                onClick={(e) => e.stopPropagation()}
             >
+                <button
+                    onClick={onClose}
+                    className="absolute -top-4 -right-4 z-[2100] bg-white dark:bg-gray-700 shadow-md rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-600 transition"
+                >
+                    <CloseIcon size={16} className="text-gray-600 dark:text-gray-300" />
+                </button>
                 <div className="flex justify-between items-center py-3 px-4 sm:px-5 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
                     <h2 className="text-base font-semibold text-gray-700 dark:text-gray-200">
                         {editingAddress ? 'Cập nhật địa chỉ' : 'Địa chỉ mới'}
                     </h2>
-                    <button
-                        onClick={onClose}
-                        className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors"
-                    >
-                        <CloseIcon size={20} />
-                    </button>
+
+
                 </div>
 
                 <div className="flex-1 overflow-y-auto">
@@ -275,14 +268,18 @@ const AddressModal = ({ open, onClose, onSave, editingAddress, loading }) => {
                                     type="text"
                                     name="fullName"
                                     value={formData.fullName}
+                                    onFocus={(e) => {
+                                        if (e.target.value) e.target.select();
+                                    }}
                                     onChange={handleInputChange}
                                     placeholder="Họ và tên"
-                                    className={`w-full p-2.5 border rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors ${
-                                        formErrors.fullName ? 'border-red-500' : 'border-gray-300 hover:border-gray-400 dark:hover:border-gray-500'
-                                    } dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-400`}
+                                    className={`input-style ${formErrors.fullName ? 'error' : ''}`}
                                 />
-                                {formErrors.fullName && <p className="text-xs text-red-500 mt-1">{formErrors.fullName}</p>}
+                                {formErrors.fullName && (
+                                    <p className="text-xs text-red-500 mt-1">{formErrors.fullName}</p>
+                                )}
                             </div>
+
 
                             <div className="w-full">
                                 <input
@@ -290,13 +287,17 @@ const AddressModal = ({ open, onClose, onSave, editingAddress, loading }) => {
                                     name="phone"
                                     value={formData.phone}
                                     onChange={handleInputChange}
+                                    onFocus={(e) => {
+                                        if (e.target.value) e.target.select();
+                                    }}
                                     placeholder="Số điện thoại"
-                                    className={`w-full p-2.5 border rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors ${
-                                        formErrors.phone ? 'border-red-500' : 'border-gray-300 hover:border-gray-400 dark:hover:border-gray-500'
-                                    } dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-400`}
+                                    className={`input-style ${formErrors.phone ? 'error' : ''}`}
                                 />
-                                {formErrors.phone && <p className="text-xs text-red-500 mt-1">{formErrors.phone}</p>}
+                                {formErrors.phone && (
+                                    <p className="text-xs text-red-500 mt-1">{formErrors.phone}</p>
+                                )}
                             </div>
+
                         </div>
 
                         <div className="relative">
@@ -315,18 +316,13 @@ const AddressModal = ({ open, onClose, onSave, editingAddress, loading }) => {
                                             setLocationSearchTerm('');
                                         }}
                                         placeholder="Tỉnh/Thành phố, Quận/Huyện, Phường/Xã"
-                                        className={`w-full p-2.5 border rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors cursor-pointer pr-10
-                                            ${
-                                                formErrors.city || formErrors.district || formErrors.ward
-                                                    ? 'border-red-500'
-                                                    : 'border-gray-300 hover:border-gray-400 dark:hover:border-gray-500'
-                                            } dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-400`}
+                                        className={`input-style pr-10 cursor-pointer ${formErrors.city || formErrors.district || formErrors.ward ? 'error' : ''
+                                            }`}
                                     />
                                     <ChevronDown
                                         size={16}
-                                        className={`absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 pointer-events-none transition-transform duration-200 ${
-                                            showLocationPicker ? 'rotate-180' : ''
-                                        }`}
+                                        className={`absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 pointer-events-none transition-transform duration-200 ${showLocationPicker ? 'rotate-180' : ''
+                                            }`}
                                     />
                                 </div>
 
@@ -338,6 +334,7 @@ const AddressModal = ({ open, onClose, onSave, editingAddress, loading }) => {
                                     </div>
                                 )}
                             </div>
+
 
                             {showLocationPicker && (
                                 <div
@@ -409,16 +406,19 @@ const AddressModal = ({ open, onClose, onSave, editingAddress, loading }) => {
                                 value={formData.streetAddress}
                                 onChange={handleInputChange}
                                 placeholder="Địa chỉ cụ thể"
-                                className={`w-full p-2.5 border rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors ${
-                                    formErrors.streetAddress ? 'border-red-500' : 'border-gray-300 hover:border-gray-400 dark:hover:border-gray-500'
-                                } dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-400`}
+                                className={`input-style ${formErrors.streetAddress ? 'error' : ''}`}
                             />
-                            {formErrors.streetAddress && <p className="text-xs text-red-500 mt-1">{formErrors.streetAddress}</p>}
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Ví dụ: Số nhà 123, Tên đường (Tên tòa nhà)</p>
+                            {formErrors.streetAddress && (
+                                <p className="text-xs text-red-500 mt-1">{formErrors.streetAddress}</p>
+                            )}
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                Ví dụ: Số nhà 123, Tên đường (Tên tòa nhà)
+                            </p>
                         </div>
 
-                        <div className="flex items-center space-x-3 pt-0.5">
-                            <span className="text-sm text-gray-700 dark:text-gray-200">Loại địa chỉ:</span>
+
+                        <div className="flex items-center gap-3 flex-wrap">
+                            <span className="text-sm text-gray-700 dark:text-gray-200 whitespace-nowrap">Loại địa chỉ:</span>
                             <div className="flex items-center flex-wrap gap-3">
                                 {addressLabels.map((option) => (
                                     <label key={option} className="flex items-center text-sm text-gray-700 dark:text-gray-200 cursor-pointer">
@@ -436,6 +436,7 @@ const AddressModal = ({ open, onClose, onSave, editingAddress, loading }) => {
                             </div>
                         </div>
 
+
                         <div className="flex items-center pt-1">
                             <input
                                 type="checkbox"
@@ -443,9 +444,13 @@ const AddressModal = ({ open, onClose, onSave, editingAddress, loading }) => {
                                 id="isDefaultAddressModal"
                                 checked={formData.isDefault}
                                 onChange={handleInputChange}
-                                className="h-4 w-4 text-primary border-gray-300 dark:border-gray-600 rounded-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:ring-blue-500/50 mr-2"
+                                className="h-4 w-4 text-primary accent-blue-600 rounded-sm mr-2 focus:outline-none"
                             />
-                            <label htmlFor="isDefaultAddressModal" className="text-sm text-gray-700 dark:text-gray-200 cursor-pointer hover:text-gray-900 dark:hover:text-gray-50">
+
+                            <label
+                                htmlFor="isDefaultAddressModal"
+                                className="text-sm text-gray-700 dark:text-gray-200 cursor-pointer hover:text-gray-900 dark:hover:text-gray-50"
+                            >
                                 Đặt làm địa chỉ mặc định
                             </label>
                         </div>

@@ -10,15 +10,17 @@ export const userAddressService = {
     return get(url);
   },
   setDefault: (id) => put(`${base}/set-default/${id}`),
-  update: (id, data) => API.put(`/user-address/${id}`, data),  
-  remove: (id) => API.delete(`/user-address/${id}`),          
+  update: (id, data) => {
+    if (!id) throw new Error('ID không được để trống khi cập nhật địa chỉ');
+    return put(`${base}/${id}`, data);
+  },
+  remove: (id) => API.delete(`/user-address/${id}`),
   create: (data) => post(`${base}${API_ENDPOINT.client.userAddress.create}`, data),
   getDefault: (addressId) => {
-  let url = `${base}/default`;
-  if (addressId) {
-    url += `?addressId=${addressId}`;
+    let url = `${base}/default`;
+    if (addressId) {
+      url += `?addressId=${addressId}`;
+    }
+    return get(url);
   }
-  return get(url);
-},
-
 };
