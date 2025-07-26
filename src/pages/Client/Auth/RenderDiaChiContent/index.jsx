@@ -75,14 +75,14 @@ const AddressItem = ({ address, isDefault, onSetDefault, onUpdate, onDelete }) =
                     <div className="flex mb-0 sm:mb-2.5">
                         <button
                             onClick={() => onUpdate(address.id)}
-                            className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 mr-3 sm:mr-4 transition-colors duration-150"
+                            className="text-xs text-primary hover:underline dark:text-blue-400 dark:hover:text-blue-300 mr-3 sm:mr-4 transition-colors duration-150"
                         >
                             Cập nhật
                         </button>
                         {!isDefault && (
                             <button
                                 onClick={() => onDelete(address.id)}
-                                className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-150"
+                                className="text-xs text-primary hover:underline dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-150"
                             >
                                 Xóa
                             </button>
@@ -271,7 +271,7 @@ const AddressPageContent = () => {
                 <h1 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-gray-200">Địa chỉ của tôi</h1>
                 <button
                     onClick={handleOpenNewAddressModal}
-                    className="flex items-center bg-primary hover:bg-primary-dark transition-colors text-white text-xs sm:text-sm font-medium py-2 px-3 sm:px-4 rounded-sm"
+                    className="flex items-center bg-primary hover:opacity-85 transition-colors text-white text-xs sm:text-sm font-medium py-2 px-3 sm:px-4 rounded-sm"
                 >
                     <Plus size={16} className="mr-1 sm:mr-1.5" /> Thêm địa chỉ mới
                 </button>
@@ -293,10 +293,16 @@ const AddressPageContent = () => {
                     ))}
                 </div>
             ) : (
-                <div className="text-center py-10 text-gray-500 dark:text-gray-400">
-                    <p>Bạn chưa có địa chỉ nào.</p>
+                <div className="flex flex-col items-center justify-center py-10 text-gray-500 dark:text-gray-400">
+                    <img
+                        src="src/assets/Client/images/empty-order.png"
+                        alt="No address"
+                        className="w-40 h-40 mb-4 object-contain"
+                    />
+                    <p className="text-sm">Bạn chưa có địa chỉ nào.</p>
                 </div>
             )}
+
 
             {showAddressModal && (
                 <AddressModal

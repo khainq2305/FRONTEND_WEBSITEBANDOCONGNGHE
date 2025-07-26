@@ -468,7 +468,7 @@ const AddressModal = ({ open, onClose, onSave, editingAddress, loading }) => {
                     <button
                         type="submit"
                         form="addressFormInModal"
-                        className="px-5 py-1.5 text-sm font-medium text-white bg-primary hover:bg-primary-dark rounded-sm transition-colors"
+                        className="px-5 py-1.5 text-sm font-medium text-white bg-primary hover:opacity-85 rounded-sm transition-colors"
                     >
                         {editingAddress ? 'Lưu' : 'Hoàn thành'}
                     </button>
