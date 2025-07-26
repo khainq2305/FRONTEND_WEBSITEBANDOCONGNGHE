@@ -35,7 +35,8 @@ const userInfo = user
   const unreadCount = notifications.filter((n) => !n.isRead).length;
   const [isSticky, setIsSticky] = useState(false);
   const { settings } = useSystemSetting() || {};
-  const logoSrc = settings?.site_logo || '/default-logo.png';
+ const logoSrc = settings?.siteLogo || '/default-logo.png';
+
   const sentinelRef = useRef(null);
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(true);
   const accountDropdownTimerRef = useRef(null);

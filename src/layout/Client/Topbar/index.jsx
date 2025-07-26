@@ -24,13 +24,13 @@ const Topbar = () => {
 
   return (
     <div 
-      style={{ backgroundColor: 'rgb(58, 140, 239)' }} 
+      // style={{ backgroundColor: 'rgb(58, 140, 239)' }} 
       className="w-full flex justify-center items-center overflow-hidden relative"
     >
       <img
         src={bannerImageUrl}
         alt="Topbar Banner"
-        className="w-full max-w-[1200px] object-cover h-[44px] sm:h-[60px] md:h-[80px] lg:h-[44px] xl:h-[44px] transition-all duration-300 ease-in-out"
+        className="w-full object-cover h-[44px] sm:h-[60px] md:h-[80px] lg:h-[44px] xl:h-[44px] transition-all duration-300 ease-in-out"
         style={{
           width: '100%',
           height: 'auto',

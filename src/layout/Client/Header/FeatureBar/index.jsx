@@ -11,7 +11,7 @@ const FeatureBar = ({ isSticky }) => {
     ];
 
 return (
-  <div className={`w-full ${!isSticky ? 'my-4' : ''} hidden lg:flex`}>
+  <div className={`w-full ${!isSticky ? 'my-4' : ''} hidden xl:flex`}>
     <div className="w-full flex justify-center">
       <div className="w-full max-w-[1200px] bg-white py-3 shadow-md px-4
                       flex flex-wrap gap-x-6 justify-between items-center rounded-lg">
