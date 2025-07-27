@@ -34,6 +34,7 @@ import { ImportExport, Search } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { debounce } from 'lodash';
+import Breadcrumb from '@/components/common/Breadcrumb';
 
 import { categoryService } from 'services/admin/categoryService';
 import Pagination from 'components/common/Pagination';
@@ -124,6 +125,13 @@ const CategoryList = () => {
       setLoading(false);
     }
   };
+<Breadcrumb
+  items={[
+    { label: 'Trang chủ', href: '/admin' },
+    { label: 'Danh mục', href: '/admin/categories' },
+    { label: 'Danh sách' },
+  ]}
+/>
 
   const handleSoftDelete = async (id) => {
     if (!(await confirmDelete('chuyển', 'danh mục vào thùng rác'))) return;
@@ -215,9 +223,16 @@ const CategoryList = () => {
 
   return (
     <Box sx={{ p: 2 }}>
+       
       {loading && <Loader fullscreen />}
-
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+          <Breadcrumb
+    items={[
+      { label: 'Trang chủ', href: '/admin' },
+      { label: 'Danh mục', href: '/admin/categories' },
+      { label: 'Danh sách' },
+    ]}
+  />
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 , mt: 2}}>
         <Typography variant="h4" fontWeight="bold">
           Danh sách danh mục
         </Typography>

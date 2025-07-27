@@ -9,7 +9,7 @@ import { systemSettingService } from "@/services/admin/systemSettingService";
 import useAuthStore from "@/stores/AuthStore";
 
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import ThemeCustomization from "./themes"; // <-- Đây là component chứa ThemeProvider
+import ThemeCustomization from "./themes"; 
 import Toastify from "components/common/Toastify";
 import ScrollTop from "./components/Admin/ScrollTop";
 
@@ -57,11 +57,11 @@ function AppContent() {
   }, []);
 
   return (
-    <> {/* Sử dụng Fragment hoặc Box nếu bạn muốn wrap bằng một div */}
+    <> 
       <ScrollTop />
       <Toastify />
       <DynamicTitleUpdater />
-      {/* <ThemeCustomization> đã được di chuyển ra ngoài AppContent và bao bọc RouterProvider */}
+     
       <RouterProvider router={router} />
     </>
   );

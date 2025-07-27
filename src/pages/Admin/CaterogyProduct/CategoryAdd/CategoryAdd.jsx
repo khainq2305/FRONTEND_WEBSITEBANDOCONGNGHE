@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import { categoryService } from '../../../../services/admin/categoryService';
 import Loader from '../../../../components/Admin/LoaderVip';
 import Toastify from '../../../../components/common/Toastify';
+import Breadcrumb from '../../../../components/common/Breadcrumb';
 
 const CategoryAddd = () => {
   const navigate = useNavigate();
@@ -49,6 +50,13 @@ const CategoryAddd = () => {
 
   return (
     <>
+      <Breadcrumb
+        items={[
+          { label: 'Trang chủ', href: '/admin' },
+          { label: 'Danh mục', href: '/admin/categories/list' },
+          { label: 'Thêm mới' },
+        ]}
+      />
       <CategoryMain onSubmit={handleSubmit} externalErrors={errors} />
     </>
   );

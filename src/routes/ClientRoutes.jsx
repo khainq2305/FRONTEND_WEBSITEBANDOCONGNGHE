@@ -8,7 +8,7 @@ const SignPage = Loadable(lazy(() => import('pages/Client/Auth/SignPage.jsx')));
 const ProductListByCategory = Loadable(lazy(() => import('pages/Client/ProductListByCategory')));
 const ForgotPasswordPage = Loadable(lazy(() => import('pages/Client/Auth/ForgotPasswordPage')));
 const ResetPasswordPage = Loadable(lazy(() => import('pages/Client/Auth/ResetPasswordPage')));
-const ViewedProductsPage = Loadable(lazy(() => import('pages/Client/ViewedProductsPage'))); // Import ViewedProductsPage
+const ViewedProductsPage = Loadable(lazy(() => import('pages/Client/ViewedProductsPage'))); 
 const ProductDetail = Loadable(lazy(() => import('pages/Client/ProductDetail')));
 const ForgotPasswordNotice = Loadable(lazy(() => import('pages/Client/Auth/ForgotPasswordNotice')));
 const RegisterEmailSentNotice = Loadable(lazy(() => import('pages/Client/Auth/RegisterEmailSentNotice')));
@@ -27,7 +27,7 @@ const NewsDetails = Loadable(lazy(() => import('pages/Client/BlogDetail')));
 const OrderLookup = Loadable(lazy(() => import('pages/Client/OrderLookup')));
 const ProductComparison = Loadable(lazy(() => import('pages/Client/CompareProducts')));
 const ReturnOrderDetailPage = Loadable(lazy(() => import('pages/Client/Auth/ReturnOrderDetailPage')));
-const ReturnMethodPage = Loadable(lazy(() => import('@/pages/Client/Auth/ReturnMethodPage'))); // <-- Thêm dòng này
+const ReturnMethodPage = Loadable(lazy(() => import('@/pages/Client/Auth/ReturnMethodPage'))); 
 const SearchResult = Loadable(lazy(() => import('pages/Client/SearchResult')));
 
 const ReturnOrderPage = Loadable(lazy(() => import('pages/Client/Auth/ReturnOrderDialog')));
@@ -58,9 +58,9 @@ const ClientRoutes = {
       path: 'user-profile',
       element: <UserProfilePage />,
       children: [
-        { index: true, element: <></> }, // ← giữ trống
+        { index: true, element: <></> }, 
         { path: 'orders/:orderCode', element: <OrderDetailPage /> },
-        { path: 'return-order/:id', element: <ReturnOrderDetailPage /> }, // ✅ Đã sửa
+        { path: 'return-order/:id', element: <ReturnOrderDetailPage /> }, 
         { path: 'return-order/code/:returnCode/choose-method', element: <ReturnMethodPage /> }
       ]
     },

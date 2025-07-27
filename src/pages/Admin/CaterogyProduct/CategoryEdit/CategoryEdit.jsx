@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import { categoryService } from '../../../../services/admin/categoryService';
 import { Typography } from '@mui/material';
 import LoaderAdmin from '../../../../components/Admin/LoaderVip';
+import Breadcrumb from '../../../../components/common/Breadcrumb';
 
 const CategoryEdit = () => {
     const { id } = useParams();
@@ -61,10 +62,18 @@ const CategoryEdit = () => {
    if (loading) return <LoaderAdmin fullscreen />;
 
 
-    return initialData ? (
-       <CategoryMain initialData={initialData} onSubmit={handleSubmit} externalErrors={errors} />
-
-    ) : null;
+  return initialData ? (
+    <>
+      <Breadcrumb
+        items={[
+          { label: 'Trang chủ', href: '/admin' },
+          { label: 'Danh mục', href: '/admin/categories/list' },
+          { label: 'Chỉnh sửa' },
+        ]}
+      />
+      <CategoryMain initialData={initialData} onSubmit={handleSubmit} externalErrors={errors} />
+    </>
+  ) : null;
 };
 
 export default CategoryEdit;

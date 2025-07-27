@@ -2,7 +2,6 @@ import { lazy } from 'react';
 import Loadable from 'components/Admin/Loadable';
 import DashboardLayout from 'layout/Admin';
 
-// Load pages như cũ
 const DashboardDefault = Loadable(lazy(() => import('pages/Admin/Dashboard')));
 const OrderList = Loadable(lazy(() => import('pages/Admin/OrderList')));
 const OrderDetail = Loadable(lazy(() => import('pages/Admin/OrderDetail')));
