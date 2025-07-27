@@ -82,6 +82,7 @@
     "react-slick": "^0.30.3",
     "react-sortablejs": "^6.1.4",
     "react-toastify": "^11.0.5",
+    "react-tooltip": "^5.29.1",
     "react-use": "^17.6.0",
     "recharts": "^2.15.4",
     "simplebar-react": "^3.3.1",

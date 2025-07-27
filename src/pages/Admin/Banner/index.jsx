@@ -31,6 +31,7 @@ import LoaderAdmin from '../../../components/common/Loader';
 import HighlightText from '../../../components/Admin/HighlightText';
 import { confirmDelete } from '../../../components/common/ConfirmDeleteDialog';
 import { toast } from 'react-toastify';
+import Breadcrumb from '../../../components/common/Breadcrumb';
 
 const BannerList = () => {
   const [tab, setTab] = useState('all'); // all | active | inactive
@@ -72,7 +73,7 @@ const BannerList = () => {
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
       fetchBanners(searchKeyword.trim());
-    }, 300); // debounce 300ms
+    }, 300);
 
     return () => clearTimeout(delayDebounce);
   }, [searchKeyword, tab, typeFilter, currentPage]);
@@ -123,7 +124,7 @@ const BannerList = () => {
 
   const handleSearch = () => {
     setCurrentPage(1);
-    fetchBanners(searchKeyword.trim()); // ✅ TRUYỀN từ khóa mới
+    fetchBanners(searchKeyword.trim());
   };
 
   const handleSelectAll = (e) => setSelectedIds(e.target.checked ? displayed.map((b) => b.id) : []);
@@ -186,6 +187,14 @@ const BannerList = () => {
   return (
     <>
       {(loading || isLoadingAction) && <LoaderAdmin fullscreen />}
+      <Box sx={{ mb: 2 }}>
+        <Breadcrumb
+          items={[
+            { label: 'Trang chủ', href: '/admin' },
+            { label: 'Danh sách banner', href: '/admin/banners' }
+          ]}
+        />
+      </Box>
 
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h6" fontWeight={600}>

@@ -10,17 +10,18 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { sliderService } from '../../../../services/admin/sliderService';
 import { toast } from 'react-toastify';
 import LoaderAdmin from '../../../../components/Admin/LoaderVip';
+import Breadcrumb from '../../../../components/common/Breadcrumb';
 
 const BANNER_TYPES = [
     { value: 'topbar', label: 'Banner Trên Đầu (Topbar)' },
     { value: 'slider-main', label: 'Slider Trang Chủ (Carousel)' },
     { value: 'slider-side', label: 'Banner Nhỏ Cạnh Slider' },
     { value: 'mid-poster', label: 'Banner Ở Giữa Trang' },
-    { value: 'category-banner', label: 'Banner cho trang Danh mục cụ thể'},
+    { value: 'category-banner', label: 'Banner cho trang Danh mục cụ thể' },
     { value: 'product-banner', label: 'Banner cho trang Sản phẩm cụ thể' },
     { value: 'slider-footer', label: 'Banner Cuối Trang (Footer)' },
-    { value: 'banner-left-right', label: 'Banner Hai Bên Trang' }, 
-    { value: 'popup-banner', label: 'Banner Popup (Hiển thị nổi)' } 
+    { value: 'banner-left-right', label: 'Banner Hai Bên Trang' },
+    { value: 'popup-banner', label: 'Banner Popup (Hiển thị nổi)' }
 ];
 
 const imageSizeMap = {
@@ -34,7 +35,7 @@ const imageSizeMap = {
 };
 
 const BannerForm = () => {
-    const { slug } = useParams(); 
+    const { slug } = useParams();
     const isEditing = Boolean(slug);
     const navigate = useNavigate();
 
@@ -123,7 +124,7 @@ const BannerForm = () => {
             setImagePreviews(files.map((file) => URL.createObjectURL(file)));
         }
     };
-    
+
     const handleTypeChange = (newType) => {
         setType(newType);
         setLinkUrl('');
@@ -135,6 +136,29 @@ const BannerForm = () => {
         e.preventDefault();
         setLoading(true);
         setFieldErrors({});
+
+        // ✅ Kiểm tra thiếu thông tin
+        const hasMissing = !title.trim()
+            || !type
+            || (!imageFiles.length && !isEditing)
+            || (type === 'category-banner' && !categoryId)
+            || (type === 'product-banner' && !productId);
+
+        if (hasMissing) {
+            const mappedErrors = {};
+            if (!title.trim()) mappedErrors.title = 'Vui lòng nhập tiêu đề.';
+            if (!type) mappedErrors.type = 'Vui lòng chọn loại banner.';
+            if (!imageFiles.length && !isEditing) mappedErrors.image = 'Vui lòng chọn ảnh banner.';
+            if (type === 'category-banner' && !categoryId) mappedErrors.categoryId = 'Vui lòng chọn danh mục.';
+            if (type === 'product-banner' && !productId) mappedErrors.productId = 'Vui lòng chọn sản phẩm.';
+
+            setFieldErrors(mappedErrors);
+            toast.error('Vui lòng nhập đầy đủ thông tin bắt buộc!');
+            setLoading(false);
+            return;
+        }
+
+        // ✅ Tạo form data
         const formData = new FormData();
         if (imageFiles.length > 0) formData.append('image', imageFiles[0]);
         formData.append('title', title);
@@ -145,14 +169,14 @@ const BannerForm = () => {
         if (startDate) formData.append('startDate', startDate);
         if (endDate) formData.append('endDate', endDate);
         formData.append('isActive', isActive ? 'true' : 'false');
-     if (type === 'category-banner' && categoryId !== '') {
-  formData.append('categoryId', Number(categoryId)); // ✅ ép kiểu về số
-}
+        if (type === 'category-banner' && categoryId) {
+            formData.append('categoryId', Number(categoryId));
+        }
+        if (type === 'product-banner' && productId) {
+            formData.append('productId', Number(productId));
+        }
 
-       if (type === 'product-banner' && productId !== '') {
-  formData.append('productId', Number(productId));
-}
-
+        // ✅ Gửi API
         try {
             if (isEditing) {
                 await sliderService.update(slug, formData);
@@ -175,17 +199,17 @@ const BannerForm = () => {
         }
     };
 
+
+
     const renderCategoryMenuItems = (items, depth = 0) => {
         return items.flatMap(item => {
             const currentItem = (
-                <MenuItem 
-                    key={item.id} 
+                <MenuItem
+                    key={item.id}
                     value={item.id}
                     sx={{ pl: depth * 2 + 2 }}
                 >
-                    {/* ======================================================= */}
-                    {/* THAY ĐỔI Ở ĐÂY: Thêm lại ký tự cây thư mục cho con */}
-                    {/* ======================================================= */}
+
                     {depth > 0 ? '├ ' : ''}{item.name}
                 </MenuItem>
             );
@@ -202,158 +226,203 @@ const BannerForm = () => {
     }
 
     return (
-        <Paper sx={{ p: { xs: 2, sm: 3, md: 4 }, boxShadow: 3, borderRadius: 2 }}>
-            <Typography variant="h5" component="h1" fontWeight={600}>
-                {isEditing ? 'Chỉnh sửa Banner' : 'Thêm mới Banner'}
-            </Typography>
+        <>
+            <Box sx={{ mb: 2 }}>
+                <Breadcrumb
 
-            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
-                <Grid container spacing={3}>
-                    {/* Cột Trái - Upload Ảnh */}
-                    <Grid item xs={12} md={5}>
-                        <FormControl fullWidth error={!!fieldErrors.image}>
-                            <InputLabel shrink htmlFor="banner-image-upload">Ảnh Banner *</InputLabel>
-                            <Box
-                                component="label"
-                                htmlFor="banner-image-upload"
-                                sx={{
-                                    mt: 3, width: '100%', height: 180, border: '2px dashed',
-                                    borderColor: fieldErrors.image ? 'error.main' : 'grey.400',
-                                    borderRadius: 2, display: 'flex', justifyContent: 'center',
-                                    alignItems: 'center', flexDirection: 'column', bgcolor: 'grey.50',
-                                    cursor: 'pointer', '&:hover': { bgcolor: 'grey.100' },
-                                }}
-                            >
-                                <input id="banner-image-upload" type="file" accept="image/*" hidden onChange={handleImageChange} />
-                                <Typography variant="subtitle2" color="text.secondary">
-                                    Kéo thả hoặc chọn 1 ảnh
-                                </Typography>
-                            </Box>
-                            {fieldErrors.image && <FormHelperText>{fieldErrors.image}</FormHelperText>}
-                            
-                            {imagePreviews.length > 0 && (
-                                <Box mt={2}>
-                                    <Typography variant="subtitle2">Xem trước:</Typography>
-                                    <Box display="flex" flexWrap="wrap" gap={1} mt={1}>
-                                        {imagePreviews.map((src, idx) => {
-                                            const size = imageSizeMap[type] || { width: 120, height: 70 };
-                                            return (
-                                                <Box key={idx} sx={{ width: size.width, height: size.height, overflow: 'hidden', border: '1px solid #ddd', borderRadius: 1 }}>
-                                                    <img src={src} alt={`Preview ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                                                </Box>
-                                            );
-                                        })}
-                                    </Box>
+                    items={[
+                        { label: 'Trang chủ', href: '/admin' },
+                        { label: 'Quản lý banner', href: '/admin/banners' },
+                        { label: isEditing ? 'Chỉnh sửa' : 'Thêm mới' }
+                    ]}
+                />
+            </Box>
+
+
+            <Paper sx={{ p: { xs: 2, sm: 3, md: 4, mt: 2 }, boxShadow: 3, borderRadius: 2 }}>
+                <Typography variant="h5" component="h1" fontWeight={600}>
+                    {isEditing ? 'Chỉnh sửa Banner' : 'Thêm mới Banner'}
+                </Typography>
+
+                <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
+                    <Grid container spacing={3}>
+                        {/* Cột Trái - Upload Ảnh */}
+                        <Grid item xs={12} md={5}>
+                            <FormControl fullWidth error={!!fieldErrors.image}>
+                                <InputLabel shrink htmlFor="banner-image-upload">
+                                    Ảnh Banner <span style={{ color: 'red' }}>*</span>
+                                </InputLabel>
+                                <Box
+                                    component="label"
+                                    htmlFor="banner-image-upload"
+                                    sx={{
+                                        mt: 3, width: '100%', height: 180, border: '2px dashed',
+                                        borderColor: fieldErrors.image ? 'error.main' : 'grey.400',
+                                        borderRadius: 2, display: 'flex', justifyContent: 'center',
+                                        alignItems: 'center', flexDirection: 'column', bgcolor: 'grey.50',
+                                        cursor: 'pointer', '&:hover': { bgcolor: 'grey.100' },
+                                    }}
+                                >
+                                    <input id="banner-image-upload" type="file" accept="image/*" hidden onChange={handleImageChange} />
+                                    <Typography variant="subtitle2" color="text.secondary">
+                                        Kéo thả hoặc chọn 1 ảnh
+                                    </Typography>
                                 </Box>
-                            )}
-                        </FormControl>
-                    </Grid>
+                                {fieldErrors.image && <FormHelperText>{fieldErrors.image}</FormHelperText>}
 
-                    {/* Cột Phải - Các trường thông tin */}
-                    <Grid item xs={12} md={7}>
-                        <Grid container spacing={2.5}>
-                            <Grid item xs={12}>
-                                <TextField label="Tiêu đề" value={title} onChange={(e) => setTitle(e.target.value)} fullWidth error={!!fieldErrors.title} helperText={fieldErrors.title} />
-                            </Grid>
-                            <Grid item xs={12}>
-                                <FormControl fullWidth error={!!fieldErrors.type}>
-                                    <InputLabel id="type-label">Loại Banner *</InputLabel>
-                                    <Select labelId="type-label" value={type} label="Loại Banner *" onChange={(e) => handleTypeChange(e.target.value)}>
-                                        {BANNER_TYPES.map((opt) => (
-                                            <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
-                                        ))}
-                                    </Select>
-                                    {fieldErrors.type && <FormHelperText>{fieldErrors.type}</FormHelperText>}
-                                </FormControl>
-                            </Grid>
-                            
-                            {type && type !== 'category-banner' && type !== 'product-banner' && (
+                                {imagePreviews.length > 0 && (
+                                    <Box mt={2}>
+                                        <Typography variant="subtitle2">Xem trước:</Typography>
+                                        <Box display="flex" flexWrap="wrap" gap={1} mt={1}>
+                                            {imagePreviews.map((src, idx) => {
+                                                const size = imageSizeMap[type] || { width: 120, height: 70 };
+                                                return (
+                                                    <Box key={idx} sx={{ width: size.width, height: size.height, overflow: 'hidden', border: '1px solid #ddd', borderRadius: 1 }}>
+                                                        <img src={src} alt={`Preview ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                                    </Box>
+                                                );
+                                            })}
+                                        </Box>
+                                    </Box>
+                                )}
+                            </FormControl>
+                        </Grid>
+
+                        {/* Cột Phải - Các trường thông tin */}
+                        <Grid item xs={12} md={7}>
+                            <Grid container spacing={2.5}>
                                 <Grid item xs={12}>
                                     <TextField
-                                        label="Link URL (khi click)"
-                                        value={linkUrl}
-                                        onChange={(e) => setLinkUrl(e.target.value)}
+                                        label={
+                                            <span>
+                                                Tiêu đề <span style={{ color: 'red' }}>*</span>
+                                            </span>
+                                        }
+                                        value={title}
+                                        onChange={(e) => setTitle(e.target.value)}
                                         fullWidth
-                                        error={!!fieldErrors.linkUrl}
-                                        helperText={fieldErrors.linkUrl || "Nhập link nội bộ (vd: /flash-sale) hoặc link ngoài."}
+                                        error={!!fieldErrors.title}
+                                        helperText={fieldErrors.title}
                                     />
                                 </Grid>
-                            )}
-                            
-                            {type === 'category-banner' && (
                                 <Grid item xs={12}>
-                                    <FormControl fullWidth error={!!fieldErrors.categoryId}>
-                                        <InputLabel id="category-select-label">Gắn với Danh mục *</InputLabel>
-                                        <Select
-                                            labelId="category-select-label"
-                                            value={categoryId}
-                                            label="Gắn với Danh mục *"
-                                           onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : '')}
-                                            MenuProps={{
-                                                PaperProps: {
-                                                  style: {
-                                                    maxHeight: 400,
-                                                  },
-                                                },
-                                            }}
-                                        >
-                                            <MenuItem value=""><em>-- Chọn một danh mục --</em></MenuItem>
-                                            {renderCategoryMenuItems(categories)}
-                                        </Select>
-                                        {fieldErrors.categoryId && <FormHelperText>{fieldErrors.categoryId}</FormHelperText>}
-                                    </FormControl>
-                                </Grid>
-                            )}
-                            
-                            {type === 'product-banner' && (
-                                <Grid item xs={12}>
-                                    <FormControl fullWidth error={!!fieldErrors.productId}>
-                                        <InputLabel id="product-select-label">Gắn với Sản phẩm *</InputLabel>
-                                        <Select
-                                            labelId="product-select-label"
-                                            value={productId}
-                                            label="Gắn với Sản phẩm *"
-                                             onChange={(e) => setProductId(e.target.value ? Number(e.target.value) : '')}
-                                        >
-                                            <MenuItem value=""><em>-- Chọn một sản phẩm --</em></MenuItem>
-                                            {products.map((prod) => (
-                                                <MenuItem key={prod.id} value={prod.id}>{prod.name}</MenuItem>
+                                    <FormControl fullWidth error={!!fieldErrors.type}>
+                                        <InputLabel id="type-label">
+                                            Loại Banner <span style={{ color: 'red' }}>*</span>
+                                        </InputLabel>
+                                        <Select labelId="type-label" value={type} label={
+                                            <span>
+                                                Loại Banner <span style={{ color: 'red' }}>*</span>
+                                            </span>
+                                        } onChange={(e) => handleTypeChange(e.target.value)}>
+                                            {BANNER_TYPES.map((opt) => (
+                                                <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
                                             ))}
                                         </Select>
-                                        {fieldErrors.productId && <FormHelperText>{fieldErrors.productId}</FormHelperText>}
+                                        {fieldErrors.type && <FormHelperText>{fieldErrors.type}</FormHelperText>}
                                     </FormControl>
                                 </Grid>
-                            )}
 
-                            <Grid item xs={12}>
-                                <TextField label="Alt Text (mô tả ảnh, tốt cho SEO)" value={altText} onChange={(e) => setAltText(e.target.value)} fullWidth error={!!fieldErrors.altText} helperText={fieldErrors.altText} />
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <TextField label="Thứ tự hiển thị" type="number" value={displayOrder} onChange={(e) => setDisplayOrder(parseInt(e.target.value, 10) || 1)} fullWidth error={!!fieldErrors.displayOrder} helperText={fieldErrors.displayOrder}/>
-                            </Grid>
-                             <Grid item xs={12} sm={6}>
-                                <FormControlLabel control={<Switch checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />} label={isActive ? 'Đang hoạt động' : 'Đang ẩn'} sx={{ pt: 1 }} />
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <TextField label="Ngày bắt đầu" type="date" InputLabelProps={{ shrink: true }} value={startDate} onChange={(e) => setStartDate(e.target.value)} fullWidth error={!!fieldErrors.startDate} helperText={fieldErrors.startDate} />
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <TextField label="Ngày kết thúc" type="date" InputLabelProps={{ shrink: true }} value={endDate} onChange={(e) => setEndDate(e.target.value)} fullWidth error={!!fieldErrors.endDate} helperText={fieldErrors.endDate} />
+                                {type && type !== 'category-banner' && type !== 'product-banner' && (
+                                    <Grid item xs={12}>
+                                        <TextField
+                                            label="Link URL (khi click)"
+                                            value={linkUrl}
+                                            onChange={(e) => setLinkUrl(e.target.value)}
+                                            fullWidth
+                                            error={!!fieldErrors.linkUrl}
+                                            helperText={fieldErrors.linkUrl || "Nhập link nội bộ (vd: /flash-sale) hoặc link ngoài."}
+                                        />
+                                    </Grid>
+                                )}
+
+                                {type === 'category-banner' && (
+                                    <Grid item xs={12}>
+                                        <FormControl fullWidth error={!!fieldErrors.categoryId}>
+                                            <InputLabel id="category-select-label">
+                                                Gắn với Danh mục <span style={{ color: 'red' }}>*</span>
+                                            </InputLabel>
+                                            <Select
+                                                labelId="category-select-label"
+                                                value={categoryId}
+                                                label={
+                                                    <span>
+                                                        Gắn với Danh mục <span style={{ color: 'red' }}>*</span>
+                                                    </span>
+                                                }
+                                                onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : '')}
+                                                MenuProps={{
+                                                    PaperProps: {
+                                                        style: {
+                                                            maxHeight: 400,
+                                                        },
+                                                    },
+                                                }}
+                                            >
+                                                <MenuItem value=""><em>-- Chọn một danh mục --</em></MenuItem>
+                                                {renderCategoryMenuItems(categories)}
+                                            </Select>
+                                            {fieldErrors.categoryId && <FormHelperText>{fieldErrors.categoryId}</FormHelperText>}
+                                        </FormControl>
+                                    </Grid>
+                                )}
+
+                                {type === 'product-banner' && (
+                                    <Grid item xs={12}>
+                                        <FormControl fullWidth error={!!fieldErrors.productId}>
+                                            <InputLabel id="product-select-label">
+                                                Gắn với Sản phẩm <span style={{ color: 'red' }}>*</span>
+                                            </InputLabel>
+                                            <Select
+                                                labelId="product-select-label"
+                                                value={productId}
+                                                label={
+                                                    <span>
+                                                        Gắn với Sản phẩm <span style={{ color: 'red' }}>*</span>
+                                                    </span>
+                                                }
+                                                onChange={(e) => setProductId(e.target.value ? Number(e.target.value) : '')}
+                                            >
+                                                <MenuItem value=""><em>-- Chọn một sản phẩm --</em></MenuItem>
+                                                {products.map((prod) => (
+                                                    <MenuItem key={prod.id} value={prod.id}>{prod.name}</MenuItem>
+                                                ))}
+                                            </Select>
+                                            {fieldErrors.productId && <FormHelperText>{fieldErrors.productId}</FormHelperText>}
+                                        </FormControl>
+                                    </Grid>
+                                )}
+
+                                <Grid item xs={12}>
+                                    <TextField label="Alt Text (mô tả ảnh, tốt cho SEO)" value={altText} onChange={(e) => setAltText(e.target.value)} fullWidth error={!!fieldErrors.altText} helperText={fieldErrors.altText} />
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <TextField label="Thứ tự hiển thị" type="number" value={displayOrder} onChange={(e) => setDisplayOrder(parseInt(e.target.value, 10) || 1)} fullWidth error={!!fieldErrors.displayOrder} helperText={fieldErrors.displayOrder} />
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <FormControlLabel control={<Switch checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />} label={isActive ? 'Đang hoạt động' : 'Đang ẩn'} sx={{ pt: 1 }} />
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <TextField label="Ngày bắt đầu" type="date" InputLabelProps={{ shrink: true }} value={startDate} onChange={(e) => setStartDate(e.target.value)} fullWidth error={!!fieldErrors.startDate} helperText={fieldErrors.startDate} />
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <TextField label="Ngày kết thúc" type="date" InputLabelProps={{ shrink: true }} value={endDate} onChange={(e) => setEndDate(e.target.value)} fullWidth error={!!fieldErrors.endDate} helperText={fieldErrors.endDate} />
+                                </Grid>
                             </Grid>
                         </Grid>
                     </Grid>
-                </Grid>
 
-                <Box display="flex" justifyContent="flex-end" gap={2} mt={4}>
-                    <Button variant="outlined" onClick={() => navigate('/admin/banners')} disabled={loading}>
-                        Hủy
-                    </Button>
-                    <Button type="submit" variant="contained" disabled={loading}>
-                        {loading ? <CircularProgress size={24} color="inherit" /> : 'Lưu lại'}
-                    </Button>
+                    <Box display="flex" justifyContent="flex-end" gap={2} mt={4}>
+                        <Button variant="outlined" onClick={() => navigate('/admin/banners')} disabled={loading}>
+                            Hủy
+                        </Button>
+                        <Button type="submit" variant="contained" disabled={loading}>
+                            {loading ? <CircularProgress size={24} color="inherit" /> : 'Lưu lại'}
+                        </Button>
+                    </Box>
                 </Box>
-            </Box>
-        </Paper>
+            </Paper>
+        </>
     );
 };
 

@@ -30,6 +30,7 @@ import { toast } from 'react-toastify';
 import { API_BASE_URL } from '../../../../constants/environment';
 import LoaderAdmin from '../../../../components/Admin/LoaderVip';
 import ProductSelectionDialog from './ProductSelectionDialog';
+import Breadcrumb from '../../../../components/common/Breadcrumb';
 
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, rectSortingStrategy } from '@dnd-kit/sortable';
@@ -492,269 +493,311 @@ export default function HomeSectionFormPage() {
     const showBanners = ['productWithBanner', 'full'].includes(selectedType);
 
     return (
-        <Box component="form" onSubmit={handleSubmit(onSubmit)} mt={2}>
-            <Paper sx={{ p: 3, mb: 3 }} elevation={2}>
-                <Typography variant="h5" gutterBottom>
-                    {isEdit ? 'Cập nhật Khối Trang chủ' : 'Tạo mới Khối Trang chủ'}
-                </Typography>
-                <Stack spacing={2}>
+        <>
+          <Breadcrumb
+          items={[
+            { label: 'Trang chủ', href: '/admin' },
+            { label: 'Khối trang chủ', href: '/admin/home-sections' },
+            { label: isEdit ? 'Chỉnh sửa' : 'Thêm mới' }
+          ]}
+        />
+      
+      <Box component="form" onSubmit={handleSubmit(onSubmit)} mt={2}>
+
+  <Paper sx={{ p: 3, mb: 3 }} elevation={2}>
+    <Typography variant="h5" gutterBottom>
+      {isEdit ? 'Cập nhật Khối Trang chủ' : 'Tạo mới Khối Trang chủ'}
+    </Typography>
+    <Stack spacing={2}>
+      <TextField
+        label={
+          <span>
+            Tiêu đề Khối <span style={{ color: 'red' }}>*</span>
+          </span>
+        }
+        fullWidth
+        InputLabelProps={{ shrink: true }}
+        {...register('title', { required: 'Tiêu đề là bắt buộc' })}
+        error={!!errors.title}
+        helperText={errors.title?.message}
+      />
+      <Controller
+        name="type"
+        control={control}
+        rules={{ required: 'Loại khối là bắt buộc' }}
+        render={({ field }) => (
+          <FormControl fullWidth error={!!errors.type}>
+            <InputLabel>
+              Loại khối <span style={{ color: 'red' }}>*</span>
+            </InputLabel>
+            <MUISelect {...field} label={
+              <span>
+                Loại khối <span style={{ color: 'red' }}>*</span>
+              </span>
+            }>
+              {SECTION_TYPES.map((o) => (
+                <MenuItem key={o.value} value={o.value}>
+                  {o.label}
+                </MenuItem>
+              ))}
+            </MUISelect>
+            {errors.type && <FormHelperText>{errors.type.message}</FormHelperText>}
+          </FormControl>
+        )}
+      />
+      <TextField
+        label="Thứ tự hiển thị"
+        type="number"
+        fullWidth
+        InputLabelProps={{ shrink: true }}
+        {...register('orderIndex', { valueAsNumber: true, min: { value: 0, message: 'Thứ tự phải ≥ 0' } })}
+        error={!!errors.orderIndex}
+        helperText={errors.orderIndex?.message}
+      />
+      <FormControlLabel
+        control={<Controller name="isActive" control={control} render={({ field }) => <Switch {...field} checked={field.value} />} />}
+        label="Kích hoạt khối"
+      />
+    </Stack>
+  </Paper>
+
+  {showCategoryFilter && (
+    <Paper sx={{ p: 3, mb: 3 }} elevation={2}>
+      <Typography variant="h6" gutterBottom>
+        Danh mục hiển thị (Filter) <span style={{ color: 'red' }}>*</span>
+      </Typography>
+      <FormControl fullWidth error={!!errors.categoryIds}>
+        <Controller
+          name="categoryIds"
+          control={control}
+          rules={{ required: 'Danh mục hiển thị là bắt buộc' }} 
+          render={({ field }) => {
+            const handleDragEnd = (event) => {
+              const { active, over } = event;
+              if (over && active.id !== over.id) {
+                const oldIndex = (field.value || []).indexOf(active.id);
+                const newIndex = (field.value || []).indexOf(over.id);
+                field.onChange(arrayMove(field.value, oldIndex, newIndex));
+              }
+            };
+
+            const handleDelete = (idToDelete) => {
+              field.onChange((field.value || []).filter((id) => id !== idToDelete));
+            };
+
+            const selectedCategoryObjects = (field.value || [])
+              .map((id) => categoryOptions.find((opt) => opt.id === id))
+              .filter(Boolean);
+
+            return (
+              <>
+                <Autocomplete
+                  multiple
+                  options={categoryOptions}
+                  value={selectedCategoryObjects}
+                  getOptionLabel={(o) => o.name || 'Danh mục không tên'}
+                  isOptionEqualToValue={(option, value) => option.id === value.id}
+                  onChange={(_, newValueObjects) => {
+                    const newIds = newValueObjects.map((x) => x.id);
+                    const existingIds = field.value || [];
+                    const keptIds = existingIds.filter((id) => newIds.includes(id));
+                    const addedIds = newIds.filter((id) => !existingIds.includes(id));
+                    field.onChange([...keptIds, ...addedIds]);
+                  }}
+                  renderOption={(props, option) => {
+                    return (
+                      <li
+                        {...props}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          paddingLeft: `${option.level * 1.5}em`,
+                          gap: 6
+                        }}
+                      >
+                        {option.level > 0 ? <span style={{ color: '#888' }}>├</span> : <span style={{ color: 'transparent' }}>├</span>}
+                        {option.name}
+                      </li>
+                    );
+                  }}
+                  renderTags={() => null}
+                  renderInput={(params) => (
                     <TextField
-                        label="Tiêu đề Khối"
-                        fullWidth
-                        InputLabelProps={{ shrink: true }}
-                        {...register('title', { required: 'Tiêu đề là bắt buộc' })}
-                        error={!!errors.title}
-                        helperText={errors.title?.message}
+                      {...params}
+                      label="Chọn danh mục..."
+                      error={!!errors.categoryIds} 
+                      helperText={errors.categoryIds?.message} 
                     />
-                    <Controller
-                        name="type"
-                        control={control}
-                        rules={{ required: 'Loại khối là bắt buộc' }}
-                        render={({ field }) => (
-                            <FormControl fullWidth error={!!errors.type}>
-                                <InputLabel>Loại khối</InputLabel>
-                                <MUISelect {...field} label="Loại khối">
-                                    {SECTION_TYPES.map((o) => (
-                                        <MenuItem key={o.value} value={o.value}>
-                                            {o.label}
-                                        </MenuItem>
-                                    ))}
-                                </MUISelect>
-                                {errors.type && <FormHelperText>{errors.type.message}</FormHelperText>}
-                            </FormControl>
-                        )}
-                    />
-                    <TextField
-                        label="Thứ tự hiển thị"
-                        type="number"
-                        fullWidth
-                        InputLabelProps={{ shrink: true }}
-                        {...register('orderIndex', { valueAsNumber: true, min: { value: 0, message: 'Thứ tự phải ≥ 0' } })}
-                        error={!!errors.orderIndex}
-                        helperText={errors.orderIndex?.message}
-                    />
-                    <FormControlLabel
-                        control={<Controller name="isActive" control={control} render={({ field }) => <Switch {...field} checked={field.value} />} />}
-                        label="Kích hoạt khối"
-                    />
-                </Stack>
-            </Paper>
+                  )}
+                />
 
-            {showCategoryFilter && (
-                <Paper sx={{ p: 3, mb: 3 }} elevation={2}>
-                    <Typography variant="h6" gutterBottom>
-                        Danh mục hiển thị (Filter)
-                    </Typography>
-                    <FormControl fullWidth error={!!errors.categoryIds}>
-                        <Controller
-                            name="categoryIds"
-                            control={control}
-                            render={({ field }) => {
-                                const handleDragEnd = (event) => {
-                                    const { active, over } = event;
-                                    if (over && active.id !== over.id) {
-                                        const oldIndex = (field.value || []).indexOf(active.id);
-                                        const newIndex = (field.value || []).indexOf(over.id);
-                                        field.onChange(arrayMove(field.value, oldIndex, newIndex));
-                                    }
-                                };
+                {selectedCategoryObjects.length > 0 && (
+                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                    <SortableContext items={field.value || []} strategy={rectSortingStrategy}>
+                      <Stack direction="row" flexWrap="wrap" sx={{ gap: 1, alignItems: 'flex-start' }} mt={1.5}>
+                        {(field.value || []).map((catId) => {
+                          const cat = categoryOptions.find((c) => c.id === catId);
+                          if (!cat) return null;
+                          return <SortableChip key={cat.id} id={cat.id} item={{ ...cat, thumbnail: null }} onDelete={handleDelete} />;
+                        })}
+                      </Stack>
+                    </SortableContext>
+                  </DndContext>
+                )}
+              </>
+            );
+          }}
+        />
+   
+      </FormControl>
+    </Paper>
+  )}
 
-                                const handleDelete = (idToDelete) => {
-                                    field.onChange((field.value || []).filter((id) => id !== idToDelete));
-                                };
+  {showProducts && (
+    <Paper sx={{ p: 3, mb: 3 }} elevation={2}>
+      <Typography variant="h6" gutterBottom>
+        Sản phẩm trong khối <span style={{ color: 'red' }}>*</span>
+      </Typography>
+      <FormControl fullWidth error={!!errors.productIds}>
+        <Controller
+          name="productIds"
+          control={control}
+          rules={{ required: 'Sản phẩm trong khối là bắt buộc' }} 
+          render={({ field }) => {
+            const handleDragEnd = (event) => {
+              const { active, over } = event;
+              if (over && active.id !== over.id) {
+                const oldIndex = (field.value || []).indexOf(active.id);
+                const newIndex = (field.value || []).indexOf(over.id);
+                field.onChange(arrayMove(field.value, oldIndex, newIndex));
+              }
+            };
 
-                                const selectedCategoryObjects = (field.value || [])
-                                    .map((id) => categoryOptions.find((opt) => opt.id === id))
-                                    .filter(Boolean);
+            const handleDelete = (idToDelete) => {
+              field.onChange((field.value || []).filter((id) => id !== idToDelete));
+            };
 
-                                return (
-                                    <>
-                                        <Autocomplete
-                                            multiple
-                                            options={categoryOptions}
-                                            value={selectedCategoryObjects}
-                                            getOptionLabel={(o) => o.name || 'Danh mục không tên'}
-                                            isOptionEqualToValue={(option, value) => option.id === value.id}
-                                            onChange={(_, newValueObjects) => {
-                                                const newIds = newValueObjects.map((x) => x.id);
-                                                const existingIds = field.value || [];
-                                                const keptIds = existingIds.filter((id) => newIds.includes(id));
-                                                const addedIds = newIds.filter((id) => !existingIds.includes(id));
-                                                field.onChange([...keptIds, ...addedIds]);
-                                            }}
-                                            renderOption={(props, option) => {
-                                                return (
-                                                    <li
-                                                        {...props}
-                                                        style={{
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            paddingLeft: `${option.level * 1.5}em`,
-                                                            gap: 6
-                                                        }}
-                                                    >
-                                                        {option.level > 0 ? <span style={{ color: '#888' }}>├</span> : <span style={{ color: 'transparent' }}>├</span>}
-                                                        {option.name}
-                                                    </li>
-                                                );
-                                            }}
-                                            renderTags={() => null}
-                                            renderInput={(params) => <TextField {...params} label="Chọn danh mục..." />}
-                                        />
+            const selectedProductObjects = (field.value || []).map((id) => productOptions.find((opt) => opt.id === id)).filter(Boolean);
 
-                                        {selectedCategoryObjects.length > 0 && (
-                                            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                                                <SortableContext items={field.value || []} strategy={rectSortingStrategy}>
-                                                    <Stack direction="row" flexWrap="wrap" sx={{ gap: 1, alignItems: 'flex-start' }} mt={1.5}>
-                                                        {(field.value || []).map((catId) => {
-                                                            const cat = categoryOptions.find((c) => c.id === catId);
-                                                            if (!cat) return null;
-                                                            return <SortableChip key={cat.id} id={cat.id} item={{ ...cat, thumbnail: null }} onDelete={handleDelete} />;
-                                                        })}
-                                                    </Stack>
-                                                </SortableContext>
-                                            </DndContext>
-                                        )}
-                                    </>
-                                );
-                            }}
-                        />
-                        {errors.categoryIds && <FormHelperText>{errors.categoryIds.message}</FormHelperText>}
-                    </FormControl>
-                </Paper>
-            )}
-
-            {showProducts && (
-                <Paper sx={{ p: 3, mb: 3 }} elevation={2}>
-                    <Typography variant="h6" gutterBottom>
-                        Sản phẩm trong khối
-                    </Typography>
-                    <FormControl fullWidth error={!!errors.productIds}>
-                        <Controller
-                            name="productIds"
-                            control={control}
-                            render={({ field }) => {
-                                const handleDragEnd = (event) => {
-                                    const { active, over } = event;
-                                    if (over && active.id !== over.id) {
-                                        const oldIndex = (field.value || []).indexOf(active.id);
-                                        const newIndex = (field.value || []).indexOf(over.id);
-                                        field.onChange(arrayMove(field.value, oldIndex, newIndex));
-                                    }
-                                };
-
-                                const handleDelete = (idToDelete) => {
-                                    field.onChange((field.value || []).filter((id) => id !== idToDelete));
-                                };
-
-                                const selectedProductObjects = (field.value || []).map((id) => productOptions.find((opt) => opt.id === id)).filter(Boolean);
-
-                                return (
-                                    <>
-                                        <Button variant="outlined" onClick={() => setProductModalOpen(true)}>
-                                            Chọn sản phẩm ({selectedProductObjects.length})
-                                        </Button>
-                                        <ProductSelectionDialog
-                                            open={isProductModalOpen}
-                                            onClose={() => setProductModalOpen(false)}
-                                            value={field.value}
-                                            onChange={(newIds) => {
-                                                const existingIds = field.value || [];
-                                                const trulyNewIds = newIds.filter((id) => !existingIds.includes(id));
-                                                field.onChange([...existingIds, ...trulyNewIds]);
-                                            }}
-                                            fetchProducts={sectionService.getAllProducts}
-                                        />
-
-                                        {selectedProductObjects.length > 0 && (
-                                            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                                                <SortableContext items={field.value || []} strategy={rectSortingStrategy}>
-                                                    <Stack
-                                                        direction="row"
-                                                        flexWrap="wrap"
-                                                        sx={{
-                                                            gap: 1,
-                                                            alignItems: 'flex-start'
-                                                        }}
-                                                        mt={1.5}
-                                                    >
-                                                        {selectedProductObjects.map((product) => (
-                                                            <SortableChip
-                                                                key={product.id}
-                                                                id={product.id}
-                                                                item={{ ...product, thumbnail: getImageUrl(product.thumbnail) }}
-                                                                onDelete={handleDelete}
-                                                            />
-                                                        ))}
-                                                    </Stack>
-                                                </SortableContext>
-                                            </DndContext>
-                                        )}
-                                    </>
-                                );
-                            }}
-                        />
-                        {errors.productIds && <FormHelperText>{errors.productIds.message}</FormHelperText>}
-                    </FormControl>
-                </Paper>
-            )}
-
-            {showBanners && (
-                <Paper sx={{ p: 3, mb: 3 }} elevation={2}>
-                    <Typography variant="h6" gutterBottom>
-                        Quản lý Banner
-                    </Typography>
-                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleBannerDragEnd}>
-                        <SortableContext items={bannerFields.map(f => f.id)} strategy={rectSortingStrategy}>
-                            <Stack spacing={3}>
-                                {bannerFields.map((fieldItem, idx) => (
-                                    <SortableBannerItem
-                                        key={fieldItem.id}
-                                        id={fieldItem.id}
-                                        item={fieldItem}
-                                        idx={idx}
-                                        removeBanner={removeBanner}
-                                        control={control}
-                                        watch={watch}
-                                        setValue={setValue}
-                                        productOptions={productOptions}
-                                        categoryOptions={categoryOptions}
-                                        errors={errors}
-                                    />
-                                ))}
-                            </Stack>
-                        </SortableContext>
-                        <Button
-                            startIcon={<AddCircleOutlineIcon />}
-                            onClick={() =>
-                                addBanner({
-                                    id: `new-banner-${Date.now()}`,
-                                    imageFile: null,
-                                    previewUrl: null,
-                                    imageUrl: null,
-                                    linkType: 'url',
-                                    linkValue: '',
-                                    sortOrder: bannerFields.length
-                                })
-                            }
-                            disabled={bannerFields.length >= 2} 
-                            variant="outlined"
-                            sx={{ mt: 2 }}
-                        >
-                            Thêm Banner
-                        </Button>
-                    </DndContext>
-                </Paper>
-            )}
-
-            <Stack direction="row" justifyContent="flex-end" spacing={2} mt={3}>
-                <Button variant="outlined" onClick={() => navigate('/admin/home-sections')} disabled={isSubmitting}>
-                    Hủy bỏ
+            return (
+              <>
+                <Button
+                  variant="outlined"
+                  onClick={() => setProductModalOpen(true)}
+        
+                  color={errors.productIds ? 'error' : 'primary'}
+                  sx={{ border: errors.productIds ? '1px solid red' : undefined }}
+                >
+                  Chọn sản phẩm ({selectedProductObjects.length})
                 </Button>
-                <Button type="submit" variant="contained" disabled={isSubmitting}>
-                    {isEdit ? 'Cập nhật Khối' : 'Tạo mới Khối'}
-                </Button>
-            </Stack>
-        </Box>
+                {errors.productIds && ( 
+                  <FormHelperText error>{errors.productIds.message}</FormHelperText>
+                )}
+                <ProductSelectionDialog
+                  open={isProductModalOpen}
+                  onClose={() => setProductModalOpen(false)}
+                  value={field.value}
+                  onChange={(newIds) => {
+                    const existingIds = field.value || [];
+                    const trulyNewIds = newIds.filter((id) => !existingIds.includes(id));
+                    field.onChange([...existingIds, ...trulyNewIds]);
+                  }}
+                  fetchProducts={sectionService.getAllProducts}
+                />
+
+                {selectedProductObjects.length > 0 && (
+                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                    <SortableContext items={field.value || []} strategy={rectSortingStrategy}>
+                      <Stack
+                        direction="row"
+                        flexWrap="wrap"
+                        sx={{
+                          gap: 1,
+                          alignItems: 'flex-start'
+                        }}
+                        mt={1.5}
+                      >
+                        {selectedProductObjects.map((product) => (
+                          <SortableChip
+                            key={product.id}
+                            id={product.id}
+                            item={{ ...product, thumbnail: getImageUrl(product.thumbnail) }}
+                            onDelete={handleDelete}
+                          />
+                        ))}
+                      </Stack>
+                    </SortableContext>
+                  </DndContext>
+                )}
+              </>
+            );
+          }}
+        />
+       
+      </FormControl>
+    </Paper>
+  )}
+
+  {showBanners && (
+    <Paper sx={{ p: 3, mb: 3 }} elevation={2}>
+      <Typography variant="h6" gutterBottom>
+        Quản lý Banner <span style={{ color: 'red' }}>*</span>
+      </Typography>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleBannerDragEnd}>
+        <SortableContext items={bannerFields.map(f => f.id)} strategy={rectSortingStrategy}>
+          <Stack spacing={3}>
+            {bannerFields.map((fieldItem, idx) => (
+              <SortableBannerItem
+                key={fieldItem.id}
+                id={fieldItem.id}
+                item={fieldItem}
+                idx={idx}
+                removeBanner={removeBanner}
+                control={control}
+                watch={watch}
+                setValue={setValue}
+                productOptions={productOptions}
+                categoryOptions={categoryOptions}
+                errors={errors}
+              />
+            ))}
+          </Stack>
+        </SortableContext>
+        <Button
+          startIcon={<AddCircleOutlineIcon />}
+          onClick={() =>
+            addBanner({
+              id: `new-banner-${Date.now()}`,
+              imageFile: null,
+              previewUrl: null,
+              imageUrl: null,
+              linkType: 'url',
+              linkValue: '',
+              sortOrder: bannerFields.length
+            })
+          }
+          disabled={bannerFields.length >= 2}
+          variant="outlined"
+          sx={{ mt: 2 }}
+        >
+          Thêm Banner
+        </Button>
+      </DndContext>
+      {errors.banners && ( 
+        <FormHelperText error sx={{ mt: 1 }}>{errors.banners.message}</FormHelperText>
+      )}
+    </Paper>
+  )}
+
+  <Stack direction="row" justifyContent="flex-end" spacing={2} mt={3}>
+    <Button variant="outlined" onClick={() => navigate('/admin/home-sections')} disabled={isSubmitting}>
+      Hủy bỏ
+    </Button>
+    <Button type="submit" variant="contained" disabled={isSubmitting}>
+      {isEdit ? 'Cập nhật Khối' : 'Tạo mới Khối'}
+    </Button>
+  </Stack>
+</Box>
+          </>
     );
 }

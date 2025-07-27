@@ -31,6 +31,7 @@ import { toast } from 'react-toastify';
 import HighlightText from '../../../components/Admin/HighlightText';
 import MUIPagination from '../../../components/common/Pagination';
 import LoaderAdmin from '../../../components/Admin/LoaderVip';
+import Breadcrumb from '../../../components/common/Breadcrumb';
 
 const TYPE_LABELS = {
   productOnly: 'Chỉ hiển thị sản phẩm',
@@ -157,10 +158,10 @@ export default function HomeSectionList() {
         id: item.id,
         orderIndex: index
       }));
-     await sectionService.updateOrder(orderedItemsPayload);
+      await sectionService.updateOrder(orderedItemsPayload);
 
       toast.success('Cập nhật thứ tự thành công');
-      fetchSections(); 
+      fetchSections();
     } catch (err) {
       console.error('Lỗi cập nhật thứ tự:', err);
       toast.error(err?.response?.data?.message || 'Cập nhật thứ tự thất bại');
@@ -171,7 +172,14 @@ export default function HomeSectionList() {
   return (
     <Box p={2}>
       {isLoading && <LoaderAdmin fullscreen />}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+      <Breadcrumb
+        items={[
+          { label: 'Trang chủ', href: '/admin' },
+          { label: 'Khối Trang chủ', href: '/admin/home-sections' }
+        ]}
+        ml={3}
+      />
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2} mt={2}>
         <Typography variant="h5" fontWeight={600}>
           Danh sách Khối Trang chủ
         </Typography>
