@@ -32,6 +32,7 @@ import { toast } from 'react-toastify';
 import LoaderAdmin from '../../../components/Admin/LoaderVip';
 import HighlightText from '../../../components/Admin/HighlightText';
 import { API_BASE_URL } from '../../../constants/environment';
+import Breadcrumb from '../../../components/common/Breadcrumb';
 
 const VariantValueList = () => {
   const { variantId } = useParams();
@@ -278,8 +279,14 @@ const VariantValueList = () => {
   return (
     <Box>
       {isLoading && <LoaderAdmin fullscreen />}
-
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+ <Breadcrumb
+    items={[
+      { label: 'Trang chủ', href: '/admin' },
+      { label: 'Thuộc tính sản phẩm', href: '/admin/product-variants' },
+      { label: `Giá trị: ${variantName}` }
+    ]}
+  />
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, mt:2 }}>
         <Typography variant="h6" fontWeight={600}>
           Cấu hình giá trị cho: {variantName}
         </Typography>

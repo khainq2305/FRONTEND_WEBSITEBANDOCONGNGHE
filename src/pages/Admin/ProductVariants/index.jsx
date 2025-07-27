@@ -29,9 +29,10 @@ import { toast } from 'react-toastify';
 import LoaderAdmin from '../../../components/Admin/LoaderVip';
 import 'react-toastify/dist/ReactToastify.css';
 import HighlightText from '../../../components/Admin/HighlightText';
+import Breadcrumb from '../../../components/common/Breadcrumb';
 
-import Tooltip from '@mui/material/Tooltip'; 
-import InfoIcon from '@mui/icons-material/Info'; 
+import Tooltip from '@mui/material/Tooltip';
+import InfoIcon from '@mui/icons-material/Info';
 const VariantList = () => {
   const [variants, setVariants] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -148,18 +149,19 @@ const VariantList = () => {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
   };
 
-const handleEdit = (id) => {
-  const variant = variants.find(v => v.id === id);   
- if (!variant) return;                              
-  navigate(`/admin/product-variants/edit/${variant.slug}`); };
- const handleBulkAction = async () => {
+  const handleEdit = (id) => {
+    const variant = variants.find(v => v.id === id);
+    if (!variant) return;
+    navigate(`/admin/product-variants/edit/${variant.slug}`);
+  };
+  const handleBulkAction = async () => {
     if (!bulkAction || selectedIds.length === 0) {
-      toast.info('Vui lòng chọn hành động và ít nhất một thuộc tính.'); 
+      toast.info('Vui lòng chọn hành động và ít nhất một thuộc tính.');
       return;
     }
     const labelMap = {
       trash: 'chuyển vào thùng rác',
-      delete: 'xoá vĩnh viễn', 
+      delete: 'xoá vĩnh viễn',
       restore: 'khôi phục'
     };
 
@@ -171,16 +173,16 @@ const handleEdit = (id) => {
     let shouldFetchManually = true;
 
     try {
-      let apiResponse; 
+      let apiResponse;
 
       if (bulkAction === 'trash') {
         apiResponse = await variantService.softDeleteMany(selectedIds);
         toast.success(apiResponse?.data?.message || `Đã ${labelMap[bulkAction]} ${selectedIds.length} thuộc tính.`);
-      } else if (bulkAction === 'delete') { 
+      } else if (bulkAction === 'delete') {
         apiResponse = await variantService.forceDeleteMany(selectedIds);
-      
+
         if (apiResponse && apiResponse.status === 207) {
-          toast.warning(apiResponse.data.message); 
+          toast.warning(apiResponse.data.message);
         } else {
           toast.success(apiResponse?.data?.message || `Đã ${labelMap[bulkAction]} thành công.`);
         }
@@ -189,18 +191,18 @@ const handleEdit = (id) => {
         toast.success(apiResponse?.data?.message || `Đã ${labelMap[bulkAction]} ${selectedIds.length} thuộc tính.`);
         if (tab === 'trash') {
           setTab('all');
-          setCurrentPage(1); 
+          setCurrentPage(1);
           shouldFetchManually = false;
         }
       }
 
       if (shouldFetchManually) {
-        setCurrentPage(1); 
-        await fetchVariants(1); 
+        setCurrentPage(1);
+        await fetchVariants(1);
       }
     } catch (error) {
       const backendMessage = error?.response?.data?.message;
-    
+
       if (error.response && error.response.status === 409) {
         toast.warning(backendMessage || 'Một hoặc nhiều thuộc tính đang được sử dụng, không thể xoá vĩnh viễn.');
       } else {
@@ -217,7 +219,7 @@ const handleEdit = (id) => {
   const handleSingleAction = async (action) => {
     handleMenuClose();
     const item = variants.find((v) => v.id === selectedVariantId);
-    let confirmResult = true; 
+    let confirmResult = true;
 
     if (action === 'trash') {
       confirmResult = await confirmDelete(`chuyển "${item?.name || 'thuộc tính này'}" vào thùng rác`);
@@ -242,20 +244,20 @@ const handleEdit = (id) => {
         toast.success(apiResponse?.data?.message || `Đã khôi phục "${item?.name}".`);
         if (tab === 'trash') {
           setTab('all');
-          setCurrentPage(1); 
-          shouldFetchManually = false; 
+          setCurrentPage(1);
+          shouldFetchManually = false;
         }
       }
-      
+
       if (shouldFetchManually) {
-        setCurrentPage(1); 
-        await fetchVariants(1); 
+        setCurrentPage(1);
+        await fetchVariants(1);
       }
 
     } catch (error) {
       const backendMessage = error?.response?.data?.message;
-     
-      if (error.response && error.response.status === 409) { 
+
+      if (error.response && error.response.status === 409) {
         toast.warning(backendMessage || `Thuộc tính "${item?.name}" đang được sử dụng, không thể xoá vĩnh viễn.`);
       } else {
         toast.error(backendMessage || 'Lỗi thao tác!');
@@ -263,7 +265,7 @@ const handleEdit = (id) => {
       console.error('Lỗi thao tác:', backendMessage || error.message);
     } finally {
       setIsLoading(false);
-   
+
       setSelectedVariantId(null);
     }
   };
@@ -271,8 +273,15 @@ const handleEdit = (id) => {
   return (
     <>
       {isLoading && <LoaderAdmin fullscreen />}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h6" fontWeight={600}>
+      <Breadcrumb
+        items={[
+          { label: 'Trang chủ', href: '/admin' },
+          { label: 'Thuộc tính sản phẩm' }
+        ]}
+      />
+
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, mt: 2 }}>
+        <Typography variant="h5" fontWeight={600}>
           Danh sách thuộc tính
         </Typography>
         <Button component={Link} to="/admin/product-variants/create" variant="contained" color="primary" disabled={isLoading}>
@@ -331,18 +340,18 @@ const handleEdit = (id) => {
               >
                 {tab === 'trash'
                   ? [
-                      <MenuItem key="restore" value="restore">
-                        Khôi phục
-                      </MenuItem>,
-                      <MenuItem key="delete" value="delete">
-                        Xoá vĩnh viễn
-                      </MenuItem>
-                    ]
+                    <MenuItem key="restore" value="restore">
+                      Khôi phục
+                    </MenuItem>,
+                    <MenuItem key="delete" value="delete">
+                      Xoá vĩnh viễn
+                    </MenuItem>
+                  ]
                   : [
-                      <MenuItem key="trash" value="trash">
-                        Chuyển vào thùng rác
-                      </MenuItem>
-                    ]}
+                    <MenuItem key="trash" value="trash">
+                      Chuyển vào thùng rác
+                    </MenuItem>
+                  ]}
               </Select>
             </FormControl>
             <Button variant="outlined" onClick={handleBulkAction} disabled={!bulkAction || selectedIds.length === 0 || isLoading}>
@@ -408,51 +417,51 @@ const handleEdit = (id) => {
                     <Chip label={getTypeLabel(item.type)} size="small" color={getTypeColor(item.type)} />
                   </TableCell>
                   <TableCell>{item.slug}</TableCell>
-                  <TableCell> 
-                <Typography variant="body2">
-                  {item.values?.length > 0 ? item.values.map((v) => v.value).join(', ') : '—'}
-                </Typography>
-
-                
-                {item.deletedAt ? ( 
-                  <>
-                    <Typography
-                      component="span" 
-                      sx={{
-                        fontSize: 13,
-                        color: 'text.disabled', 
-                        textDecoration: 'none', 
-                        cursor: 'not-allowed',   
-                      }}
-                    >
-                      Cấu hình
+                  <TableCell>
+                    <Typography variant="body2">
+                      {item.values?.length > 0 ? item.values.map((v) => v.value).join(', ') : '—'}
                     </Typography>
-                   
-                    <Tooltip title="Thuộc tính này đã ở trong thùng rác. Vui lòng khôi phục để cấu hình.">
-                      <InfoIcon
-                        color="action" 
-                        sx={{
-                          fontSize: '16px',
-                          ml: 0.5,
-                          verticalAlign: 'middle',
-                          cursor: 'help', 
-                        }}
-                      />
-                    </Tooltip>
-                  </>
-                ) : (
-                  
-                  <Typography
-                    component={Link}
-                    to={`/admin/product-variants/${item.id}/values`}
-                    sx={{ fontSize: 13, color: 'primary.main', textDecoration: 'underline' }}
-                
-                  >
-                    Cấu hình
-                  </Typography>
-                )}
-          
-              </TableCell>
+
+
+                    {item.deletedAt ? (
+                      <>
+                        <Typography
+                          component="span"
+                          sx={{
+                            fontSize: 13,
+                            color: 'text.disabled',
+                            textDecoration: 'none',
+                            cursor: 'not-allowed',
+                          }}
+                        >
+                          Cấu hình
+                        </Typography>
+
+                        <Tooltip title="Thuộc tính này đã ở trong thùng rác. Vui lòng khôi phục để cấu hình.">
+                          <InfoIcon
+                            color="action"
+                            sx={{
+                              fontSize: '16px',
+                              ml: 0.5,
+                              verticalAlign: 'middle',
+                              cursor: 'help',
+                            }}
+                          />
+                        </Tooltip>
+                      </>
+                    ) : (
+
+                      <Typography
+                        component={Link}
+                        to={`/admin/product-variants/${item.id}/values`}
+                        sx={{ fontSize: 13, color: 'primary.main', textDecoration: 'underline' }}
+
+                      >
+                        Cấu hình
+                      </Typography>
+                    )}
+
+                  </TableCell>
 
                   <TableCell>
                     <Chip

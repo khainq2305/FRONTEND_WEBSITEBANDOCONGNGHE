@@ -18,11 +18,13 @@ import { useForm, Controller } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { highlightedCategoryItemService } from '../../../../services/admin/highlightedCategoryItemService';
 import { Select } from '@mui/material';
-import ThumbnailUpload from '../../../../components/admin/ThumbnailUpload';
+import ThumbnailUpload from '../../../../components/Admin/ThumbnailUpload';
 import Toastify from '../../../../components/common/Toastify';
 import { toast } from 'react-toastify';
 import LoaderAdmin from '../../../../components/Admin/LoaderVip/';
 import { API_BASE_URL } from '../../../../constants/environment';
+import Breadcrumb from '../../../../components/common/Breadcrumb';
+
 const HighlightedCategoryItemForm = () => {
   const { slug } = useParams();
   const isEdit = !!slug;
@@ -172,8 +174,17 @@ const HighlightedCategoryItemForm = () => {
     <>
 
       {isLoading && <LoaderAdmin fullscreen />}
-      <Box p={2}>
-        <Paper elevation={3} sx={{ p: 3 }}>
+      <Breadcrumb
+
+        items={[
+          { label: 'Trang chủ', href: '/admin' },
+          { label: 'Danh mục nổi bật', href: '/admin/highlighted-category-items' },
+          { label: isEdit ? 'Chỉnh sửa' : 'Thêm mới' }
+        ]}
+      />
+
+      <Box >
+        <Paper elevation={3} sx={{ p: 3, mt: 2, }}>
           <Typography variant="h5" mb={3}>
             {isEdit ? 'Cập nhật danh mục nổi bật' : 'Thêm danh mục nổi bật'}
           </Typography>
@@ -181,6 +192,7 @@ const HighlightedCategoryItemForm = () => {
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <Grid container spacing={2}>
               <Grid item xs={12}>
+
                 <ThumbnailUpload
                   value={thumbnail}
                   onChange={(val) => {
@@ -202,7 +214,17 @@ const HighlightedCategoryItemForm = () => {
                   control={control}
                   rules={{ required: 'Tiêu đề là bắt buộc' }}
                   render={({ field }) => (
-                    <TextField {...field} label="Tiêu đề" fullWidth error={!!errors.customTitle} helperText={errors.customTitle?.message} />
+                    <TextField
+                      {...field}
+                      label={
+                        <span>
+                          Tiêu đề <span style={{ color: 'red' }}>*</span>
+                        </span>
+                      }
+                      fullWidth
+                      error={!!errors.customTitle}
+                      helperText={errors.customTitle?.message}
+                    />
                   )}
                 />
               </Grid>

@@ -31,10 +31,10 @@ import { useNavigate } from 'react-router-dom';
 import { confirmDelete } from '../../../components/common/ConfirmDeleteDialog';
 import { toast } from 'react-toastify';
 import LoaderAdmin from '../../../components/common/Loader';
-// import Toastify from '../../../components/common/Toastify'; // Nên dùng Toastify ở layout chung
 import { API_BASE_URL } from '../../../constants/environment';
 import HighlightText from '../../../components/Admin/HighlightText';
 import NoImage from '../../../assets/Admin/images/no-image.jpg';
+import Breadcrumb from '../../../components/common/Breadcrumb'; 
 
 export default function HighlightedCategoryItemList() {
   const [items, setItems] = useState([]);
@@ -174,7 +174,16 @@ export default function HighlightedCategoryItemList() {
     <Box p={2}>
      
       {isLoading && <LoaderAdmin fullscreen />}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 2 }}>
+      <Box mb={1}>
+  <Breadcrumb
+    items={[
+      { label: 'Trang chủ', href: '/admin' },
+      { label: 'Danh mục nổi bật', href: '/admin/highlighted-category-items' }
+    ]}
+  />
+</Box>
+
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, mt:2,  flexWrap: 'wrap', gap: 2 }}>
         <Typography variant="h5" fontWeight={600}>
           Danh mục nổi bật trang chủ
         </Typography>

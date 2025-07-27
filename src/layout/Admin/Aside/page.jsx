@@ -119,16 +119,6 @@ const pages = [
         subject: 'ProductCategory'
       },
       {
-        id: 'sku-list',
-        title: 'Sản phẩm tồn kho',
-        type: 'item',
-        url: '/admin/skulist',
-        icon: icons.InboxOutlined,
-        breadcrumbs: false,
-        action: 'read',
-        subject: 'Product'
-      },
-      {
         id: 'product-category',
         title: 'Danh mục sản phẩm',
         type: 'item',
