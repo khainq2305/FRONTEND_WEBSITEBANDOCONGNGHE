@@ -36,12 +36,20 @@ API.interceptors.response.use(
       toast.error(err.response.data.message || 'Phiên đăng nhập đã hết hạn!');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-  
 
       authStore.logout?.();
 
       if (navigateTo) {
         navigateTo('/dang-nhap');
+      }
+    }
+
+    if (err.response?.status === 500) {
+      toast.error('Lỗi máy chủ. Vui lòng thử lại sau.');
+      if (navigateTo) {
+        navigateTo('/500');
+      } else {
+        window.location.href = '/500';
       }
     }
 

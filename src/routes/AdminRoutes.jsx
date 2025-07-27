@@ -298,10 +298,7 @@ const AdminRoutes = {
       path: 'spin-history',
       element: <SpinHistoryAdminPage />
     },
-    {
-      path: '*',
-      element: <NotFound />
-    }
+    
   ]
 };
 

@@ -12,7 +12,7 @@ const useAuthStore = create(
       loading: true,
       ability: null,
 
-      // 🟢 Gọi khi load lại app
+      
       fetchUserInfo: async () => {
         try {
           const res = await authService.getUserInfo();

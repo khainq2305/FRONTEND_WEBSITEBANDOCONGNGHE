@@ -59,7 +59,6 @@ const CategoryMain = ({ initialData = null, onSubmit, externalErrors = {} }) => 
     fetchParentCategories();
 
     if (initialData) {
-
       setCategory({
         name: initialData.name || '',
         slug: initialData.slug || '',
@@ -67,7 +66,7 @@ const CategoryMain = ({ initialData = null, onSubmit, externalErrors = {} }) => 
         thumbnail: null,
         parentId: initialData.parentId || '',
         isActive: initialData.isActive ?? true,
-       orderIndex: initialData.sortOrder ?? 0
+        orderIndex: initialData.sortOrder ?? 0
       });
       if (initialData.thumbnail) {
         setPreview(initialData.thumbnail);
@@ -189,10 +188,14 @@ const CategoryMain = ({ initialData = null, onSubmit, externalErrors = {} }) => 
           <div className="flex flex-col gap-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <TextField
-                label="Tên danh mục"
+                label={
+                  <span>
+                    Tên danh mục <span style={{ color: 'red' }}>*</span>
+                  </span>
+                }
                 value={category.name}
                 onChange={(e) => handleChange('name', e.target.value)}
-                required
+                // Đã bỏ 'required' ở đây để tránh dấu * màu xám mặc định của Material-UI
                 fullWidth
                 error={!!(errors.name || externalErrors.name)}
                 helperText={errors.name || externalErrors.name}
@@ -227,7 +230,7 @@ const CategoryMain = ({ initialData = null, onSubmit, externalErrors = {} }) => 
 
               <div>
                 <Typography fontWeight={500} mb={1}>
-                  Thumbnail
+                  Thumbnail <span style={{ color: 'red' }}>*</span>
                 </Typography>
 
                 <label
@@ -262,7 +265,7 @@ const CategoryMain = ({ initialData = null, onSubmit, externalErrors = {} }) => 
               </div>
             </div>
 
-            {/* Dòng 3: Thứ tự + switch Hiển thị/Ẩn */}
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <TextField
                 label="Thứ tự hiển thị"
@@ -292,7 +295,6 @@ const CategoryMain = ({ initialData = null, onSubmit, externalErrors = {} }) => 
             variant="contained"
             onClick={() => {
               if (validateAllFields()) {
-                // Gọi hàm onSubmit ở parent, truyền toàn bộ object category (không chứa isDefault nữa)
                 onSubmit(category);
               }
             }}
@@ -302,7 +304,6 @@ const CategoryMain = ({ initialData = null, onSubmit, externalErrors = {} }) => 
         </CardActions>
       </Card>
 
-      {/* Popup crop ảnh */}
       {showCrop && cropSrc && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center">
           <div className="bg-white p-4 rounded-md shadow-md w-[90vw] max-w-md">
