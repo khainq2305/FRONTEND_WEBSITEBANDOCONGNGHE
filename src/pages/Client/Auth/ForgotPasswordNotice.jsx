@@ -141,7 +141,7 @@ const ForgotPasswordNotice = () => {
         </GradientButton>
 
        {lockTime > 0 ? (
-  <div className="mt-4 p-3 text-left text-red-700 bg-red-100 border border-red-400 rounded-md flex items-start gap-2">
+  <div className="mt-4 p-3 text-left text-red-700 bg-red-100 border border-red-400 rounded-md flex items-center gap-2">
     <XCircle className="w-5 h-5 text-red-600 mt-1" />
     <div>
       <p className="font-semibold">Bạn đã gửi xác thực quá thường xuyên.</p>
@@ -150,13 +150,14 @@ const ForgotPasswordNotice = () => {
   </div>
 ) : (
   resendTimeout > 0 && (
-    <div className="mt-4 p-3 text-left text-yellow-700 bg-yellow-100 border border-yellow-400 rounded-md flex items-start gap-2">
-      <XCircle className="w-5 h-5 text-yellow-600 mt-1" />
-      <div>
-        <p className="font-semibold">Vui lòng đợi trước khi gửi lại.</p>
-        <p>Thời gian chờ: {formatLockTime(resendTimeout * 1000)}.</p>
-      </div>
-    </div>
+   <div className="mt-4 p-3 text-left text-yellow-700 bg-yellow-100 border border-yellow-400 rounded-md flex items-center gap-2">
+  <XCircle className="w-5 h-5 text-yellow-600" />
+  <div>
+    <p className="font-semibold">Vui lòng đợi trước khi gửi lại.</p>
+    <p>Thời gian chờ: {formatLockTime(resendTimeout * 1000)}.</p>
+  </div>
+</div>
+
   )
 )}
 

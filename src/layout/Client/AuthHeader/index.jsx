@@ -22,7 +22,7 @@ export default function AuthHeader() {
 
   return (
     <header className="bg-white w-screen shadow-md border-b-2 border-[var(--primary-color)]">
-      <div className="w-full max-w-[1200px] mx-auto px-4 sm:px-6 py-3 flex items-center justify-center sm:justify-between">
+      <div className="w-full max-w-[1200px] mx-auto py-3 flex items-center justify-center sm:justify-between">
         <div className="flex items-center min-w-0 hidden sm:flex">
           <Link to="/" className="no-underline flex-shrink-0">
             <img src="src/assets/Client/images/Logo/logo2.png" alt="Logo" className=" h-35 sm:h-[55px] w-[155px]  object-cover" />

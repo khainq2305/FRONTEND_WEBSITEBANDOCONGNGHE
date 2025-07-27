@@ -127,7 +127,7 @@ const ForgotPasswordPage = () => {
           </GradientButton>
 
           {lockTime > 0 && (
-            <div className="mt-3 p-3 text-left text-red-700 bg-red-50 border border-red-300 rounded-md flex items-start gap-2 w-full mx-auto text-sm">
+            <div className="mt-3 p-3 text-left text-red-700 bg-red-50 border border-red-300 rounded-md flex items-center gap-2 w-full mx-auto text-sm">
               <XCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
               <div>
                 <p className="font-semibold">Yêu cầu tạm khóa.</p>

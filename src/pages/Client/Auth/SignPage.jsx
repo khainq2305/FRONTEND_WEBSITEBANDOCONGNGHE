@@ -129,7 +129,7 @@ const AuthPage = () => {
           clipPath: 'polygon(0 0, 95% 0, 85% 54%, 65% 100%, 0 100%, 0% 50%)'
         }}
       >
-        <div className="relative z-10 flex flex-col justify-center items-center h-full text-center p-10">
+        <div className="relative max-w-[1200px] z-10 flex flex-col justify-center items-center h-full text-center p-10">
           <h2 className="text-3xl font-bold mb-4" style={{ color: 'var(--text-color)' }}>
             {isLogin ? 'Bạn đã có tài khoản?' : 'Bạn mới đến?'}
           </h2>

@@ -43,12 +43,6 @@ const VerifyEmailPage = () => {
   return (
     <div className="relative flex items-center justify-center min-h-screen bg-gray-50 px-4">
      {loading && <Loader fullscreen />} 
-     
-
-   
-      <div className="text-lg font-semibold">
-        Đang xử lý xác thực email. Vui lòng đợi trong giây lát...
-      </div>
     </div>
   );
 };

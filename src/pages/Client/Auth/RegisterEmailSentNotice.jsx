@@ -181,7 +181,7 @@ const RegisterEmailSentNotice = () => {
 
         {(isAccountLocked || isResendOnCooldown) && (
           <div
-            className={`mt-4 p-3 text-left border rounded-md flex items-start gap-2 ${
+            className={`mt-4 p-3 text-left border rounded-md flex items-center gap-2 ${
               isAccountLocked ? 'text-red-700 bg-red-100 border-red-400' : 'text-amber-700 bg-amber-100 border-amber-400'
             }`}
           >
