@@ -11,6 +11,7 @@ import { vi } from 'date-fns/locale';
 
 // Đảm bảo bạn có các dialog này
 import CancelOrderDialog from './CancelOrderDialog';
+import { paymentService } from '../../../services/client/paymentService';
 
 // Hàm ánh xạ trạng thái trả hàng sang text hiển thị
 const getReturnStatusText = (status) => {
@@ -50,20 +51,19 @@ const OrderItem = ({ order, searchTerm, refetchOrders }) => {
     };
 
     const handlePayAgain = async () => {
-        try {
-            const res = await orderService.payAgain(order.id, {
-                bankCode: '',
-            });
-            if (res.data?.payUrl) {
-                window.location.href = res.data.payUrl;
-            } else {
-                toast.error('Không tạo được link thanh toán.');
-            }
-        } catch (err) {
-            console.error('Pay-again error:', err);
-            toast.error(err.response?.data?.message || 'Không thể thanh toán lại.');
+    try {
+        const res = await paymentService.payAgain(order.id, { bankCode: '' });
+        if (res.data?.payUrl) {
+            window.location.href = res.data.payUrl;
+        } else {
+            toast.error('Không tạo được link thanh toán.');
         }
-    };
+    } catch (err) {
+        console.error('Pay-again error:', err);
+        toast.error(err.response?.data?.message || 'Không thể thanh toán lại.');
+    }
+};
+
 
     const [showCancelDialog, setShowCancelDialog] = useState(false);
 

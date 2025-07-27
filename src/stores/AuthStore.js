@@ -65,7 +65,7 @@ const useAuthStore = create(
         localStorage.clear();
         sessionStorage.clear();
         set({ user: null, ability: null, loading: false });
-        window.location.reload();
+       
       },
     }),
     {

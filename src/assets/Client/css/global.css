@@ -81,8 +81,8 @@
   transition: all 0.2s ease;
 }
 .input-style.error {
-  border-color: #ef4444 !important; /* Tailwind border-red-500 */
-  box-shadow: 0 0 0 1px #ef4444 !important; /* Tailwind ring-red-500 */
+  border-color: #ef4444 !important; 
+  box-shadow: 0 0 0 1px #ef4444 !important; 
 }
 
 .input-style:focus {

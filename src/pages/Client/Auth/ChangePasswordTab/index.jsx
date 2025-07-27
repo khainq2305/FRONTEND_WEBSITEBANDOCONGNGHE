@@ -4,6 +4,9 @@ import { toast } from 'react-toastify';
 import { authService } from '../../../../services/client/authService';
 import GradientButton from '../../../../components/Client/GradientButton';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { useNavigate } from 'react-router-dom';
+import useAuthStore from '../../../../stores/AuthStore';
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 const ChangePasswordTab = () => {
   const [hasPassword, setHasPassword] = useState(true);
@@ -12,6 +15,7 @@ const ChangePasswordTab = () => {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const navigate = useNavigate();
 
   const {
     register,
@@ -74,11 +78,18 @@ const ChangePasswordTab = () => {
     try {
       const payload = hasPassword ? data : { newPassword: data.newPassword };
       await authService.changePassword(payload);
-      toast.success(hasPassword ? 'Đổi mật khẩu thành công!' : 'Thiết lập mật khẩu thành công!');
       reset();
+
+      if (hasPassword) {
+        toast.success('Đổi mật khẩu thành công. Vui lòng đăng nhập lại.');
+        await useAuthStore.getState().logout();
+        navigate('/dang-nhap');
+      } else {
+        toast.success('Thiết lập mật khẩu thành công.');
+      }
+
     } catch (error) {
       const errMsg = error.response?.data?.message || 'Thao tác thất bại. Vui lòng thử lại.';
-
       if (errMsg.includes('Vui lòng thử lại sau')) {
         const secondsMatch = errMsg.match(/sau (\d+) giây/);
         if (secondsMatch) {
@@ -93,9 +104,11 @@ const ChangePasswordTab = () => {
   };
 
 
+
+
   return (
     <div className="bg-white p-6 rounded-md shadow border border-gray-200">
- 
+
       <h2 className="text-xl font-semibold text-gray-800 mb-1">
         {hasPassword ? 'Đổi mật khẩu' : 'Thiết lập mật khẩu'}
       </h2>
@@ -107,16 +120,23 @@ const ChangePasswordTab = () => {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 max-w-md mx-auto" >
         {hasPassword && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu hiện tại</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Mật khẩu hiện tại <span className="text-red-500">*</span>
+            </label>
+
             <div className="relative">
               <input
+                placeholder="Nhập mật khẩu hiện tại"
                 type={showCurrentPassword ? 'text' : 'password'}
                 {...register('currentPassword', {
-                  required: 'Vui lòng nhập mật khẩu hiện tại'
+                  required: 'Vui lòng nhập mật khẩu hiện tại',
                 })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm outline-none focus:ring focus:ring-sky-200 pr-10"
+                className={`input-style pr-10 ${isLocked || errors.currentPassword ? 'error' : ''}`}
                 disabled={isLocked}
               />
+
+
+
               <button
                 type="button"
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
@@ -134,17 +154,25 @@ const ChangePasswordTab = () => {
               <p className="text-red-500 text-xs mt-1">{errors.currentPassword.message}</p>
             )}
             {isLocked && lockRemainingTime != null && (
-              <p className="text-red-500 text-xs mt-1">
-                Bạn đã nhập sai quá nhiều lần. Vui lòng thử lại sau <strong>{formatTime(lockRemainingTime)}</strong>.
+              <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                <ExclamationTriangleIcon className="w-4 h-4 text-red-500" />
+                <span>
+                  Bạn đã nhập sai quá nhiều lần. Vui lòng thử lại sau <strong>{formatTime(lockRemainingTime)}</strong>.
+                </span>
               </p>
             )}
+
           </div>
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu mới</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Mật khẩu mới <span className="text-red-500">*</span>
+          </label>
+
           <div className="relative">
             <input
+              placeholder="Nhập mật khẩu mới"
               type={showNewPassword ? 'text' : 'password'}
               {...register('newPassword', {
                 validate: {
@@ -161,9 +189,10 @@ const ChangePasswordTab = () => {
                   },
                 },
               })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm outline-none focus:ring focus:ring-sky-200 pr-10"
+              className={`input-style pr-10 ${errors.newPassword ? 'error' : ''}`}
               disabled={isLocked}
             />
+
             <button
               type="button"
               className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
@@ -183,9 +212,13 @@ const ChangePasswordTab = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Xác nhận mật khẩu mới</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Xác nhận mật khẩu mới <span className="text-red-500">*</span>
+          </label>
+
           <div className="relative">
             <input
+              placeholder="Xác nhận mật khẩu mới"
               type={showConfirmPassword ? 'text' : 'password'}
               {...register('confirmPassword', {
                 validate: {
@@ -199,9 +232,11 @@ const ChangePasswordTab = () => {
                   },
                 },
               })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm outline-none focus:ring focus:ring-sky-200 pr-10"
+              className={`input-style pr-10 ${errors.confirmPassword ? 'error' : ''}`}
               disabled={isLocked}
             />
+
+
             <button
               type="button"
               className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"

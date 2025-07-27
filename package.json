@@ -59,6 +59,7 @@
     "react": "^18.3.1",
     "react-apexcharts": "^1.7.0",
     "react-beautiful-dnd": "^13.1.1",
+    "react-cloudflare-turnstile": "^2.0.0",
     "react-color": "^2.19.3",
     "react-confetti": "^6.4.0",
     "react-cropper": "^2.1.4",

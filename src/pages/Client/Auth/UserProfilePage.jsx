@@ -9,7 +9,7 @@ import FavoriteProductsPage from './FavoriteProductsPage';
 import ChangePasswordTab from './ChangePasswordTab';
 import Breadcrumb from '../../../components/common/Breadcrumb';
 import RewardPage from './RewardPage';                // đường dẫn thư mục RewardPage
-import MembershipPage from './MembershipPage'; 
+import MembershipPage from './MembershipPage';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const UserProfilePage = () => {
@@ -27,7 +27,7 @@ const UserProfilePage = () => {
   });
   const [isSidebarLoading, setIsSidebarLoading] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
- const { orderCode, id, returnCode } = useParams();
+  const { orderCode, id, returnCode } = useParams();
 
 
   const navigate = useNavigate();
@@ -174,8 +174,8 @@ const UserProfilePage = () => {
     { id: 'thong-tin-tai-khoan', label: 'Thông tin tài khoản', icon: User, href: '#thong-tin-tai-khoan' },
     { id: 'quan-ly-don-hang', label: 'Quản lý đơn hàng', icon: ShoppingBag, href: '#quan-ly-don-hang' },
     { id: 'so-dia-chi', label: 'Sổ địa chỉ', icon: MapPin, href: '#so-dia-chi' },
-     { id: 'khach-hang-than-thiet', label: 'Khách hàng thân thiết', icon: Ticket, href: '#khach-hang-than-thiet' },
-  { id: 'diem-thuong', label: 'Điểm thưởng', icon: Ticket, href: '#diem-thuong' }, // 👉 tab mới
+    { id: 'khach-hang-than-thiet', label: 'Khách hàng thân thiết', icon: Ticket, href: '#khach-hang-than-thiet' },
+    { id: 'diem-thuong', label: 'Điểm thưởng', icon: Ticket, href: '#diem-thuong' }, // 👉 tab mới
     { id: 'san-pham-da-xem', label: 'Sản phẩm đã xem', icon: Eye, href: '/san-pham-da-xem' }, // Thay đổi href thành đường dẫn tuyệt đối
     { id: 'san-pham-yeu-thich', label: 'Sản phẩm yêu thích', icon: Heart, href: '#san-pham-yeu-thich' },
     { id: 'doi-mat-khau', label: 'Đổi mật khẩu', icon: Eye, href: '#doi-mat-khau' }
@@ -231,10 +231,9 @@ const UserProfilePage = () => {
                         handleTabClick(item.id);
                       }}
                       className={`flex items-center py-2.5 px-3 rounded-md text-sm transition-all duration-200 relative
-                        ${
-                          itemIsActive || isViewedProductsActive
-                            ? 'bg-white border-l-4 border-primary text-primary font-semibold'
-                            : 'text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
+                        ${itemIsActive || isViewedProductsActive
+                          ? 'bg-white border-l-4 border-primary text-primary font-semibold'
+                          : 'text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
                         }
                       `}
                     >
@@ -312,10 +311,9 @@ const UserProfilePage = () => {
                           handleTabClick(item.id);
                         }}
                         className={`flex items-center py-2.5 px-3 rounded-md text-sm transition-all duration-200 relative
-                          ${
-                            itemIsActive || isViewedProductsActive
-                              ? 'bg-primary-100 dark:bg-primary-900 text-primary font-semibold'
-                              : 'text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
+                          ${itemIsActive || isViewedProductsActive
+                            ? 'bg-primary-100 dark:bg-primary-900 text-primary font-semibold'
+                            : 'text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
                           }
                         `}
                       >
@@ -363,15 +361,15 @@ const UserProfilePage = () => {
           <DesktopSidebar />
 
           <div className="flex-1 min-w-0 lg:pl-8 md:pl-6 pl-0 pb-8">
-         {(orderCode || id || returnCode) ? (
+            {(orderCode || id || returnCode) ? (
               <Outlet />
             ) : (
               <>
                 {activeTab === 'thong-tin-tai-khoan' && <ProfileContent />}
                 {activeTab === 'quan-ly-don-hang' && <RenderDonMuaContentTuyChinh />}
                 {activeTab === 'so-dia-chi' && <AddressPageContent />}
-{activeTab === 'khach-hang-than-thiet' && <MembershipPage />}
-{activeTab === 'diem-thuong' && <RewardPage />}
+                {activeTab === 'khach-hang-than-thiet' && <MembershipPage />}
+                {activeTab === 'diem-thuong' && <RewardPage />}
 
                 {activeTab === 'san-pham-yeu-thich' && <FavoriteProductsPage />}
                 {activeTab === 'doi-mat-khau' && <ChangePasswordTab />}

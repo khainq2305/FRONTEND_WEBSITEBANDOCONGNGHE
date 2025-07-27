@@ -97,14 +97,17 @@ const NotificationDropdown = ({ isOpen, notifications = [], onClose, setNotifica
   const unreadCount = notifications?.filter((n) => !n.isRead).length || 0;
   const totalPromotion = notifications.filter((n) => n.type === 'promotion').length;
   const totalOrder = notifications.filter((n) => n.type === 'order').length;
-  const handleMarkAllAsRead = async () => {
-    try {
-      await notificationService.markAllAsRead();
-      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-    } catch (err) {
-      console.error('Lỗi markAllAsRead:', err);
-    }
-  };
+ const handleMarkAllAsRead = async () => {
+  try {
+    await notificationService.markAllAsRead();
+    
+    // ✅ GỌI LẠI API
+    const res = await notificationService.getForUser();
+    setNotifications(res.data || []);
+  } catch (err) {
+    console.error('Lỗi markAllAsRead:', err);
+  }
+};
 
   const handleSingleRead = (id) => {
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
