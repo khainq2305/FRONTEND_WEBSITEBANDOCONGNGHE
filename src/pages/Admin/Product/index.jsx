@@ -35,12 +35,15 @@ import { API_BASE_URL } from '../../../constants/environment';
 import LoaderAdmin from '../../../components/common/Loader';
 import ImportExportIcon from '@mui/icons-material/ImportExport';
 import HighlightText from '../../../components/Admin/HighlightText';
+import { useNavigate } from 'react-router-dom';
+import Breadcrumb from '../../../components/common/Breadcrumb';
 
 export default function ProductListPage() {
   const [products, setProducts] = useState([]);
   const [filter, setFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const navigate = useNavigate();
   const [tabCounts, setTabCounts] = useState({
     all: 0,
     active: 0,
@@ -65,9 +68,9 @@ export default function ProductListPage() {
   const bulkActions =
     filter === 'deleted'
       ? [
-          { value: 'restore', label: 'Khôi phục' },
-          { value: 'forceDelete', label: 'Xóa vĩnh viễn' }
-        ]
+        { value: 'restore', label: 'Khôi phục' },
+        { value: 'forceDelete', label: 'Xóa vĩnh viễn' }
+      ]
       : [{ value: 'delete', label: 'Chuyển vào thùng rác' }];
 
   useEffect(() => {
@@ -83,25 +86,20 @@ export default function ProductListPage() {
     fetchCategories();
   }, []);
 
- const flattenCategories = (nodes, depth = 0) => {
-  const result = [];
-  for (const node of nodes) {
-   
-    const indent = '  '.repeat(depth);
-   
-    const label = depth > 0
-      ? `${indent}├─ ${node.name}`
-      : node.name;
-    result.push({ id: node.id, name: label });
+  const flattenCategories = (nodes, depth = 0) => {
+    const result = [];
+    for (const node of nodes) {
+      const indent = '  '.repeat(depth);
 
-  
-    if (node.children && node.children.length > 0) {
-      result.push(...flattenCategories(node.children, depth + 1));
+      const label = depth > 0 ? `${indent}├─ ${node.name}` : node.name;
+      result.push({ id: node.id, name: label });
+
+      if (node.children && node.children.length > 0) {
+        result.push(...flattenCategories(node.children, depth + 1));
+      }
     }
-  }
-  return result;
-};
-
+    return result;
+  };
 
   useEffect(() => {
     fetchData();
@@ -134,55 +132,82 @@ export default function ProductListPage() {
       }
     } catch (error) {
       setTotalItems(0);
-      console.error('Lỗi khi tải dữ liệu sản phẩm:', error); // Thêm log chi tiết lỗi
+      console.error('Lỗi khi tải dữ liệu sản phẩm:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleDragEnd = async ({ active, over }) => {
-    if (!over || active.id === over.id) return;
+const handleDragEnd = async ({ active, over }) => {
+  if (!selectedCategoryId) {
+    toast.warning('Vui lòng lọc theo một danh mục cụ thể để sắp xếp.');
+    return;
+  }
 
-    // Lấy danh sách sản phẩm hiện tại để xác định index
-    const currentProductList = products.filter(p => {
-      // Logic lọc tương tự như filteredProducts để đảm bảo đúng thứ tự hiển thị
-      if (filter === 'active' && (!p.isActive || p.deletedAt)) return false;
-      if (filter === 'inactive' && (p.isActive || p.deletedAt)) return false;
-      if (filter === 'deleted' && !p.deletedAt) return false;
-      if (filter === 'all' && p.deletedAt) return false;
-      if (filter !== 'deleted' && p.deletedAt) return false;
-      if (selectedCategoryId && String(p.category?.id) !== String(selectedCategoryId)) return false;
-      const kw = searchText.toLowerCase().trim();
-      if (kw) {
-        return p.name?.toLowerCase().includes(kw) || p.slug?.toLowerCase().includes(kw) || p.category?.name?.toLowerCase().includes(kw);
-      }
-      return true;
-    });
+  if (!over || active.id === over.id) return;
 
-
-    const oldIndex = currentProductList.findIndex((p) => String(p.id) === String(active.id));
-    const newIndex = currentProductList.findIndex((p) => String(p.id) === String(over.id));
-
-    if (oldIndex < 0 || newIndex < 0) return;
-
-    const reordered = arrayMove(currentProductList, oldIndex, newIndex);
-
-    // Tạo payload với orderIndex dựa trên vị trí mới trong danh sách đã sắp xếp
-    const payload = reordered.map((p, idx) => ({ id: p.id, orderIndex: idx }));
-
-    try {
-      setIsLoading(true); 
-      await productService.updateOrderIndexBulk({ items: payload });
-      toast.success('Đã cập nhật thứ tự sản phẩm.');
-      // Gọi lại fetchData để đảm bảo dữ liệu và orderIndex được tải lại chính xác từ server
-      await fetchData(); 
-    } catch (err) {
-      console.error('Lỗi cập nhật thứ tự:', err);
-      toast.error('Lỗi cập nhật thứ tự sản phẩm.');
-    } finally {
-      setIsLoading(false);
+  const currentProductList = products.filter((p) => {
+    if (filter === 'active' && (!p.isActive || p.deletedAt)) return false;
+    if (filter === 'inactive' && (p.isActive || p.deletedAt)) return false;
+    if (filter === 'deleted' && !p.deletedAt) return false;
+    if (filter === 'all' && p.deletedAt) return false;
+    if (filter !== 'deleted' && p.deletedAt) return false;
+    if (selectedCategoryId && String(p.category?.id) !== String(selectedCategoryId)) return false;
+    const kw = searchText.toLowerCase().trim();
+    if (kw) {
+      return (
+        p.name?.toLowerCase().includes(kw) ||
+        p.slug?.toLowerCase().includes(kw) ||
+        p.category?.name?.toLowerCase().includes(kw)
+      );
     }
-  };
+    return true;
+  });
+
+  const oldIndex = currentProductList.findIndex((p) => String(p.id) === String(active.id));
+  const newIndex = currentProductList.findIndex((p) => String(p.id) === String(over.id));
+
+  if (oldIndex < 0 || newIndex < 0) return;
+
+  const activeItem = currentProductList[oldIndex];
+  const overItem = currentProductList[newIndex];
+
+  // ⚠️ Chỉ hoán đổi orderIndex giữa 2 item
+  const payload = [
+    {
+      id: activeItem.id,
+      orderIndex: overItem.orderIndex,
+      categoryId: overItem.category?.id || selectedCategoryId
+    },
+    {
+      id: overItem.id,
+      orderIndex: activeItem.orderIndex,
+      categoryId: activeItem.category?.id || selectedCategoryId
+    }
+  ];
+
+  const uniqueCategoryIds = [...new Set(payload.map((i) => i.categoryId))];
+  if (uniqueCategoryIds.length !== 1) {
+    toast.warning('Chỉ được kéo sắp xếp sản phẩm trong cùng một danh mục.');
+    return;
+  }
+
+  try {
+    setIsLoading(true);
+    console.log('Payload gửi lên:', payload);
+    await productService.updateOrderIndexBulk({ items: payload });
+
+    toast.success('Đã cập nhật thứ tự sản phẩm.');
+
+    await fetchData(); // Load lại danh sách từ server
+  } catch (err) {
+    console.error('Lỗi cập nhật thứ tự:', err);
+    toast.error('Lỗi cập nhật thứ tự sản phẩm.');
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   const handleMenuOpen = (e, product) => {
     e.stopPropagation();
@@ -203,48 +228,43 @@ export default function ProductListPage() {
   const toggleSelectOne = (id) => setSelectedIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
 
   const handleBulkAction = async () => {
-  if (!bulkAction || !selectedIds.length) return;
-  const labels = {
-    delete: 'xoá',
-    restore: 'khôi phục',
-    forceDelete: 'xoá vĩnh viễn'
+    if (!bulkAction || !selectedIds.length) return;
+    const labels = {
+      delete: 'xoá',
+      restore: 'khôi phục',
+      forceDelete: 'xoá vĩnh viễn'
+    };
+
+    if (!(await confirmDelete(labels[bulkAction], ` ${selectedIds.length} sản phẩm đã chọn`))) return;
+
+    setIsLoading(true);
+    try {
+      if (bulkAction === 'delete') {
+        await productService.softDeleteMany(selectedIds);
+        toast.success('Đã xóa tạm thời các sản phẩm đã chọn');
+      } else if (bulkAction === 'restore') {
+        await productService.restoreMany(selectedIds);
+        toast.success('Đã khôi phục các sản phẩm đã chọn');
+      } else {
+        await productService.forceDeleteMany(selectedIds);
+        toast.success('Đã xóa vĩnh viễn các sản phẩm đã chọn');
+      }
+
+      setSelectedIds([]);
+      setBulkAction('');
+      await fetchData();
+    } catch (err) {
+      console.error('Lỗi bulk action:', err);
+
+      if (err?.response?.data?.message) {
+        toast.warning(err.response.data.message);
+      } else {
+        toast.error(`Lỗi khi ${labels[bulkAction]} hàng loạt.`);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
-
-  if (!(await confirmDelete(labels[bulkAction], ` ${selectedIds.length} sản phẩm đã chọn`))) return;
-
-  setIsLoading(true);
-  try {
-    if (bulkAction === 'delete') {
-      await productService.softDeleteMany(selectedIds);
-      toast.success('Đã xóa tạm thời các sản phẩm đã chọn');
-    } else if (bulkAction === 'restore') {
-      await productService.restoreMany(selectedIds);
-      toast.success('Đã khôi phục các sản phẩm đã chọn');
-    } else {
-      // ✅ forceDelete có thể bị chặn bởi backend => cần hiển thị cảnh báo rõ ràng
-      await productService.forceDeleteMany(selectedIds);
-      toast.success('Đã xóa vĩnh viễn các sản phẩm đã chọn');
-    }
-
-    setSelectedIds([]);
-    setBulkAction('');
-    await fetchData(); // Cập nhật lại dữ liệu sau khi thao tác xong
-
-  } catch (err) {
-    console.error('Lỗi bulk action:', err);
-
-
-    if (err?.response?.data?.message) {
-      toast.warning(err.response.data.message);
-    } else {
-      toast.error(`Lỗi khi ${labels[bulkAction]} hàng loạt.`);
-    }
-
-  } finally {
-    setIsLoading(false);
-  }
-};
-
 
   const handleDeleteOne = async (id, name) => {
     if (!(await confirmDelete('xoá', name))) return;
@@ -253,7 +273,7 @@ export default function ProductListPage() {
       await productService.softDelete(id);
       toast.success(`Đã xóa sản phẩm "${name}" thành công`);
       // Gọi lại fetchData để cập nhật UI sau khi xóa mềm
-      await fetchData(); 
+      await fetchData();
       setSelectedIds((prev) => prev.filter((pid) => pid !== id));
     } catch (err) {
       console.error('Xóa mềm lỗi:', err);
@@ -270,7 +290,7 @@ export default function ProductListPage() {
       await productService.restore(id);
       toast.success(`Đã khôi phục sản phẩm "${name}" thành công`);
       // Gọi lại fetchData để cập nhật UI sau khi khôi phục
-      await fetchData(); 
+      await fetchData();
       setSelectedIds((prev) => prev.filter((pid) => pid !== id));
     } catch (err) {
       console.error('Khôi phục lỗi:', err);
@@ -280,35 +300,35 @@ export default function ProductListPage() {
     }
   };
 
-const handleForceDelete = async (id, name) => {
-  if (!(await confirmDelete('xoá vĩnh viễn', name))) return;
-  setIsLoading(true);
-  try {
-    await productService.forceDelete(id);
-    toast.success(`Đã xoá vĩnh viễn "${name}"`);
-    await fetchData();
-    setSelectedIds((prev) => prev.filter((pid) => pid !== id));
-  } catch (err) {
-    console.error('Xóa vĩnh viễn lỗi:', err);
+  const handleForceDelete = async (id, name) => {
+    if (!(await confirmDelete('xoá vĩnh viễn', name))) return;
+    setIsLoading(true);
+    try {
+      await productService.forceDelete(id);
+      toast.success(`Đã xoá vĩnh viễn "${name}"`);
+      await fetchData();
+      setSelectedIds((prev) => prev.filter((pid) => pid !== id));
+    } catch (err) {
+      console.error('Xóa vĩnh viễn lỗi:', err);
 
-    // 🔥 THÊM xử lý lỗi chi tiết từ backend
-    if (err?.response?.data?.message) {
-      toast.warning(err.response.data.message); // hoặc toast.error nếu bạn thích
-    } else {
-      toast.error(`Lỗi khi xoá vĩnh viễn sản phẩm "${name}".`);
+      if (err?.response?.data?.message) {
+        toast.warning(err.response.data.message);
+      } else {
+        toast.error(`Lỗi khi xoá vĩnh viễn sản phẩm "${name}".`);
+      }
+    } finally {
+      setIsLoading(false);
     }
-
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   const filteredProducts = products.filter((p) => {
     if (filter === 'active' && (!p.isActive || p.deletedAt)) return false;
     if (filter === 'inactive' && (p.isActive || p.deletedAt)) return false;
     if (filter === 'deleted' && !p.deletedAt) return false;
-    if (filter === 'all' && p.deletedAt) return false; // Thêm điều kiện này để 'all' không hiển thị sản phẩm đã xóa tạm thời
-    if (filter !== 'deleted' && p.deletedAt) return false; // Đảm bảo chỉ tab 'deleted' hiển thị sản phẩm đã xóa tạm thời
+    if (filter === 'all' && p.deletedAt) return false;
+    if (filter === 'lowStock' && !p.lowStockWarning) return false;
+
+    if (filter !== 'deleted' && p.deletedAt) return false;
     if (selectedCategoryId && String(p.category?.id) !== String(selectedCategoryId)) return false;
 
     const kw = searchText.toLowerCase().trim();
@@ -337,12 +357,12 @@ const handleForceDelete = async (id, name) => {
 
   return (
     <Box>
-
       {isLoading && <LoaderAdmin fullscreen />}
+      <Breadcrumb items={[{ label: 'Trang chủ', href: '/admin' }, { label: 'Sản phẩm' }]} />
 
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, mt: 2 }}>
         <Typography variant="h4">Danh sách sản phẩm</Typography>
-        <Button variant="contained" onClick={() => (window.location.href = '/admin/products/create')}>
+        <Button variant="contained" onClick={() => navigate('/admin/products/create')}>
           + Thêm sản phẩm
         </Button>
       </Box>
@@ -353,34 +373,36 @@ const handleForceDelete = async (id, name) => {
             { label: 'Tất Cả', value: 'all' },
             { label: 'Hoạt Động', value: 'active' },
             { label: 'Tạm Tắt', value: 'inactive' },
+            { label: 'Sắp hết hàng', value: 'lowStock' },
             { label: 'Thùng Rác', value: 'deleted' }
-          ].map(({ label, value }) => {
-            const isActiveFilter = filter === value;
-            const count = tabCounts[value] || 0;
+          ]
+            .map(({ label, value }) => {
+              const isActiveFilter = filter === value;
+              const count = tabCounts[value] || 0;
 
-            return (
-              <Box
-                key={value}
-                onClick={() => setFilter(value)}
-                sx={{
-                  px: 2,
-                  py: 0.8,
-                  borderRadius: 2,
-                  cursor: 'pointer',
-                  fontWeight: 500,
-                  fontSize: 14,
-                  bgcolor: isActiveFilter ? 'primary.main' : '',
-                  color: isActiveFilter ? 'white' : 'text.primary',
-                  transition: '0.2s',
-                  '&:hover': {
-                    bgcolor: isActiveFilter ? 'primary.dark' : '#e0e0e0'
-                  }
-                }}
-              >
-                {`${label} (${count})`}
-              </Box>
-            );
-          })}
+              return (
+                <Box
+                  key={value}
+                  onClick={() => setFilter(value)}
+                  sx={{
+                    px: 2,
+                    py: 0.8,
+                    borderRadius: 2,
+                    cursor: 'pointer',
+                    fontWeight: 500,
+                    fontSize: 14,
+                    bgcolor: isActiveFilter ? 'primary.main' : '',
+                    color: isActiveFilter ? 'white' : 'text.primary',
+                    transition: '0.2s',
+                    '&:hover': {
+                      bgcolor: isActiveFilter ? 'primary.dark' : '#e0e0e0'
+                    }
+                  }}
+                >
+                  {`${label} (${count})`}
+                </Box>
+              );
+            })}
         </Box>
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
@@ -420,29 +442,28 @@ const handleForceDelete = async (id, name) => {
             </Button>
 
             <FormControl size="small" sx={{ minWidth: 280, mt: '-4px' }}>
-  <InputLabel id="cat-filter">Danh mục</InputLabel>
-  <Select
-    labelId="cat-filter"
-    value={selectedCategoryId}
-    label="Danh mục"
-    onChange={(e) => setSelectedCategoryId(e.target.value)}
-    MenuProps={{
-      PaperProps: {
-        style: {
-          minWidth: 300,    // đặt chiều rộng tối thiểu cho dropdown
-        },
-      },
-    }}
-  >
-    <MuiMenuItem value="">Tất cả</MuiMenuItem>
-    {categoryOptions.map((c) => (
-      <MuiMenuItem key={c.id} value={c.id}>
-        {c.name}
-      </MuiMenuItem>
-    ))}
-  </Select>
-</FormControl>
-
+              <InputLabel id="cat-filter">Danh mục</InputLabel>
+              <Select
+                labelId="cat-filter"
+                value={selectedCategoryId}
+                label="Danh mục"
+                onChange={(e) => setSelectedCategoryId(e.target.value)}
+                MenuProps={{
+                  PaperProps: {
+                    style: {
+                      minWidth: 300 // đặt chiều rộng tối thiểu cho dropdown
+                    }
+                  }
+                }}
+              >
+                <MuiMenuItem value="">Tất cả</MuiMenuItem>
+                {categoryOptions.map((c) => (
+                  <MuiMenuItem key={c.id} value={c.id}>
+                    {c.name}
+                  </MuiMenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Box>
           <TextField
             placeholder="Tìm kiếm..."
@@ -466,26 +487,31 @@ const handleForceDelete = async (id, name) => {
                   disabled={filteredProducts.length === 0}
                 />
               </TableCell>
-              <TableCell align="center">Thứ tự</TableCell>
+              <TableCell align="center">STT</TableCell>
+
+           
               <TableCell align="center">Ảnh</TableCell>
               <TableCell>Tên sản phẩm</TableCell>
+
               <TableCell>Danh mục</TableCell>
               <TableCell>Trạng thái</TableCell>
               <TableCell>Slug</TableCell>
+                 <TableCell align="center">Thứ tự</TableCell>
               <TableCell align="center">Hành động</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext items={filteredProducts.map((p) => String(p.id))} strategy={verticalListSortingStrategy}>
-                {filteredProducts.map((product) => (
+                {filteredProducts.map((product, index) => (
                   <SortableRow key={product.id} product={product}>
                     {({ listeners, attributes }) => (
                       <>
                         <TableCell padding="checkbox">
                           <Checkbox checked={selectedIds.includes(product.id)} onChange={() => toggleSelectOne(product.id)} />
                         </TableCell>
-                        <TableCell align="center">{product.orderIndex}</TableCell>
+                          <TableCell align="center">{index + 1}</TableCell>
+                        
                         <TableCell sx={{ position: 'relative', width: 110, height: 110, p: 1 }}>
                           <Avatar
                             align="center"
@@ -514,9 +540,30 @@ const handleForceDelete = async (id, name) => {
                             />
                           )}
                         </TableCell>
-                        <TableCell>
-                          <HighlightText text={product.name} highlight={searchText} />
+                        <TableCell sx={{ minWidth: 200 }}>
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                            <Box sx={{ minHeight: 24 }}>
+                              <HighlightText text={product.name} highlight={searchText} />
+                            </Box>
+                            {product.lowStockWarning && (
+                              <Chip
+                                label="Sắp hết hàng"
+                                color="warning"
+                                size="small"
+                                sx={{
+                                  fontSize: 10,
+                                  fontWeight: 600,
+                                  px: 1,
+                                  height: 20,
+                                  borderRadius: 1,
+                                  alignSelf: 'start'
+                                }}
+                              />
+                            )}
+                          </Box>
                         </TableCell>
+
+
                         <TableCell>{product.category?.name || '-'}</TableCell>
                         <TableCell>
                           <Chip
@@ -526,11 +573,11 @@ const handleForceDelete = async (id, name) => {
                           />
                         </TableCell>
                         <TableCell>{product.slug}</TableCell>
+                        <TableCell align="center">{product.orderIndex}</TableCell>
                         <TableCell align="center">
                           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                             <IconButton size="small" onClick={(e) => handleMenuOpen(e, product)}>
                               {' '}
-                            
                               <MoreVertIcon />
                             </IconButton>
                             <ImportExportIcon

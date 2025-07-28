@@ -4,14 +4,16 @@ import ProductForm from '../ProductForm';
 import { productService } from '../../../../services/admin/productService';
 import LoaderAdmin from '../../../../components/Admin/LoaderVip';
 import { toast } from 'react-toastify';
+import { Container, Typography } from '@mui/material'; 
 
+import Breadcrumb from '../../../../components/common/Breadcrumb'; 
 export default function ProductEditPage() {
   const { slug } = useParams(); 
   const navigate = useNavigate();
 
   const [initialData, setInitialData] = useState(null);
   const [loading, setLoading] = useState(true);
-  // Thêm state để quản lý loader khi submit
+  
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -30,7 +32,7 @@ export default function ProductEditPage() {
     if (slug) fetchProduct(); 
   }, [slug, navigate]);
 
-  // Khi user bấm “Lưu”, bật loader, cố gắng cập nhật, và nếu có lỗi thì re-throw để ProductForm bắt và hiển thị dưới input.
+ 
   const handleUpdate = async (formData) => {
     setSubmitting(true);
     try {
@@ -39,7 +41,7 @@ export default function ProductEditPage() {
       navigate('/admin/products');
     } catch (err) {
       console.error('Lỗi cập nhật sản phẩm:', err);
-      // Bắt rồi throw tiếp để ProductForm xử lý formErrors
+      
       throw err;
     } finally {
       setSubmitting(false);
@@ -50,10 +52,20 @@ export default function ProductEditPage() {
     return <LoaderAdmin fullscreen />;
   }
 
-  return (
-    <>
+ return (
+    <Container maxWidth="lg" sx={{ pt: 3, position: 'relative' }}>
       {submitting && <LoaderAdmin fullscreen />}
+      <Breadcrumb
+        items={[
+          { label: 'Trang chủ', href: '/admin' },
+          { label: 'Sản phẩm', href: '/admin/products' },
+          { label: 'Chỉnh sửa sản phẩm' }
+        ]}
+      />
+      <Typography variant="h5" fontWeight="bold" mb={2} mt={2}>
+        Chỉnh sửa sản phẩm
+      </Typography>
       <ProductForm onSubmit={handleUpdate} initialData={initialData} />
-    </>
+    </Container>
   );
 }

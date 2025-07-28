@@ -12,6 +12,7 @@ import ProductSkuSection from './ProductSkuSection';
 import AddVariantTypeDialog from './AddVariantTypeDialog';
 import AddVariantValueDialog from './AddVariantValueDialog';
 
+
 const getFrontendFileType = (url) => {
   if (!url || typeof url !== 'string' || !url.trim()) return null;
   const ext = url.split('?')[0].split('.').pop().toLowerCase();
@@ -515,6 +516,7 @@ const ProductForm = ({ onSubmit, initialData }) => {
 
   return (
     <form onSubmit={handleSubmit} className="bg-[#fff] p-4">
+      
       <Grid container spacing={4}>
         <ProductInformationSection
           formData={formData}

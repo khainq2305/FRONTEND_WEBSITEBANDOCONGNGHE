@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, Container, Typography } from '@mui/material';
 import { toast } from 'react-toastify';
-import LoaderAdmin from '../../../../components/Admin/LoaderVip'; // Điều chỉnh đường dẫn nếu khác
+import LoaderAdmin from '../../../../components/Admin/LoaderVip'; 
 import ProductForm from '../ProductForm'; 
 import { productService } from '../../../../services/admin/productService';
+import Breadcrumb from '../../../../components/common/Breadcrumb';
 
 const ProductAddPage = () => {
   const navigate = useNavigate();
@@ -18,7 +19,6 @@ const ProductAddPage = () => {
     navigate('/admin/products');
   } catch (error) {
     console.error('Lỗi thêm sản phẩm:', error);
-    // Bắt lỗi xong, phải throw tiếp để ProductForm bắt được và hiển thị lỗi dưới input
     throw error;
   } finally {
     setLoading(false);
@@ -29,7 +29,14 @@ const ProductAddPage = () => {
   return (
     <Container maxWidth="lg" sx={{ pt: 3, position: 'relative' }}>
       {loading && <LoaderAdmin fullscreen />}
-      <Typography variant="h5" fontWeight="bold" mb={2}>
+       <Breadcrumb
+        items={[
+            { label: 'Trang chủ', href: '/admin' },
+          { label: 'Sản phẩm', href: '/admin/products' },
+          { label: 'Thêm sản phẩm mới' }
+        ]}
+      />
+      <Typography variant="h5" fontWeight="bold" mb={2} mt={2}>
         Thêm sản phẩm mới
       </Typography>
 

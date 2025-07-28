@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+
 import {
   Grid,
   TextField,
@@ -14,15 +15,17 @@ import {
   Button
 } from '@mui/material';
 import ThumbnailUpload from '../../ThumbnailUpload';
-import BannerUpload    from '../../../../../components/Admin/BannerUpload';   
+import BannerUpload from '../../../../../components/Admin/BannerUpload';
 import TinyEditor from '../../../../../components/Admin/TinyEditor';
+import AddCategoryDialog from '../AddCategoryDialog';
+import AddBrandDialog from '../AddBrandDialog';
 
 const badgeOptions = [
   { label: 'Giao nhanh', value: 'GIAO NHANH' },
   { label: 'Thu cũ đổi mới', value: 'THU CŨ ĐỔI MỚI' },
   { label: 'Giá tốt', value: 'GIÁ TỐT' },
   { label: 'Trả góp 0%', value: 'TRẢ GÓP 0%' },
-  { label: 'Giá kho', value: 'GIÁ KHO' } 
+  { label: 'Giá kho', value: 'GIÁ KHO' }
 ];
 
 const ProductInformationSection = ({
@@ -39,6 +42,9 @@ const ProductInformationSection = ({
   categoryTree,
   brandList
 }) => {
+  const [openAddCategory, setOpenAddCategory] = useState(false);
+  const [openAddBrand, setOpenAddBrand] = useState(false);
+
   const renderCategoryOptions = (categories, level = 0, prefix = '') => {
     let options = [];
     categories.forEach((cat, index) => {
@@ -73,7 +79,11 @@ const ProductInformationSection = ({
       <Grid item xs={12} md={8}>
         <TextField
           fullWidth
-          label="Tên sản phẩm"
+          label={
+            <>
+              Tên sản phẩm <Typography component="span" color="error">*</Typography>
+            </>
+          }
           name="name"
           value={formData.name}
           onChange={handleChange}
@@ -81,6 +91,7 @@ const ProductInformationSection = ({
           error={!!formErrors.name}
           helperText={formErrors.name}
         />
+
 
         <Typography variant="subtitle1" sx={{ mt: 3, mb: 1 }}>
           Mô tả chi tiết
@@ -102,39 +113,63 @@ const ProductInformationSection = ({
           </FormHelperText>
         )}
 
-        <TextField
-          select
-          fullWidth
-          label="Danh mục"
-          name="categoryId"
-          value={formData.categoryId}
-          onChange={handleChange}
-          sx={{ mt: 3, mb: 2 }}
-          error={!!formErrors.categoryId}
-          helperText={formErrors.categoryId}
-        >
-          <MenuItem value="">-- Chọn danh mục --</MenuItem>
-          {renderCategoryOptions(categoryTree)}
-        </TextField>
+        <Box sx={{ my: 2 }}>
+          <TextField
+            select
+            fullWidth
+            label={
+              <>
+                Danh mục <Typography component="span" color="error">*</Typography>
+              </>
+            }
+            name="categoryId"
+            value={formData.categoryId}
+            onChange={handleChange}
+            error={!!formErrors.categoryId}
+            helperText={formErrors.categoryId}
+          >
+            <MenuItem value="">-- Chọn danh mục --</MenuItem>
+            {renderCategoryOptions(categoryTree)}
+          </TextField>
 
-        <TextField
-          select
-          fullWidth
-          label="Thương hiệu"
-          name="brandId"
-          value={formData.brandId}
-          onChange={handleChange}
-          sx={{ mb: 2 }}
-          error={!!formErrors.brandId}
-          helperText={formErrors.brandId}
-        >
-          <MenuItem value="">-- Chọn thương hiệu --</MenuItem>
-          {brandList.map((brand) => (
-            <MenuItem key={brand.id} value={brand.id}>
-              {brand.name}
-            </MenuItem>
-          ))}
-        </TextField>
+          <Box display="flex" justifyContent="flex-end" mt={1}>
+            <Button variant="outlined" size="small" onClick={() => setOpenAddCategory(true)}>
+              + Thêm danh mục mới
+            </Button>
+          </Box>
+        </Box>
+
+
+        <Box sx={{ my: 2 }}>
+          <TextField
+            select
+            fullWidth
+            label={
+              <>
+                Thương hiệu <Typography component="span" color="error">*</Typography>
+              </>
+            }
+            name="brandId"
+            value={formData.brandId}
+            onChange={handleChange}
+            error={!!formErrors.brandId}
+            helperText={formErrors.brandId}
+          >
+            <MenuItem value="">-- Chọn thương hiệu --</MenuItem>
+            {brandList.map((brand) => (
+              <MenuItem key={brand.id} value={brand.id}>
+                {brand.name}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <Box display="flex" justifyContent="flex-end" mt={1}>
+            <Button variant="outlined" size="small" onClick={() => setOpenAddBrand(true)}>
+              + Thêm thương hiệu mới
+            </Button>
+          </Box>
+        </Box>
+
 
         <FormControl component="fieldset" sx={{ mb: 2, width: '100%' }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -157,24 +192,62 @@ const ProductInformationSection = ({
           {formErrors.badge && <FormHelperText error>{formErrors.badge}</FormHelperText>}
         </FormControl>
 
-       <BannerUpload
-  value={badgeImage}
-  onChange={setBadgeImage}
-  sx={{ mt: 3 }}
-/>
+        <BannerUpload
+          value={badgeImage}
+          onChange={setBadgeImage}
+          sx={{ mt: 3 }}
+        />
         <TextField
-         sx={{ mt: 3 }}
+          sx={{ mt: 3 }}
           select
           fullWidth
-          label="Trạng thái"
+          label={
+            <>
+              Trạng thái <Typography component="span" color="error">*</Typography>
+            </>
+          }
           name="isActive"
           value={formData.isActive ? '1' : '0'}
-          onChange={(e) => setFormData((prev) => ({ ...prev, isActive: e.target.value === '1' }))}
+          onChange={(e) =>
+            setFormData((prev) => ({ ...prev, isActive: e.target.value === '1' }))
+          }
         >
           <MenuItem value="1">Hiển thị</MenuItem>
           <MenuItem value="0">Ẩn</MenuItem>
         </TextField>
+
+        <TextField
+          type="number"
+          fullWidth
+          label="Thứ tự hiển thị"
+          name="orderIndex"
+          value={formData.orderIndex}
+          onChange={handleChange}
+          sx={{ mt: 3 }}
+          error={!!formErrors.orderIndex}
+          helperText={formErrors.orderIndex}
+        />
+
       </Grid>
+      <AddCategoryDialog
+        open={openAddCategory}
+        onClose={() => setOpenAddCategory(false)}
+        onSuccess={async () => {
+          const res = await categoryService.getAllNested();
+          setCategoryTree(res.data.data);
+        }}
+        categoryTree={categoryTree}
+      />
+      <AddBrandDialog
+        open={openAddBrand}
+        onClose={() => setOpenAddBrand(false)}
+        onSuccess={async () => {
+          const res = await brandService.getAll();
+          // nhớ truyền setBrandList từ cha vào nếu muốn cập nhật lại brandList
+          setBrandList(res.data.data);
+        }}
+      />
+
     </>
   );
 };

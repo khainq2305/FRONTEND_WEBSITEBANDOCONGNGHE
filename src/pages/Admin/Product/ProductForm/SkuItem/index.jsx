@@ -119,12 +119,17 @@ const SkuItem = ({
         <Grid item xs={12} sm={6} md={3}>
           <TextField
             fullWidth
-            label="Mã SKU"
+            label={
+              <>
+                Mã SKU <Typography component="span" color="error">*</Typography>
+              </>
+            }
             value={sku.skuCode || ''}
             onChange={(e) => handleSkuChange(index, 'skuCode', e.target.value)}
             error={!!errors?.skuCode}
             helperText={errors?.skuCode || ''}
           />
+
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
@@ -139,22 +144,32 @@ const SkuItem = ({
 
         <Grid item xs={12} sm={6} md={3}>
           <FormattedNumberInput
-            label="Giá gốc"
+            label={
+              <>
+                Giá gốc <Typography component="span" color="error">*</Typography>
+              </>
+            }
             value={sku.originalPrice ?? ''}
             onChange={(v) => handleSkuChange(index, 'originalPrice', v)}
             error={!!errors?.originalPrice}
             helperText={errors?.originalPrice || ''}
           />
+
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
           <FormattedNumberInput
-            label="Tồn kho"
+            label={
+              <>
+                Tồn kho <Typography component="span" color="error">*</Typography>
+              </>
+            }
             value={sku.stock ?? ''}
             onChange={(v) => handleSkuChange(index, 'stock', v)}
             error={!!errors?.stock}
             helperText={errors?.stock || ''}
           />
+
         </Grid>
 
         <Grid item xs={12}>
@@ -165,39 +180,59 @@ const SkuItem = ({
 
         <Grid item xs={6} sm={3}>
           <FormattedNumberInput
-            label="Rộng (cm)"
+            label={
+              <>
+                Rộng (cm) <Typography component="span" color="error">*</Typography>
+              </>
+            }
             value={sku.width ?? ''}
             onChange={(v) => handleSkuChange(index, 'width', v)}
             error={!!errors?.width}
             helperText={errors?.width || ''}
           />
+
         </Grid>
         <Grid item xs={6} sm={3}>
           <FormattedNumberInput
-            label="Dài (cm)"
+            label={
+              <>
+                Dài (cm) <Typography component="span" color="error">*</Typography>
+              </>
+            }
             value={sku.length ?? ''}
             onChange={(v) => handleSkuChange(index, 'length', v)}
             error={!!errors?.length}
             helperText={errors?.length || ''}
           />
+
         </Grid>
         <Grid item xs={6} sm={3}>
           <FormattedNumberInput
-            label="Cao (cm)"
+            label={
+              <>
+                Cao (cm) <Typography component="span" color="error">*</Typography>
+              </>
+            }
             value={sku.height ?? ''}
             onChange={(v) => handleSkuChange(index, 'height', v)}
             error={!!errors?.height}
             helperText={errors?.height || ''}
           />
+
         </Grid>
         <Grid item xs={6} sm={3}>
           <FormattedNumberInput
-            label="Nặng (gram)"
+            label={
+              <>
+                Nặng (gram) <Typography component="span" color="error">*</Typography>
+              </>
+            }
             value={sku.weight ?? ''}
             onChange={(v) => handleSkuChange(index, 'weight', v)}
             error={!!errors?.weight}
             helperText={errors?.weight || ''}
           />
+
         </Grid>
 
         <Grid item xs={12}>

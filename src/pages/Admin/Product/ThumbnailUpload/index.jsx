@@ -28,9 +28,9 @@ const ThumbnailUpload = ({ value, onChange }) => {
 
   return (
     <Box>
-      <Typography variant="subtitle1" gutterBottom>
-        Thumbnail
-      </Typography>
+      <Typography variant="subtitle1" gutterBottom component="span">
+    Thumbnail <Typography component="span" color="error">*</Typography>
+  </Typography>
       <Box
         {...getRootProps()}
         sx={{
