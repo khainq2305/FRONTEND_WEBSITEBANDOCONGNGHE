@@ -67,8 +67,8 @@ const icons = {
 
 const pages = [
     {
-        id: 'home-group',
-        title: 'Trang chủ',
+        id: 'overview-group',
+        title: 'Tổng quan',
         type: 'group',
         children: [
             {
@@ -85,81 +85,78 @@ const pages = [
     },
 
     {
-        id: 'management-group',
-        title: 'Sản phẩm và danh mục',
+        id: 'product-catalog-group',
+        title: 'Sản phẩm & Danh mục',
         type: 'group',
         children: [
             {
-                id: 'product-section-collapse',
-                title: 'Quản lý sản phẩm',
-                type: 'collapse',
-                icon: icons.AppstoreOutlined,
+                id: 'product-list',
+                title: 'Sản phẩm',
+                type: 'item',
+                url: '/admin/products',
+                icon: icons.ShoppingOutlined,
+                breadcrumbs: false,
                 action: 'read',
-                subject: 'Product',
-                children: [
-                    {
-                        id: 'product-list',
-                        title: 'Sản phẩm',
-                        type: 'item',
-                        url: '/admin/products',
-                        icon: icons.ShoppingOutlined,
-                        breadcrumbs: false,
-                        action: 'read',
-                        subject: 'Product'
-                    },
-                    {
-                        id: 'featured-products',
-                        title: 'Sản phẩm nổi bật',
-                        type: 'item',
-                        url: '/admin/home-sections',
-                        icon: icons.StarOutlined,
-                        breadcrumbs: false,
-                        action: 'read',
-                        subject: 'Section'
-                    },
-                    {
-                        id: 'highlighted-category',
-                        title: 'Danh mục nổi bật',
-                        type: 'item',
-                        url: '/admin/highlighted-category-items',
-                        icon: icons.ClusterOutlined,
-                        breadcrumbs: false,
-                        action: 'read',
-                        subject: 'ProductCategory'
-                    },
-                    {
-                        id: 'product-category',
-                        title: 'Danh mục sản phẩm',
-                        type: 'item',
-                        url: '/admin/categories/list',
-                        icon: icons.TagsOutlined,
-                        breadcrumbs: false,
-                        action: 'read',
-                        subject: 'ProductCategory'
-                    },
-                    {
-                        id: 'product-attribute',
-                        title: 'Thuộc tính sản phẩm',
-                        type: 'item',
-                        url: '/admin/product-variants',
-                        icon: icons.SlidersOutlined,
-                        breadcrumbs: false,
-                        action: 'read',
-                        subject: 'Product'
-                    },
-                    {
-                        id: 'brand-list',
-                        title: 'Thương hiệu',
-                        type: 'item',
-                        url: '/admin/brands',
-                        icon: icons.TrademarkOutlined,
-                        breadcrumbs: false,
-                        action: 'read',
-                        subject: 'Brand'
-                    }
-                ]
+                subject: 'Product'
             },
+            {
+                id: 'featured-products',
+                title: 'Sản phẩm nổi bật',
+                type: 'item',
+                url: '/admin/home-sections',
+                icon: icons.StarOutlined, // Đã thêm lại icon bị thiếu
+                breadcrumbs: false,
+                action: 'read',
+                subject: 'Section'
+            },
+            {
+                id: 'highlighted-category',
+                title: 'Danh mục nổi bật',
+                type: 'item',
+                url: '/admin/highlighted-category-items',
+                icon: icons.ClusterOutlined,
+                breadcrumbs: false,
+                action: 'read',
+                subject: 'ProductCategory'
+            },
+            {
+                id: 'product-category',
+                title: 'Danh mục sản phẩm',
+                type: 'item',
+                url: '/admin/categories/list',
+                icon: icons.TagsOutlined,
+                breadcrumbs: false,
+                action: 'read',
+                subject: 'ProductCategory'
+            },
+            {
+                id: 'product-attribute',
+                title: 'Thuộc tính sản phẩm',
+                type: 'item',
+                url: '/admin/product-variants',
+                icon: icons.SlidersOutlined,
+                breadcrumbs: false,
+                action: 'read',
+                subject: 'Product'
+            },
+            {
+                id: 'brand-list',
+                title: 'Thương hiệu',
+                type: 'item',
+                url: '/admin/brands',
+                icon: icons.TrademarkOutlined,
+                breadcrumbs: false,
+                action: 'read',
+                subject: 'Brand'
+            },
+        ]
+    },
 
+    {
+        id: 'marketing-group',
+        title: 'Marketing',
+        type: 'group',
+        children: [
             {
                 id: 'flash-sale',
                 title: 'Khuyến mãi',
@@ -190,9 +187,8 @@ const pages = [
                     }
                 ]
             },
-
             {
-                id: 'slider-section',
+                id: 'slider-banner-section',
                 title: 'Slider & Banner',
                 type: 'collapse',
                 icon: icons.SlidersOutlined,
@@ -211,7 +207,6 @@ const pages = [
                     }
                 ]
             },
-
             {
                 id: 'coupon-section',
                 title: 'Mã giảm giá',
@@ -242,28 +237,36 @@ const pages = [
                     }
                 ]
             },
-
             {
-                id: 'orderlist',
-                title: 'Đơn hàng',
-                type: 'item',
-                url: '/admin/orders',
-                icon: icons.ShoppingCartOutlined,
-                breadcrumbs: false,
+                id: 'mini-game-section',
+                title: 'Mini Game',
+                type: 'collapse',
+                icon: icons.GiftOutlined,
                 action: 'read',
-                subject: 'Order'
+                subject: 'SpinReward',
+                children: [
+                    {
+                        id: 'spin-reward-list',
+                        title: 'Vòng quay may mắn',
+                        type: 'item',
+                        url: '/admin/spin-rewards',
+                        icon: icons.TableOutlined,
+                        breadcrumbs: false,
+                        action: 'read',
+                        subject: 'SpinReward'
+                    },
+                    {
+                        id: 'spin-history-list',
+                        title: 'Lịch sử quay',
+                        type: 'item',
+                        url: '/admin/spin-history',
+                        icon: icons.HistoryOutlined,
+                        breadcrumbs: false,
+                        action: 'read',
+                        subject: 'SpinHistory'
+                    }
+                ]
             },
-            {
-                id: 'return-requests',
-                title: 'Yêu cầu đổi/trả',
-                type: 'item',
-                url: '/admin/return-requests',
-                icon: icons.HistoryOutlined,
-                breadcrumbs: false,
-                action: 'read',
-                subject: 'ReturnRequest'
-            },
-
             {
                 id: 'news',
                 title: 'Bài viết',
@@ -304,7 +307,70 @@ const pages = [
                     }
                 ]
             },
+        ]
+    },
 
+    {
+        id: 'order-management-group',
+        title: 'Quản lý Đơn hàng',
+        type: 'group',
+        children: [
+            {
+                id: 'orderlist',
+                title: 'Đơn hàng',
+                type: 'item',
+                url: '/admin/orders',
+                icon: icons.ShoppingCartOutlined,
+                breadcrumbs: false,
+                action: 'read',
+                subject: 'Order'
+            },
+            {
+                id: 'return-requests',
+                title: 'Yêu cầu đổi/trả',
+                type: 'item',
+                url: '/admin/return-requests',
+                icon: icons.HistoryOutlined,
+                breadcrumbs: false,
+                action: 'read',
+                subject: 'ReturnRequest'
+            },
+        ]
+    },
+
+    {
+        id: 'content-interact-group',
+        title: 'Nội dung & Tương tác',
+        type: 'group',
+        children: [
+            {
+                id: 'all-comments',
+                title: 'Bình luận',
+                type: 'item',
+                url: '/admin/comments/all',
+                icon: icons.CommentOutlined,
+                breadcrumbs: false,
+                action: 'read',
+                subject: 'comment'
+            },
+            {
+                id: 'productqna',
+                title: 'Hỏi đáp sản phẩm',
+                type: 'item',
+                url: '/admin/product-question',
+                icon: icons.QuestionCircleOutlined,
+                breadcrumbs: false,
+                action: 'read',
+                subject: 'ProductQA'
+            },
+        ]
+    },
+
+    {
+        id: 'user-management-group',
+        title: 'Quản lý Người dùng',
+        type: 'group',
+        children: [
             {
                 id: 'user-management',
                 title: 'Tài khoản',
@@ -337,73 +403,9 @@ const pages = [
                     }
                 ]
             },
-
-            {
-                id: 'notification-section',
-                title: 'Thông báo',
-                type: 'collapse',
-                icon: icons.BellOutlined,
-                action: 'read',
-                subject: 'notification',
-                children: [
-                    {
-                        id: 'notification-list',
-                        title: 'Danh sách thông báo',
-                        type: 'item',
-                        url: '/admin/notifications',
-                        icon: icons.BellOutlined,
-                        breadcrumbs: false,
-                        action: 'read',
-                        subject: 'notification'
-                    },
-                    {
-                        id: 'notification-create',
-                        title: 'Tạo thông báo',
-                        type: 'item',
-                        url: '/admin/notifications/create',
-                        icon: icons.EditOutlined,
-                        breadcrumbs: false,
-                        action: 'create',
-                        subject: 'notification'
-                    }
-                ]
-            },
-
-            {
-                id: 'all-comments',
-                title: 'Bình luận',
-                type: 'item',
-                url: '/admin/comments/all',
-                icon: icons.CommentOutlined,
-                breadcrumbs: false,
-                action: 'read',
-                subject: 'comment'
-            },
-            {
-                id: 'productqna',
-                title: 'Hỏi đáp sản phẩm',
-                type: 'item',
-                url: '/admin/product-question',
-                icon: icons.QuestionCircleOutlined,
-                breadcrumbs: false,
-                action: 'read',
-                subject: 'ProductQA'
-            },
-
-            {
-                id: 'hislog',
-                title: 'Nhật ký hoạt động',
-                type: 'item',
-                url: '/admin/hislog',
-                icon: icons.HistoryOutlined,
-                breadcrumbs: false,
-                action: 'read',
-                subject: 'ActivityLog'
-            },
-
             {
                 id: 'roles',
-                title: 'Quản lý vai trò',
+                title: 'Quản lý Vai trò',
                 type: 'collapse',
                 url: '/admin/quan-ly-vai-tro',
                 icon: icons.SafetyCertificateOutlined,
@@ -442,16 +444,53 @@ const pages = [
                     }
                 ]
             },
+        ]
+    },
 
+    {
+        id: 'system-config-group',
+        title: 'Cấu hình Hệ thống',
+        type: 'group',
+        children: [
             {
-                id: 'system-settings',
-                title: 'Cài đặt',
+                id: 'notification-settings',
+                title: 'Thông báo',
+                type: 'collapse',
+                icon: icons.BellOutlined,
+                action: 'read',
+                subject: 'notification',
+                children: [
+                    {
+                        id: 'notification-list',
+                        title: 'Danh sách thông báo',
+                        type: 'item',
+                        url: '/admin/notifications',
+                        icon: icons.BellOutlined,
+                        breadcrumbs: false,
+                        action: 'read',
+                        subject: 'notification'
+                    },
+                    {
+                        id: 'notification-create',
+                        title: 'Tạo thông báo',
+                        type: 'item',
+                        url: '/admin/notifications/create',
+                        icon: icons.EditOutlined,
+                        breadcrumbs: false,
+                        action: 'create',
+                        subject: 'notification'
+                    }
+                ]
+            },
+            {
+                id: 'hislog',
+                title: 'Nhật ký hoạt động',
                 type: 'item',
-                url: '/admin/system-settings',
-                icon: icons.SettingOutlined,
+                url: '/admin/hislog',
+                icon: icons.HistoryOutlined,
                 breadcrumbs: false,
-                action: 'create',
-                subject: 'Role'
+                action: 'read',
+                subject: 'ActivityLog'
             },
             {
                 id: 'payment-methods',
@@ -474,37 +513,17 @@ const pages = [
                 subject: 'ShippingProvider'
             },
             {
-                id: 'mini-game-section',
-                title: 'Mini Game',
-                type: 'collapse',
-                icon: icons.GiftOutlined,
-                action: 'read',
-                subject: 'SpinReward',
-                children: [
-                    {
-                        id: 'spin-reward-list',
-                        title: 'Vòng quay may mắn',
-                        type: 'item',
-                        url: '/admin/spin-rewards',
-                        icon: icons.TableOutlined,
-                        breadcrumbs: false,
-                        action: 'read',
-                        subject: 'SpinReward'
-                    },
-                    {
-                        id: 'spin-history-list',
-                        title: 'Lịch sử quay',
-                        type: 'item',
-                        url: '/admin/spin-history',
-                        icon: icons.HistoryOutlined,
-                        breadcrumbs: false,
-                        action: 'read',
-                        subject: 'SpinHistory'
-                    }
-                ]
-            }
+                id: 'system-settings',
+                title: 'Cài đặt hệ thống',
+                type: 'item',
+                url: '/admin/system-settings',
+                icon: icons.SettingOutlined,
+                breadcrumbs: false,
+                action: 'create',
+                subject: 'Setting'
+            },
         ]
-    },
+    }
 ];
 
 export default pages;
