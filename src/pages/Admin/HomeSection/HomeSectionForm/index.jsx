@@ -688,7 +688,7 @@ export default function HomeSectionFormPage() {
                   color={errors.productIds ? 'error' : 'primary'}
                   sx={{ border: errors.productIds ? '1px solid red' : undefined }}
                 >
-                  Chọn sản phẩm ({selectedProductObjects.length})
+                  Chọn sản phẩm
                 </Button>
                 {errors.productIds && ( 
                   <FormHelperText error>{errors.productIds.message}</FormHelperText>

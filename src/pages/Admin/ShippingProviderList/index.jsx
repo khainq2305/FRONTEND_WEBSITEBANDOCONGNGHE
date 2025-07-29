@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import {
   Box, Paper, Typography, Table, TableHead, TableRow,
-  TableCell, TableBody, Switch, Button
+  TableCell, TableBody, Switch
 } from '@mui/material';
 import { toast } from 'react-toastify';
 import { shippingProviderService } from '../../../services/admin/shippingProviderService';
 import LoaderAdmin from '../../../components/common/Loader';
+import Breadcrumb from '../../../components/common/Breadcrumb'; 
 
 export default function ShippingProviderList() {
   const [providers, setProviders] = useState([]);
@@ -42,9 +43,19 @@ export default function ShippingProviderList() {
   return (
     <Box p={2}>
       {isLoading && <LoaderAdmin fullscreen />}
+
+     
+      <Box sx={{ mb: 2 }}>
+        <Breadcrumb
+          items={[
+            { label: 'Trang chủ', href: '/admin' },
+            { label: 'Đơn vị vận chuyển', href: '/admin/shipping-providers' }
+          ]}
+        />
+      </Box>
+
       <Box display="flex" justifyContent="space-between" mb={2}>
-        <Typography variant="h5" fontWeight={600}>Hãng vận chuyển</Typography>
-        <Button variant="contained" disabled>Thêm mới (tuỳ chọn)</Button>
+        <Typography variant="h5" fontWeight={600}>Danh sách đơn vị vận chuyển</Typography>
       </Box>
 
       <Paper>

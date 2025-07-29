@@ -197,7 +197,7 @@ const pages = [
                 children: [
                     {
                         id: 'banner-list',
-                        title: 'Danh sách Banner',
+                        title: 'Danh sách banner',
                         type: 'item',
                         url: '/admin/banners',
                         icon: icons.TableOutlined,

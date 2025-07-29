@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import {
   Box, Paper, Typography, Table, TableHead, TableRow,
-  TableCell, TableBody, IconButton, Switch, Button
+  TableCell, TableBody, Switch
 } from '@mui/material';
 import { toast } from 'react-toastify';
 import { paymentMethodService } from '../../../services/admin/paymentMethodService';
 import LoaderAdmin from '../../../components/common/Loader';
+import Breadcrumb from '../../../components/common/Breadcrumb';
 
 export default function PaymentMethodList() {
   const [methods, setMethods]   = useState([]);
@@ -42,9 +43,19 @@ export default function PaymentMethodList() {
   return (
     <Box p={2}>
       {isLoading && <LoaderAdmin fullscreen />}
+
+    
+      <Box sx={{ mb: 2 }}>
+        <Breadcrumb
+          items={[
+            { label: 'Trang chủ', href: '/admin' },
+            { label: 'Phương thức thanh toán', href: '/admin/payment-methods' }
+          ]}
+        />
+      </Box>
+
       <Box display="flex" justifyContent="space-between" mb={2}>
-        <Typography variant="h5" fontWeight={600}>Phương thức thanh toán</Typography>
-        <Button variant="contained" disabled>Thêm mới (tuỳ chọn)</Button>
+        <Typography variant="h5" fontWeight={600}>Danh sách phương thức thanh toán</Typography>
       </Box>
 
       <Paper>
@@ -73,7 +84,9 @@ export default function PaymentMethodList() {
               </TableRow>
             ))}
             {methods.length === 0 && (
-              <TableRow><TableCell colSpan={4} align="center">Không có dữ liệu</TableCell></TableRow>
+              <TableRow>
+                <TableCell colSpan={4} align="center">Không có dữ liệu</TableCell>
+              </TableRow>
             )}
           </TableBody>
         </Table>
