@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { HexColorPicker } from 'react-colorful';
 import { TextField, Popover, Box, Button } from '@mui/material';
+import { ChromePicker } from 'react-color';
 
 const ColorPickerField = ({ label, value, onChange, error, helperText }) => {
   const [anchorEl, setAnchorEl] = useState(null);
 
-  const open   = Boolean(anchorEl);
-  const handleOpen  = (e) => setAnchorEl(e.currentTarget);
+  const open = Boolean(anchorEl);
+  const handleOpen = (e) => setAnchorEl(e.currentTarget);
   const handleClose = () => setAnchorEl(null);
 
   return (
@@ -42,7 +42,11 @@ const ColorPickerField = ({ label, value, onChange, error, helperText }) => {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
       >
         <Box sx={{ p: 2 }}>
-          <HexColorPicker color={value} onChange={onChange} />
+          <ChromePicker
+            color={value}
+            onChange={(color) => onChange(color.hex)}
+            disableAlpha
+          />
           <Button size="small" sx={{ mt: 1 }} onClick={handleClose}>
             OK
           </Button>

@@ -357,6 +357,7 @@ const CategoryList = () => {
                     newList.map((i, idx) => ({ id: i.id, sortOrder: idx }))
                   );
                   toast.success('Đã lưu thứ tự!');
+                  await fetchData(); 
                 } catch (err) {
                   showToastByStatus(err);
                   setData({ ...data, list: originalList });

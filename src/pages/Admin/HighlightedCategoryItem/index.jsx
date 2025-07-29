@@ -133,6 +133,7 @@ export default function HighlightedCategoryItemList() {
     try {
       await highlightedCategoryItemService.reorder(updates);
       toast.success('Cập nhật thứ tự thành công');
+      await fetchData();
     } catch (err) {
       console.error('Lỗi cập nhật thứ tự:', err);
       toast.error(err?.response?.data?.message || 'Không thể cập nhật thứ tự');

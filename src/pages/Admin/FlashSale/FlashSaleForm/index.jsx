@@ -35,6 +35,7 @@ const FlashSaleForm = () => {
       endTime: '',
       isActive: true,
       items: [],
+       orderIndex: 0, 
       categories: [],
       bannerUrl: '',
       bgColor: '#FFFFFF'
@@ -166,6 +167,7 @@ originalQuantity: item.originalQuantity ?? item.quantity,
       payload.append('endTime', formData.endTime);
       payload.append('isActive', formData.isActive);
       payload.append('bgColor', formData.bgColor);
+payload.append('orderIndex', formData.orderIndex === '' || formData.orderIndex == null ? 0 : Number(formData.orderIndex));
 
       const itemsPayload = formData.items.map((item) => ({
         skuId: item.id,
@@ -236,31 +238,57 @@ originalQuantity: item.originalQuantity ?? item.quantity,
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <Grid container spacing={3}>
-            <Grid item xs={12} sm={8}>
-              <Controller
-                name="title"
-                control={control}
-                rules={{ required: 'Tên là bắt buộc' }}
-                render={({ field }) => (
-                  <TextField {...field} fullWidth label="Tên Flash Sale" error={!!errors.title} helperText={errors.title?.message} />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <Controller
-                name="bgColor"
-                control={control}
-                render={({ field }) => (
-                  <ColorPickerField
-                    label="Màu nền"
-                    value={field.value}
-                    onChange={field.onChange}
-                    error={!!errors.bgColor}
-                    helperText={errors.bgColor?.message || 'Chọn màu hiển thị cho banner'}
-                  />
-                )}
-              />
-            </Grid>
+         <Grid item xs={12}>
+  <Controller
+    name="title"
+    control={control}
+    rules={{ required: 'Tên là bắt buộc' }}
+    render={({ field }) => (
+      <TextField {...field} fullWidth label="Tên Flash Sale" error={!!errors.title} helperText={errors.title?.message} />
+    )}
+  />
+</Grid>
+
+<Grid item xs={12}>
+  <Grid container spacing={2}>
+    <Grid item xs={12} sm={6}>
+      <Controller
+        name="bgColor"
+        control={control}
+        render={({ field }) => (
+          <ColorPickerField
+            label="Màu nền"
+            value={field.value}
+            onChange={field.onChange}
+            error={!!errors.bgColor}
+            helperText={errors.bgColor?.message || 'Chọn màu hiển thị cho banner'}
+          />
+        )}
+      />
+    </Grid>
+
+    <Grid item xs={12} sm={6}>
+      <Controller
+        name="orderIndex"
+        control={control}
+        render={({ field }) => (
+          <TextField
+            {...field}
+            fullWidth
+            label="Thứ tự hiển thị (STT)"
+            type="number"
+            inputProps={{ min: 0 }}
+            error={!!errors.orderIndex}
+            helperText={errors.orderIndex?.message || 'STT nhỏ sẽ hiển thị trước'}
+          />
+        )}
+      />
+    </Grid>
+  </Grid>
+</Grid>
+
+            
+           
             <Grid item xs={12}>
               <Typography variant="subtitle1" gutterBottom>
                 Ảnh banner
@@ -381,6 +409,7 @@ originalQuantity: item.originalQuantity ?? item.quantity,
                 )}
               />
             </Grid>
+
 
             <Grid item xs={12}>
               <Typography variant="h6" gutterBottom>

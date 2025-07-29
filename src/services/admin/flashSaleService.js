@@ -11,6 +11,8 @@ export const flashSaleService = {
   create: (data) => post(`${base}${API_ENDPOINT.admin.flashSale.create}`, data),
    update: (slug, data) => patch(`${base}${API_ENDPOINT.admin.flashSale.update(slug)}`, data),
   softDelete: (id) => del(`${base}${API_ENDPOINT.admin.flashSale.softDelete(id)}`),
+updateOrder: (list) => patch(`${base}${API_ENDPOINT.admin.flashSale.updateOrder}`, list),
+
   softDeleteMany: (ids) => post(`${base}${API_ENDPOINT.admin.flashSale.softDeleteMany}`, { ids }),
   restore: (id) => patch(`${base}${API_ENDPOINT.admin.flashSale.restore(id)}`),
   restoreMany: (ids) => post(`${base}${API_ENDPOINT.admin.flashSale.restoreMany}`, { ids }),

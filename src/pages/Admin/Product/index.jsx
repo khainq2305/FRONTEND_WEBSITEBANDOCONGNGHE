@@ -510,7 +510,8 @@ const handleDragEnd = async ({ active, over }) => {
                         <TableCell padding="checkbox">
                           <Checkbox checked={selectedIds.includes(product.id)} onChange={() => toggleSelectOne(product.id)} />
                         </TableCell>
-                          <TableCell align="center">{index + 1}</TableCell>
+                       <TableCell align="center">{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
+
                         
                         <TableCell sx={{ position: 'relative', width: 110, height: 110, p: 1 }}>
                           <Avatar

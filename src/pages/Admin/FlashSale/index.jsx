@@ -23,6 +23,20 @@ import {
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useNavigate } from 'react-router-dom';
 import formatDateFlexible from '../../../utils/formatCurrentDateTime';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 import { flashSaleService } from '../../../services/admin/flashSaleService';
 import LoaderAdmin from '../../../components/Admin/LoaderVip';
@@ -30,6 +44,8 @@ import HighlightText from '../../../components/Admin/HighlightText';
 import MUIPagination from '../../../components/common/Pagination';
 import { confirmDelete } from '../../../components/common/ConfirmDeleteDialog';
 import { toast } from 'react-toastify';
+import Breadcrumb from '../../../components/common/Breadcrumb';
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 
 const FlashSaleList = () => {
   const navigate = useNavigate();
@@ -46,18 +62,83 @@ const FlashSaleList = () => {
   const [menuRowId, setMenuRowId] = useState(null);
   const openMenu = Boolean(anchorEl);
   const [bulkAction, setBulkAction] = useState('');
+const [menuRow, setMenuRow] = useState(null); // lưu row đang mở menu
+const [menuPosition, setMenuPosition] = useState(null); // lưu toạ độ menu
 
   const isTrashTab = tab === 'trash';
 
-  const handleMenuClick = (event, rowId) => {
-    setAnchorEl(event.currentTarget);
-    setMenuRowId(rowId);
+const handleMenuClick = (e, row) => {
+  const rect = e.currentTarget.getBoundingClientRect();
+  setMenuRow(row);
+  setMenuPosition({ top: rect.bottom, left: rect.right });
+};
+
+const handleMenuClose = () => {
+  setMenuRow(null);
+  setMenuPosition(null);
+};
+
+const SortableRow = ({ row, children }) => {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: row.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition
   };
 
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    setMenuRowId(null);
-  };
+  return (
+    <TableRow ref={setNodeRef} style={style} {...attributes}>
+      {React.Children.map(children, (child) => {
+        if (
+          React.isValidElement(child) &&
+          child.props.align === 'center' &&
+          React.Children.toArray(child.props.children).some(
+            (c) => c?.type === IconButton
+          )
+        ) {
+          return React.cloneElement(child, {
+            children: (
+              <Box display="flex" alignItems="center" justifyContent="center" gap={0.5}>
+                <DragIndicatorIcon {...listeners} sx={{ cursor: 'grab', color: '#888' }} />
+                {child.props.children}
+              </Box>
+            )
+          });
+        }
+
+        return child;
+      })}
+    </TableRow>
+  );
+};
+
+
+const [dragList, setDragList] = useState([]);
+const sensors = useSensors(useSensor(PointerSensor));
+const handleDragEnd = async ({ active, over }) => {
+  if (!over || active.id === over.id) return;
+  const oldIndex = dragList.findIndex((x) => x.id === active.id);
+  const newIndex = dragList.findIndex((x) => x.id === over.id);
+  const newList = arrayMove(dragList, oldIndex, newIndex);
+
+  // ✅ Cập nhật orderIndex theo vị trí mới
+ const updatedList = newList.map((item, i) => ({
+  ...item,
+  orderIndex: i // ✅ 0-based
+}));
+
+  setDragList(updatedList);
+  setData(updatedList); // để đồng bộ bảng hiển thị
+
+  try {
+    await flashSaleService.updateOrder({ orderedIds: updatedList.map(i => i.id) });
+    toast.success('Cập nhật thứ tự thành công!');
+  } catch (e) {
+    toast.error('Cập nhật thứ tự thất bại!');
+  }
+};
+
+
 
   const handleTabChange = (e, newValue) => {
     setTab(newValue);
@@ -82,6 +163,7 @@ const FlashSaleList = () => {
     try {
       const res = await flashSaleService.list({ page, limit: rowsPerPage, tab, search });
       setData(res.data.rows);
+      setDragList(res.data.rows); // <- THÊM DÒNG NÀY
       setTotal(res.data.count);
       setStats({
         active: res.data.totalActive || 0,
@@ -156,9 +238,11 @@ const FlashSaleList = () => {
 
   return (
     <Box p={2}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+      <Breadcrumb items={[{ label: 'Trang chủ', href: '/admin' }, { label: 'Khuyến mãi' }]} />
+
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2} mt={2}>
         <Typography variant="h5" fontWeight={600}>
-          Danh sách Flash Sale
+          Danh sách khuyến mãi
         </Typography>
 
         <Button variant="contained" onClick={() => navigate('/admin/flash-sale/create')}>
@@ -234,15 +318,17 @@ const FlashSaleList = () => {
                 <TableCell padding="checkbox">
                   <Checkbox checked={selectedIds.length === data.length && data.length > 0} onChange={handleSelectAll} />
                 </TableCell>
-                <TableCell>STT</TableCell>
-                <TableCell>Banner</TableCell>
+                <TableCell align="center">STT</TableCell>
+
+                <TableCell align="center">Banner</TableCell>
                 <TableCell>Tên</TableCell>
                 <TableCell>Thời gian</TableCell>
                 <TableCell>Trạng thái</TableCell>
                 <TableCell>Slug</TableCell>
-                <TableCell>Màu nền</TableCell>
+                <TableCell align="center">Màu nền</TableCell>
+<TableCell align="center">Thứ tự</TableCell>
 
-                <TableCell align="right">Hành động</TableCell>
+                <TableCell align="center">Hành động</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -255,12 +341,14 @@ const FlashSaleList = () => {
                   </TableCell>
                 </TableRow>
               ) : (
-                data.map((row, index) => (
-                  <TableRow key={row.id}>
-                    <TableCell padding="checkbox">
+               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+  <SortableContext items={dragList.map(i => i.id)} strategy={verticalListSortingStrategy}>
+    {dragList.map((row, index) => (
+      <SortableRow key={row.id} row={row}>
+       <TableCell padding="checkbox">
                       <Checkbox checked={selectedIds.includes(row.id)} onChange={() => handleSelect(row.id)} />
                     </TableCell>
-                    <TableCell>{(page - 1) * rowsPerPage + index + 1}</TableCell>
+                    <TableCell align="center">{(page - 1) * rowsPerPage + index + 1}</TableCell>
                     <TableCell>
                       {row.bannerUrl ? (
                         <img
@@ -291,23 +379,36 @@ const FlashSaleList = () => {
 
                     <TableCell>{row.isActive ? 'Đang chạy' : 'Tạm dừng'}</TableCell>
                     <TableCell>{row.slug}</TableCell>
-                    <TableCell>
-                      <Box
-                        sx={{
-                          width: 20,
-                          height: 20,
-                          borderRadius: '4px',
-                          backgroundColor: row.bgColor || '#ccc',
-                          border: '1px solid #999'
-                        }}
-                        title={row.bgColor}
-                      />
+                    <TableCell align="center">
+                      <Box display="flex" justifyContent="center">
+                        <Box
+                          sx={{
+                            width: 20,
+                            height: 20,
+                            borderRadius: '4px',
+                            backgroundColor: row.bgColor || '#ccc',
+                            border: '1px solid #999'
+                          }}
+                          title={row.bgColor}
+                        />
+                      </Box>
                     </TableCell>
+<TableCell align="center">{row.orderIndex}</TableCell>
 
-                    <TableCell align="right" sx={{ minWidth: 60 }}>
-                      <IconButton size="small" onClick={(e) => handleMenuClick(e, row.id)}>
-                        <MoreVertIcon />
-                      </IconButton>
+                    <TableCell align="center" sx={{ minWidth: 60 }}>
+
+
+<IconButton
+  size="small"
+  onClick={(e) => {
+    e.stopPropagation();
+    handleMenuClick(e, row);
+  }}
+>
+  <MoreVertIcon />
+</IconButton>
+
+
                       <Menu
                         anchorEl={anchorEl}
                         open={openMenu && menuRowId === row.id}
@@ -356,16 +457,68 @@ const FlashSaleList = () => {
                         )}
                       </Menu>
                     </TableCell>
-                  </TableRow>
-                ))
+      </SortableRow>
+    ))}
+  </SortableContext>
+</DndContext>
+
               )}
             </TableBody>
           </Table>
         </Paper>
       )}
-      <MUIPagination currentPage={page} totalItems={total} itemsPerPage={rowsPerPage} onPageChange={setPage} />
+      <Menu
+  open={Boolean(menuRow && menuPosition)}
+  onClose={handleMenuClose}
+  anchorReference="anchorPosition"
+  anchorPosition={menuPosition}
+  transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+>
+  {menuRow && !menuRow.deletedAt && (
+    <MenuItem
+      onClick={() => {
+        handleMenuClose();
+        navigate(`/admin/flash-sale/edit/${menuRow.slug}`);
+      }}
+    >
+      Sửa
+    </MenuItem>
+  )}
+  {menuRow?.deletedAt ? (
+    <>
+      <MenuItem
+        onClick={() => {
+          handleMenuClose();
+          handleRestore(menuRow.id);
+        }}
+      >
+        Khôi phục
+      </MenuItem>
+      <MenuItem
+        onClick={() => {
+          handleMenuClose();
+          handleForceDelete(menuRow.id);
+        }}
+      >
+        Xoá vĩnh viễn
+      </MenuItem>
+    </>
+  ) : (
+    <MenuItem
+      onClick={() => {
+        handleMenuClose();
+        handleDelete(menuRow.id);
+      }}
+    >
+      Xoá
+    </MenuItem>
+  )}
+</Menu>
+
+      {total > rowsPerPage && <MUIPagination currentPage={page} totalItems={total} itemsPerPage={rowsPerPage} onPageChange={setPage} />}
     </Box>
   );
+  
 };
 
 export default FlashSaleList;

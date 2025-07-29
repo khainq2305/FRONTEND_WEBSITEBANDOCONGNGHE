@@ -420,24 +420,20 @@ export const API_ENDPOINT = {
     },
 
     flashSale: {
-      base: `${API_BASE_URL}/admin`,
-      list: '/flash-sales',
-      create: '/flash-sales',
-      update: (slug) => `/flash-sales/${slug}`,
-      getById: (slug) => `/flash-sales/${slug}`,
-      delete: (id) => `/flash-sales/${id}`,
-      deleteMany: '/flash-sales/delete-many',
-      updateSortOrder: (slug) => `/flash-sales/${slug}/items/sort-order`,
-      softDelete: (id) => `/flash-sales/soft-delete/${id}`,
-      softDeleteMany: '/flash-sales/soft-delete-many',
-      restore: (id) => `/flash-sales/restore/${id}`,
-      restoreMany: '/flash-sales/restore-many',
-
-      forceDelete: (id) => `/flash-sales/force/${id}`,
-      forceDeleteMany: '/flash-sales/force-delete-many',
-
-      getSkus: '/flash-sales/skus/available',
-      getCategories: '/flash-sales/categories/available-tree'
+      base: `${API_BASE_URL}/admin/flash-sales`,
+      list: '/list',
+      create: '/create',
+      update: (slug) => `/update/${slug}`,
+      getById: (slug) => `/detail/${slug}`,
+      softDelete: (id) => `/soft-delete/${id}`,
+      softDeleteMany: '/soft-delete-many',
+      restore: (id) => `/restore/${id}`,
+      updateOrder: '/update-order',
+      restoreMany: '/restore-many',
+      forceDelete: (id) => `/force/${id}`,
+      forceDeleteMany: '/force-delete-many',
+      getSkus: '/skus/available',
+      getCategories: '/categories/available-tree'
     },
     user: {
       base: `${API_BASE_URL}/admin`,
