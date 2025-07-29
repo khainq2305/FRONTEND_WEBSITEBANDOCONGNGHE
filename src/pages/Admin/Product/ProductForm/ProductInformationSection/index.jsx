@@ -14,11 +14,14 @@ import {
   Box,
   Button
 } from '@mui/material';
+
 import ThumbnailUpload from '../../ThumbnailUpload';
+
 import BannerUpload from '../../../../../components/Admin/BannerUpload';
 import TinyEditor from '../../../../../components/Admin/TinyEditor';
 import AddCategoryDialog from '../AddCategoryDialog';
 import AddBrandDialog from '../AddBrandDialog';
+import { toast } from 'react-toastify';
 
 const badgeOptions = [
   { label: 'Giao nhanh', value: 'GIAO NHANH' },
@@ -34,8 +37,10 @@ const ProductInformationSection = ({
   formErrors,
   setFormData,
   infoContent,
+  setBrandList,
   setInfoContent,
   thumbnail,
+  setCategoryTree,
   setThumbnail,
   badgeImage,
   setBadgeImage,
@@ -52,10 +57,11 @@ const ProductInformationSection = ({
       const currentPrefix = prefix + (isLast ? '└── ' : '├── ');
 
       options.push(
-        <MenuItem key={cat.id} value={cat.id} sx={{ pl: level * 2 }}>
-          <span style={{ whiteSpace: 'pre' }}>{currentPrefix}</span>
-          {cat.name}
-        </MenuItem>
+      <MenuItem key={cat.id} value={cat.id} sx={{ pl: level * 3 + 2 }}>
+  <span style={{ whiteSpace: 'pre' }}>{currentPrefix}</span>
+  {cat.name}
+</MenuItem>
+
       );
 
       if (cat.children && cat.children.length > 0) {
@@ -81,7 +87,10 @@ const ProductInformationSection = ({
           fullWidth
           label={
             <>
-              Tên sản phẩm <Typography component="span" color="error">*</Typography>
+              Tên sản phẩm{' '}
+              <Typography component="span" color="error">
+                *
+              </Typography>
             </>
           }
           name="name"
@@ -91,7 +100,6 @@ const ProductInformationSection = ({
           error={!!formErrors.name}
           helperText={formErrors.name}
         />
-
 
         <Typography variant="subtitle1" sx={{ mt: 3, mb: 1 }}>
           Mô tả chi tiết
@@ -106,7 +114,8 @@ const ProductInformationSection = ({
 
       {/* CỘT BÊN PHẢI */}
       <Grid item xs={12} md={4}>
-        <ThumbnailUpload value={thumbnail} onChange={setThumbnail} />
+       <ThumbnailUpload value={thumbnail} onChange={setThumbnail} />
+
         {formErrors.thumbnail && (
           <FormHelperText error sx={{ ml: 2, mt: 1 }}>
             {formErrors.thumbnail}
@@ -119,7 +128,10 @@ const ProductInformationSection = ({
             fullWidth
             label={
               <>
-                Danh mục <Typography component="span" color="error">*</Typography>
+                Danh mục{' '}
+                <Typography component="span" color="error">
+                  *
+                </Typography>
               </>
             }
             name="categoryId"
@@ -127,6 +139,16 @@ const ProductInformationSection = ({
             onChange={handleChange}
             error={!!formErrors.categoryId}
             helperText={formErrors.categoryId}
+             SelectProps={{
+    MenuProps: {
+      PaperProps: {
+        style: {
+          maxHeight: 300, 
+          width: 350     
+        }
+      }
+    }
+  }}
           >
             <MenuItem value="">-- Chọn danh mục --</MenuItem>
             {renderCategoryOptions(categoryTree)}
@@ -139,14 +161,16 @@ const ProductInformationSection = ({
           </Box>
         </Box>
 
-
         <Box sx={{ my: 2 }}>
           <TextField
             select
             fullWidth
             label={
               <>
-                Thương hiệu <Typography component="span" color="error">*</Typography>
+                Thương hiệu{' '}
+                <Typography component="span" color="error">
+                  *
+                </Typography>
               </>
             }
             name="brandId"
@@ -154,6 +178,16 @@ const ProductInformationSection = ({
             onChange={handleChange}
             error={!!formErrors.brandId}
             helperText={formErrors.brandId}
+             SelectProps={{
+    MenuProps: {
+      PaperProps: {
+        style: {
+          maxHeight: 300,
+          width: 350 
+        }
+      }
+    }
+  }}
           >
             <MenuItem value="">-- Chọn thương hiệu --</MenuItem>
             {brandList.map((brand) => (
@@ -169,7 +203,6 @@ const ProductInformationSection = ({
             </Button>
           </Box>
         </Box>
-
 
         <FormControl component="fieldset" sx={{ mb: 2, width: '100%' }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -192,25 +225,22 @@ const ProductInformationSection = ({
           {formErrors.badge && <FormHelperText error>{formErrors.badge}</FormHelperText>}
         </FormControl>
 
-        <BannerUpload
-          value={badgeImage}
-          onChange={setBadgeImage}
-          sx={{ mt: 3 }}
-        />
+        <BannerUpload value={badgeImage} onChange={setBadgeImage} sx={{ mt: 3 }} />
         <TextField
           sx={{ mt: 3 }}
           select
           fullWidth
           label={
             <>
-              Trạng thái <Typography component="span" color="error">*</Typography>
+              Trạng thái{' '}
+              <Typography component="span" color="error">
+                *
+              </Typography>
             </>
           }
           name="isActive"
           value={formData.isActive ? '1' : '0'}
-          onChange={(e) =>
-            setFormData((prev) => ({ ...prev, isActive: e.target.value === '1' }))
-          }
+          onChange={(e) => setFormData((prev) => ({ ...prev, isActive: e.target.value === '1' }))}
         >
           <MenuItem value="1">Hiển thị</MenuItem>
           <MenuItem value="0">Ẩn</MenuItem>
@@ -227,27 +257,39 @@ const ProductInformationSection = ({
           error={!!formErrors.orderIndex}
           helperText={formErrors.orderIndex}
         />
-
       </Grid>
       <AddCategoryDialog
-        open={openAddCategory}
-        onClose={() => setOpenAddCategory(false)}
-        onSuccess={async () => {
-          const res = await categoryService.getAllNested();
-          setCategoryTree(res.data.data);
-        }}
-        categoryTree={categoryTree}
-      />
+  open={openAddCategory}
+  onClose={() => setOpenAddCategory(false)}
+  onSuccess={(newCategory) => {
+    setCategoryTree((prev) => [
+      ...prev,
+      {
+        ...newCategory,
+        children: []
+      }
+    ]);
+
+    setFormData((prev) => ({
+      ...prev,
+      categoryId: String(newCategory.id)
+    }));
+
+    toast.success('Thêm danh mục thành công');
+  }}
+  categoryTree={categoryTree}
+/>
+
+
+
       <AddBrandDialog
         open={openAddBrand}
         onClose={() => setOpenAddBrand(false)}
-        onSuccess={async () => {
-          const res = await brandService.getAll();
-          // nhớ truyền setBrandList từ cha vào nếu muốn cập nhật lại brandList
-          setBrandList(res.data.data);
+        onSuccess={(newBrand) => {
+          setBrandList((prev) => [...prev, newBrand]);
+          setFormData((prev) => ({ ...prev, brandId: newBrand.id }));
         }}
       />
-
     </>
   );
 };

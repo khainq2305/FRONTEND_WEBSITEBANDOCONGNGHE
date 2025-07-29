@@ -313,8 +313,8 @@ const ProductForm = ({ onSubmit, initialData }) => {
 
       variantValueIds: formData.hasVariants
         ? Object.values(sku.variantSelections || {})
-            .filter((vId) => vId !== '' && vId != null)
-            .map(Number)
+          .filter((vId) => vId !== '' && vId != null)
+          .map(Number)
         : []
     }));
 
@@ -426,15 +426,15 @@ const ProductForm = ({ onSubmit, initialData }) => {
         skus,
         specs
       } = initialData;
-     
+
 
       const processedSkus =
         skus && skus.length > 0
           ? skus.map((s) => ({
-              ...createEmptySku(),
-              ...s,
-              variantSelections: s.selectedValues || {}
-            }))
+            ...createEmptySku(),
+            ...s,
+            variantSelections: s.selectedValues || {}
+          }))
           : [createEmptySku()];
 
       setFormData((prev) => ({
@@ -442,7 +442,7 @@ const ProductForm = ({ onSubmit, initialData }) => {
         name: name || '',
         shortDescription: shortDescription || '',
         description: description || '',
-           badge: initialData.badge || '',  // ← QUAN TRỌNG
+        badge: initialData.badge || '',  // ← QUAN TRỌNG
         thumbnail: thumbnail || '',
         orderIndex: orderIndex ?? 0,
         isActive: isActive !== false,
@@ -516,7 +516,7 @@ const ProductForm = ({ onSubmit, initialData }) => {
 
   return (
     <form onSubmit={handleSubmit} className="bg-[#fff] p-4">
-      
+
       <Grid container spacing={4}>
         <ProductInformationSection
           formData={formData}
@@ -528,10 +528,14 @@ const ProductForm = ({ onSubmit, initialData }) => {
           badgeImage={badgeImage}
           setBadgeImage={setBadgeImage}
           thumbnail={thumbnail}
+           setCategoryTree={setCategoryTree}
           setThumbnail={setThumbnail}
           categoryTree={categoryTree}
+          
           brandList={brandList}
+          setBrandList={setBrandList}
         />
+
 
         <ProductSpecificationsSection
           productSpecs={formData.productSpecs}

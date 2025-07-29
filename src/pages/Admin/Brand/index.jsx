@@ -78,8 +78,12 @@ const SortableRow = ({ brand, index, selectedIds, onSelect, onMenuOpen, page, li
       <TableCell sx={{ verticalAlign: 'middle' }}>
         <Box
           component="img"
-          src={brand.logoUrl}
+          src={brand.logoUrl || 'https://mucinmanhtai.com/wp-content/themes/BH-WebChuan-032320/assets/images/default-thumbnail-400.jpg'}  // Đường dẫn fallback
           alt={brand.name}
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = 'https://mucinmanhtai.com/wp-content/themes/BH-WebChuan-032320/assets/images/default-thumbnail-400.jpg';
+          }}
           sx={{
             width: 120,
             height: 75,
@@ -88,6 +92,7 @@ const SortableRow = ({ brand, index, selectedIds, onSelect, onMenuOpen, page, li
             bgcolor: '#fff'
           }}
         />
+
       </TableCell>
 
       <TableCell>
