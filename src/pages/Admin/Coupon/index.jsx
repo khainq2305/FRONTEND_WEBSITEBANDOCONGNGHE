@@ -7,22 +7,23 @@ import {
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import Breadcrumb from '../../../components/common/Breadcrumb';
 
 import MUIPagination from '../../../components/common/Pagination';
 import { couponService } from '../../../services/admin/couponService';
-import { confirmDelete }  from '../../../components/common/ConfirmDeleteDialog';
+import { confirmDelete } from '../../../components/common/ConfirmDeleteDialog';
 import LoaderAdmin from '../../../components/Admin/LoaderVip';
 import HighlightText from '../../../components/Admin/HighlightText';
 const formatNumber = (num) => {
-    if (num === null || num === undefined || num === "") return "";
-    const number = Number(num);
-    if (isNaN(number)) return "";
-  
-    if (Number.isInteger(number)) {
-        return number.toLocaleString('vi-VN');
-    }
-    
-    return number.toLocaleString('vi-VN', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  if (num === null || num === undefined || num === "") return "";
+  const number = Number(num);
+  if (isNaN(number)) return "";
+
+  if (Number.isInteger(number)) {
+    return number.toLocaleString('vi-VN');
+  }
+
+  return number.toLocaleString('vi-VN', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 };
 
 
@@ -45,9 +46,9 @@ export default function CouponList() {
 
   const menuActions = statusFilter === 'deleted'
     ? [
-        { label: 'Khôi phục', value: 'restore' },
-        { label: 'Xoá vĩnh viễn', value: 'forceDelete' }
-      ]
+      { label: 'Khôi phục', value: 'restore' },
+      { label: 'Xoá vĩnh viễn', value: 'forceDelete' }
+    ]
     : [{ label: 'Chuyển vào thùng rác', value: 'delete' }];
 
   const openMenu = (e, id) => {
@@ -178,7 +179,7 @@ export default function CouponList() {
   const getDiscountLabel = (coupon) =>
     coupon.discountType === 'percent'
       ? `${formatNumber(coupon.discountValue)}%`
-      : `${Number(coupon.discountValue).toLocaleString('vi-VN')}₫`; 
+      : `${Number(coupon.discountValue).toLocaleString('vi-VN')}₫`;
 
   const formatDate = (date) =>
     date ? new Date(date).toLocaleDateString('vi-VN') : '---';
@@ -186,6 +187,14 @@ export default function CouponList() {
   return (
     <Box>
       {loading && <LoaderAdmin fullscreen />}
+      <Box sx={{ mb: 1 }}>
+        <Breadcrumb
+          items={[
+            { label: 'Trang chủ', href: '/admin' },
+            { label: 'Mã giảm giá' }
+          ]}
+        />
+      </Box>
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h4">Danh sách mã giảm giá</Typography>
@@ -287,6 +296,7 @@ export default function CouponList() {
               <TableCell>Loại</TableCell>
               <TableCell>Giảm</TableCell>
               <TableCell>Số lượng</TableCell>
+                <TableCell>Đã dùng</TableCell> 
               <TableCell>Thời gian</TableCell>
               <TableCell>Trạng thái</TableCell>
               <TableCell align="right"></TableCell>
@@ -320,11 +330,13 @@ export default function CouponList() {
                     {coupon.discountType === 'percent'
                       ? 'Phần trăm'
                       : coupon.discountType === 'amount'
-                      ? 'Số tiền'
-                      : 'Miễn phí vận chuyển'}
+                        ? 'Số tiền'
+                        : 'Miễn phí vận chuyển'}
                   </TableCell>
                   <TableCell>{getDiscountLabel(coupon)}</TableCell>
-               <TableCell>{(coupon.totalQuantity - (coupon.usedCount || 0))} / {coupon.totalQuantity}</TableCell>
+                  <TableCell>{coupon.totalQuantity}</TableCell>
+<TableCell>{coupon.usedCount}</TableCell> 
+
                   <TableCell>{formatDate(coupon.startTime)} - {formatDate(coupon.endTime)}</TableCell>
                   <TableCell>
                     <Chip

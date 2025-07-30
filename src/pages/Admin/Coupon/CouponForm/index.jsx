@@ -19,6 +19,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { couponService } from '../../../../services/admin/couponService';
 import TinyEditor from '../../../../components/Admin/TinyEditor';
 import { toast } from 'react-toastify';
+import Breadcrumb from '../../../../components/common/Breadcrumb';
+import LoaderAdmin from '../../../../components/Admin/LoaderVip';
 
 export default function CouponForm() {
   const { id } = useParams();
@@ -72,6 +74,17 @@ export default function CouponForm() {
     }
   }, [selectedType]);
   useEffect(() => {
+    if (!applyProduct) {
+      clearErrors('productIds');
+    }
+  }, [applyProduct, clearErrors]);
+  useEffect(() => {
+    if (!applyUser) {
+      clearErrors('userIds');
+    }
+  }, [applyUser, clearErrors]);
+
+  useEffect(() => {
     const fetchData = async () => {
       try {
         const [usersRes, productsRes] = await Promise.all([couponService.getUsers(), couponService.getProducts()]);
@@ -114,6 +127,7 @@ export default function CouponForm() {
   }, [id, isEdit, reset]);
 
   const onSubmit = async (values) => {
+    console.log('✅ Submit called with values:', values);
     setLoading(true);
     const payload = {
       ...values,
@@ -124,6 +138,7 @@ export default function CouponForm() {
       userIds: selectedType === 'private' && applyUser ? selectedUserIds : [],
       productIds: applyProduct ? selectedProductIds : [],
 
+
       discountValue: values.discountValue !== '' ? parseNumber(values.discountValue) : null,
       minOrderValue: values.minOrderValue !== '' ? parseNumber(values.minOrderValue) : null,
 
@@ -132,6 +147,22 @@ export default function CouponForm() {
 
     if (payload.discountType !== 'percent') {
       payload.maxDiscountValue = null;
+    }
+    if (selectedType === 'private' && applyUser && selectedUserIds.length === 0) {
+      setError('userIds', { message: 'Vui lòng chọn ít nhất 1 người dùng' });
+      setLoading(false); // thêm dòng này
+      return;
+    } else {
+      clearErrors('userIds');
+    }
+
+
+    if (applyProduct && selectedProductIds.length === 0) {
+      setError('productIds', { message: 'Vui lòng chọn ít nhất 1 sản phẩm' });
+      setLoading(false); // thêm dòng này
+      return;
+    } else {
+      clearErrors('productIds');
     }
 
     try {
@@ -158,9 +189,20 @@ export default function CouponForm() {
       setLoading(false);
     }
   };
+  if (loading) return <LoaderAdmin fullscreen />;
 
   return (
     <Box>
+      <Box sx={{ mb: 2 }}>
+        <Breadcrumb
+          items={[
+            { label: 'Trang chủ', href: '/admin' },
+            { label: 'Mã giảm giá', href: '/admin/coupons' },
+            { label: isEdit ? 'Cập nhật' : 'Thêm mới' }
+          ]}
+        />
+      </Box>
+
       <Typography variant="h4" gutterBottom>
         {isEdit ? 'Cập nhật' : 'Thêm mới'} Mã Giảm Giá
       </Typography>
@@ -174,39 +216,109 @@ export default function CouponForm() {
           mt: 2
         }}
       >
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form
+          onSubmit={handleSubmit(
+            onSubmit,
+            (invalidErrors) => {
+              console.log('❌ Form invalid:', invalidErrors);
+              toast.error('Vui lòng kiểm tra lại các trường bắt buộc!');
+            }
+          )}
+        >
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
               <Controller
                 name="code"
                 control={control}
+                rules={{ required: 'Mã là bắt buộc' }}
                 render={({ field }) => (
-                  <TextField {...field} label="Mã Code" error={!!errors.code} helperText={errors.code?.message} fullWidth />
+                  <TextField
+                    {...field}
+                    label={
+                      <span>
+                        Mã Code <span style={{ color: 'red' }}>*</span>
+                      </span>
+                    }
+                    error={!!errors.code}
+                    helperText={errors.code?.message}
+                    fullWidth
+                  />
                 )}
               />
+
+
             </Grid>
             <Grid item xs={12} sm={6}>
               <Controller
                 name="title"
                 control={control}
+                rules={{ required: 'Tiêu đề là bắt buộc' }}
                 render={({ field }) => (
-                  <TextField {...field} label="Tiêu đề" error={!!errors.title} helperText={errors.title?.message} fullWidth />
+                  <TextField
+                    {...field}
+                    label={
+                      <span>
+                        Tiêu đề <span style={{ color: 'red' }}>*</span>
+                      </span>
+                    }
+                    error={!!errors.title}
+                    helperText={errors.title?.message}
+                    fullWidth
+                  />
                 )}
               />
+
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12}>
               <Controller
                 name="type"
                 control={control}
+                rules={{ required: 'Loại coupon là bắt buộc' }}
                 render={({ field }) => (
-                  <TextField select label="Loại coupon" {...field} fullWidth>
+                  <TextField
+                    select
+                    label={
+                      <span>
+                        Loại coupon <span style={{ color: 'red' }}>*</span>
+                      </span>
+                    }
+                    {...field}
+                    fullWidth
+                  >
                     <MenuItem value="public">Công khai</MenuItem>
                     <MenuItem value="private">Chỉ định</MenuItem>
                   </TextField>
                 )}
               />
+
             </Grid>
+
+            {selectedType === 'private' && (
+              <Grid item xs={12}>
+                <Autocomplete
+                  multiple
+                  options={userList}
+                  getOptionLabel={(o) => `${o.fullName} (${o.email})`}
+                  value={userList.filter((u) => selectedUserIds.includes(u.id))}
+                  onChange={(e, val) => setSelectedUserIds(val.map((u) => u.id))}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label={
+                        <span>
+                          Chọn người dùng <span style={{ color: 'red' }}>*</span>
+                        </span>
+                      }
+                      error={!!errors.userIds}
+                      helperText={errors.userIds?.message}
+                    />
+                  )}
+                  isOptionEqualToValue={(o, v) => o.id === v.id}
+                />
+              </Grid>
+            )}
+
             <Grid item xs={12} sm={6}>
               <Controller
                 name="totalQuantity"
@@ -226,12 +338,42 @@ export default function CouponForm() {
 
             <Grid item xs={12} sm={6}>
               <Controller
-                name="startTime"
+                name="maxUsagePerUser"
                 control={control}
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label="Bắt đầu"
+                    label="Số lần dùng/user"
+                    type="number"
+                    error={!!errors.maxUsagePerUser}
+                    helperText={errors.maxUsagePerUser?.message}
+                    fullWidth
+                  />
+                )}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <Controller
+                name="startTime"
+                control={control}
+                rules={{
+                  validate: (val) => {
+                    if (!val) return 'Ngày bắt đầu là bắt buộc';
+                    const now = new Date();
+                    const start = new Date(val);
+                    if (start < now) return 'Ngày bắt đầu không được trong quá khứ';
+                    return true;
+                  }
+                }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label={
+                      <span>
+                        Bắt đầu <span style={{ color: 'red' }}>*</span>
+                      </span>
+                    }
                     type="datetime-local"
                     InputLabelProps={{ shrink: true }}
                     fullWidth
@@ -241,14 +383,25 @@ export default function CouponForm() {
                 )}
               />
             </Grid>
+
             <Grid item xs={12} sm={6}>
               <Controller
                 name="endTime"
                 control={control}
+                rules={{
+                  validate: (val) => {
+                    if (!val) return 'Ngày kết thúc là bắt buộc';
+                    return true;
+                  }
+                }}
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label="Kết thúc"
+                    label={
+                      <span>
+                        Kết thúc <span style={{ color: 'red' }}>*</span>
+                      </span>
+                    }
                     type="datetime-local"
                     InputLabelProps={{ shrink: true }}
                     fullWidth
@@ -259,9 +412,15 @@ export default function CouponForm() {
               />
             </Grid>
 
+
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth error={!!errors.discountType}>
-                <InputLabel>Loại giảm</InputLabel>
+                <InputLabel>
+                  <span>
+                    Loại giảm <span style={{ color: 'red' }}>*</span>
+                  </span>
+                </InputLabel>
+
                 <Controller
                   name="discountType"
                   control={control}
@@ -293,7 +452,13 @@ export default function CouponForm() {
                 }}
                 render={({ field: { onChange, onBlur, value, ref } }) => (
                   <TextField
-                    label={selectedDiscountType === 'shipping' ? 'Giá trị hỗ trợ phí vận chuyển' : 'Giá trị giảm'}
+                    label={
+                      <span>
+                        {selectedDiscountType === 'shipping'
+                          ? 'Giá trị hỗ trợ phí vận chuyển'
+                          : 'Giá trị giảm'} <span style={{ color: 'red' }}>*</span>
+                      </span>
+                    }
                     value={value ?? ''}
                     onChange={(e) => {
                       const raw = e.target.value.replace(/[^0-9.,]/g, '');
@@ -312,6 +477,7 @@ export default function CouponForm() {
               />
             </Grid>
 
+
             <Grid item xs={12} sm={6}>
               <Controller
                 name="minOrderValue"
@@ -328,7 +494,11 @@ export default function CouponForm() {
                 }}
                 render={({ field: { onChange, onBlur, value, ref } }) => (
                   <TextField
-                    label="Giá trị đơn hàng tối thiểu"
+                    label={
+                      <span>
+                        Giá trị đơn hàng tối thiểu <span style={{ color: 'red' }}>*</span>
+                      </span>
+                    }
                     value={value ?? ''}
                     onChange={(e) => {
                       const raw = e.target.value.replace(/[^0-9.,]/g, '');
@@ -346,6 +516,7 @@ export default function CouponForm() {
                 )}
               />
             </Grid>
+
             {selectedDiscountType === 'percent' && (
               <Grid item xs={12} sm={6}>
                 <Controller
@@ -354,16 +525,20 @@ export default function CouponForm() {
                   rules={{
                     validate: (val) => {
                       const number = parseNumber(val);
-                      if (val === '' || val === null || val === undefined) return true;
-                      if (isNaN(number) || number < 0) {
-                        return 'Giá trị giảm tối đa không hợp lệ và phải ≥ 0';
+                      if (selectedDiscountType === 'percent') {
+                        if (val === '' || val === null || val === undefined) return 'Giá trị giảm tối đa là bắt buộc';
+                        if (isNaN(number) || number < 0) return 'Giá trị giảm tối đa không hợp lệ và phải ≥ 0';
                       }
                       return true;
                     }
                   }}
                   render={({ field: { onChange, onBlur, value, ref } }) => (
                     <TextField
-                      label="Giảm tối đa"
+                      label={
+                        <span>
+                          Giảm tối đa <span style={{ color: 'red' }}>*</span>
+                        </span>
+                      }
                       value={value ?? ''}
                       onChange={(e) => {
                         const raw = e.target.value.replace(/[^0-9.,]/g, '');
@@ -381,24 +556,11 @@ export default function CouponForm() {
                   )}
                 />
               </Grid>
+
+
             )}
 
-            <Grid item xs={12} sm={6}>
-              <Controller
-                name="maxUsagePerUser"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Số lần dùng/user"
-                    type="number"
-                    error={!!errors.maxUsagePerUser}
-                    helperText={errors.maxUsagePerUser?.message}
-                    fullWidth
-                  />
-                )}
-              />
-            </Grid>
+
 
             <Grid item xs={12}>
               <Typography fontWeight="bold" gutterBottom>
@@ -421,12 +583,6 @@ export default function CouponForm() {
                 Điều kiện áp dụng
               </Typography>
 
-              {selectedType === 'private' && (
-                <FormControlLabel
-                  control={<Checkbox checked={applyUser} onChange={(e) => setApplyUser(e.target.checked)} />}
-                  label="Áp dụng theo người dùng"
-                />
-              )}
 
               <FormControlLabel
                 control={<Checkbox checked={applyProduct} onChange={(e) => setApplyProduct(e.target.checked)} />}
@@ -434,21 +590,7 @@ export default function CouponForm() {
               />
             </Grid>
 
-            {applyUser && selectedType === 'private' && (
-              <Grid item xs={12}>
-                <Autocomplete
-                  multiple
-                  options={userList}
-                  getOptionLabel={(o) => `${o.fullName} (${o.email})`}
-                  value={userList.filter((u) => selectedUserIds.includes(u.id))}
-                  onChange={(e, val) => setSelectedUserIds(val.map((u) => u.id))}
-                  renderInput={(params) =>
-                    (<TextField {...params} label="Chọn người dùng" error={!!errors.userIds} helperText={errors.userIds?.message} />)
-                  }
-                  isOptionEqualToValue={(o, v) => o.id === v.id}
-                />
-              </Grid>
-            )}
+
 
             {applyProduct && (
               <Grid item xs={12}>
@@ -459,16 +601,21 @@ export default function CouponForm() {
                   value={productList.filter((p) => selectedProductIds.includes(p.id))}
                   onChange={(e, val) => setSelectedProductIds(val.map((p) => p.id))}
                   renderInput={(params) =>
-                    (
-                      <TextField
-                        {...params}
-                        label="Chọn sản phẩm"
-                        fullWidth
-                        error={!!errors.productIds}
-                        helperText={errors.productIds?.message}
-                        yh
-                      />
-                    )
+                  (
+                    <TextField
+                      {...params}
+                      label={
+                        <span>
+                          Chọn sản phẩm <span style={{ color: 'red' }}>*</span>
+                        </span>
+                      }
+
+                      fullWidth
+                      error={!!errors.productIds}
+                      helperText={errors.productIds?.message}
+
+                    />
+                  )
                   }
                   isOptionEqualToValue={(o, v) => o.id === v.id}
                   renderTags={() => null}

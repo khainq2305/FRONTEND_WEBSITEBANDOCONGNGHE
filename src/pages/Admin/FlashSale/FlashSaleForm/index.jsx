@@ -10,6 +10,9 @@ import { formatCurrencyVND } from '../../../../utils/formatCurrency';
 import LoaderAdmin from '../../../../components/Admin/LoaderVip';
 import ColorPickerField from '../../../../utils/ColorPickerField';
 import FormattedNumberInput from '../../../../utils/FormattedNumberInput';
+import Breadcrumb from '../../../../components/common/Breadcrumb';
+import { MenuItem } from '@mui/material';
+
 const discountTypeOptions = [
   { label: 'Theo phần trăm', value: 'percent' },
   { label: 'Giảm cố định', value: 'amount' }
@@ -35,7 +38,7 @@ const FlashSaleForm = () => {
       endTime: '',
       isActive: true,
       items: [],
-       orderIndex: 0, 
+      orderIndex: 0,
       categories: [],
       bannerUrl: '',
       bgColor: '#FFFFFF'
@@ -82,13 +85,8 @@ const FlashSaleForm = () => {
     const loadData = async () => {
       try {
         const [skuRes, catRes] = await Promise.all([flashSaleService.getSkus(), flashSaleService.getCategories()]);
-
-        /** ⛔️ Đừng ghép thêm `s.label` có sẵn – tự build lại để
-         *   tránh “sku1 … sku1 …” xuất hiện 2 lần
-         */
         const skuOpts = (skuRes.data || []).map((s) => ({
           ...s,
-          // tên SP  |  mã SKU  |  giá đã format
           label: `${s.productName} - ${s.skuCode} - ${formatCurrencyVND(s.originalPrice)}`
         }));
 
@@ -131,7 +129,7 @@ const FlashSaleForm = () => {
           id: item.flashSaleSku?.id,
           skuId: item.flashSaleSku?.id,
           salePrice: item.salePrice != null ? Number(item.salePrice) : '',
-originalQuantity: item.originalQuantity ?? item.quantity,
+          originalQuantity: item.originalQuantity ?? item.quantity,
 
           quantity: item.quantity,
           maxPerUser: item.maxPerUser,
@@ -167,13 +165,13 @@ originalQuantity: item.originalQuantity ?? item.quantity,
       payload.append('endTime', formData.endTime);
       payload.append('isActive', formData.isActive);
       payload.append('bgColor', formData.bgColor);
-payload.append('orderIndex', formData.orderIndex === '' || formData.orderIndex == null ? 0 : Number(formData.orderIndex));
+      payload.append('orderIndex', formData.orderIndex === '' || formData.orderIndex == null ? 0 : Number(formData.orderIndex));
 
       const itemsPayload = formData.items.map((item) => ({
         skuId: item.id,
         salePrice: item.salePrice === '' ? null : Number(item.salePrice),
-     quantity: item.quantity === '' || item.quantity == null ? 0 : Number(item.quantity),
- originalQuantity: item.originalQuantity ?? Number(item.quantity), // ✅ THÊM DÒNG NÀY
+        quantity: item.quantity === '' || item.quantity == null ? 0 : Number(item.quantity),
+        originalQuantity: item.originalQuantity ?? Number(item.quantity), 
         maxPerUser: item.maxPerUser === '' ? null : Number(item.maxPerUser),
         note: item.note || ''
       }));
@@ -231,68 +229,88 @@ payload.append('orderIndex', formData.orderIndex === '' || formData.orderIndex =
   return (
     <Box p={2} sx={{ position: 'relative' }}>
       {isSubmitting && <LoaderAdmin fullscreen />}
-      <Paper sx={{ p: 3, opacity: isSubmitting ? 0.6 : 1 }}>
+      <Breadcrumb
+        items={[
+          { label: 'Trang chủ', href: '/admin' },
+          { label: 'Khuyến mãi', href: '/admin/flash-sale' },
+          { label: isEdit ? 'Chỉnh sửa' : 'Tạo mới' }
+        ]}
+      />
+
+      <Paper sx={{ p: 3, mt: 2, opacity: isSubmitting ? 0.6 : 1 }}>
         <Typography variant="h5" mb={3}>
-          {isEdit ? 'Cập nhật Flash Sale' : 'Thêm mới Flash Sale'}
+          {isEdit ? 'Cập nhật khuyến mãi' : 'Thêm mới khuyến mãi'}
         </Typography>
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <Grid container spacing={3}>
-         <Grid item xs={12}>
+          <Grid item xs={12}>
   <Controller
     name="title"
     control={control}
     rules={{ required: 'Tên là bắt buộc' }}
     render={({ field }) => (
-      <TextField {...field} fullWidth label="Tên Flash Sale" error={!!errors.title} helperText={errors.title?.message} />
+      <TextField
+        {...field}
+        fullWidth
+        label={
+          <span>
+           Tiêu đề <span style={{ color: 'red' }}>*</span>
+          </span>
+        }
+        error={!!errors.title}
+        helperText={errors.title?.message}
+      />
     )}
   />
 </Grid>
 
-<Grid item xs={12}>
-  <Grid container spacing={2}>
-    <Grid item xs={12} sm={6}>
-      <Controller
-        name="bgColor"
-        control={control}
-        render={({ field }) => (
-          <ColorPickerField
-            label="Màu nền"
-            value={field.value}
-            onChange={field.onChange}
-            error={!!errors.bgColor}
-            helperText={errors.bgColor?.message || 'Chọn màu hiển thị cho banner'}
-          />
-        )}
-      />
-    </Grid>
 
-    <Grid item xs={12} sm={6}>
-      <Controller
-        name="orderIndex"
-        control={control}
-        render={({ field }) => (
-          <TextField
-            {...field}
-            fullWidth
-            label="Thứ tự hiển thị (STT)"
-            type="number"
-            inputProps={{ min: 0 }}
-            error={!!errors.orderIndex}
-            helperText={errors.orderIndex?.message || 'STT nhỏ sẽ hiển thị trước'}
-          />
-        )}
-      />
-    </Grid>
-  </Grid>
-</Grid>
-
-            
-           
             <Grid item xs={12}>
-              <Typography variant="subtitle1" gutterBottom>
-                Ảnh banner
-              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <Controller
+                    name="bgColor"
+                    control={control}
+                    render={({ field }) => (
+                      <ColorPickerField
+                        label="Màu nền"
+                        value={field.value}
+                        onChange={field.onChange}
+                        error={!!errors.bgColor}
+                        helperText={errors.bgColor?.message || 'Chọn màu hiển thị cho banner'}
+                      />
+                    )}
+                  />
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <Controller
+                    name="orderIndex"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        fullWidth
+                        label="Thứ tự hiển thị (STT)"
+                        type="number"
+                        inputProps={{ min: 0 }}
+                        error={!!errors.orderIndex}
+                        helperText={errors.orderIndex?.message || 'STT nhỏ sẽ hiển thị trước'}
+                      />
+                    )}
+                  />
+                </Grid>
+              </Grid>
+            </Grid>
+
+
+
+            <Grid item xs={12}>
+             <Typography variant="subtitle1" gutterBottom>
+  Ảnh banner <span style={{ color: 'red' }}>*</span>
+</Typography>
+
               {bannerPreview ? (
                 <Box sx={{ position: 'relative', border: '1px solid #ddd', borderRadius: 2, p: 1, overflow: 'hidden' }}>
                   <img
@@ -361,42 +379,55 @@ payload.append('orderIndex', formData.orderIndex === '' || formData.orderIndex =
                 render={({ field }) => <TinyEditor value={field.value} onChange={field.onChange} />}
               />
             </Grid>
-            <Grid item xs={6}>
-              <Controller
-                name="startTime"
-                control={control}
-                rules={{ required: 'Thời gian bắt đầu là bắt buộc' }}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    type="datetime-local"
-                    label="Bắt đầu"
-                    InputLabelProps={{ shrink: true }}
-                    error={!!errors.startTime}
-                    helperText={errors.startTime?.message}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <Controller
-                name="endTime"
-                control={control}
-                rules={{ required: 'Thời gian kết thúc là bắt buộc' }}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    type="datetime-local"
-                    label="Kết thúc"
-                    InputLabelProps={{ shrink: true }}
-                    error={!!errors.endTime}
-                    helperText={errors.endTime?.message}
-                  />
-                )}
-              />
-            </Grid>
+           <Grid item xs={6}>
+  <Controller
+    name="startTime"
+    control={control}
+    rules={{ required: 'Thời gian bắt đầu là bắt buộc' }}
+    render={({ field }) => (
+      <TextField
+        {...field}
+        fullWidth
+        type="datetime-local"
+        label={
+          <span>
+            Bắt đầu <span style={{ color: 'red' }}>*</span>
+          </span>
+        }
+        InputLabelProps={{ shrink: true }}
+        inputProps={{
+          min: new Date().toISOString().slice(0, 16),
+        }}
+        error={!!errors.startTime}
+        helperText={errors.startTime?.message}
+      />
+    )}
+  />
+</Grid>
+
+<Grid item xs={6}>
+  <Controller
+    name="endTime"
+    control={control}
+    rules={{ required: 'Thời gian kết thúc là bắt buộc' }}
+    render={({ field }) => (
+      <TextField
+        {...field}
+        fullWidth
+        type="datetime-local"
+        label={
+          <span>
+            Kết thúc <span style={{ color: 'red' }}>*</span>
+          </span>
+        }
+        InputLabelProps={{ shrink: true }}
+        error={!!errors.endTime}
+        helperText={errors.endTime?.message}
+      />
+    )}
+  />
+</Grid>
+
             <Grid item xs={12}>
               <Controller
                 name="isActive"
@@ -412,9 +443,10 @@ payload.append('orderIndex', formData.orderIndex === '' || formData.orderIndex =
 
 
             <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom>
-                Sản phẩm tham gia
-              </Typography>
+          <Typography variant="h6" gutterBottom>
+  Sản phẩm tham gia <Box component="span" sx={{ color: 'error.main' }}>*</Box>
+</Typography>
+
               <Controller
                 name="items"
                 control={control}
@@ -430,11 +462,12 @@ payload.append('orderIndex', formData.orderIndex === '' || formData.orderIndex =
                           .filter((newItem) => !field.value.some((existing) => existing.id === newItem.id))
                           .map((newItem) => ({
                             id: newItem.id,
+                            stock: newItem.stock,
                             skuId: newItem.id,
                             label: newItem.label,
                             originalPrice: newItem.originalPrice,
                             salePrice: '',
-                              originalQuantity: '', // ✅ THÊM DÒNG NÀY
+                            originalQuantity: '', // ✅ THÊM DÒNG NÀY
                             quantity: '',
                             maxPerUser: '',
                             note: ''
@@ -459,8 +492,7 @@ payload.append('orderIndex', formData.orderIndex === '' || formData.orderIndex =
                             <Grid item xs={12}>
                               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <Typography variant="subtitle1" fontWeight="bold">
-                                  {' '}
-                                  {index + 1}. {sku.label}{' '}
+                                  {index + 1}. {sku.label}
                                 </Typography>
                                 <Button
                                   size="small"
@@ -471,62 +503,59 @@ payload.append('orderIndex', formData.orderIndex === '' || formData.orderIndex =
                                 </Button>
                               </Box>
                             </Grid>
-                            <Grid item xs={12} sm={4}>
-                              {sku.originalPrice != null && (
-                                <Typography variant="body2" sx={{ mb: 0.5, color: 'text.secondary' }}>
-                                  Giá gốc: <strong style={{ color: '#d32f2f' }}>{formatCurrencyVND(sku.originalPrice)}</strong>
-                                </Typography>
-                              )}
 
+                            {/* Hiển thị giá gốc và tồn kho */}
+                            <Grid item xs={12}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                {sku.originalPrice != null && (
+                                  <Typography variant="body2" color="text.secondary">
+                                    Giá gốc:{' '}
+                                    <strong style={{ color: '#d32f2f' }}>{formatCurrencyVND(sku.originalPrice)}</strong>
+                                  </Typography>
+                                )}
+                                {sku.stock != null && (
+                                  <Typography variant="body2" color="text.secondary">
+                                    Tồn kho: <strong>{sku.stock}</strong>
+                                  </Typography>
+                                )}
+                              </Box>
+                            </Grid>
+
+                            {/* Ô nhập giá sale và số lượng bán */}
+                            <Grid item xs={12} sm={6}>
                               <Controller
-                                name={`items.${index}.salePrice`} // đường dẫn field trong RHF
+                                name={`items.${index}.salePrice`}
                                 control={control}
                                 rules={{ required: 'Vui lòng nhập giá', min: 1 }}
                                 render={({ field, fieldState }) => (
                                   <FormattedNumberInput
-                                    {...field}
+                                    value={field.value ?? ''}
+                                    onChange={field.onChange}
                                     label="Giá sale"
-                                    size="small"
+                                    size="medium" // 👉 tăng từ 'small' lên 'medium' cho dễ thao tác hơn
                                     error={!!fieldState.error}
                                     helperText={fieldState.error?.message}
                                   />
                                 )}
                               />
                             </Grid>
-                            <Grid item xs={6} sm={4}>
-                              <Typography variant="body2" sx={{ mb: 0.5 }}>
-                                &nbsp;
-                              </Typography>
-                          <TextField
-  fullWidth
-  type="number"
-  label="Số lượng bán"
-  size="small"
-  value={sku.quantity ?? ''}
-  onChange={(e) => handleItemChange(field, index, 'quantity', e.target.value)}
-  InputProps={{ inputProps: { min: 0 } }}
-  placeholder="Mặc định 0 nếu không nhập"
-  error={!!errors.items?.[index]?.quantity}
-  helperText={errors.items?.[index]?.quantity?.message}
-/>
 
-                            </Grid>
-                            <Grid item xs={6} sm={4}>
-                              <Typography variant="body2" sx={{ mb: 0.5 }}>
-                                &nbsp;
-                              </Typography>
+                            <Grid item xs={12} sm={6}>
                               <TextField
                                 fullWidth
                                 type="number"
-                                label="Tối đa/người"
-                                size="small"
-                                value={sku.maxPerUser || ''}
-                                onChange={(e) => handleItemChange(field, index, 'maxPerUser', e.target.value)}
-                                InputProps={{ inputProps: { min: 1 } }}
-                                error={!!errors.items?.[index]?.maxPerUser}
-                                helperText={errors.items?.[index]?.maxPerUser?.message}
+                                label="Số lượng bán"
+                                size="medium" // 👉 tăng lên 'medium' như ô bên trái
+                                value={sku.quantity ?? ''}
+                                onChange={(e) => handleItemChange(field, index, 'quantity', e.target.value)}
+                                InputProps={{ inputProps: { min: 0 } }}
+                                placeholder="Mặc định 0 nếu không nhập"
+                                error={!!errors.items?.[index]?.quantity}
+                                helperText={errors.items?.[index]?.quantity?.message}
                               />
                             </Grid>
+
+                            {/* Ô ghi chú */}
                             <Grid item xs={12}>
                               <TextField
                                 fullWidth
@@ -543,6 +572,7 @@ payload.append('orderIndex', formData.orderIndex === '' || formData.orderIndex =
                         </Paper>
                       ))}
                     </Box>
+
                   </>
                 )}
               />
@@ -584,28 +614,29 @@ payload.append('orderIndex', formData.orderIndex === '' || formData.orderIndex =
                               Xóa
                             </Button>
                           </Box>
+
                           <Grid container spacing={2}>
-                            <Grid item xs={6} sm={3}>
+                            <Grid item xs={12} sm={6}>
                               <TextField
                                 select
                                 fullWidth
                                 label="Loại giảm"
-                                size="small"
+                                size="medium"
                                 value={cat.discountType || 'percent'}
                                 onChange={(e) => handleItemChange(field, index, 'discountType', e.target.value)}
-                                SelectProps={{ native: true }}
                               >
                                 {discountTypeOptions.map((opt) => (
-                                  <option key={opt.value} value={opt.value}>
+                                  <MenuItem key={opt.value} value={opt.value}>
                                     {opt.label}
-                                  </option>
+                                  </MenuItem>
                                 ))}
                               </TextField>
                             </Grid>
-                            <Grid item xs={6} sm={3}>
+
+                            <Grid item xs={12} sm={6}>
                               <FormattedNumberInput
                                 fullWidth
-                                size="small"
+                                size="medium"
                                 label="Giá trị giảm"
                                 value={cat.discountValue}
                                 onChange={(val) => handleItemChange(field, index, 'discountValue', val)}
@@ -613,34 +644,11 @@ payload.append('orderIndex', formData.orderIndex === '' || formData.orderIndex =
                                 helperText={errors.categories?.[index]?.discountValue?.message}
                               />
                             </Grid>
-                            <Grid item xs={6} sm={3}>
-                              <TextField
-                                fullWidth
-                                type="number"
-                                label="Tối đa/người"
-                                size="small"
-                                value={cat.maxPerUser || ''}
-                                onChange={(e) => handleItemChange(field, index, 'maxPerUser', e.target.value)}
-                                error={!!errors.categories?.[index]?.maxPerUser}
-                                helperText={errors.categories?.[index]?.maxPerUser?.message}
-                              />
-                            </Grid>
-                            <Grid item xs={6} sm={3}>
-                              <TextField
-                                fullWidth
-                                type="number"
-                                label="Độ ưu tiên"
-                                size="small"
-                                value={cat.priority || 0}
-                                onChange={(e) => handleItemChange(field, index, 'priority', e.target.value)}
-                                error={!!errors.categories?.[index]?.priority}
-                                helperText={errors.categories?.[index]?.priority?.message}
-                              />
-                            </Grid>
                           </Grid>
                         </Paper>
                       ))}
                     </Box>
+
                   </>
                 )}
               />
