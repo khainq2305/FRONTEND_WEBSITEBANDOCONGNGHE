@@ -154,9 +154,9 @@ useEffect(() => {
           {current.flashSaleInfo ? (
             <div className="rounded-md bg-gradient-to-r from-yellow-300 to-yellow-400 p-4 flex justify-between items-center shadow-inner">
               <div>
-                <div className="flex items-center gap-1 text-black font-bold text-sm mb-1">
-                  <img src="/src/assets/Client/images/flash-sale.png" alt="🔥" className="h-4 w-4" />
-                  <span>Giá ưu đãi</span>
+                <div className="flex items-center gap-2 text-white font-bold text-base mb-1 uppercase">
+                  <img src="/src/assets/Client/images/flash-sale.png" alt="🔥" className="h-6 w-6" />
+                 <span className="text-white text-[16px] md:text-[18px]">Flash Sale</span>
                 </div>
                 <div className="text-red-700 font-extrabold text-3xl">{current.price}</div>
               </div>

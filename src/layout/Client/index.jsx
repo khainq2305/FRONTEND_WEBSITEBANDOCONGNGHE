@@ -22,15 +22,19 @@ const ClientLayout = () => {
     injectNavigate(navigate);
   }, [navigate]);
 
-  const isAuthPage = [
-    '/dang-nhap',
-    '/dang-ky',
-    '/quen-mat-khau',
-    '/dat-lai-mat-khau',
-    '/otp-verification',
-    '/forgot-password-notice',
-    '/register-email-sent'
-  ].includes(location.pathname);
+const isAuthPage = [
+  '/dang-nhap',
+  '/dang-ky',
+  '/quen-mat-khau',
+  '/dat-lai-mat-khau',
+  '/otp-verification',
+  '/forgot-password-notice',
+  '/register-email-sent',
+  '/cart',
+  '/checkout'
+].includes(location.pathname);
+
+
 
   const isComparePage = location.pathname.startsWith('/compare-products');
 

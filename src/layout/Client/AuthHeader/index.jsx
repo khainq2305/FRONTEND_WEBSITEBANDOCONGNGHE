@@ -5,16 +5,19 @@ import { HomeIcon } from '@heroicons/react/24/solid';
 export default function AuthHeader() {
   const { pathname } = useLocation();
 
-  const TITLES = {
-    '/dang-nhap': 'Đăng nhập',
-    '/dang-ky': 'Đăng ký',
-    '/quen-mat-khau': 'Quên mật khẩu',
-    '/dat-lai-mat-khau': 'Đặt lại mật khẩu',
-    '/otp-verification': 'Xác thực OTP',
-    '/forgot-password-notice': 'Xác thực email',
-    '/register-email-sent': 'Kích hoạt tài khoản',
-    '/verify-email': 'Xác nhận email'
-  };
+const TITLES = {
+  '/dang-nhap': 'Đăng nhập',
+  '/dang-ky': 'Đăng ký',
+  '/quen-mat-khau': 'Quên mật khẩu',
+  '/dat-lai-mat-khau': 'Đặt lại mật khẩu',
+  '/otp-verification': 'Xác thực OTP',
+  '/forgot-password-notice': 'Xác thực email',
+  '/register-email-sent': 'Kích hoạt tài khoản',
+  '/verify-email': 'Xác nhận email',
+  '/cart': 'Giỏ hàng',
+  '/checkout': 'Thanh toán'
+};
+
   const pageTitle = TITLES[pathname] ?? (pathname.startsWith('/verify-email') ? 'Xác nhận email' : '');
 
   const linkCls =

@@ -171,7 +171,8 @@ const FlashSaleForm = () => {
         skuId: item.id,
         salePrice: item.salePrice === '' ? null : Number(item.salePrice),
         quantity: item.quantity === '' || item.quantity == null ? 0 : Number(item.quantity),
-        originalQuantity: item.originalQuantity ?? Number(item.quantity), 
+       originalQuantity: Math.max(item.originalQuantity ?? 0, Number(item.quantity)),
+
         maxPerUser: item.maxPerUser === '' ? null : Number(item.maxPerUser),
         note: item.note || ''
       }));

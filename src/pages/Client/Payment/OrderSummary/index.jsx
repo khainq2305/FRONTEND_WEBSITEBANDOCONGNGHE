@@ -6,8 +6,8 @@ import { toast } from 'react-toastify';
 import { FiInfo, FiChevronRight } from 'react-icons/fi';
 import { useCartStore } from '@/stores/useCartStore';
 import { formatCurrencyVND } from '../../../../utils/formatCurrency';
+import { FaPercentage, FaQuestionCircle } from 'react-icons/fa';
 
-import { FaPercentage } from 'react-icons/fa';
 
 import PromoModal, { CouponCard } from '../../Cart/PromoModal';
 import { couponService } from '../../../../services/client/couponService';
@@ -337,19 +337,21 @@ const finalAmount =
     }
   };
 
-  return (
-    <div className="relative">
-      <aside className="bg-white rounded-md p-3 sm:p-4 border border-gray-200 shadow-sm sticky top-6 h-fit">
-        <div className="flex justify-between items-center pb-4">
-          <h4 className="font-semibold text-sm text-gray-800">
-            HomePower khuyến mãi
-          </h4>
-          <div className="flex items-center text-xs text-gray-500">
-            Có thể chọn&nbsp;1
-            <FiInfo className="ml-1 text-gray-400" size={14} />
-          </div>
+return (
+  <div className="relative">
+    <aside className="bg-white rounded-xl p-3 sm:p-4 border border-gray-200 shadow-sm sticky top-6 h-fit">
+      {/* Promotion section */}
+      <div className="flex justify-between items-center">
+        <h4 className="font-semibold text-sm text-gray-800">CYBERZONE khuyến mãi</h4>
+        <div className="flex items-center text-xs text-gray-500">
+          Có thể chọn&nbsp;1
+          <FiInfo className="ml-1 text-gray-400" size={14} />
         </div>
-        <div className="border border-gray-200 rounded-md p-3 mb-3">
+      </div>
+
+      <div className="flex flex-col gap-3 mt-4">
+        {/* Coupon section */}
+        <div className="border border-gray-200 rounded-md p-3">
           {selectedCoupon ? (
             <div className="flex flex-col gap-2">
               <CouponCard
@@ -361,17 +363,13 @@ const finalAmount =
                 promo={{
                   id: selectedCoupon.code,
                   code: selectedCoupon.code,
-                  type:
-                    selectedCoupon.discountType === 'shipping'
-                      ? 'shipping'
-                      : 'discount',
+                  type: selectedCoupon.discountType === 'shipping' ? 'shipping' : 'discount',
                   title: selectedCoupon.title || selectedCoupon.code,
                   isApplicable: true,
                 }}
                 isSelected
                 onSelect={() => handleApplyPromo(null)}
               />
-
               <button
                 onClick={() => setIsPromoModalOpen(true)}
                 className="text-primary text-sm font-medium inline-flex items-center self-start"
@@ -382,142 +380,167 @@ const finalAmount =
               </button>
             </div>
           ) : (
-            <button
-              onClick={() => setIsPromoModalOpen(true)}
-              className="flex justify-between items-center w-full text-sm text-gray-800"
-            >
-              <span className="flex items-center font-medium">
-                <FaPercentage className="mr-2 text-lg text-gray-400" />
-                Chọn hoặc nhập ưu đãi
-              </span>
-              <FiChevronRight className="text-gray-400" />
-            </button>
+            <div className="relative group">
+              <div className="flex justify-between items-center w-full text-sm text-gray-800">
+                <button
+                  onClick={() => setIsPromoModalOpen(true)}
+                  className="flex items-center font-medium flex-1 text-left"
+                >
+                  <FaPercentage className="mr-2 text-lg text-red-500" />
+                  Chọn hoặc nhập ưu đãi
+                </button>
+                <FiChevronRight className="text-gray-400" />
+              </div>
+            </div>
           )}
         </div>
-<div className="border border-gray-200 rounded-md p-3 mb-3">
-  <div className="flex justify-between items-center text-sm">
-    <div className="flex items-center text-gray-800 font-medium">
-  <Coins size={16} className="text-yellow-500 mr-1" />
-  Đổi {pointInfo.maxUsablePoints} điểm (~{formatCurrencyVND(pointInfo.maxUsablePoints * 10)})
-</div>
 
-    <label className="inline-flex items-center cursor-pointer ml-2">
-     <input
-  type="checkbox"
-  checked={usePoints}
-  onChange={() => setUsePoints((prev) => !prev)}
-  className="sr-only peer"
-  disabled={!pointInfo.canUsePoints}
-/>
+        {/* Point section */}
+        <div className="flex items-center justify-between h-11 px-3 border border-gray-200 rounded-md">
+          <div className="flex items-center gap-2 text-sm text-gray-700">
+            <Coins size={16} className="text-yellow-500" />
+            <span>Đổi {pointInfo.maxUsablePoints} điểm</span>
+            <span className="text-gray-400 text-xs">
+              (~{formatCurrencyVND(pointInfo.maxUsablePoints * 10)})
+            </span>
+          </div>
 
-      <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-primary transition-all duration-300 relative">
-        <div
-          className={`absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow-md transform transition-transform ${
-            usePoints ? 'translate-x-5' : ''
-          }`}
-        />
-      </div>
-    </label>
-  </div>
-</div>
-
-        <div className="text-xs sm:text-sm text-gray-600 mb-4">
-          <h3 className="font-semibold mb-2 text-gray-800">Thông tin đơn hàng</h3>
-
-          <Row label="Tổng tiền hàng" value={formatCurrencyVND(totalAmount)} bold />
-          <Row className="text-xs" label="Giảm giá từ sản phẩm" value={formatCurrencyVND(discount)} />
-          {couponDiscount > 0 && (
-            <Row
-              label="Giảm giá từ coupon"
-              value={`- ${formatCurrencyVND(couponDiscount)}`}
-              color="text-green-600"
-              className="text-xs"
-            />
-          )}
-
-          {shippingDiscount > 0 ? (
-            <>
-              <Row
-                label="Phí vận chuyển"
-                value={formatCurrencyVND(shippingFee)}
+          <div className="flex items-center gap-1 relative group ml-2">
+            <label className="inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={usePoints}
+                onChange={() => setUsePoints((prev) => !prev)}
+                className="sr-only peer"
+                disabled={!pointInfo.canUsePoints}
               />
+              <div className="w-9 h-5 rounded-full relative transition-colors bg-gray-200 peer-checked:bg-[var(--primary-color)]">
+                <div
+                  className="absolute top-[2px] w-4 h-4 bg-white rounded-full transition-transform duration-200"
+                  style={{
+                    left: usePoints ? 'calc(100% - 18px)' : '2px',
+                  }}
+                ></div>
+              </div>
+            </label>
 
-              <Row
-                label="Giảm phí vận chuyển"
-                value={`- ${formatCurrencyVND(shippingDiscount)}`}
-                color="text-green-600"
-                className="text-xs"
-              />
-            </>
-          ) : (
-            <Row
-              label="Phí vận chuyển"
-              value={shippingFee === 0 ? 'Miễn phí' : formatCurrencyVND(shippingFee)}
-            />
-          )}
-
-          <Row label="Tổng khuyến mãi" value={formatCurrencyVND(totalDiscountDisplay)} />
-
-          <div className="pt-2">
-            <div className="border-t border-dashed border-gray-300 mb-2" />
-            <Row
-              label="Cần thanh toán"
-              value={formatCurrencyVND(finalAmount)}
-              bold
-              color="text-red-600"
-            />
-                        {finalAmount > 0 && (
-  <div className="flex justify-between text-xs text-yellow-600 font-medium items-center mt-1">
-    <span>Điểm thưởng</span>
-    <span className="flex items-center gap-1">
-      <Coins size={14} className="text-yellow-500" />
-      {'+ ' + Math.floor(finalAmount / 4000).toLocaleString('vi-VN')} điểm
-    </span>
-  </div>
-)}
-            <p className="text-sm text-green-600 mt-1 text-right">
-              Tiết kiệm {formatCurrencyVND(totalDiscountDisplay)}
-            </p>
-
-
-            <p className="text-[11px] text-gray-400 text-right">
-              (Đã bao gồm VAT nếu có)
-            </p>
+            {!pointInfo.canUsePoints && (
+              <>
+                <FaQuestionCircle className="text-gray-400 text-sm cursor-pointer" />
+                <div className="absolute z-10 top-full right-0 mt-1 w-max max-w-[220px] bg-black text-white border border-gray-700 shadow-md rounded-md px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none text-[12px]">
+                  Không đủ điều kiện để sử dụng điểm
+                </div>
+              </>
+            )}
           </div>
         </div>
+      </div>
 
-        <button
-          onClick={handlePlaceOrder}
-          disabled={isPlacing}
-          className="w-full bg-primary text-white font-semibold py-3 rounded-md hover:opacity-90 disabled:opacity-60 transition"
-        >
-          {isPlacing ? 'Đang xử lý...' : 'Đặt hàng'}
-        </button>
+      {/* Order summary */}
+      <div className="text-sm text-gray-700 space-y-2 mt-4">
+        <h3 className="font-semibold text-base text-gray-800">Thông tin đơn hàng</h3>
+        <div className="flex justify-between">
+          <span>Tổng tiền hàng</span>
+          <span className="font-medium text-gray-800">{formatCurrencyVND(totalAmount)}</span>
+        </div>
 
-        <p className="text-[11px] text-gray-400 text-center mt-2">
-          Bằng việc nhấn <strong>Đặt hàng</strong>, bạn đồng ý với{' '}
-          <a href="#" className="text-blue-500 underline">
-            Điều khoản dịch vụ
-          </a>{' '}
-          và{' '}
-          <a href="#" className="text-blue-500 underline">
-            Chính sách xử lý dữ liệu cá nhân
-          </a>{' '}
-          của PHT Shop
-        </p>
-      </aside>
+        {discount > 0 && (
+          <div className="flex justify-between text-xs text-gray-600 ml-2 relative">
+            <span className="before:content-['•'] before:mr-1 before:text-gray-500">Giảm giá từ sản phẩm</span>
+            <span>{formatCurrencyVND(discount)}</span>
+          </div>
+        )}
 
-      {isPromoModalOpen && (
-        <PromoModal
-          onClose={() => setIsPromoModalOpen(false)}
-          onApplySuccess={handleApplyPromo}
-          appliedCode={selectedCoupon?.code || ''}
-          skuIds={selectedItems.map(item => item.skuId)}
-          orderTotal={+totalAmount || 0}
-        />
-      )}
-    </div>
-  );
+        {couponDiscount > 0 && (
+          <div className="flex justify-between text-xs text-green-600 ml-2 relative">
+            <span className="before:content-['•'] before:mr-1 before:text-green-600">Giảm giá từ coupon</span>
+            <span>- {formatCurrencyVND(couponDiscount)}</span>
+          </div>
+        )}
+
+        {shippingDiscount > 0 ? (
+          <>
+            <div className="flex justify-between">
+              <span>Phí vận chuyển</span>
+              <span>{formatCurrencyVND(shippingFee)}</span>
+            </div>
+            <div className="flex justify-between text-xs text-green-600 ml-2 relative">
+              <span className="before:content-['•'] before:mr-1 before:text-green-600">Giảm phí vận chuyển</span>
+              <span>- {formatCurrencyVND(shippingDiscount)}</span>
+            </div>
+          </>
+        ) : (
+          <div className="flex justify-between">
+            <span>Phí vận chuyển</span>
+            <span className="font-medium text-gray-800">
+              {shippingFee === 0 ? 'Miễn phí' : formatCurrencyVND(shippingFee)}
+            </span>
+          </div>
+        )}
+
+        <div className="flex justify-between">
+          <span>Tổng khuyến mãi</span>
+          <span className="font-medium text-gray-800">{formatCurrencyVND(totalDiscountDisplay)}</span>
+        </div>
+
+        <hr className="border-dashed" />
+
+        <div className="flex justify-between text-gray-800 font-semibold">
+          <span>Cần thanh toán</span>
+          <span className="text-red-600">{formatCurrencyVND(finalAmount)}</span>
+        </div>
+
+        {finalAmount > 0 && (
+          <div className="flex justify-between text-xs text-yellow-600 font-medium items-center">
+            <span>Điểm thưởng</span>
+            <span className="flex items-center gap-1">
+              <Coins size={14} className="text-yellow-500" />
+              {'+ ' + Math.floor(finalAmount / 4000).toLocaleString('vi-VN')} điểm
+            </span>
+          </div>
+        )}
+
+        {totalDiscountDisplay > 0 && (
+          <div className="text-sm text-green-600 mt-1 text-right">
+            Tiết kiệm {formatCurrencyVND(totalDiscountDisplay)}
+          </div>
+        )}
+
+        <p className="text-[11px] text-gray-400 text-right">(Đã bao gồm VAT nếu có)</p>
+      </div>
+
+      {/* Submit button */}
+      <button
+        onClick={handlePlaceOrder}
+        disabled={isPlacing}
+        className="block text-center w-full font-semibold py-3 rounded-md transition-colors text-base mt-4 bg-primary text-white hover:opacity-90 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
+      >
+        {isPlacing ? 'Đang xử lý...' : 'Đặt hàng'}
+      </button>
+
+      <p className="text-[11px] text-gray-400 text-center mt-2">
+        Bằng việc nhấn <strong>Đặt hàng</strong>, bạn đồng ý với{' '}
+        <a href="#" className="text-blue-500 underline">
+          Điều khoản dịch vụ
+        </a>{' '}và{' '}
+        <a href="#" className="text-blue-500 underline">
+          Chính sách xử lý dữ liệu cá nhân
+        </a>{' '}của PHT Shop
+      </p>
+    </aside>
+
+    {isPromoModalOpen && (
+      <PromoModal
+        onClose={() => setIsPromoModalOpen(false)}
+        onApplySuccess={handleApplyPromo}
+        appliedCode={selectedCoupon?.code || ''}
+        skuIds={selectedItems.map((item) => item.skuId)}
+        orderTotal={+totalAmount || 0}
+      />
+    )}
+  </div>
+);
+
 };
 
 const Row = ({ label, value, bold, color, className, pl }) => (
