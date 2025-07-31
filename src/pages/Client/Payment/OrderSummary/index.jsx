@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { orderService } from '../../../../services/client/orderService';
 import { paymentService } from '../../../../services/client/paymentService';
 import { toast } from 'react-toastify';
-import { FiInfo, FiChevronRight } from 'react-icons/fi';
+import { FiInfo, FiChevronRight, FiChevronUp } from 'react-icons/fi';
+
 import { useCartStore } from '@/stores/useCartStore';
 import { formatCurrencyVND } from '../../../../utils/formatCurrency';
 import { FaPercentage, FaQuestionCircle } from 'react-icons/fa';
@@ -32,6 +33,7 @@ const OrderSummary = ({
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
   const [selectedCoupon, setSelectedCoupon] = useState(null);
   const [isPlacing, setIsPlacing] = useState(false);
+const [showDiscountDetails, setShowDiscountDetails] = useState(false);
 
 
 const pointDiscountAmount = usePoints ? pointInfo.maxUsablePoints * 10 : 0;
@@ -398,7 +400,10 @@ return (
         {/* Point section */}
         <div className="flex items-center justify-between h-11 px-3 border border-gray-200 rounded-md">
           <div className="flex items-center gap-2 text-sm text-gray-700">
-            <Coins size={16} className="text-yellow-500" />
+           <span className="w-5 h-5 bg-yellow-200 text-yellow-600 text-[10px] font-bold flex items-center justify-center rounded-full">
+  ₵
+</span>
+
             <span>Đổi {pointInfo.maxUsablePoints} điểm</span>
             <span className="text-gray-400 text-xs">
               (~{formatCurrencyVND(pointInfo.maxUsablePoints * 10)})
@@ -444,39 +449,71 @@ return (
           <span className="font-medium text-gray-800">{formatCurrencyVND(totalAmount)}</span>
         </div>
 
-        {discount > 0 && (
-          <div className="flex justify-between text-xs text-gray-600 ml-2 relative">
-            <span className="before:content-['•'] before:mr-1 before:text-gray-500">Giảm giá từ sản phẩm</span>
-            <span>{formatCurrencyVND(discount)}</span>
-          </div>
-        )}
+       {showDiscountDetails && (
+  <>
+    {discount > 0 && (
+      <div className="flex justify-between text-xs text-gray-600 ml-2 relative">
+        <span className="before:content-['•'] before:mr-1 before:text-gray-500">
+          Giảm giá từ sản phẩm
+        </span>
+        <span>{formatCurrencyVND(discount)}</span>
+      </div>
+    )}
 
-        {couponDiscount > 0 && (
-          <div className="flex justify-between text-xs text-green-600 ml-2 relative">
-            <span className="before:content-['•'] before:mr-1 before:text-green-600">Giảm giá từ coupon</span>
-            <span>- {formatCurrencyVND(couponDiscount)}</span>
-          </div>
-        )}
+    {couponDiscount > 0 && (
+      <div className="flex justify-between text-xs text-green-600 ml-2 relative">
+        <span className="before:content-['•'] before:mr-1 before:text-green-600">
+          Giảm giá từ coupon
+        </span>
+        <span>- {formatCurrencyVND(couponDiscount)}</span>
+      </div>
+    )}
 
+    <div className="flex justify-between items-center">
+      <span>Phí vận chuyển</span>
+      <span className="flex flex-col items-end">
         {shippingDiscount > 0 ? (
           <>
-            <div className="flex justify-between">
-              <span>Phí vận chuyển</span>
-              <span>{formatCurrencyVND(shippingFee)}</span>
-            </div>
-            <div className="flex justify-between text-xs text-green-600 ml-2 relative">
-              <span className="before:content-['•'] before:mr-1 before:text-green-600">Giảm phí vận chuyển</span>
-              <span>- {formatCurrencyVND(shippingDiscount)}</span>
-            </div>
+            <span className="text-xs text-gray-400 line-through leading-none">
+              {formatCurrencyVND(shippingFee)}
+            </span>
+            <span className="text-sm font-medium text-gray-800 leading-none">
+              {formatCurrencyVND(shippingFee - shippingDiscount)}
+            </span>
           </>
         ) : (
-          <div className="flex justify-between">
-            <span>Phí vận chuyển</span>
-            <span className="font-medium text-gray-800">
-              {shippingFee === 0 ? 'Miễn phí' : formatCurrencyVND(shippingFee)}
-            </span>
-          </div>
+          <span className="font-medium text-gray-800">
+            {shippingFee === 0 ? 'Miễn phí' : formatCurrencyVND(shippingFee)}
+          </span>
         )}
+      </span>
+    </div>
+  </>
+)}
+
+{!showDiscountDetails && (
+  <div className="flex justify-between items-center">
+    <span>Phí vận chuyển</span>
+    <span className="flex flex-col items-end">
+      {shippingDiscount > 0 ? (
+        <>
+          <span className="text-xs text-gray-400 line-through leading-none">
+            {formatCurrencyVND(shippingFee)}
+          </span>
+          <span className="text-sm font-medium text-gray-800 leading-none">
+            {formatCurrencyVND(shippingFee - shippingDiscount)}
+          </span>
+        </>
+      ) : (
+        <span className="font-medium text-gray-800">
+          {shippingFee === 0 ? 'Miễn phí' : formatCurrencyVND(shippingFee)}
+        </span>
+      )}
+    </span>
+  </div>
+)}
+
+
 
         <div className="flex justify-between">
           <span>Tổng khuyến mãi</span>
@@ -494,11 +531,27 @@ return (
           <div className="flex justify-between text-xs text-yellow-600 font-medium items-center">
             <span>Điểm thưởng</span>
             <span className="flex items-center gap-1">
-              <Coins size={14} className="text-yellow-500" />
+              <span className="w-4 h-4 bg-yellow-200 text-yellow-600 text-[10px] font-bold flex items-center justify-center rounded-full">
+  ₵
+</span>
+
               {'+ ' + Math.floor(finalAmount / 4000).toLocaleString('vi-VN')} điểm
             </span>
           </div>
         )}
+{totalDiscountDisplay > 0 && (
+  <button
+    className="text-blue-600 text-sm font-medium inline-flex items-center ml-auto"
+    onClick={() => setShowDiscountDetails((prev) => !prev)}
+  >
+    {showDiscountDetails ? 'Thu gọn' : 'Xem chi tiết'}
+    {showDiscountDetails ? (
+      <FiChevronUp className="ml-1" />
+    ) : (
+      <FiChevronRight className="ml-1 transform rotate-90" />
+    )}
+  </button>
+)}
 
         {totalDiscountDisplay > 0 && (
           <div className="text-sm text-green-600 mt-1 text-right">

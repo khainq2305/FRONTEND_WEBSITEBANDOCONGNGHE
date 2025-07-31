@@ -42,7 +42,7 @@ const OrderConfirmation = () => {
 
   // 👉 THÊM STATE MỚI ĐỂ LƯU URL CỦA QR CODE
   const [vietQrImageUrl, setVietQrImageUrl] = useState(null);
-const [vietQrInfo, setVietQrInfo] = useState(null);
+  const [vietQrInfo, setVietQrInfo] = useState(null);
 
   /* ------------------- side-effect: Handle MoMo callback ------------------- */
   useEffect(() => {
@@ -105,74 +105,74 @@ const [vietQrInfo, setVietQrInfo] = useState(null);
   }, [vnpTxnRef, isPaymentAttempted, orderCodeFromUrl]);
 
   /* ------------------- side-effect: fetch order details ------------------- */
-const fetchOrderDetails = async (code) => {
-  setLoading(true);
-  try {
-    const res = await orderService.getOrderById(code);
-    if (res.data?.data) {
-      const orderData = res.data.data;
-      setOrder(orderData);
+  const fetchOrderDetails = async (code) => {
+    setLoading(true);
+    try {
+      const res = await orderService.getOrderById(code);
+      if (res.data?.data) {
+        const orderData = res.data.data;
+        setOrder(orderData);
 
-      const paymentCode = orderData?.paymentMethod?.code?.toLowerCase();
+        const paymentCode = orderData?.paymentMethod?.code?.toLowerCase();
 
-      // Kiểm tra nếu là phương thức 'atm' và đang chờ thanh toán
-      const isPaymentPending = orderData.paymentStatus === 'waiting' || orderData.paymentStatus === 'unpaid';
-      if (paymentCode === 'atm' && isPaymentPending) {
-        try {
-          const qrRes = await paymentService.generateVietQR({
-            accountNumber: '2222555552005', // CÓ THỂ THAY BẰNG CONFIG TỪ ENV
-            accountName: 'NGUYEN QUOC KHAI',
-            bankCode: 'MB',
-            amount: orderData.finalPrice,
-            message: `Thanh toan ${orderData.orderCode}`,
-          });
-
-          console.log("📦 Response generateVietQR:", qrRes);
-
-          if (qrRes?.data?.qrImage) {
-            setVietQrImageUrl(qrRes.data.qrImage);
-            setVietQrInfo({
-              accountNumber: qrRes.data.accountNumber,
-              accountName: qrRes.data.accountName,
-              bankCode: qrRes.data.bankCode,
-              message: qrRes.data.message,
+        // Kiểm tra nếu là phương thức 'atm' và đang chờ thanh toán
+        const isPaymentPending = orderData.paymentStatus === 'waiting' || orderData.paymentStatus === 'unpaid';
+        if (paymentCode === 'atm' && isPaymentPending) {
+          try {
+            const qrRes = await paymentService.generateVietQR({
+              accountNumber: '2222555552005', // CÓ THỂ THAY BẰNG CONFIG TỪ ENV
+              accountName: 'NGUYEN QUOC KHAI',
+              bankCode: 'MB',
+              amount: orderData.finalPrice,
+              message: `Thanh toan ${orderData.orderCode}`,
             });
 
-            // Cập nhật lại URL để giữ QR
-            const encoded = encodeURIComponent(qrRes.data.qrImage);
-            const currentUrl = new URL(window.location.href);
-            currentUrl.searchParams.set('qr', encoded);
-            window.history.replaceState({}, '', currentUrl);
-          } else {
-            console.warn("❌ Backend không trả về qrImage.");
+            console.log("📦 Response generateVietQR:", qrRes);
+
+            if (qrRes?.data?.qrImage) {
+              setVietQrImageUrl(qrRes.data.qrImage);
+              setVietQrInfo({
+                accountNumber: qrRes.data.accountNumber,
+                accountName: qrRes.data.accountName,
+                bankCode: qrRes.data.bankCode,
+                message: qrRes.data.message,
+              });
+
+              // Cập nhật lại URL để giữ QR
+              const encoded = encodeURIComponent(qrRes.data.qrImage);
+              const currentUrl = new URL(window.location.href);
+              currentUrl.searchParams.set('qr', encoded);
+              window.history.replaceState({}, '', currentUrl);
+            } else {
+              console.warn("❌ Backend không trả về qrImage.");
+              setVietQrImageUrl(null);
+              setVietQrInfo(null);
+            }
+          } catch (qrError) {
+            console.error('❌ Lỗi khi sinh QR VietQR:', qrError);
+            toast.error('Không thể tạo mã QR thanh toán.');
             setVietQrImageUrl(null);
             setVietQrInfo(null);
           }
-        } catch (qrError) {
-          console.error('❌ Lỗi khi sinh QR VietQR:', qrError);
-          toast.error('Không thể tạo mã QR thanh toán.');
+        } else {
+          console.log("⚠️ Không phải phương thức thanh toán ATM hoặc không chờ thanh toán.");
           setVietQrImageUrl(null);
           setVietQrInfo(null);
         }
       } else {
-        console.log("⚠️ Không phải phương thức thanh toán ATM hoặc không chờ thanh toán.");
+        toast.error('Không tìm thấy dữ liệu cho đơn hàng này.');
         setVietQrImageUrl(null);
         setVietQrInfo(null);
       }
-    } else {
-      toast.error('Không tìm thấy dữ liệu cho đơn hàng này.');
+    } catch (err) {
+      console.error('❌ Lỗi lấy đơn hàng:', err);
+      toast.error(err.response?.data?.message || 'Không thể tải thông tin đơn hàng.');
       setVietQrImageUrl(null);
       setVietQrInfo(null);
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error('❌ Lỗi lấy đơn hàng:', err);
-    toast.error(err.response?.data?.message || 'Không thể tải thông tin đơn hàng.');
-    setVietQrImageUrl(null);
-    setVietQrInfo(null);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
 
   useEffect(() => {
@@ -198,9 +198,9 @@ const fetchOrderDetails = async (code) => {
     if (!order) return;
     setLoading(true);
     try {
-       const res = await orderService.payAgain(order.id, {
-      bankCode: '', // ✅ thêm dòng này
-    });
+      const res = await orderService.payAgain(order.id, {
+        bankCode: '', // ✅ thêm dòng này
+      });
       if (res.data?.payUrl) {
         window.location.href = res.data.payUrl; // Redirect to new payment link
       } else {
@@ -247,9 +247,11 @@ const fetchOrderDetails = async (code) => {
     shippingDiscount: rawShipDiscount = 0,
     finalPrice,
     orderCode: code,
-    paymentStatus, // Get paymentStatus from order
-    status: orderStatus // Get order status
+    paymentStatus,
+    status: orderStatus,
+    rewardPoints = 0 // 👈 THÊM DÒNG NÀY
   } = order;
+
   const shippingDiscount = Math.min(rawShipDiscount, shippingFee);
 
   const customer = {
@@ -278,45 +280,45 @@ const fetchOrderDetails = async (code) => {
         <div className="bg-no-repeat bg-center bg-contain" style={{ backgroundImage: `url(${bgPc})` }}>
           <div className="px-4 pt-12 pb-8">
             <div className="text-center">
-{orderStatus === 'cancelled' ? (
-  <>
-    <img src={waitingIcon} alt="Đơn đã huỷ" className="w-30 h-45 mx-auto mb-4" />
-    <h1 className="text-red-600 text-3xl font-bold">Đơn hàng đã bị huỷ</h1>
-    <p className="text-sm text-gray-600 mt-2 max-w-md mx-auto">
-      Đơn hàng của bạn đã bị huỷ. Vui lòng đặt lại nếu bạn vẫn muốn tiếp tục mua hàng.
-    </p>
-  </>
-) : isPaymentSuccessful ? (
-  <>
-    <img src={successIcon} alt="Đặt hàng thành công" className="w-30 h-45 mx-auto mb-4" />
-    <h1 className="text-green-600 text-3xl font-bold">Đặt hàng thành công!</h1>
-    <p className="text-sm text-gray-600 mt-2 max-w-md mx-auto">
-      Cảm ơn bạn đã mua hàng. Nhân viên sẽ liên hệ với bạn trong thời gian sớm nhất để xác nhận đơn hàng.
-    </p>
-  </>
-) : (
-  <>
-    <img src={waitingIcon} alt="Đơn hàng chờ thanh toán" className="w-30 h-45 mx-auto mb-4" />
-    <h1 className="text-orange-500 text-3xl font-bold">
-      {paymentMethod?.code === 'atm' ? 'Chờ xác nhận chuyển khoản' : 'Đơn hàng chờ thanh toán'}
-    </h1>
-    <p className="text-sm text-gray-600 mt-2 max-w-md mx-auto">
-      {paymentMethod?.code === 'atm'
-        ? 'Vui lòng chuyển khoản đúng nội dung và chờ hệ thống xác nhận giao dịch.'
-        : 'Đơn hàng của bạn đã được tạo. Vui lòng hoàn tất thanh toán để đơn hàng được xử lý.'}
-    </p>
-  </>
-)}
+              {orderStatus === 'cancelled' ? (
+                <>
+                  <img src={waitingIcon} alt="Đơn đã huỷ" className="w-30 h-45 mx-auto mb-4" />
+                  <h1 className="text-red-600 text-3xl font-bold">Đơn hàng đã bị huỷ</h1>
+                  <p className="text-sm text-gray-600 mt-2 max-w-md mx-auto">
+                    Đơn hàng của bạn đã bị huỷ. Vui lòng đặt lại nếu bạn vẫn muốn tiếp tục mua hàng.
+                  </p>
+                </>
+              ) : isPaymentSuccessful ? (
+                <>
+                  <img src={successIcon} alt="Đặt hàng thành công" className="w-30 h-45 mx-auto mb-4" />
+                  <h1 className="text-green-600 text-3xl font-bold">Đặt hàng thành công!</h1>
+                  <p className="text-sm text-gray-600 mt-2 max-w-md mx-auto">
+                    Cảm ơn bạn đã mua hàng. Nhân viên sẽ liên hệ với bạn trong thời gian sớm nhất để xác nhận đơn hàng.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <img src={waitingIcon} alt="Đơn hàng chờ thanh toán" className="w-30 h-45 mx-auto mb-4" />
+                  <h1 className="text-orange-500 text-3xl font-bold">
+                    {paymentMethod?.code === 'atm' ? 'Chờ xác nhận chuyển khoản' : 'Đơn hàng chờ thanh toán'}
+                  </h1>
+                  <p className="text-sm text-gray-600 mt-2 max-w-md mx-auto">
+                    {paymentMethod?.code === 'atm'
+                      ? 'Vui lòng chuyển khoản đúng nội dung và chờ hệ thống xác nhận giao dịch.'
+                      : 'Đơn hàng của bạn đã được tạo. Vui lòng hoàn tất thanh toán để đơn hàng được xử lý.'}
+                  </p>
+                </>
+              )}
 
 
             </div>
           </div>
         </div>
 
-        {/* ---------- body ---------- */}
+
         <div className="pb-4">
-          <div className="grid md:grid-cols-3 gap-6">
-            {/* ---- left: info ---- */}
+          <div className="grid md:grid-cols-3 gap-4">
+
             <div className="md:col-span-2 space-y-4">
               <ProductList products={products} />
               <CustomerInfo {...customer} />
@@ -324,68 +326,66 @@ const fetchOrderDetails = async (code) => {
 
               <PaymentMethod
                 method={paymentMethod?.name || 'Thanh toán khi nhận hàng (COD)'}
-                status={paymentStatus} // Pass paymentStatus to PaymentMethod component if it displays it
+                status={paymentStatus}
               />
             </div>
 
-            {/* ---- right: order summary ---- */}
-            <div className="bg-white p-4 rounded-lg shadow h-fit">
+
+            <div className="bg-white p-4 rounded-xl shadow h-fit">
               <h2 className="text-base font-semibold mb-4 text-gray-800">Thông tin đơn hàng</h2>
 
               <div className="text-sm space-y-2">
-                {/* tiền hàng & ưu đãi */}
+
                 <CopyableRow label="Mã đơn hàng" value={code} />
 
                 <Row label="Tổng tiền hàng" value={formatCurrencyVND(totalPrice)} bold />
-                <Row label="Giảm giá từ sản phẩm" value={formatCurrencyVND(productDiscount)} />
-                {couponDiscount > 0 && (
-                  <Row label="Giảm giá từ coupon" value={`- ${formatCurrencyVND(couponDiscount)}`} color="text-green-600" />
-                )}
 
-                {/* phí vận chuyển */}
-                {shippingDiscount > 0 ? (
-                  <>
-                    <Row label="Phí vận chuyển" value={formatCurrencyVND(shippingFee)} />
-                    <Row label="Giảm phí vận chuyển" value={`- ${formatCurrencyVND(shippingDiscount)}`} color="text-green-600" />
-                  </>
-                ) : (
-                  <Row label="Phí vận chuyển" value={shippingFee === 0 ? 'Miễn phí' : formatCurrencyVND(shippingFee)} />
-                )}
 
-                {/* tổng khuyến mãi */}
-                <Row label="Tổng khuyến mãi" value={formatCurrencyVND(productDiscount + couponDiscount + shippingDiscount)} />
 
-                {/* cần thanh toán */}
+                <Row
+                  label="Phí vận chuyển"
+                  value={shippingFee === 0 ? 'Miễn phí' : formatCurrencyVND(shippingFee)}
+                />
+
+
+
+
                 <div className="pt-2">
                   <div className="border-t border-dashed border-gray-300 mb-2" />
                   <Row label="Cần thanh toán" value={formatCurrencyVND(finalPrice)} bold color="text-red-600" />
-                  <p className="text-sm text-green-600 mt-1 text-right">
-                    Tiết kiệm&nbsp;
-                    {formatCurrencyVND(productDiscount + couponDiscount + shippingDiscount)}
-                  </p>
-                  <p className="text-[11px] text-gray-400 text-right">(Đã bao gồm VAT nếu có)</p>
+
+                  <div className="flex justify-between text-amber-600 text-[13px] mt-2 items-center">
+                    <span>Điểm tích lũy</span>
+                    <span className="flex items-center gap-1 font-semibold">
+                      <span className="w-4 h-4 bg-yellow-200 text-yellow-600 text-[10px] font-bold flex items-center justify-center rounded-full">
+                        ₵
+                      </span>
+                      +{rewardPoints} điểm
+                    </span>
+                  </div>
+
+
                 </div>
               </div>
 
-              {/* nút & link */}
+
               <div className="mt-6 space-y-3">
- {isPaymentPending &&
-  isOrderProcessing &&
-  paymentMethod?.code?.toLowerCase() !== 'atm' &&
-  paymentMethod?.code?.toLowerCase() !== 'cod' && (
-    <button
-      onClick={handlePayAgain}
-      className="bg-primary text-white w-full py-2.5 rounded-md font-semibold inline-block text-center hover:opacity-85 transition-colors"
-    >
-      Thanh toán lại
-    </button>
-)}
+                {isPaymentPending &&
+                  isOrderProcessing &&
+                  paymentMethod?.code?.toLowerCase() !== 'atm' &&
+                  paymentMethod?.code?.toLowerCase() !== 'cod' && (
+                    <button
+                      onClick={handlePayAgain}
+                      className="bg-primary text-white w-full py-2.5 rounded-md font-semibold inline-block text-center hover:opacity-85 transition-colors"
+                    >
+                      Thanh toán lại
+                    </button>
+                  )}
 
                 <Link
                   to="/"
-                  className={`text-white w-full py-2.5 rounded-md font-semibold inline-block text-center hover:opacity-85 transition-colors ${
-                    isPaymentPending && isOrderProcessing ? 'bg-gray-500' : 'bg-primary'
-                  }`}
+                  className={`text-white w-full py-2.5 rounded-md font-semibold inline-block text-center hover:opacity-85 transition-colors ${isPaymentPending && isOrderProcessing ? 'bg-gray-500' : 'bg-primary'
+                    }`}
                 >
                   Về trang chủ
                 </Link>
@@ -394,6 +394,7 @@ const fetchOrderDetails = async (code) => {
                 </Link>
               </div>
             </div>
+
           </div>
         </div>
       </div>

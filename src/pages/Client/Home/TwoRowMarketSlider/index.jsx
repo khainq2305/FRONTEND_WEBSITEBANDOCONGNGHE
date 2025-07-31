@@ -133,7 +133,11 @@ const InlinedProductCard = ({
     );
 
 
-    const originalQuantity = flashSaleInfo?.originalQuantity ?? quantity ?? 0;
+    const originalQuantity =
+  typeof flashSaleInfo?.originalQuantity === 'number'
+    ? flashSaleInfo.originalQuantity
+    : quantity ?? 0;
+
     const soldCountSafe = Math.min(originalQuantity, Math.max(0, soldCount));
     const remainingQuantity = originalQuantity - soldCountSafe;
     const remainingPercentage = originalQuantity > 0 ? (remainingQuantity / originalQuantity) * 100 : 0;
@@ -146,7 +150,8 @@ const InlinedProductCard = ({
         if (quantity === 0) return 'Đã bán hết';
 
         if (inStock && remainingQuantity > 0 && saleStatus === 'active') {
-            return `Còn ${remainingQuantity}/${quantity} suất`;
+           return `Còn ${remainingQuantity}/${originalQuantity} suất`;
+
         }
 
         return 'Đã bán hết';

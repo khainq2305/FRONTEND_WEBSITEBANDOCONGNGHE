@@ -12,7 +12,10 @@ import ColorPickerField from '../../../../utils/ColorPickerField';
 import FormattedNumberInput from '../../../../utils/FormattedNumberInput';
 import Breadcrumb from '../../../../components/common/Breadcrumb';
 import { MenuItem } from '@mui/material';
-
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
 const discountTypeOptions = [
   { label: 'Theo phần trăm', value: 'percent' },
   { label: 'Giảm cố định', value: 'amount' }
@@ -122,8 +125,8 @@ const FlashSaleForm = () => {
       .getById(slug)
       .then((res) => {
         const data = res.data;
-        data.startTime = data.startTime?.slice(0, 16);
-        data.endTime = data.endTime?.slice(0, 16);
+     data.startTime = dayjs(data.startTime).format('YYYY-MM-DDTHH:mm');
+data.endTime = dayjs(data.endTime).format('YYYY-MM-DDTHH:mm');
 
         data.items = (data.flashSaleItems || []).map((item) => ({
           id: item.flashSaleSku?.id,
@@ -397,7 +400,8 @@ const FlashSaleForm = () => {
         }
         InputLabelProps={{ shrink: true }}
         inputProps={{
-          min: new Date().toISOString().slice(0, 16),
+      min: dayjs().format('YYYY-MM-DDTHH:mm')
+
         }}
         error={!!errors.startTime}
         helperText={errors.startTime?.message}

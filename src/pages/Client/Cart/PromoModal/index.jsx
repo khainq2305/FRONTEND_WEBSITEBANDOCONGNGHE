@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+
 import ReactDOM from 'react-dom';
 import { FiX, FiInfo, FiLoader, FiChevronRight, FiChevronUp } from 'react-icons/fi';
 import { FaGift, FaTicketAlt } from 'react-icons/fa';
@@ -238,9 +239,11 @@ const PromoModal = ({ modalTitle = 'Hồng Ân Khuyến Mãi', onClose, onApplyS
   const [isLoading, setIsLoading] = useState(false);
   const [applyError, setApplyError] = useState('');
   const [expandedGroups, setExpandedGroups] = useState({});
-useEffect(() => {
-  console.log('📦 PromoModal received orderTotal:', orderTotal);
-}, [orderTotal]);
+  const fetchedRef = useRef(false);
+
+  useEffect(() => {
+    console.log('📦 PromoModal received orderTotal:', orderTotal);
+  }, [orderTotal]);
 
   useEffect(() => {
     if (appliedCode) {
@@ -248,56 +251,40 @@ useEffect(() => {
     }
   }, [appliedCode]);
 
-useEffect(() => {
-  console.log('🧾 useEffect triggered!');
-  console.log('📌 skuIds:', skuIds);
-  console.log('📌 orderTotal:', orderTotal);
+  useEffect(() => {
+  if (fetchedRef.current) return; // ✅ Chặn gọi lại nếu đã fetch
+
+  fetchedRef.current = true;      // Đánh dấu đã gọi
+  document.body.style.overflow = 'hidden';
 
   const fetchCoupons = async () => {
     setIsLoading(true);
-
     try {
       const params = new URLSearchParams();
       params.set('skuIds', (skuIds ?? []).join(','));
       params.set('orderTotal', String(orderTotal ?? 0));
 
-      const queryString = `?${params.toString()}`;
-      console.log('🔗 Query String:', queryString);
-
-      const res = await couponService.getAvailable(queryString);
-      console.log('📥 Nhận về:', res.data);
-
+      const res = await couponService.getAvailable(`?${params.toString()}`);
       const coupons = res.data?.data || [];
 
-      if (coupons.length === 0) {
-        console.warn('⚠️ Không có coupon nào trả về từ API!');
-      }
-
       setAvailablePromos(
-        coupons.map((c) => {
-          const mapped = {
-            id: c.code,
-            code: c.code,
-            type: c.discountType === 'shipping' ? 'shipping' : 'discount',
-            title: c.title || c.code,
-            description: `Cho đơn hàng từ ${formatCurrencyVND(c.minOrderAmount)}`,
-            expiryDate: c.expiryDate
-              ? new Date(c.expiryDate).toLocaleDateString('vi-VN', {
-                  day: '2-digit',
-                  month: '2-digit',
-                  year: '2-digit',
-                })
-              : null,
-            isApplicable: c.isApplicable,
-            // Vẫn truyền totalQuantity và usedCount xuống CouponCard
-            // để logic notAllowed (làm mờ thẻ) hoạt động đúng
-            totalQuantity: c.totalQuantity,
-            usedCount: c.usedCount,
-          };
-
-          console.log('🎟️ Mapped coupon:', mapped);
-          return mapped;
-        })
+        coupons.map((c) => ({
+          id: c.code,
+          code: c.code,
+          type: c.discountType === 'shipping' ? 'shipping' : 'discount',
+          title: c.title || c.code,
+          description: `Cho đơn hàng từ ${formatCurrencyVND(c.minOrderAmount)}`,
+          expiryDate: c.expiryDate
+            ? new Date(c.expiryDate).toLocaleDateString('vi-VN', {
+                day: '2-digit',
+                month: '2-digit',
+                year: '2-digit'
+              })
+            : null,
+          isApplicable: c.isApplicable,
+          totalQuantity: c.totalQuantity,
+          usedCount: c.usedCount
+        }))
       );
     } catch (err) {
       console.error('❌ Lỗi khi lấy coupons:', err);
@@ -307,12 +294,13 @@ useEffect(() => {
     }
   };
 
-  document.body.style.overflow = 'hidden';
   fetchCoupons();
+
   return () => {
     document.body.style.overflow = 'unset';
+    fetchedRef.current = false; // ✅ Cho phép fetch lại nếu modal mở lại lần sau
   };
-}, [skuIds, orderTotal]);
+}, []);
 
   const groupedPromos = availablePromos.reduce((acc, p) => {
     const key = p.type === 'shipping' ? 'Mã Vận Chuyển' : 'Mã Giảm Giá';

@@ -403,10 +403,31 @@ const BannerForm = () => {
                                     <FormControlLabel control={<Switch checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />} label={isActive ? 'Đang hoạt động' : 'Đang ẩn'} sx={{ pt: 1 }} />
                                 </Grid>
                                 <Grid item xs={12} sm={6}>
-                                    <TextField label="Ngày bắt đầu" type="date" InputLabelProps={{ shrink: true }} value={startDate} onChange={(e) => setStartDate(e.target.value)} fullWidth error={!!fieldErrors.startDate} helperText={fieldErrors.startDate} />
+                                   <TextField
+  label="Ngày bắt đầu"
+  type="datetime-local"
+  InputLabelProps={{ shrink: true }}
+  value={startDate}
+  onChange={(e) => setStartDate(e.target.value)}
+  fullWidth
+  error={!!fieldErrors.startDate}
+  helperText={fieldErrors.startDate}
+/>
+
+
                                 </Grid>
                                 <Grid item xs={12} sm={6}>
-                                    <TextField label="Ngày kết thúc" type="date" InputLabelProps={{ shrink: true }} value={endDate} onChange={(e) => setEndDate(e.target.value)} fullWidth error={!!fieldErrors.endDate} helperText={fieldErrors.endDate} />
+                                 <TextField
+  label="Ngày kết thúc"
+  type="datetime-local"
+  InputLabelProps={{ shrink: true }}
+  value={endDate}
+  onChange={(e) => setEndDate(e.target.value)}
+  fullWidth
+  error={!!fieldErrors.endDate}
+  helperText={fieldErrors.endDate}
+/>
+
                                 </Grid>
                             </Grid>
                         </Grid>

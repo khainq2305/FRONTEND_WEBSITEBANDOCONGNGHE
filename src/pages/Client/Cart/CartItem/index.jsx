@@ -5,6 +5,7 @@ import { cartService } from '../../../../services/client/cartService';
 import { toast } from 'react-toastify';
 import { confirmDelete as showConfirmDeleteDialog } from '../../../../components/common/ConfirmDeleteDialog';
 import { Tooltip } from 'react-tooltip';
+import { Gift } from 'lucide-react';
 
 const CartItem = ({ item, isChecked, onToggleChecked, onQuantityChange, isLastItem }) => {
   const [quantity, setQuantity] = useState(item.quantity);
@@ -276,15 +277,21 @@ const CartItem = ({ item, isChecked, onToggleChecked, onQuantityChange, isLastIt
           </div>
         </div>
 
-        <div className="flex justify-center items-center h-full col-start-3 col-end-4">
-          <div className={`flex flex-col items-center whitespace-nowrap ${isOutOfStock ? 'opacity-50' : ''}`}>
-            {item.price > 0 && item.originalPrice > item.price && (
-              <p className="text-gray-400 text-xs line-through leading-none">{formatCurrencyVND(item.originalPrice)}</p>
-            )}
-            <p className="text-red-600 font-bold text-sm leading-none">{formatCurrencyVND(item.price > 0 ? item.price : item.originalPrice)}</p>
-          </div>
-        </div>
-        
+<div className="flex justify-center items-center h-full col-start-3 col-end-4">
+<div className={`leading-tight ${isOutOfStock ? 'opacity-50' : ''}`}>
+  <p className="text-red-600 font-bold text-sm leading-none">
+    {formatCurrencyVND(item.price > 0 ? item.price : item.originalPrice)}
+  </p>
+  {item.price > 0 && item.originalPrice > item.price && (
+    <p className="text-gray-400 text-xs line-through mt-[2px] ml-[2px]">
+      {formatCurrencyVND(item.originalPrice)}
+    </p>
+  )}
+</div>
+
+
+</div>
+
         <div className="flex justify-center items-center h-full col-start-4 col-end-5">
           <div className={`border rounded flex shadow-sm flex-shrink-0 ${isOutOfStock ? 'opacity-50 cursor-not-allowed' : ''}`}>
             <button
@@ -323,7 +330,16 @@ const CartItem = ({ item, isChecked, onToggleChecked, onQuantityChange, isLastIt
           <FiTrash2 size={18} />
         </button>
       </div>
+{isLastItem && (
+  <div className="border-t border-gray-200 text-sm text-gray-500 px-4 py-3 flex items-center gap-2">
+    <Gift size={18} className="text-primary" />
+    <span>Đừng bỏ lỡ các ưu đãi đặc biệt khi tiến hành thanh toán!</span>
+  </div>
+)}
+
+
     </div>
+
   );
 };
 
