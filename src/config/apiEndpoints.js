@@ -266,20 +266,20 @@ export const API_ENDPOINT = {
       forceDelete: (id) => `/product/force/${id}`,
       updateOrderIndexBulk: '/product/update-order'
     },
-    product: {
-      base: `${API_BASE_URL}/admin`,
-      create: '/product/create',
-      list: '/product/list',
+      product: {
+      base: `${API_BASE_URL}/admin/products`,
+      create: '/create',
+      list: '/list',
       getCategoryTree: '/categories/tree',
       getBrandList: '/brands/list',
-      getById: (slug) => `/product/${slug}`,
-      forceDeleteMany: '/product/force-delete-many',
-      softDelete: (id) => `/product/soft/${id}`,
-      softDeleteMany: '/product/soft-delete-many',
-      restore: (id) => `/product/restore/${id}`,
-      restoreMany: '/product/restore-many',
-      forceDelete: (id) => `/product/force/${id}`,
-      updateOrderIndexBulk: '/product/update-order'
+      getById: (slug) => `/${slug}`,
+      forceDeleteMany: '/force-delete-many',
+      softDelete: (id) => `/soft/${id}`,
+      softDeleteMany: '/soft-delete-many',
+      restore: (id) => `/restore/${id}`,
+      restoreMany: '/restore-many',
+      forceDelete: (id) => `/force/${id}`,
+      updateOrderIndexBulk: '/update-order'
     },
     notification: {
       base: `${API_BASE_URL}/admin/notifications`,
@@ -378,19 +378,17 @@ export const API_ENDPOINT = {
       getAllProducts: '/sections/products'
     },
     banner: {
-      base: `${API_BASE_URL}/admin`,
-      list: '/banners',
-      create: '/banners',
-      getById: (slug) => `/banners/${slug}`,
-      update: (slug) => `/banners/${slug}`,
-
-      delete: (id) => `/banners/${id}`,
-      forceDeleteMany: '/banners/force-delete',
-      updateOrder: (id) => `/banners/${id}/update-order`,
-      categoriesForSelect: '/banners/categories-for-select',
-      productsForSelect: '/banners/products-for-select'
+      base: `${API_BASE_URL}/admin/banners`,
+      list: '/list',
+      create: '/create',
+      getById: (slug) => `/detail/${slug}`,
+      update: (slug) => `/update/${slug}`,
+      delete: (id) => `/delete/${id}`,
+      forceDeleteMany: '/force-delete-many',
+      updateOrder: (id) => `/update-order/${id}`,
+      categoriesForSelect: '/categories-for-select',
+      productsForSelect: '/products-for-select'
     },
-
     variantValue: {
       base: `${API_BASE_URL}/admin`,
       getByVariantId: (id) => `/variant-values/${id}`,
@@ -407,19 +405,18 @@ export const API_ENDPOINT = {
     },
 
     highlightedCategoryItem: {
-      base: `${API_BASE_URL}/admin`,
-      list: '/highlighted-category-items/list',
-      create: '/highlighted-category-items',
-      update: (slug) => `/highlighted-category-items/${slug}`,
-      getBySlug: (slug) => `/highlighted-category-items/${slug}`,
-
-      delete: (id) => `/highlighted-category-items/${id}`,
-      deleteMany: '/highlighted-category-items/delete-many',
-      getCategories: '/highlighted-category-items/categories/list',
-      reorder: '/highlighted-category-items/reorder'
+      base: `${API_BASE_URL}/admin/highlighted-category-item`,
+      list: '/list',
+      create: '/',
+      update: (slug) => `/${slug}`,
+      getBySlug: (slug) => `/${slug}`,
+      delete: (id) => `/${id}`,
+      deleteMany: '/delete-many',
+      getCategories: '/categories/list',
+      reorder: '/reorder'
     },
 
-    flashSale: {
+   flashSale: {
       base: `${API_BASE_URL}/admin/flash-sales`,
       list: '/list',
       create: '/create',
