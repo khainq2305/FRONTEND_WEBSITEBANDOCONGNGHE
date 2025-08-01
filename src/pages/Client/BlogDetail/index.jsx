@@ -9,12 +9,14 @@ import { newsSevice } from '@/services/client/newsService';
 import { useParams } from 'react-router-dom';
 import Tags from './Tag';
 import { Helmet } from 'react-helmet';
+import { seoService } from '@/services/admin/seoService';
 
 const NewsDetails = () => {
     const { slug } = useParams(); // 👈 Lấy slug từ URL
     const [newsDetails, setnewsDetails] = useState(null); // 👈 Khởi tạo state
     const [related, setRelated] = useState([])
     const [featuredNews, setfeaturedNews] = useState([])
+    const [seoConfig, setSeoConfig] = useState(null); // 👈 Thêm state cho SEO config
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -86,6 +88,31 @@ const NewsDetails = () => {
         fetchFeature();
       }, []);
 
+    // 👈 Thêm useEffect để lấy SEO config
+    useEffect(() => {
+        const fetchSeoConfig = async () => {
+            try {
+                console.log('🔄 Fetching SEO config');
+                const res = await seoService.getSEOConfig(); // Lấy SEO config
+                console.log('📥 SEO config response:', res);
+                
+                if (res?.data?.data) {
+                    console.log('✅ SEO config loaded:', res.data.data);
+                    setSeoConfig(res.data.data);
+                }
+            } catch (error) {
+                console.error('❌ Lỗi lấy SEO config:', error);
+                // Set default config nếu không lấy được
+                setSeoConfig({
+                    enableOpenGraph: true,
+                    enableTwitterCard: true,
+                    enableJsonLd: true
+                });
+            }
+        };
+        fetchSeoConfig();
+    }, []);
+
     // Loading state
     if (loading) {
         return (
@@ -133,7 +160,7 @@ const NewsDetails = () => {
         );
     }
 
-    // Prepare SEO data
+    // Prepare SEO data với safe string conversion
     const seoData = newsDetails.seoData || {};
     const pageTitle = seoData.title || newsDetails.title || 'Bài viết';
     const metaDescription = seoData.metaDescription || newsDetails.title || '';
@@ -144,6 +171,17 @@ const NewsDetails = () => {
             newsDetails.thumbnail : 
             `http://localhost:5000/uploads/${newsDetails.thumbnail}`) : '';
 
+    // Safe conversion cho Twitter Card data
+    const safeTwitterCard = String(seoData.socialMeta?.twitter?.cardType || "summary_large_image");
+    const safeTwitterTitle = String(seoData.socialMeta?.twitter?.title || pageTitle);
+    const safeTwitterDescription = String(seoData.socialMeta?.twitter?.description || metaDescription);
+    
+    // Safe conversion cho Open Graph data  
+    const safeOgTitle = String(seoData.socialMeta?.facebook?.title || pageTitle);
+    const safeOgDescription = String(seoData.socialMeta?.facebook?.description || metaDescription);
+    
+    const schemaMarkup = seoData.schema;
+
     return (
         <>
             {/* SEO Meta Tags */}
@@ -153,18 +191,36 @@ const NewsDetails = () => {
                 {focusKeyword && <meta name="keywords" content={focusKeyword} />}
                 <link rel="canonical" href={canonicalUrl} />
                 
-                {/* Open Graph Tags */}
-                <meta property="og:title" content={seoData.socialMeta?.facebook?.title || pageTitle} />
-                <meta property="og:description" content={seoData.socialMeta?.facebook?.description || metaDescription} />
-                <meta property="og:url" content={canonicalUrl} />
-                <meta property="og:type" content="article" />
-                {thumbnailUrl && <meta property="og:image" content={thumbnailUrl} />}
+                {/* Open Graph Tags - Conditional rendering */}
+                {seoConfig?.enableOpenGraph ? (
+                    <meta property="og:title" content={safeOgTitle} />
+                ) : null}
+                {seoConfig?.enableOpenGraph ? (
+                    <meta property="og:description" content={safeOgDescription} />
+                ) : null}
+                {seoConfig?.enableOpenGraph ? (
+                    <meta property="og:url" content={canonicalUrl} />
+                ) : null}
+                {seoConfig?.enableOpenGraph ? (
+                    <meta property="og:type" content="article" />
+                ) : null}
+                {seoConfig?.enableOpenGraph && thumbnailUrl ? (
+                    <meta property="og:image" content={thumbnailUrl} />
+                ) : null}
                 
-                {/* Twitter Card Tags */}
-                <meta name="twitter:card" content={seoData.socialMeta?.twitter?.cardType || "summary_large_image"} />
-                <meta name="twitter:title" content={seoData.socialMeta?.twitter?.title || pageTitle} />
-                <meta name="twitter:description" content={seoData.socialMeta?.twitter?.description || metaDescription} />
-                {thumbnailUrl && <meta name="twitter:image" content={thumbnailUrl} />}
+                {/* Twitter Card Tags - Conditional rendering */}
+                {seoConfig?.enableTwitterCard ? (
+                    <meta name="twitter:card" content={safeTwitterCard} />
+                ) : null}
+                {seoConfig?.enableTwitterCard ? (
+                    <meta name="twitter:title" content={safeTwitterTitle} />
+                ) : null}
+                {seoConfig?.enableTwitterCard ? (
+                    <meta name="twitter:description" content={safeTwitterDescription} />
+                ) : null}
+                {seoConfig?.enableTwitterCard && thumbnailUrl ? (
+                    <meta name="twitter:image" content={thumbnailUrl} />
+                ) : null}
                 
                 {/* Robots Meta */}
                 {seoData.robots && (
@@ -178,6 +234,13 @@ const NewsDetails = () => {
                         ].join(', ')
                     } />
                 )}
+
+                {/* JSON-LD Schema Markup - Conditional rendering */}
+                {seoConfig?.enableJsonLd && schemaMarkup ? (
+                    <script type="application/ld+json">
+                        {JSON.stringify(schemaMarkup)}
+                    </script>
+                ) : null}
             </Helmet>
 
             <div className="max-w-screen-xl mx-auto w-full px-4">

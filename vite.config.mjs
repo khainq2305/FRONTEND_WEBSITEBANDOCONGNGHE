@@ -15,7 +15,20 @@ export default defineConfig(({ mode }) => {
       host: true,
       allowedHosts: [
         '.ngrok-free.app' // Cho phép tất cả các subdomain của ngrok-free.app
-      ]
+      ],
+      proxy: {
+        // Proxy robots.txt và sitemap.xml từ backend
+        '/robots.txt': {
+          target: 'http://localhost:5000',
+          changeOrigin: true,
+          secure: false
+        },
+        '/sitemap.xml': {
+          target: 'http://localhost:5000',
+          changeOrigin: true,
+          secure: false
+        }
+      }
     },
     preview: {
       open: true,

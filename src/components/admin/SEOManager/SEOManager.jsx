@@ -289,26 +289,7 @@ const SEOManager = () => {
                 margin="normal"
               />
             </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                type="number"
-                label="Độ dài tiêu đề tối đa"
-                value={seoConfig.maxTitleLength}
-                onChange={(e) => handleInputChange('maxTitleLength', parseInt(e.target.value))}
-                margin="normal"
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                type="number"
-                label="Độ dài mô tả tối đa"
-                value={seoConfig.maxMetaDescLength}
-                onChange={(e) => handleInputChange('maxMetaDescLength', parseInt(e.target.value))}
-                margin="normal"
-              />
-            </Grid>
+           
           </Grid>
 
           <Divider sx={{ my: 3 }} />
@@ -348,7 +329,7 @@ const SEOManager = () => {
                     onChange={(e) => handleInputChange('enableJsonLd', e.target.checked)}
                   />
                 }
-                label="Bật JSON-LD"
+                label="Bật Schema"
               />
             </Grid>
             <Grid item xs={12} sm={6}>
