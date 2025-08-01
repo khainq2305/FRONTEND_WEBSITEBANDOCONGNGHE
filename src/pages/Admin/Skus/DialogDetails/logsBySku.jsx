@@ -32,6 +32,7 @@ const LogsAction = ({ logsAction, fetchLogsBySku, skuId }) => {
   const handleChange = (event) => {
     const value = event.target.value;
     setTypeFilter(value);
+    console.log('handleChange', skuId, value);  
     fetchLogsBySku(skuId, value);
   };
   return (

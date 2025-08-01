@@ -5,16 +5,15 @@ import LoaderAdmin from './LoaderVip';
 
 const RequireAuth = ({ children }) => {
   const { user, loading } = useAuthStore();
-  console.log('user.roles', user);
+
   if (loading) return <LoaderAdmin />;
 
   // // ✅ Không có user => về login
-  // if (!user) {
-  //   return <Navigate to="/dang-nhap" replace />;
-  // }
+    if (!user) {
+      return <Navigate to="/dang-nhap" replace />;
+    }
   
   // // ✅ Check ít nhất 1 role có canAccess: true
-  console.log('user.roles', user);
   const hasAccess = (user.roles || []).some(role => role.canAccess === true);
   
   if (!hasAccess) {

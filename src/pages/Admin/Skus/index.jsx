@@ -80,7 +80,7 @@ export default function SkuList() {
     }
   };
 
-  const fetchLogsBySku = async (id, type) => {
+  const fetchLogsBySku = async (id, type = 'all') => {
     if (!id) return;
     try {
       const res = await skuService.logBySkuId(id, type);
