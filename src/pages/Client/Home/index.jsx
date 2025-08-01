@@ -158,6 +158,7 @@ const HomePage = () => {
             const saleItem = skuItems.find((i) => i.skuId === sku.id);
 
             const quantity = saleItem?.quantity ?? null;
+            
             const limitPerUser = saleItem?.maxPerUser ?? 1;
             const isSoldOut = quantity === 0;
 
@@ -206,6 +207,13 @@ const HomePage = () => {
               badgeImage: product.badgeImage ? constructImageUrl(product.badgeImage) : null,
               rating: parseFloat(sku.averageRating) || 0,
               inStock: (sku.stock || 0) > 0,
+              originalQuantity: saleItem?.originalQuantity ?? quantity,
+ flashSaleInfo: {
+    originalQuantity: saleItem?.originalQuantity ?? quantity,
+    sold: saleItem?.soldQuantity ?? 0,
+    salePrice: saleItem?.salePrice ?? sku.salePrice ?? 0,
+    originalPrice: originalPrice
+  },
               soldCount: parseInt(sku.soldCount || 0),
               quantity: quantity,
               limitPerUser,

@@ -133,6 +133,7 @@ data.endTime = dayjs(data.endTime).format('YYYY-MM-DDTHH:mm');
           skuId: item.flashSaleSku?.id,
           salePrice: item.salePrice != null ? Number(item.salePrice) : '',
           originalQuantity: item.originalQuantity ?? item.quantity,
+  soldCount: (item.originalQuantity ?? item.quantity) - item.quantity,
 
           quantity: item.quantity,
           maxPerUser: item.maxPerUser,
@@ -518,6 +519,13 @@ data.endTime = dayjs(data.endTime).format('YYYY-MM-DDTHH:mm');
                                     <strong style={{ color: '#d32f2f' }}>{formatCurrencyVND(sku.originalPrice)}</strong>
                                   </Typography>
                                 )}
+                                {sku.soldCount != null && sku.originalQuantity != null && (
+  <Typography variant="body2" color="text.secondary">
+    Đã bán: <strong>{sku.soldCount}</strong> / {sku.originalQuantity} &nbsp;
+    (Còn lại: <strong>{sku.originalQuantity - sku.soldCount}</strong>)
+  </Typography>
+)}
+
                                 {sku.stock != null && (
                                   <Typography variant="body2" color="text.secondary">
                                     Tồn kho: <strong>{sku.stock}</strong>

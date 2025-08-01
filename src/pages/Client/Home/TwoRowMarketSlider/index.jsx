@@ -27,6 +27,8 @@ const InlinedProductCard = ({
     quantity,
     saleStatus
 }) => {
+    console.log("🧨 flashSaleInfo debug:", flashSaleInfo);
+
     const renderStars = (rate) => {
         const stars = [];
         const numRating = parseFloat(rate);
@@ -133,14 +135,25 @@ const InlinedProductCard = ({
     );
 
 
-    const originalQuantity =
+const originalQuantity = Number(
   typeof flashSaleInfo?.originalQuantity === 'number'
     ? flashSaleInfo.originalQuantity
-    : quantity ?? 0;
+    : quantity ?? 0
+);
 
-    const soldCountSafe = Math.min(originalQuantity, Math.max(0, soldCount));
-    const remainingQuantity = originalQuantity - soldCountSafe;
-    const remainingPercentage = originalQuantity > 0 ? (remainingQuantity / originalQuantity) * 100 : 0;
+const sold = Number(
+  typeof flashSaleInfo?.sold === 'number'
+    ? flashSaleInfo.sold
+    : flashSaleInfo?.soldQuantity ?? soldCount ?? 0
+);
+
+console.log("Debug remaining quantity:", { originalQuantity, sold, soldCount, flashSaleInfo });
+
+const soldCountSafe = Math.min(originalQuantity, Math.max(0, sold));
+const remainingQuantity = originalQuantity - soldCountSafe;
+const remainingPercentage =
+  originalQuantity > 0 ? (remainingQuantity / originalQuantity) * 100 : 0;
+
 
     const displaySoldQuantityText = (() => {
         if (saleStatus === 'upcoming') return 'Sắp mở bán';
