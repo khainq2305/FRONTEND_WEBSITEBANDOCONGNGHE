@@ -14,18 +14,18 @@ import { useSystemSetting } from '@/contexts/SystemSettingContext';
 import FeatureBar from './FeatureBar';
 import socket from '../../../constants/socket'; 
 import ImageSearchBox from '@/components/common/ImageSearchBox';
-import  useAuthStore  from "../../../stores/AuthStore";
+import useAuthStore from '../../../stores/AuthStore';
 
 const Header = () => {
   const navigate = useNavigate();
-const { user, logout } = useAuthStore();
+  const { user, logout } = useAuthStore();
 
-const userInfo = user
-  ? {
-      fullName: user.fullName || '',
-      avatarUrl: user.avatarUrl || null,
-    }
-  : null;
+  const userInfo = user
+    ? {
+        fullName: user.fullName || '',
+        avatarUrl: user.avatarUrl || null
+      }
+    : null;
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -41,6 +41,7 @@ const userInfo = user
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(true);
   const accountDropdownTimerRef = useRef(null);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+  const [isConfirmLogoutModalOpen, setIsConfirmLogoutModalOpen] = useState(false); // <-- THÊM DÒNG NÀY
 
   const handleAccountDropdownEnter = () => {
     clearTimeout(accountDropdownTimerRef.current);
@@ -89,15 +90,15 @@ const userInfo = user
     window.addEventListener('cartUpdated', handleCartUpdated);
     return () => window.removeEventListener('cartUpdated', handleCartUpdated);
   }, []);
-useEffect(() => {
-  socket.on('new-client-notification', (newNoti) => {
-    setNotifications((prev) => [newNoti, ...prev]);
-  });
+  useEffect(() => {
+    socket.on('new-client-notification', (newNoti) => {
+      setNotifications((prev) => [newNoti, ...prev]);
+    });
 
-  return () => {
-    socket.off('new-client-notification');
-  };
-}, []);
+    return () => {
+      socket.off('new-client-notification');
+    };
+  }, []);
   useEffect(() => {
     const fetchCombinedCategories = async () => {
       try {
@@ -109,7 +110,7 @@ useEffect(() => {
             const standardizedItem = {
               id: item.id,
               name: item.name,
-          
+
               slug: item.slug,
               parent_id: parentId,
               imageUrl: item.thumbnail,
@@ -142,18 +143,18 @@ useEffect(() => {
     const intervalId = setInterval(fetchCombinedCategories, 300000);
     return () => clearInterval(intervalId);
   }, []);
-useEffect(() => {
-  const fetchUserInfo = async () => {
-    try {
-      const response = await authService.getUserInfo();
-      const user = response.data?.user || {};
-      useAuthStore.getState().login(user); // ✅ Gọi hàm login có sẵn trong store
-    } catch (err) {
-      console.error('Lỗi lấy thông tin người dùng:', err);
-    }
-  };
-  fetchUserInfo();
-}, []);
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const response = await authService.getUserInfo();
+        const user = response.data?.user || {};
+        useAuthStore.getState().login(user);
+      } catch (err) {
+        console.error('Lỗi lấy thông tin người dùng:', err);
+      }
+    };
+    fetchUserInfo();
+  }, []);
 
   const getDisplayName = (fullName, maxLength = 8) => {
     if (!fullName) return '';
@@ -191,12 +192,19 @@ useEffect(() => {
     };
   }, []);
 
-const handleLogout = async () => {
-  await logout();
-  
-};
+  const toggleConfirmLogoutModal = () => {
+    setIsConfirmLogoutModalOpen(!isConfirmLogoutModalOpen);
+  };
 
+  const handleLogout = async () => {
+    setIsConfirmLogoutModalOpen(true);
+  };
 
+  const confirmLogout = async () => {
+    toggleConfirmLogoutModal();
+    await logout();
+    navigate('/');
+  };
 
   const handleOutsideClick = (e) => {
     if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -215,11 +223,10 @@ const handleLogout = async () => {
   const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
   const [topLevelDesktopCategories, setTopLevelDesktopCategories] = useState([]);
   const [mobileCategoryTree, setMobileCategoryTree] = useState([]);
-  const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] = useState(false); // Desktop notification dropdown
+  const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] = useState(false);
   const notificationDropdownTimerRef = useRef(null);
   const notificationButtonRef = useRef(null);
 
-  // Định nghĩa lại các hàm handleMenuEnter và handleMenuLeave
   const handleMenuEnter = () => {
     clearTimeout(categoryMenuTimerRef.current);
     setIsCategoryMenuOpen(true);
@@ -230,7 +237,6 @@ const handleLogout = async () => {
       setIsCategoryMenuOpen(false);
     }, 200);
   };
-  // Kết thúc định nghĩa lại
 
   const buildCategoryTree = (categories, parentId = null) => {
     return categories
@@ -345,10 +351,7 @@ const handleLogout = async () => {
                 </div>
               </div>
               <div className="flex items-center gap-x-1 flex-shrink-0">
-                <button
-                  className="p-1 text-white relative"
-                  onClick={toggleNotificationModal}
-                >
+                <button className="p-1 text-white relative" onClick={toggleNotificationModal}>
                   <Bell className="w-6 h-6" strokeWidth={1.8} />
                   {unreadCount > 0 && (
                     <span
@@ -380,17 +383,16 @@ const handleLogout = async () => {
                     <LayoutGrid className={`w-5 h-5 stroke-[1.8px] ${isCategoryMenuOpen ? 'text-primary' : 'text-white'}`} />
                     <span className={`text-sm font-semibold ${isCategoryMenuOpen ? 'text-primary' : 'text-white'}`}>Danh mục</span>
                   </button>
-                 <div className="absolute z-[9999] left-0 top-full">
-  <CategoryMenu
-    topLevelCategories={topLevelDesktopCategories}
-    allCategories={flatCategoriesFromAPI}
-    isOpen={isCategoryMenuOpen}
-  />
-</div>
-
+                  <div className="absolute z-[9999] left-0 top-full">
+                    <CategoryMenu
+                      topLevelCategories={topLevelDesktopCategories}
+                      allCategories={flatCategoriesFromAPI}
+                      isOpen={isCategoryMenuOpen}
+                    />
+                  </div>
                 </div>
               </div>
-               <ImageSearchBox />
+              <ImageSearchBox />
               <div className="flex items-center gap-3 flex-shrink-0">
                 <Link to="orderlookup">
                   <button className="flex flex-col items-center gap-1 px-2 py-2 rounded-lg hover-primary transition-all">
@@ -525,7 +527,6 @@ const handleLogout = async () => {
       <MobileCategoryPanel isOpen={isMobilePanelOpen} onClose={toggleMobilePanel} categories={mobileCategoryTree} />
       <PopupModal isOpen={isLoginPopupOpen} onClose={toggleLoginPopup} />
 
-  
       {isNotificationModalOpen && (
         <div className="fixed inset-0 bg-black/50 z-[999] flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto relative flex flex-col">
