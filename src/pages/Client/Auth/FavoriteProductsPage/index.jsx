@@ -74,6 +74,7 @@ const FavoriteProductsPage = () => {
   const formatCurrency = (value) => {
     const number = typeof value === 'string' ? parseFloat(value) : value;
     if (isNaN(number)) return '0₫';
+    if (number === 0) return '0₫';
     return number.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
   };
 
@@ -203,12 +204,17 @@ const FavoriteProductsPage = () => {
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="bg-white rounded-lg shadow-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700 p-6">
         <h1 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-100 mb-1">Danh sách yêu thích</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 mt-2">Sản phẩm yêu thích sẽ được lưu lại để bạn dễ dàng truy cập và đặt mua.</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 mt-2">
+          Sản phẩm yêu thích sẽ được lưu lại để bạn dễ dàng truy cập và đặt mua.
+        </p>
         <div className="mb-4">
+                   
           <div className="relative w-full">
+                       
             <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none z-10">
-              <Search size={22} className="text-gray-500" />
+                            <Search size={22} className="text-gray-500" />           
             </div>
+                       
             <input
               type="text"
               placeholder="Tìm kiếm trong danh sách yêu thích..."
@@ -216,8 +222,8 @@ const FavoriteProductsPage = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="block w-full bg-slate-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-full pl-14 pr-5 py-3.5 shadow-sm transition-all duration-300 focus:shadow-md focus:bg-white dark:focus:bg-gray-600 focus:ring-0 focus:border-primary-light"
             />
+                     
           </div>
-        
         </div>
 
         {loading ? (
@@ -228,8 +234,9 @@ const FavoriteProductsPage = () => {
           <div className="relative">
             <button
               onClick={() => handleScroll('left')}
-              className={`${arrowButtonClass} left-3 hover:scale-110 active:scale-100 ${canScrollLeft ? 'opacity-100' : 'opacity-0 pointer-events-none'
-                }`}
+              className={`${arrowButtonClass} left-3 hover:scale-110 active:scale-100 ${
+                canScrollLeft ? 'opacity-100' : 'opacity-0 pointer-events-none'
+              }`}
               aria-label="Lướt sang trái"
             >
               <ChevronLeft size={26} className="text-slate-700 dark:text-gray-300 transition-colors group-hover:text-primary" />
@@ -237,8 +244,9 @@ const FavoriteProductsPage = () => {
 
             <button
               onClick={() => handleScroll('right')}
-              className={`${arrowButtonClass} right-3 hover:scale-110 active:scale-100 ${canScrollRight ? 'opacity-100' : 'opacity-0 pointer-events-none'
-                }`}
+              className={`${arrowButtonClass} right-3 hover:scale-110 active:scale-100 ${
+                canScrollRight ? 'opacity-100' : 'opacity-0 pointer-events-none'
+              }`}
               aria-label="Lướt sang phải"
             >
               <ChevronRight size={26} className="text-slate-700 dark:text-gray-300 transition-colors group-hover:text-primary" />
@@ -253,19 +261,17 @@ const FavoriteProductsPage = () => {
                 const sku = item.sku || {};
                 const imageUrl = sku?.ProductMedia?.[0]?.mediaUrl || product.thumbnail || 'https://via.placeholder.com/150';
 
-                const originalPrice = parseFloat(sku.originalPrice ?? 0);
-                const basePrice = parseFloat(sku.price ?? originalPrice);
-                const salePriceFromBE = parseFloat(sku.salePrice ?? 0);
+                const displayPrice = parseFloat(sku.price ?? 0);
+                const originalPriceFromBackend = parseFloat(sku.originalPrice ?? 0);
+                const strikethroughPrice = parseFloat(item.oldPrice ?? 0);
 
-                const displayPrice = salePriceFromBE && salePriceFromBE < basePrice ? salePriceFromBE : basePrice;
+                const isOnSale = displayPrice < originalPriceFromBackend && originalPriceFromBackend > 0;
 
-                const isOnSale = displayPrice < originalPrice;
-                const strikethroughPrice = isOnSale ? originalPrice : null;
+                const discountAmount = isOnSale ? originalPriceFromBackend - displayPrice : 0;
+                const discountPercent =
+                  isOnSale && originalPriceFromBackend > 0 ? Math.round((discountAmount / originalPriceFromBackend) * 100) : 0;
 
-                const discountAmount = isOnSale ? originalPrice - displayPrice : 0;
-                const discountPercent = isOnSale && originalPrice ? Math.round((discountAmount / originalPrice) * 100) : 0;
-
-                const isOnFlashSale = !!sku.flashSaleSkus?.length && !!sku.flashSaleSkus?.[0]?.salePrice;
+                const isOnFlashSale = !!sku.flashSaleInfo && sku.flashSaleInfo.isSoldOut === false;
                 const isInStock = sku.stock > 0;
 
                 return (
@@ -308,7 +314,7 @@ const FavoriteProductsPage = () => {
                           <div className="mt-2 lg:hidden">
                             <div className="flex items-baseline gap-2">
                               <p className="text-lg text-primary font-bold">{formatCurrency(displayPrice)}</p>
-                              {strikethroughPrice && (
+                              {strikethroughPrice > 0 && strikethroughPrice > displayPrice && (
                                 <p className="text-sm text-gray-500 line-through dark:text-gray-400">
                                   {formatCurrency(strikethroughPrice)}
                                 </p>
@@ -318,40 +324,43 @@ const FavoriteProductsPage = () => {
                               <div className="mt-1 flex flex-wrap items-center gap-2">
                                 {isOnFlashSale ? (
                                   <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-red-100 text-red-800 text-xs font-semibold dark:bg-red-900 dark:text-red-300">
-                                    <Percent size={14} className="-ml-0.5 mr-1" /> Flash Sale
+                                          <Percent size={14} className="-ml-0.5 mr-1" /> Flash Sale
                                   </span>
                                 ) : (
                                   <span className="text-xs font-semibold text-orange-600 bg-orange-100 px-2 py-0.5 rounded-full dark:bg-orange-900 dark:text-orange-300">
                                     Đang giảm giá
                                   </span>
                                 )}
-                                <span className="text-xs font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded-full dark:bg-red-900 dark:text-red-300">
-                                  Giảm {discountPercent}%
-                                </span>
+                                {discountPercent > 0 && ( 
+                                  <span className="text-xs font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded-full dark:bg-red-900 dark:text-red-300">
+                                    Giảm {discountPercent}% 
+                                  </span>
+                                )}
                               </div>
                             )}
                           </div>
                         </div>
                       </div>
-
                       <div className="hidden lg:flex flex-col justify-center items-end w-52">
                         <p className="text-xl text-primary font-bold">{formatCurrency(displayPrice)}</p>
-                        {strikethroughPrice && (
+                        {strikethroughPrice > 0 && strikethroughPrice > displayPrice && (
                           <p className="text-base text-gray-500 line-through dark:text-gray-400">{formatCurrency(strikethroughPrice)}</p>
                         )}
+                
                         {isOnSale && (
                           <div className="mt-2 flex flex-col items-end gap-1">
                             {isOnFlashSale ? (
                               <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-red-100 text-red-800 text-sm font-semibold dark:bg-red-900 dark:text-red-300">
-                                <Percent size={14} className="-ml-0.5 mr-1" /> Flash Sale
+                                <Percent size={14} className="-ml-0.5 mr-1" /> Flash Sale                  
+                              
                               </span>
                             ) : (
                               <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-orange-100 text-orange-600 text-sm font-semibold dark:bg-orange-900 dark:text-orange-300">
-                                Đang giảm giá
+                               Đang giảm giá
                               </span>
                             )}
                             <p className="text-sm text-red-600 font-medium bg-red-50 inline-block px-2 py-1 rounded dark:bg-red-900 dark:text-red-300">
-                              Tiết kiệm {formatCurrency(discountAmount)} (-{discountPercent}%)
+                              Tiết kiệm {formatCurrency(discountAmount)} (-{discountPercent}%)                
                             </p>
                           </div>
                         )}
@@ -362,10 +371,11 @@ const FavoriteProductsPage = () => {
                           onClick={() => handleAddToCart(sku.id, product.name, imageUrl, formatCurrency(displayPrice))}
                           disabled={!isInStock}
                           className={`min-w-[140px] w-full flex items-center justify-center gap-2 font-semibold px-4 py-2.5 rounded-lg text-sm shadow-md transition-all duration-200
-  ${isInStock
-                              ? 'bg-primary text-white hover:opacity-90 hover:shadow-lg'
-                              : 'bg-gray-300 text-gray-600 cursor-not-allowed opacity-80 dark:bg-gray-700 dark:text-gray-400'
-                            }
+                                ${
+                                  isInStock
+                                    ? 'bg-primary text-white hover:opacity-90 hover:shadow-lg'
+                                    : 'bg-gray-300 text-gray-600 cursor-not-allowed opacity-80 dark:bg-gray-700 dark:text-gray-400'
+                                }
                           `}
                         >
                           <ShoppingCart size={18} />
@@ -402,5 +412,4 @@ const FavoriteProductsPage = () => {
     </div>
   );
 };
-
 export default FavoriteProductsPage;

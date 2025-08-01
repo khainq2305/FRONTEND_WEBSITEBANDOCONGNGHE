@@ -1,6 +1,6 @@
 import React from 'react';
-import ProductFilters from './ProductFilters'; // Đảm bảo đúng đường dẫn
-import SortOptions from './SortOptions'; // Đảm bảo đúng đường dẫn
+import ProductFilters from '../ProductFilters'; // Đảm bảo đúng đường dẫn
+import SortOptions from '../SortOptions'; // Đảm bảo đúng đường dẫn
 
 export default function SortBar({ sticky, currentFilters, onApplyFilters, currentSortOption, onApplySort, brandOptions = [] }) {
     // Biến để kiểm tra xem có bất kỳ bộ lọc nào đang được áp dụng không

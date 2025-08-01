@@ -1,200 +1,310 @@
+import React, { useState } from "react";
 import {
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    TextField,
-    Button,
-    MenuItem,
-    Box,
-    DialogActions,
-    IconButton,
-    Grid, // <-- Nhập Grid để chia cột
-    FormControl, // <-- Nhập các component cho Radio Group
-    FormLabel,
-    RadioGroup,
-    FormControlLabel,
-    Radio
-} from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import { useState, useEffect } from 'react';
-import { getAllRoles } from '../../../../services/admin/userService';
-import { toast } from 'react-toastify';
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Avatar,
+  Stack,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Checkbox,
+  ListItemText,
+  InputAdornment, // Để thêm icon vào TextField
+} from "@mui/material";
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday'; // Icon cho Date Picker
 
-const statuses = [
-    { label: 'Hoạt động', value: 1 },
-    { label: 'Ngưng hoạt động', value: 0 }
-];
+const UserForm = ({ onSubmit, initialData = {}, errors = {} }) => {
+  // Trạng thái cho các trường của biểu mẫu
+  const [formData, setFormData] = useState({
+    fullName: initialData.fullName || "",
+    email: initialData.email || "",
+    password: initialData.password || "",
+    phone: initialData.phone || "",
+    dateOfBirth: initialData.dateOfBirth || "",
+    roleIds: initialData.roleIds || [],
+    status: initialData.status || "active",
+  });
 
-const UserFormDialog = ({ open, onClose, onSubmit, initialData = {}, asPage = false, errors = {} }) => {
-    const [form, setForm] = useState({
-        fullName: '',
-        email: '',
-        roleId: '',
-        password: '',
-        status: 1
-    });
+  // Trạng thái cho tệp ảnh đại diện và xem trước
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(initialData.avatar || null);
 
-    const [formErrors, setFormErrors] = useState({});
-    const [roles, setRoles] = useState([]);
+  // Dữ liệu giả cho vai trò (thay thế bằng dữ liệu thực từ backend của bạn)
+  const availableRoles = [
+    { id: 1, name: "Quản trị viên" },
+    { id: 2, name: "Biên tập viên" },
+    { id: 3, name: "Người xem" },
+    { id: 4, name: "Khách hàng" },
+  ];
 
-    useEffect(() => {
-        if (initialData) {
-            setForm({
-                fullName: initialData.fullName || '',
-                email: initialData.email || '',
-                roleId: initialData.roleId || '',
-                password: '',
-                status: initialData.status ?? 1
-            });
-        }
-    }, [initialData]);
+  // Xử lý thay đổi đầu vào cho các trường văn bản và lựa chọn
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
 
-    useEffect(() => {
-        setFormErrors(errors || {});
-    }, [errors]);
-
-    useEffect(() => {
-        const fetchRoles = async () => {
-            try {
-                const data = await getAllRoles();
-                setRoles(data.roles);
-                if (data.roles?.length > 0 && !form.roleId) {
-                    setForm((prev) => ({ ...prev, roleId: data.roles[0].id }));
-                }
-            } catch {
-                toast.error('Không tải được danh sách vai trò');
-            }
-        };
-        fetchRoles();
-    }, [form.roleId]);
-
-    const handleChange = (field, value) => {
-        // Chuyển đổi giá trị của radio group thành số nếu cần
-        const newValue = field === 'status' ? parseInt(value, 10) : value;
-        setForm({ ...form, [field]: newValue });
-    };
-
-    const handleSubmit = async () => {
-        await onSubmit(form);
-    };
-
-    // Nội dung form đã được cập nhật với Grid
-    const renderFormContent = () => (
-        <Grid container spacing={3} sx={{ pt: 1 }}>
-            <Grid item xs={12} md={6}>
-                <TextField
-                    fullWidth
-                    label="Họ tên"
-                    variant="outlined"
-                    value={form.fullName}
-                    onChange={(e) => handleChange('fullName', e.target.value)}
-                    error={!!formErrors.fullName}
-                    helperText={formErrors.fullName}
-                />
-            </Grid>
-            <Grid item xs={12} md={6}>
-                <TextField
-                    fullWidth
-                    label="Email"
-                    variant="outlined"
-                    value={form.email}
-                    onChange={(e) => handleChange('email', e.target.value)}
-                    error={!!formErrors.email}
-                    helperText={formErrors.email}
-                />
-            </Grid>
-            {!initialData?.id && (
-                <Grid item xs={12} md={6}>
-                    <TextField
-                        fullWidth
-                        label="Mật khẩu"
-                        type="password"
-                        variant="outlined"
-                        value={form.password}
-                        onChange={(e) => handleChange('password', e.target.value)}
-                        error={!!formErrors.password}
-                        helperText={formErrors.password}
-                    />
-                </Grid>
-            )}
-            <Grid item xs={12} md={6}>
-                <TextField
-                    select
-                    fullWidth
-                    label="Vai trò"
-                    variant="outlined"
-                    value={form.roleId?.toString() || ''}
-                    onChange={(e) => handleChange('roleId', e.target.value)}
-                    error={!!formErrors.roleId}
-                    helperText={formErrors.roleId}
-                >
-                    {roles.length > 0 ? (
-                        roles.map((role) => (
-                            <MenuItem key={role.id} value={role.id.toString()}>
-                                {role.name}
-                            </MenuItem>
-                        ))
-                    ) : (
-                        <MenuItem disabled value="">
-                            Không có vai trò
-                        </MenuItem>
-                    )}
-                </TextField>
-            </Grid>
-
-            {/* --- Thay thế TextField Status bằng RadioGroup --- */}
-            <Grid item xs={12}>
-                <FormControl component="fieldset">
-                    <FormLabel component="legend">Trạng thái</FormLabel>
-                    <RadioGroup
-                        row
-                        aria-label="status"
-                        name="status"
-                        value={form.status}
-                        onChange={(e) => handleChange('status', e.target.value)}
-                    >
-                        {statuses.map(({ label, value }) => (
-                           <FormControlLabel key={value} value={value} control={<Radio />} label={label} />
-                        ))}
-                    </RadioGroup>
-                </FormControl>
-            </Grid>
-        </Grid>
-    );
-
-    if (asPage) {
-        return (
-            <Box component="form" noValidate autoComplete="off">
-                {renderFormContent()}
-                <Box display="flex" justifyContent="flex-end" gap={2} pt={3}>
-                    <Button onClick={onClose} variant="outlined">Hủy</Button>
-                    <Button variant="contained" onClick={handleSubmit}>
-                        Lưu
-                    </Button>
-                </Box>
-            </Box>
-        );
+    if (name === "roleIds") {
+      const selectedValue = typeof value === 'string' ? value.split(',').map(Number) : value;
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: selectedValue,
+      }));
+    } else {
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: type === "checkbox" ? checked : value,
+      }));
     }
-    
-    return (
-        <Dialog open={open} onClose={onClose} fullWidth maxWidth="md" PaperProps={{ component: 'form', onSubmit: (e) => { e.preventDefault(); handleSubmit(); } }}>
-             <DialogTitle sx={{ m: 0, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                {initialData?.id ? 'Chỉnh sửa tài khoản' : 'Thêm tài khoản'}
-                <IconButton aria-label="close" onClick={onClose} sx={{ color: (theme) => theme.palette.grey[500] }}>
-                    <CloseIcon />
-                </IconButton>
-            </DialogTitle>
-            <DialogContent dividers>
-                {renderFormContent()}
-            </DialogContent>
-            <DialogActions sx={{ px: 3, py: 2 }}>
-                <Button onClick={onClose} color="inherit">Hủy</Button>
-                <Button variant="contained" type="submit">
-                    Lưu
-                </Button>
-            </DialogActions>
-        </Dialog>
-    );
+  };
+
+  // Xử lý chọn tệp ảnh
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setAvatarFile(file);
+      setAvatarPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit({ ...formData, avatarFile });
+  };
+
+  return (
+    <Box
+      component="form"
+      onSubmit={handleSubmit}
+      sx={{
+        p: 0, // Giữ nguyên p:0 để CardContent bên ngoài kiểm soát padding
+        display: "flex",
+        flexDirection: "column",
+        gap: 2.5, // Tăng khoảng cách giữa các phần tử để trông thoáng hơn
+      }}
+    >
+      {/* Tên người dùng */}
+      <TextField
+        fullWidth
+        label="Họ và tên"
+        name="fullName"
+        value={formData.fullName}
+        onChange={handleChange}
+        required
+        error={!!errors.fullName}
+        helperText={errors.fullName}
+        variant="outlined"
+        InputLabelProps={{ shrink: true }} // Luôn thu nhỏ label
+        sx={{
+          '& .MuiOutlinedInput-root': {
+            borderRadius: '8px', // Bo góc nhẹ cho input
+          },
+        }}
+      />
+
+      {/* Email */}
+      <TextField
+        fullWidth
+        label="Email"
+        name="email"
+        type="email"
+        value={formData.email}
+        onChange={handleChange}
+        required
+        error={!!errors.email}
+        helperText={errors.email}
+        variant="outlined"
+        InputLabelProps={{ shrink: true }}
+        sx={{
+          '& .MuiOutlinedInput-root': {
+            borderRadius: '8px',
+          },
+        }}
+      />
+
+      {/* Mật khẩu */}
+      <TextField
+        fullWidth
+        label="Mật khẩu"
+        name="password"
+        type="password"
+        value={formData.password}
+        onChange={handleChange}
+        required
+        error={!!errors.password}
+        helperText={errors.password}
+        variant="outlined"
+        InputLabelProps={{ shrink: true }}
+        sx={{
+          '& .MuiOutlinedInput-root': {
+            borderRadius: '8px',
+          },
+        }}
+      />
+
+      {/* Số điện thoại */}
+      <TextField
+        fullWidth
+        label="Số điện thoại"
+        name="phone"
+        type="tel"
+        value={formData.phone}
+        onChange={handleChange}
+        error={!!errors.phone}
+        helperText={errors.phone}
+        variant="outlined"
+        InputLabelProps={{ shrink: true }}
+        sx={{
+          '& .MuiOutlinedInput-root': {
+            borderRadius: '8px',
+          },
+        }}
+      />
+
+      {/* Ngày sinh */}
+      <TextField
+        fullWidth
+        label="Ngày sinh"
+        name="dateOfBirth"
+        type="date"
+        value={formData.dateOfBirth}
+        onChange={handleChange}
+        InputLabelProps={{ shrink: true }}
+        error={!!errors.dateOfBirth}
+        helperText={errors.dateOfBirth}
+        variant="outlined"
+        sx={{
+          '& .MuiOutlinedInput-root': {
+            borderRadius: '8px',
+          },
+        }}
+        // Thêm icon lịch vào cuối input
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              <CalendarTodayIcon color="action" />
+            </InputAdornment>
+          ),
+        }}
+      />
+
+      {/* Chọn Vai trò (Roles) */}
+      <FormControl fullWidth error={!!errors.roleIds} variant="outlined"
+        sx={{
+          '& .MuiOutlinedInput-root': {
+            borderRadius: '8px',
+          },
+        }}
+      >
+        <InputLabel id="role-select-label">Vai trò</InputLabel>
+        <Select
+          labelId="role-select-label"
+          id="role-select"
+          multiple
+          name="roleIds"
+          value={formData.roleIds}
+          onChange={handleChange}
+          renderValue={(selected) =>
+            selected
+              .map((id) => availableRoles.find((role) => role.id === id)?.name)
+              .join(", ")
+          }
+          label="Vai trò"
+        >
+          {availableRoles.map((role) => (
+            <MenuItem key={role.id} value={role.id}>
+              <Checkbox checked={formData.roleIds.indexOf(role.id) > -1} />
+              <ListItemText primary={role.name} />
+            </MenuItem>
+          ))}
+        </Select>
+        {errors.roleIds && <Typography color="error" variant="caption">{errors.roleIds}</Typography>}
+      </FormControl>
+
+      {/* Chọn Trạng thái (Status) */}
+      <FormControl fullWidth error={!!errors.status} variant="outlined"
+        sx={{
+          '& .MuiOutlinedInput-root': {
+            borderRadius: '8px',
+          },
+        }}
+      >
+        <InputLabel id="status-select-label">Trạng thái</InputLabel>
+        <Select
+          labelId="status-select-label"
+          id="status-select"
+          name="status"
+          value={formData.status}
+          onChange={handleChange}
+          label="Trạng thái"
+        >
+          <MenuItem value="active">Hoạt động</MenuItem>
+          <MenuItem value="inactive">Không hoạt động</MenuItem>
+          <MenuItem value="pending">Đang chờ</MenuItem>
+        </Select>
+        {errors.status && <Typography color="error" variant="caption">{errors.status}</Typography>}
+      </FormControl>
+
+      {/* Chọn ảnh đại diện */}
+      <Stack spacing={1} mt={1}>
+        <Typography variant="subtitle2" color="text.secondary">Ảnh đại diện</Typography>
+        <Button
+          variant="outlined"
+          component="label"
+          fullWidth // Nút full width
+          sx={{
+            borderRadius: '8px', // Bo góc cho nút
+            py: 1.5, // Tăng padding để nút lớn hơn
+            borderColor: 'primary.main', // Viền màu xanh
+            color: 'primary.main', // Chữ màu xanh
+            '&:hover': {
+              backgroundColor: 'primary.light', // Hiệu ứng hover nhẹ
+              borderColor: 'primary.main',
+            },
+          }}
+        >
+          Chọn Ảnh Đại Diện
+          <input
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={handleImageChange}
+          />
+        </Button>
+
+        {avatarPreview && (
+          <Box mt={1} textAlign="center">
+            <Avatar
+              src={avatarPreview}
+              alt="Ảnh đại diện"
+              sx={{ width: 100, height: 100, mx: "auto", border: '2px solid #e0e0e0' }} // Thêm viền nhẹ cho avatar
+            />
+          </Box>
+        )}
+      </Stack>
+
+      {/* Nút gửi */}
+      <Button
+        type="submit"
+        variant="contained"
+        color="primary"
+        fullWidth
+        sx={{
+          mt: 2,
+          py: 1.5, // Tăng padding để nút lớn hơn
+          borderRadius: '8px', // Bo góc cho nút
+          fontSize: '1rem', // Tăng kích thước chữ
+          fontWeight: 'bold',
+          boxShadow: '0 4px 10px rgba(0, 123, 255, 0.2)', // Đổ bóng nhẹ
+          '&:hover': {
+            boxShadow: '0 6px 15px rgba(0, 123, 255, 0.3)', // Đổ bóng mạnh hơn khi hover
+          },
+        }}
+      >
+        Thêm Người Dùng
+      </Button>
+    </Box>
+  );
 };
 
-export default UserFormDialog;
+export default UserForm;

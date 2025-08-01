@@ -168,35 +168,35 @@ const ImageSearchBox = () => {
     }
   };
 
-  const handleTextSearchSubmit = async (e, queryToSearch = searchTerm) => {
-    if (e) e.preventDefault();
-    const query = queryToSearch.trim();
-    if (!query) {
-      console.log('Từ khóa tìm kiếm trống, không thực hiện tìm kiếm.');
-      return;
-    }
+// Đoạn code ĐÃ SỬA (thêm 'q' vào state)
+const handleTextSearchSubmit = async (e, queryToSearch = searchTerm) => {
+  if (e) e.preventDefault();
+  const query = queryToSearch.trim();
+  if (!query) {
+    console.log('Từ khóa tìm kiếm trống, không thực hiện tìm kiếm.');
+    return;
+  }
 
-    setShowSuggestions(false);
-    setShowHistory(false); // Ẩn lịch sử khi thực hiện tìm kiếm chính
+  setShowSuggestions(false);
+  setShowHistory(false);
 
-    try {
-      setSearching(true);
-      const response = await searchImageService.searchByName({ q: query });
-      const similarProducts = response.similarProducts || [];
-      navigate('/search-result', {
-        state: { results: similarProducts, searchType: 'text' }
-      });
-      // LƯU VÀO LỊCH SỬ SAU KHI TÌM KIẾM THÀNH CÔNG
-      searchImageService.addSearchHistory(query)
-        .then(() => fetchSearchHistory()) // Cập nhật lại lịch sử sau khi thêm
-        .catch(err => console.error("Lỗi khi thêm lịch sử:", err));
-    } catch (err) {
-      console.error('❌ Lỗi khi tìm kiếm bằng văn bản:', err);
-      alert('Đã xảy ra lỗi khi tìm kiếm bằng văn bản. Vui lòng thử lại.');
-    } finally {
-      setSearching(false);
-    }
-  };
+  try {
+    setSearching(true);
+    const response = await searchImageService.searchByName({ q: query });
+    const similarProducts = response.similarProducts || [];
+    navigate('/search-result', {
+      state: { results: similarProducts, searchType: 'text', q: query } // <-- THÊM q: query Ở ĐÂY
+    });
+    searchImageService.addSearchHistory(query)
+      .then(() => fetchSearchHistory())
+      .catch(err => console.error("Lỗi khi thêm lịch sử:", err));
+  } catch (err) {
+    console.error('❌ Lỗi khi tìm kiếm bằng văn bản:', err);
+    alert('Đã xảy ra lỗi khi tìm kiếm bằng văn bản. Vui lòng thử lại.');
+  } finally {
+    setSearching(false);
+  }
+};
 
   const handleVoiceSearch = () => {
     if (!('webkitSpeechRecognition' in window)) {
@@ -320,22 +320,26 @@ const ImageSearchBox = () => {
           disabled={searching || isListening}
         />
 
-        <label
-          className={`absolute right-[86px] top-1/2 -translate-y-1/2 cursor-pointer z-10
-                      flex items-center justify-center w-[36px] h-[36px] rounded-full
-                      bg-gray-100 text-gray-600 transition hover:bg-gray-200
-                      ${searching || isListening ? 'opacity-50 cursor-not-allowed' : ''}`}
-          title="Tìm kiếm bằng hình ảnh"
-        >
-          <ImageIcon className="w-5 h-5" />
-          <input
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleImageFileChange}
-            disabled={searching || isListening}
-          />
-        </label>
+<label
+  className={`absolute right-[86px] top-1/2 -translate-y-1/2 cursor-pointer z-10
+              flex items-center justify-center w-[36px] h-[36px] rounded-full
+              bg-gray-100 text-gray-600 transition hover:bg-gray-200
+              ${isListening || searching ? 'opacity-50 cursor-not-allowed' : ''}`}
+  title="Tìm kiếm bằng hình ảnh"
+>
+  {searching ? (
+    <Loader2 className="animate-spin w-5 h-5" />
+  ) : (
+    <ImageIcon className="w-5 h-5" />
+  )}
+  <input
+    type="file"
+    accept="image/*"
+    className="hidden"
+    onChange={handleImageFileChange}
+    disabled={isListening || searching}
+  />
+</label>
 
         <button
           onClick={handleVoiceSearch}
@@ -346,13 +350,17 @@ const ImageSearchBox = () => {
           <Mic className={`w-5 h-5`} />
         </button>
 
-        <button
-          onClick={handleTextSearchSubmit}
-          disabled={searching || isListening || !searchTerm.trim()}
-          className="absolute right-[4px] top-1/2 -translate-y-1/2 flex items-center justify-center w-[36px] h-[36px] rounded-full bg-primary transition hover-secondary"
-        >
-          <Search style={{ color: 'var(--text-primary)' }} strokeWidth={2} className="w-5 h-5 transition-all" />
-        </button>
+<button
+  onClick={handleTextSearchSubmit}
+  disabled={isListening || searching || !searchTerm.trim()}
+  className="absolute right-[4px] top-1/2 -translate-y-1/2 flex items-center justify-center w-[36px] h-[36px] rounded-full bg-primary transition hover-secondary"
+>
+  {searching ? (
+    <Loader2 className="animate-spin w-5 h-5 text-white" />
+  ) : (
+    <Search style={{ color: 'var(--text-primary)' }} strokeWidth={2} className="w-5 h-5 transition-all" />
+  )}
+</button>
       </div>
 
       {showSuggestions && searchTerm.length >= 2 && (suggestions.length > 0 || loadingSuggestions) && (
