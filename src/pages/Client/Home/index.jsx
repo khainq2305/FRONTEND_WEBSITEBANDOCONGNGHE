@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import moment from 'moment';
 import SEO from "../../../components/common/SEO";
 import { createOrganizationStructuredData } from "../../../utils/seoUtils";
+import { publicSeoService } from '../../../services/client/publicSeoService'; // Thêm import publicSeoService
 
 import SliderBanner from "./SliderBanner";
 import ProductCategorySection from "./ProductCategorySection";
@@ -18,6 +19,7 @@ const HomePage = () => {
     const [sections, setSections] = useState([]);
     const [flashSales, setFlashSales] = useState([]);
     const [favorites, setFavorites] = useState([]);
+    const [seoConfig, setSeoConfig] = useState(null); // Thêm state cho SEO config
 
     // --- CÁC LOGIC FETCH VÀ TOGGLE FAVORITES (GIỮ NGUYÊN) ---
     useEffect(() => {
@@ -77,17 +79,59 @@ const HomePage = () => {
         fetchFavorites();
     }, []);
 
+    // Thêm useEffect để lấy SEO config
+    useEffect(() => {
+        const fetchSeoConfig = async () => {
+            try {
+                console.log('🔄 Fetching SEO config for HomePage');
+                const res = await publicSeoService.getConfig(); // Lấy SEO config từ public API
+                console.log('📥 SEO config response:', res);
+                
+                if (res?.data) {
+                    console.log('✅ SEO config loaded:', res.data);
+                    setSeoConfig(res.data);
+                }
+            } catch (error) {
+                console.error('❌ Lỗi lấy SEO config:', error);
+                // Set default config nếu không lấy được
+                setSeoConfig({
+                    siteName: 'Điện Thoại Giá Kho',
+                    defaultTitle: 'Điện Thoại Giá Kho - Cửa hàng điện thoại uy tín, giá tốt nhất',
+                    siteDescription: 'Mua điện thoại chính hãng với giá tốt nhất tại Điện Thoại Giá Kho. Đa dạng thương hiệu iPhone, Samsung, Xiaomi, Oppo. Bảo hành chính hãng, miễn phí vận chuyển.',
+                    siteKeywords: ['điện thoại', 'iPhone', 'Samsung', 'Xiaomi', 'Oppo', 'điện thoại giá rẻ', 'mua điện thoại', 'chính hãng'],
+                    enableOpenGraph: true,
+                    enableTwitterCard: true,
+                    enableJsonLd: true
+                });
+            }
+        };
+        fetchSeoConfig();
+    }, []);
+
+    // Prepare SEO data từ config với fallback
+    const pageTitle = seoConfig?.defaultTitle || 'Điện Thoại Giá Kho - Cửa hàng điện thoại uy tín, giá tốt nhất';
+    const metaDescription = seoConfig?.siteDescription || 'Mua điện thoại chính hãng với giá tốt nhất tại Điện Thoại Giá Kho. Đa dạng thương hiệu iPhone, Samsung, Xiaomi, Oppo. Bảo hành chính hãng, miễn phí vận chuyển.';
+    const metaKeywords = seoConfig?.siteKeywords ? 
+        (Array.isArray(seoConfig.siteKeywords) ? seoConfig.siteKeywords.join(', ') : seoConfig.siteKeywords) : 
+        'điện thoại, iPhone, Samsung, Xiaomi, Oppo, điện thoại giá rẻ, mua điện thoại, chính hãng';
+    const canonicalUrl = `${window.location.origin}/`;
+    const ogImage = `${window.location.origin}/logo.png`;
+
     return (
         <>
             <SEO
-                title="Điện Thoại Giá Kho - Cửa hàng điện thoại uy tín, giá tốt nhất"
-                description="Mua điện thoại chính hãng với giá tốt nhất tại Điện Thoại Giá Kho. Đa dạng thương hiệu iPhone, Samsung, Xiaomi, Oppo. Bảo hành chính hãng, miễn phí vận chuyển."
-                keywords="điện thoại, iPhone, Samsung, Xiaomi, Oppo, điện thoại giá rẻ, mua điện thoại, chính hãng"
-                canonicalUrl="/"
-                ogTitle="Điện Thoại Giá Kho - Mua điện thoại chính hãng giá tốt nhất"
-                ogDescription="Cửa hàng điện thoại uy tín với hàng ngàn sản phẩm chính hãng. Giá tốt, bảo hành chính hãng, giao hàng toàn quốc."
-                ogImage="/logo.png"
-                structuredData={createOrganizationStructuredData()}
+                title={pageTitle}
+                description={metaDescription}
+                keywords={metaKeywords}
+                canonicalUrl={canonicalUrl}
+                ogTitle={pageTitle}
+                ogDescription={metaDescription}
+                ogImage={ogImage}
+                enableOpenGraph={seoConfig?.enableOpenGraph}
+                enableTwitterCard={seoConfig?.enableTwitterCard}
+                enableJsonLd={seoConfig?.enableJsonLd}
+                structuredData={createOrganizationStructuredData(seoConfig)}
+                seoConfig={seoConfig}
             />
             
             {/* --- CÁC KHỐI KHÁC CỦA TRANG WEB --- */}

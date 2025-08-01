@@ -13,9 +13,14 @@ const SEO = ({
   twitterImage,
   canonicalUrl,
   robots,
-  schema
+  schema,
+  enableOpenGraph = true,
+  enableTwitterCard = true,
+  enableJsonLd = true,
+  structuredData,
+  seoConfig = null
 }) => {
-  const siteName = "Tech Shop"; // Default site name
+  const siteName = seoConfig?.siteName || "Điện Thoại Giá Kho"; // Lấy từ config
 
   // Xử lý robots metadata từ database JSON
   const getRobotsContent = (robotsData) => {
@@ -44,23 +49,38 @@ const SEO = ({
       {/* Canonical URL */}
       {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
 
-      {/* Open Graph / Facebook */}
-      <meta property="og:type" content="article" />
-      <meta property="og:site_name" content={siteName} />
-      {(ogTitle || title) && <meta property="og:title" content={ogTitle || title} />}
-      {(ogDescription || description) && <meta property="og:description" content={ogDescription || description} />}
-      {ogImage && <meta property="og:image" content={ogImage} />}
+      {/* Open Graph / Facebook - Conditional rendering */}
+      {enableOpenGraph && (
+        <>
+          <meta property="og:type" content="article" />
+          <meta property="og:site_name" content={siteName} />
+          {(ogTitle || title) && <meta property="og:title" content={ogTitle || title} />}
+          {(ogDescription || description) && <meta property="og:description" content={ogDescription || description} />}
+          {ogImage && <meta property="og:image" content={ogImage} />}
+        </>
+      )}
 
-      {/* Twitter Card */}
-      <meta name="twitter:card" content="summary_large_image" />
-      {(twitterTitle || ogTitle || title) && <meta name="twitter:title" content={twitterTitle || ogTitle || title} />}
-      {(twitterDescription || ogDescription || description) && <meta name="twitter:description" content={twitterDescription || ogDescription || description} />}
-      {(twitterImage || ogImage) && <meta name="twitter:image" content={twitterImage || ogImage} />}
+      {/* Twitter Card - Conditional rendering */}
+      {enableTwitterCard && (
+        <>
+          <meta name="twitter:card" content="summary_large_image" />
+          {(twitterTitle || ogTitle || title) && <meta name="twitter:title" content={twitterTitle || ogTitle || title} />}
+          {(twitterDescription || ogDescription || description) && <meta name="twitter:description" content={twitterDescription || ogDescription || description} />}
+          {(twitterImage || ogImage) && <meta name="twitter:image" content={twitterImage || ogImage} />}
+        </>
+      )}
       
-      {/* Schema markup từ database */}
-      {schema && (
+      {/* Schema markup từ database - Conditional rendering */}
+      {enableJsonLd && schema && (
         <script type="application/ld+json">
           {typeof schema === 'string' ? schema : JSON.stringify(schema)}
+        </script>
+      )}
+      
+      {/* Structured data - Conditional rendering */}
+      {enableJsonLd && structuredData && (
+        <script type="application/ld+json">
+          {typeof structuredData === 'string' ? structuredData : JSON.stringify(structuredData)}
         </script>
       )}
     </Helmet>

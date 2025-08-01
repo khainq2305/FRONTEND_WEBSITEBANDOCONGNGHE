@@ -277,18 +277,10 @@ const SEOManager = () => {
                 value={seoConfig.keywords}
                 onChange={(e) => handleInputChange('keywords', e.target.value)}
                 margin="normal"
-                helperText="Phân cách bằng dấu phẩy"
+                
               />
             </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                label="Ký tự phân cách tiêu đề"
-                value={seoConfig.titleSeparator}
-                onChange={(e) => handleInputChange('titleSeparator', e.target.value)}
-                margin="normal"
-              />
-            </Grid>
+            
            
           </Grid>
 

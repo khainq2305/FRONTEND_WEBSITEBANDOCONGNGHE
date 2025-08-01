@@ -121,26 +121,33 @@ export const createProductStructuredData = (product) => {
 
 /**
  * Tạo structured data cho tổ chức
+ * @param {Object} seoConfig - Cấu hình SEO từ database
  * @returns {Object} - Structured data cho tổ chức
  */
-export const createOrganizationStructuredData = () => {
+export const createOrganizationStructuredData = (seoConfig = null) => {
   const baseUrl = import.meta.env.VITE_APP_BASE_URL || 'https://dienthoaigiakho.vn';
+  const siteName = seoConfig?.siteName || "Điện Thoại Giá Kho";
+  const siteDescription = seoConfig?.siteDescription || "Cửa hàng điện thoại uy tín với giá cả phải chăng, đa dạng mẫu mã từ các thương hiệu nổi tiếng";
   
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "name": "Điện Thoại Giá Kho",
+    "name": siteName,
     "url": baseUrl,
     "logo": `${baseUrl}/logo.png`,
-    "description": "Cửa hàng điện thoại uy tín với giá cả phải chăng, đa dạng mẫu mã từ các thương hiệu nổi tiếng",
+    "description": siteDescription,
     "contactPoint": {
       "@type": "ContactPoint",
       "telephone": "+84-xxx-xxx-xxx",
       "contactType": "customer service"
     },
     "sameAs": [
-      // Thêm các link mạng xã hội
-    ]
+      // Thêm các link mạng xã hội từ seoConfig
+      ...(seoConfig?.socialMedia?.facebook ? [seoConfig.socialMedia.facebook] : []),
+      ...(seoConfig?.socialMedia?.twitter ? [seoConfig.socialMedia.twitter] : []),
+      ...(seoConfig?.socialMedia?.linkedin ? [seoConfig.socialMedia.linkedin] : []),
+      ...(seoConfig?.socialMedia?.instagram ? [seoConfig.socialMedia.instagram] : [])
+    ].filter(Boolean)
   };
 };
 
