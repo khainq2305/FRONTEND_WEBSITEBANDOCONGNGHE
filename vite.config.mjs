@@ -31,12 +31,17 @@ export default defineConfig(({ mode }) => {
     define: {
       global: 'window'
     },
-    resolve: {
-      alias: [
-        { find: 'react', replacement: path.resolve('./node_modules/react') },     
-        { find: 'react-dom', replacement: path.resolve('./node_modules/react-dom') } 
-      ]
-    },
+resolve: {
+  alias: [
+    { find: '@', replacement: path.resolve(__dirname, 'src') },
+    { find: 'pages', replacement: path.resolve(__dirname, 'src/pages') },
+    { find: 'components', replacement: path.resolve(__dirname, 'src/components') },
+    { find: 'layout', replacement: path.resolve(__dirname, 'src/layout') },
+    { find: 'react', replacement: path.resolve('./node_modules/react') },
+    { find: 'react-dom', replacement: path.resolve('./node_modules/react-dom') },
+  ]
+},
+
     base: API_URL,
     plugins: [react(), jsconfigPaths(), tailwindcss()]
   };

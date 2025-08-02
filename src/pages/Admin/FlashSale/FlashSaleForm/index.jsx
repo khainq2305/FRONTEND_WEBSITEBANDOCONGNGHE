@@ -128,19 +128,18 @@ const FlashSaleForm = () => {
      data.startTime = dayjs(data.startTime).format('YYYY-MM-DDTHH:mm');
 data.endTime = dayjs(data.endTime).format('YYYY-MM-DDTHH:mm');
 
-        data.items = (data.flashSaleItems || []).map((item) => ({
-          id: item.flashSaleSku?.id,
-          skuId: item.flashSaleSku?.id,
-          salePrice: item.salePrice != null ? Number(item.salePrice) : '',
-          originalQuantity: item.originalQuantity ?? item.quantity,
-  soldCount: (item.originalQuantity ?? item.quantity) - item.quantity,
+data.items = (data.flashSaleItems || []).map((item) => ({
+  id: item.flashSaleSku?.id,
+  skuId: item.flashSaleSku?.id,
+  salePrice: item.salePrice != null ? Number(item.salePrice) : '',
+  originalQuantity: item.originalQuantity ?? 0,
+  soldCount: item.soldCount ?? 0,
+  maxPerUser: item.maxPerUser,
+  note: item.note,
+  label: `${item.flashSaleSku?.product?.name || 'Lỗi sản phẩm'} - ${item.flashSaleSku?.skuCode || 'Lỗi SKU'}`,
+  originalPrice: item.flashSaleSku?.originalPrice
+}));
 
-          quantity: item.quantity,
-          maxPerUser: item.maxPerUser,
-          note: item.note,
-          label: `${item.flashSaleSku?.product?.name || 'Lỗi sản phẩm'} - ${item.flashSaleSku?.skuCode || 'Lỗi SKU'}`,
-          originalPrice: item.flashSaleSku?.originalPrice
-        }));
 
         data.categories = (data.categories || []).map((cat) => ({
           ...cat,
@@ -171,15 +170,14 @@ data.endTime = dayjs(data.endTime).format('YYYY-MM-DDTHH:mm');
       payload.append('bgColor', formData.bgColor);
       payload.append('orderIndex', formData.orderIndex === '' || formData.orderIndex == null ? 0 : Number(formData.orderIndex));
 
-      const itemsPayload = formData.items.map((item) => ({
-        skuId: item.id,
-        salePrice: item.salePrice === '' ? null : Number(item.salePrice),
-        quantity: item.quantity === '' || item.quantity == null ? 0 : Number(item.quantity),
-       originalQuantity: Math.max(item.originalQuantity ?? 0, Number(item.quantity)),
+   const itemsPayload = formData.items.map((item) => ({
+  skuId: item.id,
+  salePrice: item.salePrice === '' ? null : Number(item.salePrice),
+  originalQuantity: Number(item.originalQuantity) || 0,
+  maxPerUser: item.maxPerUser === '' ? null : Number(item.maxPerUser),
+  note: item.note || ''
+}));
 
-        maxPerUser: item.maxPerUser === '' ? null : Number(item.maxPerUser),
-        note: item.note || ''
-      }));
 
       const categoriesPayload = formData.categories.map((cat) => ({
         categoryId: cat.categoryId,
@@ -519,12 +517,13 @@ data.endTime = dayjs(data.endTime).format('YYYY-MM-DDTHH:mm');
                                     <strong style={{ color: '#d32f2f' }}>{formatCurrencyVND(sku.originalPrice)}</strong>
                                   </Typography>
                                 )}
-                                {sku.soldCount != null && sku.originalQuantity != null && (
+{sku.soldCount != null && sku.originalQuantity != null && (
   <Typography variant="body2" color="text.secondary">
     Đã bán: <strong>{sku.soldCount}</strong> / {sku.originalQuantity} &nbsp;
     (Còn lại: <strong>{sku.originalQuantity - sku.soldCount}</strong>)
   </Typography>
 )}
+
 
                                 {sku.stock != null && (
                                   <Typography variant="body2" color="text.secondary">
@@ -554,18 +553,21 @@ data.endTime = dayjs(data.endTime).format('YYYY-MM-DDTHH:mm');
                             </Grid>
 
                             <Grid item xs={12} sm={6}>
-                              <TextField
-                                fullWidth
-                                type="number"
-                                label="Số lượng bán"
-                                size="medium" // 👉 tăng lên 'medium' như ô bên trái
-                                value={sku.quantity ?? ''}
-                                onChange={(e) => handleItemChange(field, index, 'quantity', e.target.value)}
-                                InputProps={{ inputProps: { min: 0 } }}
-                                placeholder="Mặc định 0 nếu không nhập"
-                                error={!!errors.items?.[index]?.quantity}
-                                helperText={errors.items?.[index]?.quantity?.message}
-                              />
+                           <TextField
+  fullWidth
+  type="number"
+  label="Số suất Flash Sale"
+  value={sku.originalQuantity ?? ''}
+  onChange={(e) => handleItemChange(field, index, 'originalQuantity', e.target.value)}
+  InputProps={{ inputProps: { min: sku.soldCount || 0 } }}
+  error={!!errors.items?.[index]?.originalQuantity}
+  helperText={
+    sku.soldCount > 0
+      ? `Không thể giảm thấp hơn ${sku.soldCount} đã bán`
+      : errors.items?.[index]?.originalQuantity?.message
+  }
+/>
+
                             </Grid>
 
                             {/* Ô ghi chú */}

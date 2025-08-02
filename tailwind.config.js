@@ -14,6 +14,9 @@ export default {
       }
     },
   },
+  corePlugins: {
+    preflight: false, // 🔥 TẮT reset CSS gốc
+  },
   plugins: [
     require('@tailwindcss/line-clamp'),
   ],

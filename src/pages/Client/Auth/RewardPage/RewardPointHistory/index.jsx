@@ -5,19 +5,16 @@ import { vi } from 'date-fns/locale';
 import { rewardPointService } from '@/services/client/rewardPointService';
 import Loader from '@/components/common/Loader';
 
-/* -------------------------------------------------- */
-/* Tabs + list                                        */
-/* -------------------------------------------------- */
 const TABS = [
-  { key: 'all',   label: 'Tất cả'     },
+  { key: 'all',   label: 'Tất cả' },
   { key: 'earn',  label: 'Đã tích điểm' },
-  { key: 'spend', label: 'Đã sử dụng'  },
+  { key: 'spend', label: 'Đã sử dụng' }
 ];
 
 export default function RewardPointHistory() {
-  const [history, setHistory]   = useState([]);
-  const [active,  setActive]    = useState('all');
-  const [loading, setLoading]   = useState(true);
+  const [history, setHistory] = useState([]);
+  const [active, setActive] = useState('all');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
@@ -42,17 +39,17 @@ export default function RewardPointHistory() {
     <section className="mb-10">
       <h2 className="text-xl font-semibold mb-4">Lịch sử điểm thưởng</h2>
 
-      {/* ---------- Tabs ---------- */}
-      <div className="flex border-b mb-3">
+      {/* Tabs */}
+      <div className="flex border-b mb-3 bg-white rounded-t-xl overflow-hidden border border-b-0">
         {TABS.map((t) => (
           <button
             key={t.key}
             onClick={() => setActive(t.key)}
             className={`
               relative flex-1 text-center py-3 text-sm font-medium
-              ${active === t.key ? 'text-red-600' : 'text-gray-500'}
+              ${active === t.key ? 'text-[#1CA7EC]' : 'text-gray-500'}
               after:absolute after:left-0 after:right-0 after:-bottom-[1px] after:h-[2px]
-              ${active === t.key ? 'after:bg-red-600' : 'after:bg-transparent'}
+              ${active === t.key ? 'after:bg-[#1CA7EC]' : 'after:bg-transparent'}
             `}
           >
             {t.label}
@@ -60,7 +57,7 @@ export default function RewardPointHistory() {
         ))}
       </div>
 
-      {/* ---------- List ---------- */}
+      {/* List */}
       {filtered.length === 0 ? (
         <p className="text-gray-500">Không có giao dịch.</p>
       ) : (
@@ -70,7 +67,7 @@ export default function RewardPointHistory() {
               key={item.id}
               className="flex justify-between items-start bg-white rounded-xl border shadow px-4 py-3"
             >
-              <div>
+              <div className="pr-4">
                 <p className="font-semibold mb-1">
                   {item.type === 'earn' ? 'Mua hàng tích điểm' : 'Sử dụng điểm'}
                 </p>
@@ -80,7 +77,19 @@ export default function RewardPointHistory() {
                 </p>
 
                 {item.note && (
-                  <p className="text-sm text-gray-700" dangerouslySetInnerHTML={{ __html: item.note }} />
+                  <div className="text-sm text-gray-700" dangerouslySetInnerHTML={{ __html: item.note }} />
+                )}
+
+                {item.orderCode && (
+                  <p className="text-sm mt-1 text-gray-700">
+                    Đơn hàng: <span className="font-medium">{item.orderCode}</span>{' '}
+                    <a
+                      href={`/don-hang/${item.orderCode}`}
+                      className="text-blue-600 hover:underline text-sm"
+                    >
+                      Xem chi tiết
+                    </a>
+                  </p>
                 )}
 
                 {item.expiredAt && (
@@ -91,16 +100,18 @@ export default function RewardPointHistory() {
                 )}
               </div>
 
-              {/* Badge points */}
+              {/* Badge điểm */}
               <span
-                className={`
-                  shrink-0 flex items-center gap-0.5 text-sm font-semibold px-2 py-0.5 rounded-full
+                className={`shrink-0 flex items-center gap-0.5 text-sm font-semibold px-2 py-0.5 rounded-full
                   ${item.type === 'earn' ? 'bg-green-50 text-green-600' : 'bg-rose-50 text-rose-600'}
                 `}
               >
                 {item.type === 'earn' ? '+' : '-'}
                 {item.points}
-                <Coins size={12} className="text-yellow-500" />
+                 <span className="w-4 h-4 bg-yellow-200 text-yellow-600 text-[10px] font-bold flex items-center justify-center rounded-full">
+                  ₵
+                </span>
+
               </span>
             </li>
           ))}
