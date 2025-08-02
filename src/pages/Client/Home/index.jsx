@@ -237,7 +237,10 @@ const HomePage = () => {
             </section>
           );
         })}
-
+        <section>
+          <h2 className="text-xl font-bold px-4 mb-2">Combo Ưu Đãi</h2>
+          <ComboList />
+        </section>
         {!authLoading && userId && (
           <section>
             <RecommendedProductsSection userId={userId} />

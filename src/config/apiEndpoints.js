@@ -530,6 +530,17 @@ export const API_ENDPOINT = {
       delete: (id) => `/${id}`,
       getById: (id) => `/${id}`,
       createDefaultTasks: '/create-default-tasks'
+    },
+    combo: {
+      base: `${API_BASE_URL}/admin/combos`,
+      getAll: '/',
+      getBySlug: (slug) => `/${slug}`,
+      create: '/',
+      update: (slug) => `/${slug}`,
+      softDelete: (id) => `/${id}`,
+      forceDelete: (id) => `/force/${id}`,
+      restore: (id) => `/restore/${id}`, // ✅ chỉ trả path
+      softDeleteMany: '/soft-delete-many'
     }
   }
 };
