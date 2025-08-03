@@ -71,11 +71,7 @@ const CartPage = () => {
     }
   };
 
-  useEffect(() => {
-    if (isCartLoaded && selectedItems.length > 0) {
-      fetchPointInfoOnly();
-    }
-  }, [selectedItems]);
+
 
   const fetchCart = async () => {
     try {

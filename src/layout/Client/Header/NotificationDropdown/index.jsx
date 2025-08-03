@@ -6,8 +6,12 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/vi';
 dayjs.extend(relativeTime);
 dayjs.locale('vi');
+import { Link } from 'react-router-dom';
+
+import { useNavigate } from 'react-router-dom';
 
 const NotificationItem = ({ notification, onClick }) => {
+  const navigate = useNavigate();
   let IconComponent = Bell;
   let iconColor = 'text-gray-500 bg-gray-100';
 
@@ -43,13 +47,15 @@ const NotificationItem = ({ notification, onClick }) => {
         console.error('Lỗi đánh dấu đã đọc:', err);
       }
     }
+    if (notification.link) {
+      navigate(notification.link); // ✅ Điều hướng sau khi đánh dấu đã đọc
+    }
   };
 
   return (
-    <a
-      href={notification.link || '#'}
+    <div
       onClick={handleClick}
-      className={`block p-3 transition-colors duration-150 border-b border-gray-100 last:border-b-0 
+      className={`cursor-pointer block p-3 transition-colors duration-150 border-b border-gray-100 last:border-b-0 
         ${!notification.isRead ? 'bg-blue-50 hover:bg-blue-100' : 'bg-white hover:bg-gray-100'}`}
     >
       <div className="flex items-start gap-3">
@@ -63,11 +69,14 @@ const NotificationItem = ({ notification, onClick }) => {
           <div className="text-xs text-gray-500 mt-0.5 line-clamp-2" dangerouslySetInnerHTML={{ __html: notification.message }} />
           {notification.startAt && <p className="text-[11px] text-gray-400 mt-0.5">{dayjs(notification.startAt).fromNow()}</p>}
         </div>
-        {!notification.isRead && <span className="w-2 h-2 bg-blue-500 rounded-full mt-1.5 ml-auto flex-shrink-0" title="Chưa đọc"></span>}
+        {!notification.isRead && (
+          <span className="w-2 h-2 bg-blue-500 rounded-full mt-1.5 ml-auto flex-shrink-0" title="Chưa đọc" />
+        )}
       </div>
-    </a>
+    </div>
   );
 };
+
 
 const NotificationDropdown = ({ isOpen, notifications = [], onClose, setNotifications, userInfo }) => {
   const [activeTab, setActiveTab] = useState('all');

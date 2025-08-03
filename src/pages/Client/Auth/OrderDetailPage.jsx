@@ -396,6 +396,13 @@ const handleMarkAsReceived = async () => {
           <span className="text-gray-700 text-base font-semibold">Thành tiền</span>
           <span className="text-red-500 text-xl font-semibold">{formatCurrencyVND(finalPrice)}</span>
         </div>
+        {order.rewardPoints > 0 && (
+  <div className="flex justify-between items-center mt-2 text-sm text-green-600">
+    <span>Điểm thưởng nhận được</span>
+    <span className="font-semibold">+{order.rewardPoints} điểm</span>
+  </div>
+)}
+
         {/* Nút hành động giống ngoài danh sách */}
 <div className="p-4 flex flex-wrap gap-2 border-t border-gray-200 mt-4 justify-end">
   {status === 'processing' && (

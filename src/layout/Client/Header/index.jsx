@@ -16,6 +16,7 @@ import socket from '../../../constants/socket';
 import ImageSearchBox from '@/components/common/ImageSearchBox';
 import useAuthStore from '../../../stores/AuthStore';
 
+
 const Header = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
@@ -143,18 +144,12 @@ const Header = () => {
     const intervalId = setInterval(fetchCombinedCategories, 300000);
     return () => clearInterval(intervalId);
   }, []);
-  useEffect(() => {
-    const fetchUserInfo = async () => {
-      try {
-        const response = await authService.getUserInfo();
-        const user = response.data?.user || {};
-        useAuthStore.getState().login(user);
-      } catch (err) {
-        console.error('Lỗi lấy thông tin người dùng:', err);
-      }
-    };
-    fetchUserInfo();
-  }, []);
+useEffect(() => {
+  if (user?.id) {
+    socket.emit("join", `user-${user.id}`);
+  }
+}, [user?.id]);
+
 
   const getDisplayName = (fullName, maxLength = 8) => {
     if (!fullName) return '';
