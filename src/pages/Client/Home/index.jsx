@@ -208,13 +208,19 @@ const HomePage = () => {
               rating: parseFloat(sku.averageRating) || 0,
               inStock: (sku.stock || 0) > 0,
               originalQuantity: saleItem?.originalQuantity ?? quantity,
- flashSaleInfo: {
-    originalQuantity: saleItem?.originalQuantity ?? quantity,
-    sold: saleItem?.soldQuantity ?? 0,
-    salePrice: saleItem?.salePrice ?? sku.salePrice ?? 0,
-    originalPrice: originalPrice
-  },
-              soldCount: parseInt(sku.soldCount || 0),
+flashSaleInfo: {
+  originalQuantity: saleItem?.originalQuantity ?? quantity,
+  soldQuantity: saleItem?.sku?.flashSaleInfo?.soldQuantity ?? 0,
+  salePrice: saleItem?.salePrice ?? sku.salePrice ?? 0,
+  originalPrice: originalPrice
+},
+
+
+     sold: saleItem?.sku?.flashSaleInfo?.soldQuantity ?? 0,
+
+
+
+
               quantity: quantity,
               limitPerUser,
               saleStatus,
