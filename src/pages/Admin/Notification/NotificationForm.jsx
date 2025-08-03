@@ -330,7 +330,7 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
 
           <div
             {...getRootProps()}
-            className={`w-full border-[2px] border-dashed rounded-md px-3 py-4 text-center cursor-pointer
+            className={`w-full border-[2px] border-dashed rounded-md px-3 py-14 text-center cursor-pointer
             ${isDragActive ? 'bg-blue-50 border-blue-500' : 'border-blue-400 bg-white'}
             hover:border-blue-500 hover:bg-blue-50 transition-all`}
           >

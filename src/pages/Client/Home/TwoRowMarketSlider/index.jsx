@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import Slider from 'react-slick';
 import { Link } from 'react-router-dom';
 import moment from 'moment';
-
+import { formatCurrencyVND } from '../../../../utils/formatCurrency'; // Import the formatCurrencyVND function
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import './TestResponsiveSlider.css';
@@ -116,10 +116,9 @@ const InlinedProductCard = ({
     };
 
 
-    const displayPrice = saleStatus === 'upcoming'
-        ? obfuscatePrice(rawDisplayPrice)
-        : price;
-
+const displayPrice = saleStatus === 'upcoming'
+  ? obfuscatePrice(rawDisplayPrice)
+  : formatCurrencyVND(currentPriceNum); // ✅ format
 
     const soldCountDisplay = inStock && soldCount > 0 ? (
         <span className="text-gray-500 text-[9.5px] sm:text-[10.5px] font-medium">
@@ -142,9 +141,7 @@ const originalQuantity = Number(
 );
 
 const sold = Number(
-  typeof flashSaleInfo?.sold === 'number'
-    ? flashSaleInfo.sold
-    : flashSaleInfo?.soldQuantity ?? soldCount ?? 0
+  flashSaleInfo?.soldQuantity ?? flashSaleInfo?.sold ?? soldCount ?? 0
 );
 
 console.log("Debug remaining quantity:", { originalQuantity, sold, soldCount, flashSaleInfo });
