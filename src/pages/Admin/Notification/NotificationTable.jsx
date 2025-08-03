@@ -59,11 +59,13 @@
         <TableCell>{getStatusChip(item.isActive)}</TableCell>
         <TableCell align="right">
           <div className="flex justify-end items-center gap-2">
-            <MoreActionsMenu
-              onView={() => onView(item)}
-              onEdit={() => navigate(`/admin/notifications/edit/${item.slug}`)} // đúng
-              onDelete={() => onDelete(item)}
-            />
+         <MoreActionsMenu
+  onView={() => onView(item)}
+  onEdit={() => navigate(`/admin/notifications/edit/${item.slug}`)}
+  onDelete={() => onDelete(item)}
+  subject="Notification" // 👈 Thêm dòng này
+/>
+
           </div>
         </TableCell>
       </TableRow>
