@@ -338,18 +338,9 @@ const Header = () => {
               <button className="p-1 text-white flex-shrink-0 -ml-1" onClick={toggleMobilePanel} aria-label="Mở danh mục">
                 <LayoutGrid className="w-6 h-6" strokeWidth={2} />
               </button>
-              <div className="flex-grow mx-1">
-                <div className="flex items-center bg-white text-gray-600 pl-3 pr-1 py-1 h-[36px] rounded-lg w-full shadow-sm">
-                  <input
-                    type="text"
-                    placeholder="Tìm kiếm..."
-                    className="flex-1 text-[13px] outline-none bg-transparent placeholder-gray-400"
-                  />
-                  <button className="flex items-center justify-center w-[28px] h-[28px] hover-secondary bg-primary rounded-full transition ml-1 flex-shrink-0">
-                    <Search style={{ color: 'var(--text-primary)' }} strokeWidth={2.5} className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
+<div className="flex-grow mx-1 min-w-0">
+  <ImageSearchBox />
+</div>
               <div className="flex items-center gap-x-1 flex-shrink-0">
                 <button className="p-1 text-white relative" onClick={toggleNotificationModal}>
                   <Bell className="w-6 h-6" strokeWidth={1.8} />

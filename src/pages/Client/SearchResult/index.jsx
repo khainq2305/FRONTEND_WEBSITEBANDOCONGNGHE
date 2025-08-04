@@ -1,17 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { X as XIcon } from 'lucide-react';
 
 // Import các services cần thiết cho việc lấy dữ liệu (đã loại bỏ vì không sử dụng)
 // import { searchImageService } from '../../../services/client/searchImageService';
-// import { brandService } from '../../../services/client/brandService';
+import { brandService } from '../../../services/client/brandService';
 
 // Import các component con
 import Banner from '../ProductListByCategory/Banner';
 import Breadcrumb from '../ProductListByCategory/Breadcrumb';
 import SortBar from '../ProductListByCategory/SortBar';
 import ViewedProducts from '../ProductListByCategory/ViewedProducts';
+import FilterBar from '../ProductListByCategory/FilterBar';
 
 // =========================================================
 // HÀM TIỆN ÍCH CHUNG (Giữ nguyên)
@@ -167,22 +168,106 @@ const SearchResult = () => {
   // Lấy dữ liệu và loại tìm kiếm trực tiếp từ location.state
   const results = location.state?.results || [];
   const searchType = location.state?.searchType || 'image';
+  const initialResults = location.state?.results || [];
+  console.log('Dữ liệu sản phẩm ban đầu:', initialResults);
 
   // Dùng state giả để tránh lỗi cho các component con
-  const [filters] = useState({ stock: false, price: null, brand: [] });
-  const [sortOption] = useState('popular');
-  const [brands] = useState([]);
+  const [filters, setFilters] = useState({ stock: true, price: null, brand: [] });
+  const [sortOption, setSortOption] = useState('popular');
+  const [brands, setBrands] = useState([]);
   const [banners] = useState([]);
 
-  // Hàm dummy để SortBar không báo lỗi
-  const onApplyFilters = () => {};
-  const onApplySort = () => {};
+  const [products, setProducts] = useState(initialResults);
+  const [loading, setLoading] = useState(false);
+
+  const onApplyFilters = (newFilters) => {
+    setFilters((prevFilters) => ({ ...prevFilters, ...newFilters }));
+  };
+
+  const onApplySort = (newSortOption) => {
+    setSortOption(newSortOption);
+  };
+  
+  // Hàm này giờ đây đã bao gồm logic lọc, sắp xếp và lấy thương hiệu
+  const fetchFilteredProducts = async () => {
+    setLoading(true);
+    try {
+      let filteredAndSortedProducts = [...initialResults];
+
+      if (filters.stock) {
+        filteredAndSortedProducts = filteredAndSortedProducts.filter(p => p.inStock);
+      }
+
+      if (filters.price) {
+        const getPriceRange = (priceString) => {
+          if (priceString === 'Dưới 10 Triệu') return { min: 0, max: 10000000 };
+          if (priceString === 'Từ 10 - 16 Triệu') return { min: 10000000, max: 16000000 };
+          if (priceString === 'Từ 16 - 22 Triệu') return { min: 16000000, max: 22000000 };
+          if (priceString === 'Trên 22 Triệu') return { min: 22000000, max: Infinity };
+          return null;
+        };
+
+        const priceRange = getPriceRange(filters.price);
+        if (priceRange) {
+          filteredAndSortedProducts = filteredAndSortedProducts.filter(p => p.price >= priceRange.min && p.price <= priceRange.max);
+        }
+      }
+
+      if (filters.brand.length > 0) {
+        filteredAndSortedProducts = filteredAndSortedProducts.filter(p => {
+          const productBrand = p.brand || findBrandInName(p.name);
+          return productBrand && filters.brand.includes(productBrand);
+        });
+      }
+      
+      if (sortOption === 'asc') {
+        filteredAndSortedProducts.sort((a, b) => a.price - b.price);
+      } else if (sortOption === 'desc') {
+        filteredAndSortedProducts.sort((a, b) => b.price - a.price);
+      }
+      
+      const findBrandInName = (productName) => {
+        const knownBrands = ['Daikiosan', 'Mitsubishi Electric', 'HPW'];
+        const foundBrand = knownBrands.find(brand => productName.toLowerCase().includes(brand.toLowerCase()));
+        return foundBrand || null;
+      };
+      
+      const extractedBrands = filteredAndSortedProducts.map(p => {
+        return p.brand || findBrandInName(p.name);
+      });
+
+      const uniqueBrands = [...new Set(extractedBrands)].filter(Boolean);
+
+      const brandListForFilter = uniqueBrands.map((brandName) => ({
+        id: brandName.toLowerCase().replace(/\s/g, '-'), 
+        name: brandName
+      }));
+
+      setProducts(filteredAndSortedProducts);
+      setBrands(brandListForFilter);
+
+    } catch (error) {
+      console.error('Lỗi khi xử lý sản phẩm:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFilteredProducts();
+  }, [filters, sortOption, initialResults]);
 
   return (
     <div className="max-w-[1200px] mx-auto ">
       <Breadcrumb
         categoryName={searchType === 'text' ? `Kết quả cho "${location.state?.q || ''}"` : 'Kết quả tìm kiếm hình ảnh'}
         categorySlug=""
+      />
+
+      <FilterBar
+        filters={filters}
+        setFilters={setFilters}
+        brands={brands}
       />
 
       <Banner banners={banners} />
@@ -195,21 +280,21 @@ const SearchResult = () => {
         brandOptions={brands}
       />
 
-      {results.length === 0 ? (
-        <p className="text-center py-10 text-gray-500">
-          {searchType === 'text' ? 'Không tìm thấy sản phẩm phù hợp với từ khóa.' : 'Không tìm thấy sản phẩm tương tự.'}
-        </p>
+      {loading ? (
+        <p className="text-center py-10 text-gray-500">Đang tải sản phẩm...</p>
+      ) : products.length === 0 ? (
+        <p className="text-center py-10 text-gray-500">Không tìm thấy sản phẩm phù hợp.</p>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-4">
-          {results.map((product) => (
+          {products.map((product) => (
             <ProductListItem key={product.id} product={product} />
           ))}
         </div>
       )}
-      
-  {console.log('DEBUG: Cố gắng render ViewedProducts...')}
-<ViewedProducts />
-{console.log('DEBUG: Đã render xong ViewedProducts.')}
+
+      {console.log('DEBUG: Cố gắng render ViewedProducts...')}
+      <ViewedProducts />
+      {console.log('DEBUG: Đã render xong ViewedProducts.')}
     </div>
   );
 };
