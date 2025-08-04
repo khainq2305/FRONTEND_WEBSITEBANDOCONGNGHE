@@ -5,9 +5,9 @@ import { PackageOpen, Search, ShoppingCart, Trash2, Percent, ChevronLeft, Chevro
 import { wishlistService } from '@/services/client/wishlistService';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
-import { cartService } from '../../../../services/client/cartService'; // Imported cartService
-import AddToCartSuccessToast from '../../ProductDetail/AddToCartSuccessToast'; // Assuming this path is correct
-import PopupModal from '../../../../layout/Client/Header/PopupModal'; // Imported PopupModal
+import { cartService } from '../../../../services/client/cartService';
+import AddToCartSuccessToast from '../../ProductDetail/AddToCartSuccessToast';
+import PopupModal from '../../../../layout/Client/Header/PopupModal';
 
 const LoadingSkeleton = () => (
   <div className="flex space-x-4 md:space-x-0 md:flex-col md:space-y-5 overflow-x-auto md:overflow-visible pb-4 -mb-4">
@@ -208,11 +208,9 @@ const FavoriteProductsPage = () => {
           Sản phẩm yêu thích sẽ được lưu lại để bạn dễ dàng truy cập và đặt mua.
         </p>
         <div className="mb-4">
-                   
           <div className="relative w-full">
-                       
             <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none z-10">
-                            <Search size={22} className="text-gray-500" />           
+                            <Search size={22} className="text-gray-500" />
             </div>
                        
             <input
@@ -313,7 +311,9 @@ const FavoriteProductsPage = () => {
 
                           <div className="mt-2 lg:hidden">
                             <div className="flex items-baseline gap-2">
-                              <p className="text-lg text-primary font-bold">{formatCurrency(displayPrice)}</p>
+                              <p className="text-lg text-primary font-bold">
+                                {displayPrice > 0 ? formatCurrency(displayPrice) : formatCurrency(strikethroughPrice)}
+                              </p>
                               {strikethroughPrice > 0 && strikethroughPrice > displayPrice && (
                                 <p className="text-sm text-gray-500 line-through dark:text-gray-400">
                                   {formatCurrency(strikethroughPrice)}
@@ -331,9 +331,9 @@ const FavoriteProductsPage = () => {
                                     Đang giảm giá
                                   </span>
                                 )}
-                                {discountPercent > 0 && ( 
+                                {discountPercent > 0 && (
                                   <span className="text-xs font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded-full dark:bg-red-900 dark:text-red-300">
-                                    Giảm {discountPercent}% 
+                                    Giảm {discountPercent}%
                                   </span>
                                 )}
                               </div>
@@ -346,17 +346,16 @@ const FavoriteProductsPage = () => {
                         {strikethroughPrice > 0 && strikethroughPrice > displayPrice && (
                           <p className="text-base text-gray-500 line-through dark:text-gray-400">{formatCurrency(strikethroughPrice)}</p>
                         )}
-                
+
                         {isOnSale && (
                           <div className="mt-2 flex flex-col items-end gap-1">
                             {isOnFlashSale ? (
                               <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-red-100 text-red-800 text-sm font-semibold dark:bg-red-900 dark:text-red-300">
                                 <Percent size={14} className="-ml-0.5 mr-1" /> Flash Sale                  
-                              
                               </span>
                             ) : (
                               <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-orange-100 text-orange-600 text-sm font-semibold dark:bg-orange-900 dark:text-orange-300">
-                               Đang giảm giá
+                                Đang giảm giá
                               </span>
                             )}
                             <p className="text-sm text-red-600 font-medium bg-red-50 inline-block px-2 py-1 rounded dark:bg-red-900 dark:text-red-300">
