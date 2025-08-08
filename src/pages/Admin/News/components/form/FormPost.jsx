@@ -5,6 +5,7 @@ import Sidebar from "@/pages/Admin/News/components/sidebar/Sidebar";
 import { newsCategoryService } from "@/services/admin/newCategoryService";
 import { normalizeCategoryList } from "@/utils";
 import { tagService } from "@/services/admin/tagService";
+import useAuthStore  from "@/stores/AuthStore";
 
 const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
   const [title, setTitle] = useState("");
@@ -20,7 +21,7 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
   const [isFeature, setIsFeature] = useState(false);
   const [errors, setErrors] = useState({});
   const [newCategory, setNewCategory] = useState('');
-  
+  const { user } = useAuthStore()
   useEffect(() => {
     if (initialData) {
       setTitle(initialData.title || "");
@@ -63,6 +64,7 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
   const handleSubmit = async () => {
   const formData = new FormData();
   formData.append("title", title);
+  formData.append("authorId", user.id);
   formData.append("content", content);
   formData.append("category", category);
   formData.append("status", isScheduled ? 2 : status); // 2: hẹn giờ

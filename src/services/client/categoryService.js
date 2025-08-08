@@ -13,6 +13,7 @@ export const categoryService = {
     return get(`${base}/${slug}`);
   },
     getCombinedMenu() {
+      console.log(`đây đây ${base}${API_ENDPOINT.client.category.combinedMenu}`);
     return get(`${base}${API_ENDPOINT.client.category.combinedMenu}`);
   }
 };
