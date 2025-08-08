@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import socket from '../../../constants/socket';
 
 // Đảm bảo bạn có các dialog này
 import CancelOrderDialog from './CancelOrderDialog';
@@ -38,6 +39,76 @@ const OrderItem = ({ order, searchTerm, refetchOrders }) => {
     const moreButtonRef = useRef(null);
 
     const productsToShowInitially = 2;
+const getOrderStatusDisplay = (order) => {
+  const rr = order.returnRequest;
+
+  if (rr) {
+    if (rr.status === 'refunded') {
+      return {
+        text: 'Đã hoàn tiền',
+        dotColor: 'bg-green-500',
+        bgColor: 'bg-green-100',
+        textColor: 'text-green-600',
+      };
+    }
+
+    const highlightReturnRequest = [
+      'pending',
+      'approved',
+      'awaiting_pickup',
+      'pickup_booked',
+      'returning',
+      'received',
+      'cancelled',
+    ].includes(rr.status);
+
+    if (highlightReturnRequest) {
+      let text = 'Yêu cầu trả hàng/hoàn tiền';
+
+      if (rr.status === 'pending') {
+        text = 'CYBERZONE ĐANG XEM XÉT';
+      } else if (rr.status === 'cancelled') {
+        text = 'YÊU CẦU ĐÃ BỊ HỦY';
+      }
+
+      return {
+        text,
+        dotColor: 'bg-yellow-500',
+        bgColor: 'bg-yellow-100',
+        textColor: 'text-gray-800 dark:text-gray-200',
+      };
+    }
+  }
+
+  // Nếu không có returnRequest hoặc không thuộc trạng thái trên thì xét theo trạng thái đơn hàng chính
+  switch (order.status) {
+    case 'cancelled':
+      return {
+        text: order.statusText,
+        dotColor: 'bg-red-500',
+        bgColor: 'bg-red-100',
+        textColor: 'text-red-600',
+      };
+    case 'pending_payment':
+      return {
+        text: order.statusText,
+        dotColor: 'bg-yellow-500',
+        bgColor: 'bg-yellow-100',
+        textColor: 'text-yellow-600',
+      };
+    default:
+      return {
+        text: order.statusText,
+        dotColor: 'bg-green-500',
+        bgColor: 'bg-green-100',
+        textColor: 'text-gray-800 dark:text-gray-200',
+      };
+  }
+};
+
+
+const statusDisplay = getOrderStatusDisplay(order);
+
 
     const handleReorder = async () => {
         try {
@@ -79,8 +150,30 @@ const OrderItem = ({ order, searchTerm, refetchOrders }) => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
+useEffect(() => {
+    if (!socket.connected) {
+        socket.connect();
+    }
+
+    const userId = localStorage.getItem('userId'); // hoặc lấy từ authStore nếu có
+    if (userId) {
+        socket.emit('join', `user-${userId}`);
+    }
+
+    const handleOrderUpdate = (data) => {
+        console.log('📦 Đơn hàng cập nhật:', data);
+        fetchOrders(); // Gọi lại API đơn hàng
+    };
+
+    socket.on('order-updated', handleOrderUpdate);
+
+    return () => {
+        socket.off('order-updated', handleOrderUpdate);
+    };
+}, []);
 
     return (
+        
         <div className="bg-white dark:bg-gray-800 mb-3 sm:mb-4 border border-gray-200 dark:border-gray-700 rounded-sm">
             <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
                 <div className="flex flex-col">
@@ -96,78 +189,59 @@ const OrderItem = ({ order, searchTerm, refetchOrders }) => {
                         )}
                     </div>
                 </div>
-                <div className="flex items-center gap-1.5">
-                    <span
-                        className={`
-                            flex items-center justify-center h-5 w-5 rounded-full
-                            ${
-                                order.returnRequest
-                                    ? 'bg-[rgba(28,167,236,0.1)]'
-                                    : order.status === 'cancelled'
-                                        ? 'bg-red-100'
-                                        : order.status === 'pending_payment'
-                                            ? 'bg-yellow-100'
-                                            : 'bg-green-100'
-                            }
-                        `}
-                    >
-                        <span
-                            className={`
-                                h-2.5 w-2.5 rounded-full 
-                                ${
-                                    order.returnRequest
-                                        ? 'bg-primary'
-                                        : order.status === 'cancelled'
-                                            ? 'bg-red-500'
-                                            : order.status === 'pending_payment'
-                                                ? 'bg-yellow-500'
-                                                : 'bg-green-500'
-                                }
-                            `}
-                        />
-                    </span>
-                    <span
-                        className={`
-                            text-xs sm:text-sm font-semibold uppercase
-                            ${
-                                order.returnRequest
-                                    ? 'text-primary dark:text-primary'
-                                    : order.status === 'cancelled'
-                                        ? 'text-red-600'
-                                        : order.status === 'pending_payment'
-                                            ? 'text-yellow-600'
-                                            : 'text-gray-800 dark:text-gray-200'
-                            }
-                        `}
-                    >
-                        {order.returnRequest ? 'Yêu cầu trả hàng/hoàn tiền' : order.statusText}
-                    </span>
-                </div>
+<div className="flex items-center gap-1.5">
+  <span className={`
+    flex items-center justify-center h-5 w-5 rounded-full
+    ${statusDisplay.bgColor}
+  `}>
+    <span className={`h-2.5 w-2.5 rounded-full ${statusDisplay.dotColor}`} />
+  </span>
+  <span className={`text-xs sm:text-sm font-semibold uppercase ${statusDisplay.textColor}`}>
+    {statusDisplay.text}
+  </span>
+</div>
+
+
             </div>
 
-            {order.products.slice(0, showAllProducts ? order.products.length : productsToShowInitially).map((product, index) => {
+           <div className="">
+
+  {order.products.slice(0, showAllProducts ? order.products.length : productsToShowInitially).map((product, index) => {
+  const isReturning = order.returnRequest?.status !== 'cancelled' &&
+                    order.returnRequest?.items?.some(item => item.skuId === product.skuId);
+
                 // KIỂM TRA XEM SẢN PHẨM NÀY CÓ TRONG YÊU CẦU TRẢ HÀNG KHÔNG
                 const isProductInReturnRequest = order.returnRequest && 
                                                  order.returnRequest.items.some(item => item.skuId === product.skuId);
                 
                 return (
-                    <div key={`${order.id}-${product.skuId}-${index}`} 
-                         onClick={() => navigate(`/user-profile/orders/${order.orderCode}`)} 
-                         className="px-4 sm:px-6 py-3 sm:py-4 dark:border-gray-700 flex cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-                    >
+<div
+  key={`${order.id}-${product.skuId}-${index}`}
+  className="relative px-4 sm:px-6 py-3 sm:py-4 dark:border-gray-700 flex hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer"
+  onClick={() => navigate(`/user-profile/orders/${order.orderCode}`)}
+>
+  {/* OVERLAY MỜ CẢ ITEM TRỪ BADGE */}
+{isProductInReturnRequest && order.returnRequest?.status !== 'cancelled' && (
+  <div className="absolute inset-0 bg-white dark:bg-gray-900 opacity-60 pointer-events-none z-10 rounded-sm" />
+)}
+
+
+
                         <img src={product.imageUrl} alt={product.name} className="w-20 h-20 object-cover rounded-sm border border-gray-200 dark:border-gray-600 mr-3 sm:mr-4 flex-shrink-0" />
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm text-gray-800 dark:text-gray-100 mb-1 line-clamp-2">
-                                <HighlightText text={product.name} highlight={searchTerm} />
-                            </p>
+<p className="font-semibold text-sm text-gray-900">
+  {product.name}
+</p>
+{isReturning && (
+  <span className="inline-block mt-1 border border-yellow-500 text-yellow-600 bg-yellow-50 text-[9px] font-bold px-2 py-[2px] rounded-sm uppercase tracking-wide z-20 relative">
+    TRẢ HÀNG / HOÀN TIỀN
+  </span>
+)}
+
+
                             {product.variation && <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Phân loại hàng: {product.variation}</p>}
                             <p className="text-xs text-gray-700 dark:text-gray-300">x{product.quantity}
-                                {/* HIỂN THỊ TRẠNG THÁI TRẢ HÀNG CỦA SẢN PHẨM CỤ THỂ */}
-                                {isProductInReturnRequest && order.returnRequest && (
-                                    <span className="text-primary dark:text-primary ml-2">
-                                        (Trạng thái trả hàng: <span className="font-semibold uppercase">{getReturnStatusText(order.returnRequest.status)}</span>)
-                                    </span>
-                                )}
+                              
                             </p>
                             {/* Hiển thị trạng thái thanh toán dưới sản phẩm */}
                             {order.paymentStatus === 'waiting' && (
@@ -193,7 +267,7 @@ const OrderItem = ({ order, searchTerm, refetchOrders }) => {
                     </div>
                 );
             })}
-
+</div>
             {order.products.length > productsToShowInitially && (
                 <div className="px-4 sm:px-6 py-2 text-center border-b border-gray-200 dark:border-gray-700">
                     <button
@@ -217,15 +291,21 @@ const OrderItem = ({ order, searchTerm, refetchOrders }) => {
 
                 <div className="px-4 py-3 sm:py-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                     {/* Bên trái: Hướng dẫn nhận hàng */}
-                    {order.returnRequest ? (
-                        <p className="text-xs text-gray-600 dark:text-gray-400 max-w-[360px] leading-snug">
-                            Yêu cầu <strong>trả hàng / hoàn tiền</strong>
-                        </p>
-                    ) : order.buttons.includes('Đã nhận hàng') ? (
-                        <p className="text-xs text-gray-600 dark:text-gray-400 max-w-[360px] leading-snug">
-                            Vui lòng chỉ nhấn <strong>"Đã nhận được hàng"</strong> khi đơn hàng đã được giao đến bạn và sản phẩm nhận được không có vấn đề nào.
-                        </p>
-                    ) : <div className="hidden sm:block" />}
+                   {order.returnRequest ? (
+  order.returnRequest.status === 'cancelled' ? (
+    <p className="text-xs text-gray-500 italic dark:text-gray-400 max-w-[360px] leading-snug">
+      Yêu cầu <strong>đã bị hủy</strong>
+    </p>
+  ) : (
+    <p className="text-xs text-gray-600 dark:text-gray-400 max-w-[360px] leading-snug">
+      Yêu cầu <strong>trả hàng / hoàn tiền</strong>
+    </p>
+  )
+) : order.buttons.includes('Đã nhận hàng') ? (
+  <p className="text-xs text-gray-600 dark:text-gray-400 max-w-[360px] leading-snug">
+    Vui lòng chỉ nhấn <strong>"Đã nhận được hàng"</strong> khi đơn hàng đã được giao đến bạn và sản phẩm nhận được không có vấn đề nào.
+  </p>
+) : <div className="hidden sm:block" />}
 
                     {/* Bên phải: Các nút thao tác */}
                     <div className="relative flex flex-wrap justify-end items-center gap-2">
@@ -469,12 +549,12 @@ const RenderDonMuaContent = () => {
             }
 
             // ——— DELIVERED
-            if (order.status === 'delivered') {
-                if (!hasRR) {
-                    // buttons.push('Đã nhận hàng'); // Nếu đã delivered, thường đã nhận hàng rồi, có thể bỏ nút này
-                    buttons.push('Trả hàng/Hoàn tiền');
-                }
-            }
+          if (order.status === 'delivered') {
+  if (!hasRR || (rr?.status === 'cancelled' && rr?.cancelledBy === 'user')) {
+    buttons.push('Trả hàng/Hoàn tiền');
+  }
+}
+
             
             // Logic cho nút 'Chọn cách hoàn hàng'
             const allowChooseReturnMethodStatuses = ['approved', 'awaiting_pickup', 'pickup_booked', 'received', 'refunded'];
@@ -487,13 +567,18 @@ const RenderDonMuaContent = () => {
                 buttons.push('Chọn cách hoàn hàng');
             }
 
-            if (order.status === 'completed') {
-                buttons.push('Mua Lại');
-                if (!hasRR) buttons.push('Trả hàng/Hoàn tiền');
-            }
+          if (order.status === 'completed') {
+  buttons.push('Mua Lại');
+  if (!hasRR || (rr?.status === 'cancelled' && rr?.cancelledBy === 'user')) {
+    buttons.push('Trả hàng/Hoàn tiền');
+  }
+}
+
             
             // Nút xem chi tiết trả hàng luôn hiển thị nếu có yêu cầu trả hàng
-            if (hasRR) buttons.push('Xem chi tiết trả hàng');
+if (hasRR) {
+  buttons.push('Xem chi tiết trả hàng');
+}
 
             // ——— CANCELLED
             if (order.status === 'cancelled') buttons.push('Mua Lại');
@@ -505,6 +590,7 @@ const RenderDonMuaContent = () => {
                 id: order.id,
                 tabId,
                 statusText,
+                 status: order.status,
                 statusColor, // Màu text cho status của đơn hàng (không phải dot)
                 orderCode: order.orderCode,
                 createdAt: order.createdAt,
@@ -518,6 +604,7 @@ const RenderDonMuaContent = () => {
                         returnCode: order.returnRequest.returnCode,
                         deadlineChooseReturnMethod: order.returnRequest.deadlineChooseReturnMethod,
                         status: order.returnRequest.status,
+                        cancelledBy: order.returnRequest.cancelledBy || null, // 👈 THÊM DÒNG NÀY
                         returnMethod: order.returnRequest.returnMethod,
                         // Thêm danh sách các sản phẩm trong yêu cầu trả hàng
                         items: order.returnRequest.items || [] // RẤT QUAN TRỌNG: API cần trả về returnRequest.items

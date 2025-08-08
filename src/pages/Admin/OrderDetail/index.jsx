@@ -7,8 +7,9 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { orderService } from '../../../services/admin/orderService';
-// import OrderReturnRefund from './OrderReturnRefund'; // Đã loại bỏ import này
-import { toast } from 'react-toastify'; // Import toast cho thông báo
+import Breadcrumb from '../../../components/common/Breadcrumb';
+
+import { toast } from 'react-toastify'; 
 
 const orderStatusLabels = {
   processing: 'Đang xử lý',
@@ -39,16 +40,16 @@ const OrderDetail = () => {
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isUpdatingPaymentStatus, setIsUpdatingPaymentStatus] = useState(false); // State cho nút cập nhật
+  const [isUpdatingPaymentStatus, setIsUpdatingPaymentStatus] = useState(false); 
 
-  // ✅ SỬA ĐỔI QUAN TRỌNG: Thay disabled bằng readOnly trong InputProps
+  
   const readOnlyStyle = {
     InputProps: {
-      readOnly: true, // Làm cho TextField chỉ đọc, không mờ đi
+      readOnly: true, 
       sx: {
-        color: 'text.primary', // Giữ màu chữ chính
+        color: 'text.primary',
         fontWeight: 500,
-        backgroundColor: 'transparent', // Đảm bảo không có màu nền xám của disabled
+        backgroundColor: 'transparent', 
       }
     }
   };
@@ -57,7 +58,7 @@ const OrderDetail = () => {
     try {
       setLoading(true);
       const data = await orderService.getById(id);
-      setOrder(data.data); // ✅ GIỮ NGUYÊN: setOrder(data.data) như bạn muốn
+      setOrder(data.data); 
 
     } catch (err) {
       console.error('Lỗi khi tải chi tiết đơn hàng:', err);
@@ -71,16 +72,16 @@ const OrderDetail = () => {
     fetchOrder();
   }, [id]);
 
-  // Hàm xử lý khi nhấn nút "Xác nhận Đã thanh toán"
+
   const handleUpdatePaymentStatus = async () => {
     if (!order) return;
 
     try {
       setIsUpdatingPaymentStatus(true);
-      // Gọi API để cập nhật trạng thái thanh toán thành 'paid'
+     
       await orderService.updatePaymentStatus(order.id, 'paid');
       toast.success('Đã cập nhật trạng thái thanh toán thành Đã thanh toán!');
-      fetchOrder(); // Tải lại dữ liệu đơn hàng để hiển thị trạng thái mới nhất
+      fetchOrder(); 
     } catch (error) {
       console.error('Lỗi cập nhật trạng thái thanh toán:', error);
       toast.error(error.response?.data?.message || 'Cập nhật trạng thái thanh toán thất bại.');
@@ -113,20 +114,29 @@ const OrderDetail = () => {
   const shipping = order.shippingAddress;
   const products = order.items || [];
 
-  // Lấy bằng chứng chuyển khoản từ trường 'proofUrl' của đối tượng order
+  
   const bankTransferProofUrl = order.proofUrl;
 
-  // Kiểm tra xem đây có phải đơn hàng thanh toán thủ công và đang chờ xác thực/đối soát không
+ 
   const isManualTransfer = ['atm', 'bank_transfer', 'manual_transfer'].includes(order.paymentMethod?.code?.toLowerCase());
   const shouldShowProofAndConfirmButton = isManualTransfer && (
-    order.paymentStatus === 'waiting' || // Nếu đang chờ khách hàng chuyển tiền
-    order.paymentStatus === 'unpaid' ||   // Nếu là unpaid (như COD) và sau đó chuyển thành thủ công
-    order.paymentStatus === 'processing'  // KHI KHÁCH HÀNG ĐÃ BẤM "TÔI ĐÃ CHUYỂN KHOẢN"
+    order.paymentStatus === 'waiting' || 
+    order.paymentStatus === 'unpaid' ||   
+    order.paymentStatus === 'processing'  
   );
 
   return (
     <Box sx={{ p: { xs: 2, md: 4 } }}>
-      <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)} sx={{ mb: 3 }}>
+  <Breadcrumb
+    items={[
+      { label: 'Trang chủ', href: '/admin' },
+      { label: 'Đơn hàng', href: '/admin/orders' },
+    { label: `Chi tiết đơn ${order?.orderCode || id}` }
+
+    ]}
+  />
+
+      <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)} sx={{ mb: 3, mt:2 }}>
         Quay lại
       </Button>
 
@@ -193,7 +203,7 @@ const OrderDetail = () => {
               />
             )}
 
-            {/* ✅ SỬA ĐỔI QUAN TRỌNG: Hiển thị bằng chứng chuyển khoản và nút xác nhận gọn gàng hơn */}
+        
             {shouldShowProofAndConfirmButton && (
               <Box sx={{ mt: 2, p: 2, border: '1px dashed #ccc', borderRadius: 2, backgroundColor: '#f9f9f9', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <Typography variant="subtitle2" fontWeight={600} gutterBottom>
@@ -210,7 +220,7 @@ const OrderDetail = () => {
                             style={{
                                 maxWidth: '100%',
                                 maxHeight: '100%',
-                                objectFit: 'contain', // Đảm bảo toàn bộ ảnh hiển thị trong khung
+                                objectFit: 'contain',
                             }}
                         />
                     </Box>
@@ -244,7 +254,7 @@ const OrderDetail = () => {
             <TableRow>
               <TableCell>Ảnh</TableCell>
               <TableCell>Tên sản phẩm</TableCell>
-              <TableCell>Số lượng</TableCell>
+              <TableCell align="center">Số lượng</TableCell>
               <TableCell>Đơn giá</TableCell>
               <TableCell>Thành tiền</TableCell>
             </TableRow>
@@ -261,7 +271,7 @@ const OrderDetail = () => {
                   />
                 </TableCell>
                 <TableCell>{item.Sku?.product?.name || '—'}</TableCell>
-                <TableCell>{item.quantity}</TableCell>
+                <TableCell align="center">{item.quantity}</TableCell>
                 <TableCell>{Number(item.price || 0).toLocaleString()} ₫</TableCell>
 <TableCell>{(item.quantity * (item.price || 0)).toLocaleString()} ₫</TableCell>
 
@@ -278,7 +288,7 @@ const OrderDetail = () => {
           </Typography>
         </Box>
       </Paper>
-      {/* Đã loại bỏ component OrderReturnRefund ở đây */}
+      
     </Box>
   );
 };

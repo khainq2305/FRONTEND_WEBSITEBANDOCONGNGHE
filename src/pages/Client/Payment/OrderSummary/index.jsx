@@ -4,6 +4,8 @@ import { orderService } from '../../../../services/client/orderService';
 import { paymentService } from '../../../../services/client/paymentService';
 import { toast } from 'react-toastify';
 import { FiInfo, FiChevronRight, FiChevronUp } from 'react-icons/fi';
+import PinModal from '../PinModal';
+import { walletService } from '../../../../services/client/walletService'; // đã có
 
 import { useCartStore } from '@/stores/useCartStore';
 import { formatCurrencyVND } from '../../../../utils/formatCurrency';
@@ -25,10 +27,13 @@ const OrderSummary = ({
   selectedAddress,
   selectedItems = [],
   usePoints,
-  setUsePoints
+  setUsePoints,
+  onPlaceOrder
 }) => {
 
   const navigate = useNavigate();
+const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+const [pendingPin, setPendingPin] = useState(null); // để lưu pin đã nhập
 
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
   const [selectedCoupon, setSelectedCoupon] = useState(null);
@@ -180,8 +185,23 @@ const pointDiscountAmount = usePoints ? pointInfo.maxUsablePoints * 10 : 0;
 
 const finalAmount =
   totalAmount - discount - couponDiscount + shippingFee - shippingDiscount - pointDiscountAmount;
+const handleSubmitPin = async (pin) => {
+  try {
+    // 🔒 Gọi API xác minh PIN
+    const res = await walletService.verifyPin(pin);
 
-  const handlePlaceOrder = async () => {
+    if (res.data?.success) {
+      setIsPinModalOpen(false);
+      handlePlaceOrder(pin); // Nếu đúng thì tiếp tục tạo đơn hàng
+    } else {
+      toast.error('Mã PIN không đúng!');
+    }
+  } catch (err) {
+    toast.error(err?.response?.data?.message || 'Xác minh PIN thất bại!');
+  }
+};
+
+ const handlePlaceOrder = async (pin = null) => {
     if (!selectedAddress || !selectedAddress.id) {
       toast.error('Vui lòng nhập địa chỉ giao hàng!');
       return;
@@ -230,6 +250,7 @@ const finalAmount =
         addressId: selectedAddress.id,
         paymentMethodId: selectedPaymentMethod,
         usePoints: usePoints,
+        pin: pin, // ✅ thêm dòng này để backend xử lý
   pointsToSpend: usePoints ? pointInfo.maxUsablePoints : 0, // ✅
         couponCode: selectedCoupon?.code || null,
         note: '',
@@ -261,6 +282,8 @@ const finalAmount =
       const isZalo = selectedPaymentMethod === 5;
       const isViettel = selectedPaymentMethod === 6;
       const isStripe = selectedPaymentMethod === 7;
+const isWallet = selectedPaymentMethod === 8; // hoặc kiểm tra theo code nếu cần
+const isPayOS = selectedPaymentMethod === 9; // hoặc kiểm tra theo
 
       const fullCart = JSON.parse(localStorage.getItem('cartItems') || '[]');
       const updatedCart = fullCart.filter(
@@ -328,6 +351,13 @@ const finalAmount =
         window.location.href = url;
         return;
       }
+if (isPayOS) {
+ const url = (await paymentService.payosPay({ orderId })).data?.payUrl;
+
+  if (!url) throw new Error('Không nhận được link PayOS');
+  window.location.href = url;
+  return;
+}
 
       toast.success('Đặt hàng thành công!');
       navigate(`/order-confirmation?orderCode=${orderCode}`);
@@ -338,6 +368,13 @@ const finalAmount =
       setIsPlacing(false);
     }
   };
+const onClickPlaceOrder = () => {
+  if (selectedPaymentMethod === 8) {
+    setIsPinModalOpen(true); // 👉 mở modal nhập mã PIN
+  } else {
+    handlePlaceOrder(); // 👉 gọi luôn nếu không phải ví nội bộ
+  }
+};
 
 return (
   <div className="relative">
@@ -399,16 +436,20 @@ return (
 
         {/* Point section */}
         <div className="flex items-center justify-between h-11 px-3 border border-gray-200 rounded-md">
-          <div className="flex items-center gap-2 text-sm text-gray-700">
-           <span className="w-5 h-5 bg-yellow-200 text-yellow-600 text-[10px] font-bold flex items-center justify-center rounded-full">
-  ₵
-</span>
+<div className="flex items-center gap-2 text-sm text-gray-700">
+  <img
+    src="src/assets/Client/images/xudiem.png"
+    alt="coin"
+    className="w-6 h-6 object-contain"
+  />
+  <div className="flex items-baseline gap-1">
+    <span>Đổi {pointInfo.maxUsablePoints.toLocaleString('vi-VN')} điểm</span>
+    <span className="text-gray-400 text-xs">
+      (~{formatCurrencyVND(pointInfo.maxUsablePoints * 10)})
+    </span>
+  </div>
+</div>
 
-            <span>Đổi {pointInfo.maxUsablePoints} điểm</span>
-            <span className="text-gray-400 text-xs">
-              (~{formatCurrencyVND(pointInfo.maxUsablePoints * 10)})
-            </span>
-          </div>
 
           <div className="flex items-center gap-1 relative group ml-2">
             <label className="inline-flex items-center cursor-pointer">
@@ -531,9 +572,11 @@ return (
           <div className="flex justify-between text-xs text-yellow-600 font-medium items-center">
             <span>Điểm thưởng</span>
             <span className="flex items-center gap-1">
-              <span className="w-4 h-4 bg-yellow-200 text-yellow-600 text-[10px] font-bold flex items-center justify-center rounded-full">
-  ₵
-</span>
+ <img
+                      src="src/assets/Client/images/xudiem.png"
+                      alt="coin"
+                      className="w-4 h-4 object-contain"
+                    />
 
               {'+ ' + Math.floor(finalAmount / 4000).toLocaleString('vi-VN')} điểm
             </span>
@@ -564,7 +607,7 @@ return (
 
       {/* Submit button */}
       <button
-        onClick={handlePlaceOrder}
+    onClick={onClickPlaceOrder}
         disabled={isPlacing}
         className="block text-center w-full font-semibold py-3 rounded-md transition-colors text-base mt-4 bg-primary text-white hover:opacity-90 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
       >
@@ -591,7 +634,31 @@ return (
         orderTotal={+totalAmount || 0}
       />
     )}
+<PinModal
+  open={isPinModalOpen}
+  onClose={() => setIsPinModalOpen(false)}
+onSubmit={async (pin) => {
+  try {
+    const res = await walletService.verifyPinAndBalance({ pin });
+    console.log('PIN verify response:', res);
+
+    const balance = res?.data?.data?.balance; // ✅ Lấy đúng path
+
+    if (balance !== undefined) {
+      setIsPinModalOpen(false);
+      handlePlaceOrder(pin);
+    } else {
+      toast.error('Mã PIN không chính xác!');
+    }
+  } catch (err) {
+    toast.error(err?.response?.data?.message || 'Xác minh mã PIN thất bại!');
+  }
+}}
+
+/>
+
   </div>
+  
 );
 
 };

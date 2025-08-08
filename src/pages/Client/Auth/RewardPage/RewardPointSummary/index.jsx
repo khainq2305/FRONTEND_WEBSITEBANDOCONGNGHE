@@ -1,17 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { Coins } from 'lucide-react';
 import { rewardPointService } from '@/services/client/rewardPointService';
 import Loader from '@/components/common/Loader';
+import { format } from 'date-fns';
+import { vi } from 'date-fns/locale';
 
 const RewardPointSummary = () => {
   const [points, setPoints] = useState(0);
+  const [expiringSoon, setExpiringSoon] = useState(0);
+  const [expireDate, setExpireDate] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       try {
-        const { data } = await rewardPointService.getTotalPoints(); // { totalPoints }
+        const { data } = await rewardPointService.getTotalPoints();
         setPoints(Number(data?.totalPoints) || 0);
+        setExpiringSoon(Number(data?.expiringSoon) || 0);
+        setExpireDate(data?.expireDate || null);
       } catch (err) {
         console.error('Lỗi khi lấy điểm thưởng:', err);
       } finally {
@@ -22,44 +27,40 @@ const RewardPointSummary = () => {
 
   if (loading) return <Loader />;
 
-  /* ---------- giao diện giống ảnh ---------- */
   return (
-<div
-  className="
-    flex justify-between items-center
-    px-6 py-5 mb-8
-    rounded-lg shadow border border-gray-200
-    bg-gradient-to-r from-white to-[#EFF6FF]
-    dark:bg-gray-800 dark:from-gray-800 dark:to-gray-700
-  "
->
+    <div className="flex items-center justify-between bg-white border border-yellow-300 rounded-xl shadow-sm p-5 mb-5">
 
+      <div className="flex items-center gap-4">
+        <div className="w-25 h-25 bg-yellow-100 rounded-full flex items-center justify-center animate-[pulse_1.2s_ease-in-out_infinite]">
+          <img
+            src="src/assets/Client/images/xudiem.png"
+            alt="coin"
+            className="w-18 h-18 object-contain"
+          />
+        </div>
 
-      {/* Trái: tiêu đề + điểm */}
-      <div>
-        <p className="text-sm text-gray-600 font-medium mb-1 dark:text-gray-300">
-          Điểm thưởng của bạn
-        </p>
-        <p className="flex items-center gap-1 text-xl font-bold text-primary dark:text-yellow-400">
-          {points.toLocaleString('vi-VN')}
-       <span className="w-4 h-4 flex items-center justify-center rounded-full bg-yellow-200 text-yellow-600 text-[11px] font-semibold leading-none">
-  ₵
-</span>
-
-
-        </p>
+        <div>
+          <div className="text-gray-700 text-sm font-medium">Tổng điểm thưởng</div>
+          <div className="text-2xl font-bold text-yellow-500 mt-1">
+            {points.toLocaleString('vi-VN')}
+          </div>
+          <div className="text-xs text-gray-500 mt-1">
+            {expireDate
+              ? `${expiringSoon.toLocaleString('vi-VN')} ₵ sẽ hết hạn vào ${format(new Date(expireDate), 'dd-MM-yyyy', { locale: vi })}`
+              : 'Không có điểm sắp hết hạn'}
+          </div>
+        </div>
       </div>
 
-      {/* Phải: banner minh hoạ (tuỳ ý đổi hình PNG/SVG) */}
- <div className="w-20 h-20 overflow-hidden rounded-md">
-  <img
-    src="https://png.pngtree.com/png-clipart/20240417/original/pngtree-earn-loyalty-program-points-get-online-reward-and-gifts-png-image_14873495.png"
-    alt="Reward Banner"
-    className="w-full h-full object-cover object-right-top"
-    draggable={false}
-  />
-</div>
 
+      <div className="w-30 object-center h-24 rounded-xl overflow-hidden shrink-0">
+        <img
+          src="src/assets/Client/images/NENDIEM.png"
+          alt="Reward Banner"
+          className="w-full h-full object-cover object-center"
+          draggable={false}
+        />
+      </div>
     </div>
   );
 };

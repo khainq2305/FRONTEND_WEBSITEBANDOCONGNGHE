@@ -128,6 +128,7 @@ const CheckoutPage = () => {
   );
 
   const breadcrumbItems = [{ label: 'Trang chủ', href: '/' }, { label: 'Giỏ hàng', href: '/cart' }, { label: 'Thanh toán' }];
+const finalAmount = totals.totalAmount - totals.discount - (usePoints ? pointInfo.pointValue : 0);
 
   return (
     <div className="bg-gray-100 max-w-[1200px] mx-auto min-h-screen ">
@@ -203,7 +204,13 @@ const CheckoutPage = () => {
           />
 
           <div className="mb-2">
-            <PaymentMethod selectedPaymentMethod={selectedPaymentMethod} setSelectedPaymentMethod={setSelectedPaymentMethod} />
+<PaymentMethod
+  selectedPaymentMethod={selectedPaymentMethod}
+  setSelectedPaymentMethod={setSelectedPaymentMethod}
+  finalAmount={finalAmount}
+/>
+
+
           </div>
         </div>
 

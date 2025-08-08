@@ -50,7 +50,7 @@ export default function CancelOrderDialog({ open, onClose, orderId, orderCode, o
   return (
     <Dialog open={open} onClose={handleClose} className="relative z-50">
       {/* Lớp nền mờ */}
-      {loading && <Loader fullscreen={true} />}
+     
 
       
 <div className="fixed inset-0 bg-black/40" aria-hidden="true" />
@@ -58,12 +58,7 @@ export default function CancelOrderDialog({ open, onClose, orderId, orderCode, o
       <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
         <Dialog.Panel className="relative w-full max-w-md transform rounded-lg bg-white p-6 text-left align-middle shadow-xl transition-all">
           
-          {/* Loader Overlay */}
-          {loading && (
-            <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-white/80 z-10">
-              <Loader fullscreen={false} />
-            </div>
-          )}
+     
 
          <Dialog.Title as="h3" className="text-xl font-semibold leading-6 text-gray-900 text-center mb-2">
   Lý do hủy đơn hàng #{orderCode}
@@ -118,7 +113,8 @@ export default function CancelOrderDialog({ open, onClose, orderId, orderCode, o
               disabled={loading}
               className="w-full sm:w-auto justify-center rounded-md border border-transparent bg-red-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              HỦY ĐƠN HÀNG
+        {loading ? 'ĐANG XỬ LÝ...' : 'HỦY ĐƠN HÀNG'}
+
             </button>
           </div>
         </Dialog.Panel>

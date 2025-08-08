@@ -12,6 +12,8 @@ const TITLES = {
   '/dat-lai-mat-khau': 'Đặt lại mật khẩu',
   '/otp-verification': 'Xác thực OTP',
   '/forgot-password-notice': 'Xác thực email',
+  '/xac-minh-ma-pin': window.location.search.includes('mode=forgot') ? 'Quên mã PIN' : 'Thiết lập mã PIN',
+
   '/register-email-sent': 'Kích hoạt tài khoản',
   '/verify-email': 'Xác nhận email',
   '/cart': 'Giỏ hàng',

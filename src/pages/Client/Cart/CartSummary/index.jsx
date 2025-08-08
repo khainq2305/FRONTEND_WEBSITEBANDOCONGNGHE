@@ -299,16 +299,20 @@ const CartSummary = ({
 
 
           <div className="flex items-center justify-between h-11 px-3 border border-gray-200 rounded-md">
-            <div className="flex items-center gap-2 text-sm text-gray-700">
-              <span className="w-5 h-5 bg-yellow-200 text-yellow-600 text-[10px] font-bold flex items-center justify-center rounded-full">
-                ₵
-              </span>
+        <div className="flex items-center gap-2 text-sm text-gray-700">
+  <img
+    src="src/assets/Client/images/xudiem.png"
+    alt="coin"
+    className="w-6 h-6 object-contain"
+  />
+  <div className="flex items-baseline gap-1">
+    <span>Đổi {maxUsablePoints.toLocaleString('vi-VN')} điểm</span>
+    <span className="text-gray-400 text-xs">
+      (~{formatCurrencyVND(pointDiscountAmount)})
+    </span>
+  </div>
+</div>
 
-              <span>Đổi {maxUsablePoints} điểm</span>
-              <span className="text-gray-400 text-xs">
-                (~{formatCurrencyVND(pointDiscountAmount)})
-              </span>
-            </div>
             <div className="flex items-center gap-1 relative group">
               {/* Toggle switch */}
               <label className="inline-flex items-center cursor-pointer">
@@ -390,9 +394,11 @@ const CartSummary = ({
             <div className="flex justify-between text-xs text-yellow-600 font-medium items-center">
               <span>Điểm thưởng</span>
               <span className="flex items-center gap-1">
-                <span className="w-4 h-4 bg-yellow-200 text-yellow-600 text-[10px] font-bold flex items-center justify-center rounded-full">
-                  ₵
-                </span>
+               <img
+                      src="src/assets/Client/images/xudiem.png"
+                      alt="coin"
+                      className="w-4 h-4 object-contain"
+                    />
 
                 {'+' + Math.floor(payableAfterDiscount / 4000).toLocaleString('vi-VN')} điểm
               </span>
