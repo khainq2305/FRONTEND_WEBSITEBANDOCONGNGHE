@@ -523,7 +523,7 @@ wallet: {
     },
     productQuestion: {
       base: `${API_BASE_URL}/admin/product-questions`,
-      getAll: '/all',
+      getAll: '/',
       getById: (id) => `/${id}`,
       reply: (questionId) => `/reply/${questionId}`,
       toggleVisibility: (answerId) => `/answer/${answerId}/toggle`,

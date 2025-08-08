@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 import mascot from '@/assets/Client/images/Logo/snapedit_1749613755235.png';
 import { MessageCircle, Send, Clock, Shield, ChevronDown, ChevronRight } from 'lucide-react';
-
+import socket from "@/constants/socket";
 // Format time relatively
 const formatTime = (time) => {
   const t = new Date(time);
@@ -212,6 +212,26 @@ export default function ProductQA({ questions: initialQuestions = [], showAll, s
   const localUser = localStorage.getItem('user');
   const parsedUser = localUser ? JSON.parse(localUser) : null;
   const currentUser = userFromProps || parsedUser;
+  useEffect(() => {
+    socket.on("new-question", (question) => {
+      if (question.productId === productId) {
+        addNewQuestion(question);
+      }
+    });
+
+    socket.on("new-answer", (answer) => {
+      const qId = answer.questionId;
+      addReplyToQuestion(qId, {
+        ...answer,
+        replies: [],
+      }, answer.parentId);
+    });
+
+    return () => {
+      socket.off("new-question");
+      socket.off("new-answer");
+    };
+  }, [productId]);
 
   useEffect(() => {
     const autoCollapse = {};
@@ -336,7 +356,7 @@ export default function ProductQA({ questions: initialQuestions = [], showAll, s
 
       addNewQuestion(newQuestion);
       setInput('');
-      setCooldown(30);
+      setCooldown(5);
     } catch (error) {
       const message = error?.response?.data?.message || 'Gửi thất bại.';
       toast.error(message);

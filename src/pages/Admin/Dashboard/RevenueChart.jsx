@@ -41,7 +41,7 @@ export default function RevenueChart({ dateRange }) {
 
   if (loading)
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight={350}>
         <CircularProgress sx={{ color: "#1976d2" }} />
         <Typography variant="body1" sx={{ ml: 2, color: "text.secondary" }}>
           Đang tải biểu đồ...
@@ -50,7 +50,7 @@ export default function RevenueChart({ dateRange }) {
     )
   if (error)
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight={350}>
         <Typography color="error" variant="body1">
           {error}
         </Typography>
@@ -58,7 +58,7 @@ export default function RevenueChart({ dateRange }) {
     )
   if (!data || data.length === 0) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight={350}>
         <Typography variant="body1" color="text.secondary">
           Không có dữ liệu để hiển thị.
         </Typography>

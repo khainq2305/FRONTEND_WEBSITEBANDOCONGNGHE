@@ -33,6 +33,9 @@ const VerifyPinTokenAndSetPin = Loadable(lazy(() => import('pages/Client/Auth/Ve
 
 const ReturnOrderPage = Loadable(lazy(() => import('pages/Client/Auth/ReturnOrderDialog')));
 const OrderDetailPage = Loadable(lazy(() => import('pages/Client/Auth/OrderDetailPage')));
+
+const LuckyWheelPage = Loadable(lazy(() => import('pages/Client/MiniGame')));
+
 const ClientRoutes = {
   path: '/',
   element: <ClientLayout />,
@@ -92,8 +95,9 @@ const ClientRoutes = {
     { path: 'news/:id', element: <NewsDetails /> },
     { path: 'orderlookup', element: <OrderLookup /> },
     { path: 'compare-products', element: <ProductComparison /> },
-    { path: 'return-order', element: <ReturnOrderPage /> }
-    
+    { path: 'return-order', element: <ReturnOrderPage /> },
+    { path: 'mini-game', element: <LuckyWheelPage /> }
+
   ]
 };
 

@@ -4,7 +4,10 @@ import { API_ENDPOINT } from '../../config/apiEndpoints';
 const base = API_ENDPOINT.admin.productQuestion.base;
 
 export const productQuestionService = {
-    getAll: () => get(`${base}${API_ENDPOINT.admin.productQuestion.getAll}`),
+    getAll: (params = {}) => {
+        const query = new URLSearchParams(params).toString();
+        return get(`${base}${API_ENDPOINT.admin.productQuestion.getAll}?${query}`);
+    },
 
     getById: (id) => get(`${base}${API_ENDPOINT.admin.productQuestion.getById(id)}`),
 

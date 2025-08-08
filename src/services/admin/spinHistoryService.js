@@ -6,7 +6,7 @@ const base = API_ENDPOINT.admin.spinHistory.base;
 export const spinHistoryService = {
     getAll: (params = {}) => {
         const queryParams = new URLSearchParams(params).toString();
-        return get(`${base}${API_ENDPOINT.admin.spinHistory.list}?${queryParams}`);
+        return get(`${base}${API_ENDPOINT.admin.spinHistory.list}?${queryParams}`).then(res => res.data);
     },
     getById: (id) => get(`${base}${API_ENDPOINT.admin.spinHistory.getById(id)}`),
 };

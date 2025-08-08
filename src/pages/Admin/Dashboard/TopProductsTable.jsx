@@ -49,24 +49,26 @@ export default function TopProductsTable({ dateRange }) {
 
   if (loading)
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight={250}>
         <CircularProgress sx={{ color: "#f57c00" }} />
         <Typography variant="body1" sx={{ ml: 2, color: "text.secondary" }}>
           Đang tải dữ liệu bảng...
         </Typography>
       </Box>
     )
+
   if (error)
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight={250}>
         <Typography color="error" variant="body1">
           {error}
         </Typography>
       </Box>
     )
+
   if (!Array.isArray(products) || products.length === 0) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight={250}>
         <Typography variant="body1" color="text.secondary">
           Không có dữ liệu để hiển thị.
         </Typography>
@@ -100,16 +102,6 @@ export default function TopProductsTable({ dateRange }) {
               Sản phẩm
             </TableCell>
             <TableCell
-              sx={{
-                fontWeight: 600,
-                backgroundColor: "#f8f9fa",
-                borderBottom: "2px solid #e0e0e0",
-                fontSize: "0.875rem",
-              }}
-            >
-              Biến thể
-            </TableCell>
-            <TableCell
               align="right"
               sx={{
                 fontWeight: 600,
@@ -134,7 +126,7 @@ export default function TopProductsTable({ dateRange }) {
           </TableRow>
         </TableHead>
         <TableBody>
-          {products.map((product, index) => (
+          {products.map((product) => (
             <TableRow
               key={product.id}
               sx={{
@@ -173,11 +165,6 @@ export default function TopProductsTable({ dateRange }) {
                     {product.name}
                   </Typography>
                 </Box>
-              </TableCell>
-              <TableCell>
-                <Typography variant="body2" color="text.secondary">
-                  {product.variant}
-                </Typography>
               </TableCell>
               <TableCell align="right">
                 <Typography

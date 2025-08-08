@@ -22,6 +22,7 @@ const ClientLayout = () => {
     injectNavigate(navigate);
   }, [navigate]);
 
+<<<<<<< HEAD
 const isAuthPage = [
   '/dang-nhap',
   '/dang-ky',
@@ -36,6 +37,17 @@ const isAuthPage = [
 ].includes(location.pathname);
 
 
+=======
+  const isAuthPage = [
+    '/dang-nhap',
+    '/dang-ky',
+    '/quen-mat-khau',
+    '/dat-lai-mat-khau',
+    '/otp-verification',
+    '/forgot-password-notice',
+    '/register-email-sent'
+  ].includes(location.pathname);
+>>>>>>> 6e4a132 ([Client-Admin] - FIX MiniGame)
 
   const isComparePage = location.pathname.startsWith('/compare-products');
 
@@ -43,6 +55,19 @@ const isAuthPage = [
     (location.pathname.startsWith('/category/') && location.pathname.split('/').length > 2) ||
     (location.pathname.startsWith('/product/') && location.pathname.split('/').length > 2);
 
+  // ✅ THÊM BIẾN KIỂM TRA TRANG MINI-GAME
+  const isMiniGamePage = location.pathname === '/mini-game';
+
+  // ✅ LOGIC ĐIỀU KIỆN MỚI: Nếu là trang mini-game, chỉ render Outlet.
+  if (isMiniGamePage) {
+    return (
+      <main>
+        <Outlet />
+      </main>
+    );
+  }
+
+  // ✅ LOGIC HIỂN THỊ LAYOUT ĐẦY ĐỦ CHO CÁC TRANG CÒN LẠI
   return (
     <div className="bg-gray-100 min-h-screen text-gray-900">
       {isAuthPage ? (
@@ -56,11 +81,6 @@ const isAuthPage = [
 
       <main>
         <Outlet />
-        {/*
-          Giữ nguyên điều kiện chỉ hiển thị trên trang danh mục/chi tiết sản phẩm
-          VÀ KHÔNG phải trang so sánh.
-          Bỏ prop forceCollapsed. CompareBar sẽ tự quản lý trạng thái mở/đóng.
-        */}
         {!isComparePage && isCategoryOrProductDetail && (
           <CompareBar />
         )}

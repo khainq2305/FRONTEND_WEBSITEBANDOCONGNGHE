@@ -46,11 +46,13 @@
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
     "dompurify": "^3.2.6",
+    "dom-to-image": "^2.6.0",
     "file-saver": "^2.0.5",
     "firebase": "^11.10.0",
     "formik": "^2.4.6",
     "framer-motion": "^11.18.2",
     "install": "^0.13.0",
+    "jspdf": "^3.0.1",
     "leaflet": "^1.7.1",
     "lottie-react": "^2.4.1",
     "lucide-react": "^0.510.0",
@@ -103,8 +105,9 @@
     "vite": "^6.3.5",
     "vite-jsconfig-paths": "^2.0.1",
     "web-vitals": "^5.0.1",
+    "xlsx": "^0.18.5",
     "yup": "^1.4.0",
-    "zustand": "^5.0.5"
+    "zustand": "^5.0.7"
   },
   "scripts": {
     "start": "vite",
