@@ -22,7 +22,6 @@ const ClientLayout = () => {
     injectNavigate(navigate);
   }, [navigate]);
 
-<<<<<<< HEAD
 const isAuthPage = [
   '/dang-nhap',
   '/dang-ky',
@@ -37,17 +36,6 @@ const isAuthPage = [
 ].includes(location.pathname);
 
 
-=======
-  const isAuthPage = [
-    '/dang-nhap',
-    '/dang-ky',
-    '/quen-mat-khau',
-    '/dat-lai-mat-khau',
-    '/otp-verification',
-    '/forgot-password-notice',
-    '/register-email-sent'
-  ].includes(location.pathname);
->>>>>>> 6e4a132 ([Client-Admin] - FIX MiniGame)
 
   const isComparePage = location.pathname.startsWith('/compare-products');
 
