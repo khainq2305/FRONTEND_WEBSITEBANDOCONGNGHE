@@ -5,11 +5,13 @@ const base = API_ENDPOINT.admin.returnRefund.base;
 
 export const returnRefundService = {
   // TRẢ HÀNG
-  getReturnsByOrder: (orderId) => {
-    const url = `${base}${API_ENDPOINT.admin.returnRefund.getReturnsByOrder(orderId)}`;
-    console.log(`📡 Lấy danh sách trả hàng theo order: ${url}`);
-    return get(url);
-  },
+getReturnsByOrder: (orderId, params = {}) => {
+  const url = `${base}${API_ENDPOINT.admin.returnRefund.getReturnsByOrder(orderId)}`;
+  console.log(`📡 Lấy danh sách trả hàng theo order: ${url}`, params);
+ return get(url, params); // ✅ CHUẨN → sẽ ra ?search=...,&status=...
+
+},
+
  updateReturnStatus: (id, payload) => {
   const url = `${base}${API_ENDPOINT.admin.returnRefund.updateReturnStatus(id)}`;
   console.log(`📡 Cập nhật trạng thái trả hàng: ${url}`, payload);

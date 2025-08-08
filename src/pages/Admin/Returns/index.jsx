@@ -1,12 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import {
     Button, Box, Typography, Paper, Table, TableHead,
     TableRow, TableCell, TableBody, CircularProgress, Chip,
     Dialog, DialogTitle, DialogContent, DialogContentText, TextField, DialogActions,
-    Radio, RadioGroup, FormControlLabel, FormControl, FormLabel
+    Radio, RadioGroup, FormControlLabel, FormControl, FormLabel,
+    TableContainer, Tooltip
 } from '@mui/material';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { returnRefundService } from '../../../services/admin/returnRefundService';
 import { useNavigate } from 'react-router-dom';
+import MUIPagination from '../../../components/common/Pagination';
+import SearchInput from '../../../components/common/SearchInput';
+import HighlightText from '../../../components/Admin/HighlightText';
+import Breadcrumb from '../../../components/common/Breadcrumb';
 
 const statusColors = {
     pending: 'warning',
@@ -15,22 +21,38 @@ const statusColors = {
     awaiting_pickup: 'warning',
     pickup_booked: 'info',
     received: 'success',
-    refunded: 'default'
+    refunded: 'default',
+    cancelled: 'default',
+    '': 'gray'
 };
+
 const labelMap = {
     pending: 'Chờ duyệt',
     approved: 'Đã duyệt',
     rejected: 'Từ chối',
     awaiting_pickup: 'Chờ gửi hàng',
-    pickup_booked: 'GHN đã lấy',
+    pickup_booked: 'Đang hoàn hàng',
     received: 'Đã nhận hàng',
-    refunded: 'Đã hoàn tiền'
+    refunded: 'Đã hoàn tiền',
+    cancelled: 'Đã hủy',
+    '': 'Tất cả'
 };
+const statusTabColors = {
+    '': '#9e9e9e',
+    pending: '#ffa726',
+    approved: '#29b6f6',
+    rejected: '#ef5350',
+    awaiting_pickup: '#ffb300',
+    pickup_booked: '#42a5f5',
+    received: '#66bb6a',
+    refunded: '#607d8b',
+    cancelled: '#b0bec5'
+};
+
 const StatusChip = ({ status }) => (
     <Chip label={labelMap[status] || status} color={statusColors[status] || 'default'} size="small" />
 );
 
-// Định nghĩa các lý do từ chối có sẵn (vẫn cần ở đây cho dialog từ chối)
 const rejectReasonsOptions = [
     { id: 'INVALID_PROOF', label: 'Bằng chứng không rõ ràng/không hợp lệ' },
     { id: 'OUT_OF_POLICY', label: 'Yêu cầu nằm ngoài chính sách đổi trả' },
@@ -45,26 +67,53 @@ const OrderReturnRefund = () => {
     const [returns, setReturns] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // States cho dialog từ chối (vẫn giữ nguyên)
     const [openRejectDialog, setOpenRejectDialog] = useState(false);
     const [currentReturnIdToReject, setCurrentReturnIdToReject] = useState(null);
     const [selectedRejectReasonOption, setSelectedRejectReasonOption] = useState('');
     const [customRejectReason, setCustomRejectReason] = useState('');
     const [rejectReasonError, setRejectReasonError] = useState(false);
 
-    const refreshLists = async () => {
+    // Filter states
+    const [search, setSearch] = useState('');
+    const [status, setStatus] = useState('');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    const [page, setPage] = useState(1);
+    const itemsPerPage = 10;
+    const [totalItems, setTotalItems] = useState(0);
+
+    const [statusStats, setStatusStats] = useState([]);
+
+    const fetchReturns = useCallback(async () => {
+        setLoading(true);
         try {
-            const resReturns = await returnRefundService.getReturnsByOrder(0);
-            setReturns(resReturns.data.data);
-            console.log('🪵 Trả hàng mới:', resReturns.data.data);
+            const { data } = await returnRefundService.getReturnsByOrder(0, {
+                page,
+                limit: itemsPerPage,
+                search,
+                status,
+                startDate,
+                endDate
+            });
+            setReturns(data.data || []);
+            setTotalItems(data.totalItems || 0);
+            setStatusStats(data.statusStats || []);
         } catch (error) {
             console.error("Lỗi khi tải danh sách:", error);
         } finally {
             setLoading(false);
         }
+    }, [page, search, status, startDate, endDate]);
+
+
+    useEffect(() => {
+        fetchReturns();
+    }, [search, status, startDate, endDate, page, fetchReturns]);
+    const handleFilterChange = (setter, value) => {
+        setter(value);
+        setPage(1);
     };
 
-    // Hàm mở dialog từ chối (vẫn giữ nguyên)
     const handleOpenRejectDialog = (id) => {
         setCurrentReturnIdToReject(id);
         setSelectedRejectReasonOption('');
@@ -73,7 +122,6 @@ const OrderReturnRefund = () => {
         setOpenRejectDialog(true);
     };
 
-    // Hàm đóng dialog từ chối (vẫn giữ nguyên)
     const handleCloseRejectDialog = () => {
         setOpenRejectDialog(false);
         setCurrentReturnIdToReject(null);
@@ -82,10 +130,8 @@ const OrderReturnRefund = () => {
         setRejectReasonError(false);
     };
 
-    // Hàm xử lý khi xác nhận từ chối trong dialog (vẫn giữ nguyên)
     const handleConfirmReject = async () => {
         let finalRejectReason = '';
-
         if (selectedRejectReasonOption === 'OTHER') {
             finalRejectReason = customRejectReason.trim();
         } else if (selectedRejectReasonOption) {
@@ -97,23 +143,39 @@ const OrderReturnRefund = () => {
             return;
         }
 
-        console.log("📤 Gửi update status (Từ chối):", currentReturnIdToReject, 'rejected', "Lý do:", finalRejectReason);
         await returnRefundService.updateReturnStatus(currentReturnIdToReject, { status: 'rejected', responseNote: finalRejectReason });
-
         handleCloseRejectDialog();
-        await refreshLists();
+        await fetchReturns();
     };
-
-    // Loại bỏ hàm handleUpdateReturn cũ và handleUpdateRefund
 
     const handleViewDetail = (returnId) => {
         navigate(`/admin/return-requests/${returnId}`);
     };
 
-    useEffect(() => {
-        setLoading(true);
-        refreshLists();
-    }, []);
+    const statusTabs = useMemo(() => {
+        const allStatus = [
+            { value: '', label: 'Tất cả' },
+            { value: 'pending', label: 'Chờ duyệt' },
+            { value: 'approved', label: 'Đã duyệt' },
+            { value: 'rejected', label: 'Từ chối' },
+            { value: 'awaiting_pickup', label: 'Chờ gửi hàng' },
+            { value: 'pickup_booked', label: 'Đang hoàn hàng' },
+
+            { value: 'received', label: 'Đã nhận hàng' },
+            { value: 'refunded', label: 'Đã hoàn tiền' },
+        ];
+        const totalCount = statusStats.reduce((sum, stat) => sum + stat.count, 0);
+
+        return allStatus.map(s => {
+            const stats = statusStats.find(stat => stat.status === s.value);
+            const count = stats ? stats.count : 0;
+            return {
+                value: s.value,
+                label: `${s.label} (${s.value === '' ? totalCount : count})`,
+                color: statusColors[s.value] || 'gray'
+            };
+        });
+    }, [statusStats]);
 
     if (loading)
         return (
@@ -124,42 +186,145 @@ const OrderReturnRefund = () => {
 
     return (
         <Box sx={{ mt: 4 }}>
-            <Paper sx={{ p: 2, mb: 4 }}>
-                <Typography variant="h6" gutterBottom>Danh sách yêu cầu trả hàng</Typography>
-                {returns.length ? (
-                    <Table size="small">
-                        <TableHead>
+            <Breadcrumb
+                items={[
+                    { label: 'Trang chủ', href: '/admin' },
+                    { label: 'Đơn trả hàng', href: '/admin/return-requests' }
+                ]}
+            />
+
+
+            <Box
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2,
+                    p: 4,
+                    mt: 2,
+                    mb: 2,
+                    border: '1px solid #eee',
+                    borderRadius: 2,
+                    backgroundColor: '#fafafa'
+                }}
+            >
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    {statusTabs.map((tab) => {
+                        const isActive = status === tab.value;
+                        return (
+                            <Box
+                                key={tab.value}
+                                onClick={() => handleFilterChange(setStatus, tab.value)}
+                                sx={{
+                                    cursor: 'pointer',
+                                    px: 1.5,
+                                    py: 1,
+                                    borderRadius: '20px',
+                                    fontSize: 13,
+                                    fontWeight: isActive ? 600 : 500,
+                                    textAlign: 'center',
+                                    minWidth: 90,
+                                    backgroundColor: isActive ? statusTabColors[tab.value] : '#f5f5f5',
+                                    color: isActive ? '#fff' : '#333',
+                                    border: `1px solid ${statusTabColors[tab.value]}`,
+                                    transition: '0.2s ease-in-out',
+                                    '&:hover': {
+                                        backgroundColor: statusTabColors[tab.value],
+                                        color: '#fff',
+                                        boxShadow: `0 0 4px ${statusTabColors[tab.value]}88`
+                                    }
+                                }}
+                            >
+                                {tab.label}
+                            </Box>
+
+                        );
+                    })}
+                </Box>
+                <Box sx={{ display: 'flex', mt: 2, alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}>
+                    <SearchInput
+                        value={search}
+                        onChange={(val) => handleFilterChange(setSearch, val)}
+                        placeholder="Tìm kiếm mã đơn / yêu cầu"
+                        sx={{ flex: 1, minWidth: '240px', height: 40 }}
+                    />
+
+                    <TextField
+                        label="Từ ngày"
+                        type="date"
+                        size="small"
+                        InputLabelProps={{ shrink: true }}
+                        sx={{ width: '150px', height: 40 }}
+                        value={startDate}
+                        onChange={(e) => handleFilterChange(setStartDate, e.target.value)}
+                    />
+                    <TextField
+                        label="Đến ngày"
+                        type="date"
+                        size="small"
+                        InputLabelProps={{ shrink: true }}
+                        sx={{ width: '150px', height: 40 }}
+                        value={endDate}
+                        onChange={(e) => handleFilterChange(setEndDate, e.target.value)}
+                    />
+                </Box>
+            </Box>
+
+            <TableContainer component={Paper}>
+                <Table size="small">
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>STT</TableCell>
+                            <TableCell>Mã yêu cầu</TableCell>
+                            <TableCell>Mã đơn hàng</TableCell>
+                            <TableCell>Trạng thái</TableCell>
+                            <TableCell>Ngày gửi</TableCell>
+                            <TableCell>Hành động</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {loading ? (
                             <TableRow>
-                                <TableCell>STT</TableCell>
-                                <TableCell>Mã yêu cầu</TableCell>
-                                <TableCell>Mã đơn hàng</TableCell>
-                                <TableCell>Trạng thái</TableCell>
-                                <TableCell>Ngày gửi</TableCell>
-                                <TableCell>Hành động</TableCell>
+                                <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                                    <CircularProgress size={24} />
+                                </TableCell>
                             </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {returns.map((it, i) => (
+                        ) : returns.length ? (
+                            returns.map((it, i) => (
                                 <TableRow key={it.id}>
-                                    <TableCell>{i + 1}</TableCell>
-                                    <TableCell>{it.returnCode || '—'}</TableCell>
-                                    <TableCell>{it.order?.orderCode || '—'}</TableCell>
+                                    <TableCell>{(page - 1) * itemsPerPage + i + 1}</TableCell>
+                                    <TableCell>
+                                        <HighlightText text={it.returnCode || '—'} highlight={search} />
+                                    </TableCell>
+
+                                    <TableCell>
+                                        <HighlightText text={it.order?.orderCode || '—'} highlight={search} />
+                                    </TableCell>
+
                                     <TableCell><StatusChip status={it.status} /></TableCell>
                                     <TableCell>{new Date(it.createdAt).toLocaleString('vi-VN')}</TableCell>
                                     <TableCell>
-                                        {/* Chỉ có nút Xem chi tiết. Các hành động duyệt/từ chối/nhận hàng sẽ ở trang chi tiết */}
                                         <Button size="small" variant="outlined" onClick={() => handleViewDetail(it.id)}>
                                             Xem chi tiết
                                         </Button>
                                     </TableCell>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                ) : <Typography>Không có yêu cầu trả hàng nào.</Typography>}
-            </Paper>
+                            ))
+                        ) : <TableRow><TableCell colSpan={6} align="center"><Typography>Không có yêu cầu trả hàng nào.</Typography></TableCell></TableRow>}
+                    </TableBody>
+                </Table>
+            </TableContainer>
 
-            {/* Dialog Từ Chối Yêu Cầu Trả Hàng (Giữ nguyên ở đây, vì từ chối có thể là hành động nhanh từ danh sách nếu không cần chi tiết quá) */}
+            {totalItems > itemsPerPage && (
+                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+                    <MUIPagination
+                        currentPage={page}
+                        totalItems={totalItems}
+                        itemsPerPage={itemsPerPage}
+                        onPageChange={setPage}
+                    />
+                </Box>
+            )}
+
             <Dialog open={openRejectDialog} onClose={handleCloseRejectDialog}>
                 <DialogTitle>Từ chối yêu cầu trả hàng</DialogTitle>
                 <DialogContent>
@@ -222,7 +387,7 @@ const OrderReturnRefund = () => {
                             sx={{ mt: 2 }}
                         />
                     )}
-                     {rejectReasonError && selectedRejectReasonOption === 'OTHER' && !customRejectReason.trim() && (
+                    {rejectReasonError && selectedRejectReasonOption === 'OTHER' && !customRejectReason.trim() && (
                         <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
                             {rejectReasonError && !customRejectReason.trim() ? 'Vui lòng nhập lý do chi tiết.' : ''}
                         </Typography>

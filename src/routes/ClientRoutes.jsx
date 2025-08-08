@@ -29,6 +29,7 @@ const ProductComparison = Loadable(lazy(() => import('pages/Client/CompareProduc
 const ReturnOrderDetailPage = Loadable(lazy(() => import('pages/Client/Auth/ReturnOrderDetailPage')));
 const ReturnMethodPage = Loadable(lazy(() => import('@/pages/Client/Auth/ReturnMethodPage'))); 
 const SearchResult = Loadable(lazy(() => import('pages/Client/SearchResult')));
+const VerifyPinTokenAndSetPin = Loadable(lazy(() => import('pages/Client/Auth/VerifyPinTokenAndSetPin')));
 
 const ReturnOrderPage = Loadable(lazy(() => import('pages/Client/Auth/ReturnOrderDialog')));
 const OrderDetailPage = Loadable(lazy(() => import('pages/Client/Auth/OrderDetailPage')));
@@ -47,12 +48,18 @@ const ClientRoutes = {
       path: 'dang-ky',
       element: <SignPage />
     },
+    
     { path: 'san-pham-da-xem', element: <ViewedProductsPage /> },
     { path: 'quen-mat-khau', element: <ForgotPasswordPage /> },
     {
       path: 'forgot-password-notice',
       element: <ForgotPasswordNotice />
     },
+    {
+  path: 'xac-minh-ma-pin',
+  element: <VerifyPinTokenAndSetPin />
+},
+
     { path: 'dat-lai-mat-khau', element: <ResetPasswordPage /> },
     {
       path: 'user-profile',
@@ -86,6 +93,7 @@ const ClientRoutes = {
     { path: 'orderlookup', element: <OrderLookup /> },
     { path: 'compare-products', element: <ProductComparison /> },
     { path: 'return-order', element: <ReturnOrderPage /> }
+    
   ]
 };
 

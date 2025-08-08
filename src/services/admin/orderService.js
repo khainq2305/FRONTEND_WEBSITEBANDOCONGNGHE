@@ -10,16 +10,18 @@ export const orderService = {
   },
 
   getById: (id) => {
-    const url = `${base}${API_ENDPOINT.admin.order.getById.replace(':id', id)}`;
+    const url = `${API_ENDPOINT.admin.order.base}${API_ENDPOINT.admin.order.getById(id)}`;
+
     console.log(`📡 Gọi API chi tiết đơn hàng: ${url}`);
     return get(url);
   },
 
-  updateStatus: (id, status) => {
-    const url = `${base}${API_ENDPOINT.admin.order.updateStatus(id)}`;
-    console.log(`📡 Gọi API cập nhật trạng thái đơn hàng: ${url}`, status);
-    return put(url, { status });
-  },
+  updateStatus: (id, data) => {
+  const url = `${base}${API_ENDPOINT.admin.order.updateStatus(id)}`;
+  console.log(`📡 Gọi API cập nhật trạng thái đơn hàng: ${url}`, data);
+  return put(url, data); // truyền object { status, cancelReason }
+},
+
 
   updatePaymentStatus: (orderId, paymentStatus) => {
     const url = `${base}${API_ENDPOINT.admin.order.updatePaymentStatus(orderId)}`;

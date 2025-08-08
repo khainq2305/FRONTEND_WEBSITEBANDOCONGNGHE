@@ -121,10 +121,13 @@ export const API_ENDPOINT = {
       uploadProof: (orderId) => `/${orderId}/proof`,
       viettelMoney: '/viettel-money',
       stripePay: '/stripe',
-      updatePaymentStatus: (orderId) => `/${orderId}/update-payment-status`, // Assuming this is a payment-specific status update
+      payosPay: '/payos',
+      payosWebhook: '/payos-webhook',
+
+      updatePaymentStatus: (orderId) => `/${orderId}/update-payment-status`,
       viettelMoneyCallback: '/viettel-money/callback',
       vietqrPay: '/generate-vietqr',
-      stripeWebhook: '/stripe-webhook' // This is a webhook, typically not accessed directly by frontend
+      stripeWebhook: '/stripe-webhook'
     },
     returnRefund: {
       base: `${API_BASE_URL}/return-refund`,
@@ -142,7 +145,7 @@ export const API_ENDPOINT = {
       byCategory: '/theo-danh-muc',
       calculateFee: '/calculate-fee'
     },
- search: {
+    search: {
       base: `${API_BASE_URL}`,
       search: '/search-by-image',
       history: '/search/history',
@@ -221,7 +224,26 @@ export const API_ENDPOINT = {
       history: '/history',
       claimTask: '/task'
     },
-  },
+wallet: {
+  base: `${API_BASE_URL}/wallet`,
+  balance: '', // GET /
+  transactions: '/transactions',
+
+  // 👉 Thiết lập PIN
+  sendPinVerification: '/send-pin-verification',
+  verifyPinToken: '/verify-pin-token',
+  setPin: '/set-pin',
+  pinCooldown: '/pin-cooldown',
+  verifyPinAndBalance: '/verify-pin-and-balance',
+
+  // ✅ Thêm mới - Quên & đổi mã PIN
+  sendForgotPin: '/pin/send-forgot',
+  verifyForgotPinToken: '/pin/verify-forgot',
+  resetPin: '/pin/reset',
+  changePin: '/pin/change'
+}
+,
+},
   admin: {
     permissions: {
       base: `${API_BASE_URL}/admin/permissions`,
@@ -266,7 +288,7 @@ export const API_ENDPOINT = {
       forceDelete: (id) => `/product/force/${id}`,
       updateOrderIndexBulk: '/product/update-order'
     },
-      product: {
+    product: {
       base: `${API_BASE_URL}/admin/products`,
       create: '/create',
       list: '/list',
@@ -416,7 +438,7 @@ export const API_ENDPOINT = {
       reorder: '/reorder'
     },
 
-   flashSale: {
+    flashSale: {
       base: `${API_BASE_URL}/admin/flash-sales`,
       list: '/list',
       create: '/create',

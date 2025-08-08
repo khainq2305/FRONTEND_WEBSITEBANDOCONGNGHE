@@ -29,6 +29,10 @@ export const paymentService = {
   generateVietQR: (payload) => {
     return post(`${base}/generate-vietqr`, payload);
   },
+    payosPay: (payload) => {
+    return post(`${base}${API_ENDPOINT.client.payment.payosPay}`, payload);
+  },
+
   uploadProof: (orderId, formData) => {
     return post(`${base}${API_ENDPOINT.client.payment.uploadProof(orderId)}`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }

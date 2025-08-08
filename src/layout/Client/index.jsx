@@ -30,6 +30,7 @@ const isAuthPage = [
   '/otp-verification',
   '/forgot-password-notice',
   '/register-email-sent',
+  '/xac-minh-ma-pin', 
   '/cart',
   '/checkout'
 ].includes(location.pathname);

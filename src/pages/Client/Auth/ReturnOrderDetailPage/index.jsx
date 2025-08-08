@@ -2,17 +2,27 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Box, Typography, Button, Chip, Grid, IconButton } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'; // Icon cho bước hoàn thành
-import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord'; // Icon cho chấm tròn
-import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'; // Icon cho trạng thái hủy/lỗi
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
+import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import { toast } from 'react-toastify';
 import { returnRefundService } from '@/services/client/returnRefundService';
 import Loader from '@/components/common/Loader';
 import { formatCurrencyVND } from '@/utils/formatCurrency';
-import { format }  from 'date-fns';
+import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import { confirmDelete } from '../../../../components/common/ConfirmDeleteDialog';
 
-// Hàm giả định để lấy icon phương thức thanh toán (giữ nguyên)
+import ReturnCancelledImage from '@/assets/Client/images/20190219_iPx0I4QFCANpK9p1EgnkeFlV.png';
+const rejectReasonsOptions = [
+  { id: 'INVALID_PROOF', label: 'Bằng chứng không rõ ràng/không hợp lệ' },
+  { id: 'OUT_OF_POLICY', label: 'Yêu cầu nằm ngoài chính sách đổi trả' },
+  { id: 'WRONG_ITEM_RETURNED', label: 'Sản phẩm gửi về không đúng với yêu cầu' },
+  { id: 'DAMAGED_BY_CUSTOMER', label: 'Sản phẩm bị lỗi do người mua' },
+  { id: 'OVER_TIME_LIMIT', label: 'Đã quá thời hạn yêu cầu đổi trả' },
+  { id: 'OTHER', label: 'Lý do khác' }
+];
+
 const getPaymentMethodIcon = (bankName) => {
     if (!bankName) return null;
     const lowerCaseBankName = bankName.toLowerCase();
@@ -45,6 +55,19 @@ const ReturnOrderDetailPage = () => {
             }
         })();
     }, [id, navigate]);
+const handleCancelRequest = async () => {
+  const confirmed = await confirmDelete('hủy', 'yêu cầu trả hàng này');
+  if (!confirmed) return;
+
+  try {
+    await returnRefundService.cancelReturnRequest(id);
+    toast.success('Đã hủy yêu cầu trả hàng');
+    navigate(0);
+  } catch (err) {
+    console.error('❌ Lỗi khi hủy yêu cầu:', err);
+    toast.error('Không thể hủy yêu cầu lúc này');
+  }
+};
 
     if (loading) return <Loader fullscreen />;
     if (!data) return (
@@ -55,38 +78,39 @@ const ReturnOrderDetailPage = () => {
     );
 
     const {
-        status, 
-        createdAt, // Lấy từ API
+        status,
+        createdAt,
         reason,
         detailedReason,
-        refundAmount, // Tổng số tiền hoàn lại
-        items, // Các sản phẩm trong yêu cầu trả hàng
+        refundAmount,
+        items,
         bankName,
         accountNumber,
         accountHolderName,
         refundEmail,
-       evidenceImages: images,
-  evidenceVideos: videos,
-        order, // Đơn hàng gốc
-        returnCode // Giả định trường này có từ API getReturnRequestDetail
+        evidenceImages: images,
+        evidenceVideos: videos,
+        order,
+        returnCode
     } = data;
 
-    // Logic cho thanh tiến trình (giữ nguyên)
-    const progressSteps = ['Trả hàng', 'Kiểm tra hàng hoàn', 'Hoàn tiền'];
+
+    const progressSteps = ['CYBERZONE đang xem xét', 'Trả hàng', 'Kiểm tra hàng hoàn', 'Hoàn tiền'];
+
     let currentStepIndex = 0;
 
-    if (['pending', 'approved', 'awaiting_pickup', 'pickup_booked', 'returning'].includes(status)) {
+    if (status === 'pending') {
         currentStepIndex = 0;
-    } 
-    if (status === 'received') {
+    } else if (['approved', 'awaiting_pickup', 'pickup_booked', 'returning'].includes(status)) {
         currentStepIndex = 1;
-    } 
-    if (['refunded', 'completed'].includes(status)) {
+    } else if (status === 'received') {
         currentStepIndex = 2;
+    } else if (['refunded', 'completed'].includes(status)) {
+        currentStepIndex = 3;
+    } else if (['rejected', 'cancelled', 'failed'].includes(status)) {
+        currentStepIndex = -1;
     }
-    if (['rejected', 'cancelled', 'failed'].includes(status)) {
-        currentStepIndex = -1; 
-    }
+
 
     const getStatusChipColor = (currentStatus) => {
         switch (currentStatus) {
@@ -109,32 +133,43 @@ const ReturnOrderDetailPage = () => {
                 return 'default';
         }
     };
-    
-    // Ánh xạ lý do trả hàng từ mã sang văn bản dễ đọc
-    const getReasonText = (reasonCode) => {
-        switch(reasonCode) {
-            case 'WRONG_SIZE_COLOR': return 'Sai kích thước/màu sắc';
-            case 'DEFECTIVE_PRODUCT': return 'Sản phẩm bị lỗi';
-            case 'NOT_AS_DESCRIBED': return 'Không đúng mô tả';
-            case 'MISSING_PARTS': return 'Thiếu linh kiện/phụ kiện';
-            case 'OTHER': return detailedReason || 'Lý do khác';
-            default: return reasonCode; // Trả về mã nếu không khớp
-        }
-    }
 
-    // Xử lý `images` và `videos` từ chuỗi comma-separated sang mảng URL
- // Xử lý `images` và `videos` dù là chuỗi đơn hay nhiều cái
-const imageUrls = images
-  ? (images.includes(',') ? images.split(',').map(s => s.trim()) : [images.trim()])
-  : [];
 
-const videoUrls = videos
-  ? (videos.includes(',') ? videos.split(',').map(s => s.trim()) : [videos.trim()])
-  : [];
+  const getReasonText = (reasonCode) => {
+  switch (reasonCode) {
+    case 'WRONG_SIZE_COLOR':
+      return 'Nhận sai kích cỡ, màu sắc, hoặc sai sản phẩm';
+    case 'NOT_AS_DESCRIBED':
+      return 'Sản phẩm khác với mô tả của shop';
+    case 'DEFECTIVE':
+      return 'Sản phẩm bị lỗi, hư hỏng, không hoạt động';
+    case 'CHANGE_MIND':
+      return 'Không còn nhu cầu mua nữa';
+    case 'OTHER':
+      return detailedReason || 'Lý do khác (vui lòng mô tả bên dưới)';
+    default:
+      return reasonCode;
+  }
+};
 
+
+
+    const imageUrls = images
+        ? (images.includes(',') ? images.split(',').map(s => s.trim()) : [images.trim()])
+        : [];
+
+    const videoUrls = videos
+        ? (videos.includes(',') ? videos.split(',').map(s => s.trim()) : [videos.trim()])
+        : [];
+
+
+const stepPercent = 100 / (progressSteps.length - 1);
+const dotPx = 16; // hoặc w-4
+const containerWidth = 100; // %
+const extraOffsetPercent = (dotPx / 2 / containerWidth) * 100; // = 8px / tổng width
     return (
         <Box className="max-w-4xl mx-auto bg-white p-6 shadow-lg rounded-lg mb-10">
-            {/* Header với nút quay lại và thông tin chung trên cùng */}
+
             <Box className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
                 <Box className="flex items-center">
                     <IconButton onClick={() => navigate(-1)} className="mr-2 p-1">
@@ -142,94 +177,130 @@ const videoUrls = videos
                     </IconButton>
                     <Typography variant="h6" className="font-bold text-gray-800">QUAY LẠI</Typography>
                 </Box>
-                {/* Thông tin Mã Yêu Cầu và Hoàn Tiền Vào */}
+
                 <Box className="flex items-center text-sm text-gray-600">
                     <Typography className="font-semibold text-gray-800">
                         Mã Yêu Cầu: {returnCode || 'N/A'}
                     </Typography>
                     <span className="mx-2">|</span>
-                    {/* Sử dụng data.createdAt hoặc data.updatedAt tùy thuộc vào trường bạn muốn hiển thị */}
-                    <Typography>
-                        Hoàn Tiền Vào: {data.createdAt ? format(new Date(data.createdAt), 'HH:mm dd ThMM yyyy', { locale: vi }) : 'N/A'}
-                    </Typography>
+
+                   <Typography>
+  Hoàn Tiền Vào: 
+  {data.refundRequest?.refundedAt 
+    ? format(new Date(data.refundRequest.refundedAt), 'HH:mm dd \'tháng\' MM yyyy', { locale: vi }) 
+    : 'Chưa hoàn tiền'}
+</Typography>
+
                 </Box>
             </Box>
 
-            {/* Thanh tiến trình */}
-<Box className="mb-8 p-4 bg-white rounded-md">
-  {/* Wrapper giới hạn width chung */}
-  <Box className="relative mb-6 h-4 w-full max-w-4xl mx-auto">
-    {/* Line nền xám toàn bộ */}
-    <Box className="absolute top-1/2 left-[calc(16.66%-8px)] right-[calc(16.66%-8px)] h-0.5 bg-gray-300 transform -translate-y-1/2 z-0" />
 
-    {/* Line xanh tiến độ (CHUẨN, không vượt) */}
-    {currentStepIndex > 0 && (
-      <Box
-        className="absolute top-1/2 h-0.5 bg-green-500 transform -translate-y-1/2 z-10"
-        style={{
-          left: 'calc(16.66% - 8px)',
-          right: `calc(${(100 - 16.66 - (currentStepIndex * 33.33))}% + 8px)`,
-        }}
-      />
+{status === 'cancelled' ? (
+  <Box className="mb-8 p-4 bg-orange-50 rounded-md border border-orange-200">
+    <Typography className="text-red-600 font-semibold text-sm mb-1">
+      Yêu cầu đã bị huỷ
+    </Typography>
+    <Typography className="text-gray-600 text-sm">
+      {data.cancelledBy === 'user'
+        ? 'Bạn đã huỷ yêu cầu trả hàng hoàn tiền.'
+        : 'Yêu cầu của bạn đã bị huỷ bởi quản trị viên.'}
+    </Typography>
+
+    {data.responseNote && (
+      <Typography className="text-sm text-gray-800 mt-2">
+        <strong>Lý do huỷ:</strong> {data.responseNote}
+      </Typography>
     )}
+  </Box>
 
-    {/* Dot + Label */}
+
+) : (
+<Box className="mb-8 p-4 bg-white rounded-md">
+  <Box className="relative mb-6 h-4 w-full max-w-4xl mx-auto">
+    {/* Line xám chạy hết */}
+    <Box
+      className="absolute top-1/2 h-0.5 bg-gray-300 transform -translate-y-1/2 z-0"
+      style={{
+        left: '12.5%',
+        right: '12.5%',
+      }}
+    />
+
+{currentStepIndex > -1 && (
+<Box
+  className="absolute top-1/2 h-0.5 bg-green-500 transform -translate-y-1/2 z-10 transition-all duration-500 ease-in-out"
+  style={{
+    left: '12.5%',
+    right: `calc(${100 - stepPercent * currentStepIndex - 12.5}% + ${extraOffsetPercent}%)`,
+  }}
+/>
+)}
+
+
+
+    {/* Các bước: dot + text */}
     <Box className="relative flex justify-between items-center w-full z-20">
-      {progressSteps.map((step, index) => (
-        <Box key={step} className="flex flex-col items-center w-1/3">
-          <Box
-            className={`w-4 h-4 rounded-full mb-1 ${
-              index < currentStepIndex
-                ? 'bg-green-500'
-                : index === currentStepIndex
-                ? 'bg-orange-500'
-                : 'bg-gray-300'
-            }`}
-          />
-          <Typography
-            className={`text-[13px] text-center mt-2 whitespace-nowrap leading-tight ${
-              index === currentStepIndex ? 'text-orange-600 font-semibold' : 'text-gray-700'
-            }`}
-          >
-            {step}
-          </Typography>
-        </Box>
-      ))}
+      {progressSteps.map((step, index) => {
+        const isCompleted = index < currentStepIndex;
+        const isCurrent = index === currentStepIndex;
+
+        return (
+          <Box key={step} className="flex flex-col items-center w-1/4 z-20">
+           <Box
+  className={`w-4 h-4 rounded-full ${
+    isCompleted
+      ? 'bg-green-400'            // ✅ Đã hoàn thành
+      : isCurrent
+      ? 'bg-primary'            // ✅ Đang xử lý (hoặc 'bg-blue-400')
+      : 'bg-gray-300'            // ⬜ Chưa tới
+  }`}
+/>
+            <Typography
+  className={`text-[13px] text-center whitespace-nowrap leading-tight ${isCurrent ? 'text-primary font-bold' : 'text-gray-700'}`}
+  style={{ marginTop: '12px' }} // ← ép cách ra rõ
+>
+  {step}
+</Typography>
+
+          </Box>
+        );
+      })}
     </Box>
   </Box>
-
- 
 </Box>
-{/* Nếu hoàn tiền, hiển thị thông báo tương ứng */}
-{status === 'refunded' && (
-  <Box className="bg-orange-50 border border-orange-200 rounded-md px-4 py-3 mb-6">
-    <Typography className="text-orange-600 font-semibold mb-1">Đã hoàn tiền</Typography>
-    <Typography className="text-sm text-gray-800">
-      Số tiền {formatCurrencyVND(refundAmount)} sẽ được hoàn vào&nbsp;
-      {bankName
-        ? `tài khoản ${bankName} của bạn`
-        : 'Số dư TK của bạn'}
-      &nbsp;trong vòng 24 giờ.
-    </Typography>
-  </Box>
+
 )}
+
+            {/* Nếu hoàn tiền, hiển thị thông báo tương ứng */}
+            {status === 'refunded' && (
+                <Box className="bg-orange-50 border border-orange-200 rounded-md px-4 py-3 mb-6">
+                    <Typography className="text-orange-600 font-semibold mb-1">Đã hoàn tiền</Typography>
+                    <Typography className="text-sm text-gray-800">
+                        Số tiền {formatCurrencyVND(refundAmount)} sẽ được hoàn vào&nbsp;
+                        {bankName
+                            ? `tài khoản ${bankName} của bạn`
+                            : 'Số dư TK của bạn'}
+                        &nbsp;trong vòng 24 giờ.
+                    </Typography>
+                </Box>
+            )}
 
 
             {/* Thông tin sản phẩm */}
             <Box className="my-6 p-4 border border-gray-200 rounded-md">
-                {items.map(item => { 
-                    // 'items' là ReturnRequestItem, đã có sku.product và sku được include từ API
+                {items.map(item => {
+
                     const matchedOrderItem = order?.items?.find(oi => oi.skuId === item.skuId);
-const itemPrice = matchedOrderItem?.price || 0;
+                    const itemPrice = matchedOrderItem?.price || 0;
 
                     const productName = item.sku?.product?.name || 'Sản phẩm không tồn tại';
                     const productThumbnail = item.sku?.product?.thumbnail || 'https://via.placeholder.com/80';
                     const productVariation = item.sku?.variation;
-                    
+
                     return (
                         <Box key={item.id} className="flex items-center gap-4 py-3 border-b border-gray-100 last:border-b-0">
                             <img
-                                src={productThumbnail} 
+                                src={productThumbnail}
                                 alt={productName}
                                 className="w-20 h-20 object-cover rounded-md border border-gray-200"
                             />
@@ -243,7 +314,7 @@ const itemPrice = matchedOrderItem?.price || 0;
                                 </Typography>
                             </Box>
                             <Box className="text-right">
-                                {/* Hiển thị giá sản phẩm theo ảnh mẫu (giả định 0 đ nếu không muốn hiện giá thật) */}
+
                                 <Typography className="font-semibold text-base text-red-600">
                                     {formatCurrencyVND(itemPrice)}
                                 </Typography>
@@ -251,25 +322,25 @@ const itemPrice = matchedOrderItem?.price || 0;
                         </Box>
                     );
                 })}
-                {/* Phần "Số tiền hoàn nhận được" và "Hoàn tiền vào" */}
-                <Box className="pt-4 mt-4 flex justify-end"> {/* Loại bỏ border-t nếu muốn tách biệt hoàn toàn */}
-                    <Grid container spacing={0} className="w-full sm:w-[350px]"> {/* Điều chỉnh width để khớp ảnh */}
+
+                <Box className="pt-4 mt-4 flex justify-end">
+                    <Grid container spacing={0} className="w-full sm:w-[350px]">
                         <Grid item xs={6} className="text-gray-600 text-sm">Số tiền hoàn nhận được</Grid>
                         <Grid item xs={6} className="text-right font-semibold text-red-500 text-sm">
                             {formatCurrencyVND(refundAmount)}
                         </Grid>
                         <Grid item xs={6} className="text-gray-600 text-sm mt-1">Hoàn tiền vào</Grid>
-                      <Grid item xs={6} className="text-right font-semibold text-gray-800 text-sm mt-1">
-  {order?.paymentMethod === 'momo'
-    ? 'Ví MoMo'
-    : order?.paymentMethod === 'zalopay'
-    ? 'Ví ZaloPay'
-    : order?.paymentMethod === 'cod'
-    ? 'Thanh toán khi nhận hàng'
-    : order?.paymentMethod === 'bank'
-    ? 'Chuyển khoản ngân hàng'
-    : 'Không rõ'}
-</Grid>
+                        <Grid item xs={6} className="text-right font-semibold text-gray-800 text-sm mt-1">
+                            {order?.paymentMethod === 'momo'
+                                ? 'Ví MoMo'
+                                : order?.paymentMethod === 'zalopay'
+                                    ? 'Ví ZaloPay'
+                                    : order?.paymentMethod === 'cod'
+                                        ? 'Thanh toán khi nhận hàng'
+                                        : order?.paymentMethod === 'bank'
+                                            ? 'Chuyển khoản ngân hàng'
+                                            : 'Không rõ'}
+                        </Grid>
                     </Grid>
                 </Box>
             </Box>
@@ -277,17 +348,17 @@ const itemPrice = matchedOrderItem?.price || 0;
             {/* Lý do trả hàng và Bằng chứng */}
             <Box className="my-6 p-4 border border-gray-200 rounded-md">
                 <Typography variant="h6" className="font-bold text-gray-700 mb-3">Lý do trả hàng</Typography>
-                {/* Dòng lý do chính */}
+
                 <Typography className="mb-2 text-gray-800 text-sm">
                     Lý do: <span className="font-bold">{getReasonText(reason)}</span>
                 </Typography>
-                {/* Dòng chi tiết lý do (nếu có và reason là OTHER) */}
+
                 {detailedReason && reason === 'OTHER' && (
                     <Typography className="text-gray-800 text-sm">
                         Chi tiết: {detailedReason}
                     </Typography>
                 )}
-                {/* Hiển thị bằng chứng ngay dưới lý do như ảnh mẫu trước đó (ảnh 0f2b93.png) */}
+
                 {(imageUrls?.length > 0 || videoUrls?.length > 0) && (
                     <Box className="mt-4 pt-4 border-t border-gray-200">
                         <Typography variant="subtitle1" className="font-semibold mb-2 text-gray-700">Bằng chứng:</Typography>
@@ -306,14 +377,25 @@ const itemPrice = matchedOrderItem?.price || 0;
                     </Box>
                 )}
             </Box>
-            
-            {/* Thông tin hoàn tiền (Box riêng) */}
-           
-            <Box className="mt-8 text-center">
-                <Button variant="outlined" color="primary" onClick={() => navigate(-1)} size="large" className="px-6 py-2">
-                    Quay lại
-                </Button>
-            </Box>
+
+
+
+
+          <Box className="mt-8 text-center flex flex-col sm:flex-row gap-3 justify-center">
+  {['pending', 'approved'].includes(status) && (
+    <Button
+      variant="outlined"
+      color="error"
+      onClick={handleCancelRequest}
+      size="large"
+      className="px-6 py-2"
+    >
+      Hủy yêu cầu trả hàng
+    </Button>
+  )}
+
+</Box>
+
         </Box>
     );
 };

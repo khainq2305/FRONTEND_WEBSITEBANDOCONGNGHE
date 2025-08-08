@@ -19,7 +19,7 @@ import {
     Camera,
     Video,
     X,
-    // CheckCircle, // Không cần icon này nếu không hiện màn hình thành công riêng
+   
 } from 'lucide-react';
 import { orderService } from '../../../../services/client/orderService';
 import { returnRefundService } from '../../../../services/client/returnRefundService';
@@ -332,9 +332,9 @@ const ReturnOrderPage = () => {
 
         try {
             await returnRefundService.requestReturn(formData);
-            // setSubmissionSuccess(true); // Xóa dòng này
+            
             toast.success('Yêu cầu trả hàng đã được gửi thành công!');
-            navigate('/purchase'); // Điều hướng trực tiếp sau khi thành công
+            navigate('/user-profile#quan-ly-don-hang'); 
         } catch (err) {
             toast.error(err?.response?.data?.message || 'Gửi yêu cầu thất bại, vui lòng thử lại.');
             console.error("Return request failed:", err);
@@ -347,30 +347,7 @@ const ReturnOrderPage = () => {
         return <Loader fullscreen={true} />;
     }
 
-    // Xóa toàn bộ khối if (submissionSuccess) này
-    /*
-    if (submissionSuccess) {
-        return (
-            <Box className="flex flex-col items-center justify-center min-h-[50vh] bg-white p-6 rounded-lg shadow-md">
-                <CheckCircle className="text-green-500 mb-4" size={64} />
-                <Typography variant="h5" component="h2" gutterBottom className="text-gray-800 font-semibold">
-                    Yêu cầu trả hàng đã được gửi thành công!
-                </Typography>
-                <Typography variant="body1" align="center" className="text-gray-600 mb-6">
-                    Chúng tôi sẽ xem xét yêu cầu của bạn và phản hồi trong thời gian sớm nhất. Vui lòng kiểm tra email hoặc mục "Đơn hàng của tôi" để biết cập nhật.
-                </Typography>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => navigate('/purchase')}
-                >
-                    Quay lại Đơn hàng của tôi
-                </Button>
-            </Box>
-        );
-    }
-    */
-
+ 
     return (
         <Box className="w-full p-6 sm:p-8 bg-white rounded-lg shadow-md mt-4 mb-16"
             sx={{ maxWidth: 1200, mx: 'auto' }}
