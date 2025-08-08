@@ -6,6 +6,7 @@ const base = API_ENDPOINT.client.news.base;
 
 export const newsSevice = {
   getFeature: (params) => {
+    console.log(`getFeature post ${base}${API_ENDPOINT.client.news.featurePost}`, params);
     return get(`${base}${API_ENDPOINT.client.news.featurePost}`, params);
   },
   getNewsByCategory: (slug, limit = 5) => {
@@ -16,5 +17,11 @@ export const newsSevice = {
   },
   getRelated: (slug) => {
     return get(`${base}${API_ENDPOINT.client.news.getRelated}/${slug}`);
+  },
+  getAllTitle: () => {
+    console.log(`getAll title post ${base}`);
+    console.log(`getAll title post ${API_ENDPOINT.client.news.getAllTitle}`);
+    console.log(`getAll title post ${base}${API_ENDPOINT.client.news.getAllTitle}`);
+    return get(`${base}${API_ENDPOINT.client.news.getAllTitle}`);
   }
 };

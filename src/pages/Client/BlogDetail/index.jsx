@@ -17,14 +17,13 @@ const NewsDetails = () => {
     const fechNewsDetaisl = async () => {
       try {
         const res = await newsSevice.getBySlug(slug);
-        console.log('by slug', res.data.data);
         setnewsDetails(res.data.data);
       } catch (error) {
         console.error('Lỗi lấy tin tức:', error);
       }
     };
     fechNewsDetaisl();
-  }, []);
+  }, [slug]);
   useEffect(() => {
     const getRelated = async () => {
       try {
@@ -36,7 +35,7 @@ const NewsDetails = () => {
       }
     };
     getRelated();
-  }, []);
+  }, [slug]);
   useEffect(() => {
     const fetchFeature = async () => {
       try {

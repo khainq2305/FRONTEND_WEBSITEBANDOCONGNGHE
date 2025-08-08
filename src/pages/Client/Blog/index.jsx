@@ -21,7 +21,9 @@ const News = () => {
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [newsBySlug, setNewsBySlug] = useState([]);
   const [visibleCount, setVisibleCount] = useState(5);
+  const [getAllTitle, setGetAllTitle] = useState([]);
   const items = newsByTitle['Tin Tức sam sum'] || [];
+
   const maxIndex = items.length > visibleCount ? items.length - visibleCount : 0;
   const titles = ['Tin Tức sam sum', 'Tin tức Apple', 'Thủ thuật - mẹo hay', 'Tin nổi bật nhất'];
   useEffect(() => {
@@ -64,15 +66,19 @@ const News = () => {
         result[res.value.slug] = res.value.data;
       }
     }
-
-    console.log('bai viet', result);
     setNewsBySlug(result);
   };
 
   useEffect(() => {
     fetchByCategory();
   }, []);
-  console.log('🧪 Carousel items:', newsByTitle['tin-tuc-sam-sum']);
+  const fetchAllTitle = async () => {
+    const res = await newsSevice.getAllTitle();
+    setGetAllTitle(res.data.data);
+  }
+  useEffect(() => {
+    fetchAllTitle();
+  }, []);
   const [carouselIndexes, setCarouselIndexes] = useState({});
 
   const handlePrev = (slug) => {
@@ -102,7 +108,7 @@ const News = () => {
         {/* <Slider /> */}
         <div className="flex flex-col lg:flex-row justify-between px-0 md:px-4">
           <div className="w-full py-4 md:py-0">
-            <TopNews />
+            <TopNews getAllTitle={getAllTitle} />
           </div>
           <div style={{ maxWidth: '390px' }}>
             <SibarTop />

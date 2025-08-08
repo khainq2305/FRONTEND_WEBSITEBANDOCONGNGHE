@@ -55,11 +55,12 @@ const CategoryMenu = ({ topLevelCategories = [], allCategories = [], isOpen = fa
     const getCategoryLink = (cat) => {
         if (cat.type === 'product') {
             return `/category/${cat.slug}`; // Đường dẫn cho danh mục sản phẩm
-        } else if (cat.type === 'post') {
-            return `/news/${cat.slug}`; // Đường dẫn cho danh mục bài viết/tin tức
         }
         return `#`; // Fallback nếu không xác định được loại
     };
+
+    const tinNoiBat = { id: 'tin-noi-bat', name: 'Tin nổi bật', type: 'post', slug: 'tin-noi-bat' };
+    const menuCategories = [tinNoiBat, ...topLevelCategories];
 
     if (!isOpen) return null;
 
@@ -71,7 +72,7 @@ const CategoryMenu = ({ topLevelCategories = [], allCategories = [], isOpen = fa
             {/* Cột trái - danh mục cha */}
             <div className="w-[250px] bg-[#F0F0F0] border-r border-gray-200 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 rounded-bl-lg">
                 <ul>
-                    {topLevelCategories.map((cat) => (
+                    {menuCategories.map((cat) => (
                         <li key={cat.id} className="relative">
                             <button
                                 className={`w-full text-left px-4 py-2.5 flex justify-between items-center text-sm ${
@@ -88,9 +89,15 @@ const CategoryMenu = ({ topLevelCategories = [], allCategories = [], isOpen = fa
                                     <ChevronRight className={`w-4 h-4 ml-1 ${activeL1Category?.id === cat.id ? 'text-primary' : 'text-gray-400'}`} />
                                 )}
                             </button>
+                            
                         </li>
+                        
                     ))}
+
                 </ul>
+                <Link to="/tin-noi-bat" className="w-full text-left px-4 py-2.5 flex justify-between items-center text-sm">
+                    <span className="text-primary ">Tin nổi bật</span>
+                </Link>
             </div>
 
             
@@ -103,7 +110,7 @@ const CategoryMenu = ({ topLevelCategories = [], allCategories = [], isOpen = fa
                                 to={getCategoryLink(activeL1Category)}
                                 className="text-xs text-primary hover:text-orange-500 hover:underline font-medium flex items-center"
                             >
-                                Xem tất cả <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+                                Xem tất cả<ChevronRight className="w-3.5 h-3.5 ml-0.5" />
                             </Link>
                         )}
                     </div>

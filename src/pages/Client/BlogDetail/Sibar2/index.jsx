@@ -1,5 +1,5 @@
 import React from 'react'
-
+import { Link } from 'react-router-dom';
 const Sibar2 = ({title, featuredNews}) => {
   const suggestedKeywords = [
     "Galaxy S25 Ultra",
@@ -22,7 +22,7 @@ const Sibar2 = ({title, featuredNews}) => {
         <div className="space-y-3 pt-4">
           {featuredNews.map((keyword, index) => (
             <div key={index} className="text-sm text-gray-400 hover:text-yellow-400 cursor-pointer">
-              {keyword.title}
+              <Link to={`/tin-noi-bat/${keyword.slug}`} >{keyword.title}</Link>
             </div>
           ))}
         </div>

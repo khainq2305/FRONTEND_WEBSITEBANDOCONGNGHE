@@ -81,9 +81,33 @@ export default function PermissionManagementPage() {
   // Chọn/bỏ tất cả quyền trong subject cho role
   const handleToggleAll = (subjectKey, checked) => {
     const actions = actionsBySubject[subjectKey] || [];
-    actions.forEach(actionObj => {
-      handleUpdatePermission(selectedRole, subjectKey, actionObj.action, checked);
-    });
+    const updates = actions.map(actionObj => ({
+      roleId: selectedRole,
+      subject: subjectKey,
+      action: actionObj.action,
+      hasPermission: checked
+    }));
+    permissionsService.updatePermission(updates)
+      .then(() => {
+        // Cập nhật lại matrix local
+        setMatrixBySubject(prev => {
+          const newMatrix = { ...prev };
+          if (!newMatrix[subjectKey]) newMatrix[subjectKey] = {};
+          if (!newMatrix[subjectKey][selectedRole]) newMatrix[subjectKey][selectedRole] = {};
+          actions.forEach(actionObj => {
+            newMatrix[subjectKey][selectedRole][actionObj.action] = checked;
+          });
+          return { ...newMatrix };
+        });
+      })
+      .catch(err => {
+  
+        console.error('Bulk update permissions error:', err);
+        if (err.response) {
+          console.error('Backend error:', err.response.data);
+          alert(JSON.stringify(err.response.data));
+        }
+      });
   };
 
   // Tạo sự kiện để mở/đóng nhóm

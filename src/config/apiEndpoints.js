@@ -140,7 +140,10 @@ export const API_ENDPOINT = {
       base: `${API_BASE_URL}/tin-noi-bat`,
       featurePost: '',
       byCategory: '/theo-danh-muc',
-      calculateFee: '/calculate-fee'
+      getBySlug: '',
+      getRelated: '/bai-viet-lien-quan',
+      calculateFee: '/calculate-fee',
+      getAllTitle: '/all-title'
     },
  search: {
       base: `${API_BASE_URL}`,
@@ -188,7 +191,8 @@ export const API_ENDPOINT = {
       byCategory: '/theo-danh-muc',
       getBySlug: '',
       getRelated: '/bai-viet-lien-quan',
-      calculateFee: '/calculate-fee'
+      calculateFee: '/calculate-fee',
+      getAllTitle: '/all-title'
     },
     notification: {
       base: `${API_BASE_URL}/admin/notifications`,
