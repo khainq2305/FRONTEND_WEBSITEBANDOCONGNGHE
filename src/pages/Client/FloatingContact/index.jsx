@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import './FloatingContact.css';
 import resetIcon from '@/assets/Client/images/Logo/reset-reload.svg';
 import { chatService } from '@/services/client/chatService';
-import logo from '@/assets/Client/images/Logo/logo.svg';
+import logo from '@/assets/Client/images/Logo/logo2.png';
 import assistantDMXIcon from '@/assets/Client/images/Logo/assistant-dmx.png';
 
 import ProductGridDisplay from './ProductGridDisplay/ProductGridDisplay';
@@ -37,7 +37,7 @@ export default function FloatingContactBox() {
   const systemGreeting = {
     role: 'system',
     type: 'text',
-    content: '👋 Xin chào Anh/Chị! Em là trợ lý ảo của Home Power.'
+    content: '👋 Xin chào Anh/Chị! Em là trợ lý ảo của CYBERZONE.'
   };
 
   useEffect(() => {
@@ -215,7 +215,7 @@ export default function FloatingContactBox() {
         <div className="floating-contact">
           <div className={`contact-tooltip ${!tooltipVisible ? 'hidden' : ''}`}>
             <div className="tooltip-header">
-              <span className="tooltip-title">Home Power</span>
+              <span className="tooltip-title">ZYBERZONE</span>
             </div>
             <div key={messageKey} className="tooltip-message-wrapper">
               <p className="tooltip-message-content">{displayTooltipMessage}</p>
@@ -231,7 +231,7 @@ export default function FloatingContactBox() {
       {open && (
         <div className="chatbox-container">
           <div className="chatbox-header">
-            <div className="header-content w-40">
+            <div className="header-content w-45">
               <img src={logo} alt="Home Power" />
             </div>
             <div className="header-actions">

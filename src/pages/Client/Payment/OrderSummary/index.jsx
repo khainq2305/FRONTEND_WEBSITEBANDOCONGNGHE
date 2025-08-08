@@ -185,6 +185,7 @@ const pointDiscountAmount = usePoints ? pointInfo.maxUsablePoints * 10 : 0;
 
 const finalAmount =
   totalAmount - discount - couponDiscount + shippingFee - shippingDiscount - pointDiscountAmount;
+
 const handleSubmitPin = async (pin) => {
   try {
     // 🔒 Gọi API xác minh PIN
@@ -206,6 +207,14 @@ const handleSubmitPin = async (pin) => {
       toast.error('Vui lòng nhập địa chỉ giao hàng!');
       return;
     }
+  if (!selectedPaymentMethod) {
+    toast.error('Vui lòng chọn phương thức thanh toán!');
+    return;
+  }
+  if (!selectedShipMethod || !selectedShipMethod.providerId) {
+  toast.error('Vui lòng chọn phương thức vận chuyển trước khi đặt hàng!');
+  return;
+}
 
     const itemsToCheckout = JSON.parse(localStorage.getItem('selectedCartItems') || '[]');
     if (itemsToCheckout.length === 0) {
@@ -248,6 +257,7 @@ const handleSubmitPin = async (pin) => {
 
       const payload = {
         addressId: selectedAddress.id,
+        
         paymentMethodId: selectedPaymentMethod,
         usePoints: usePoints,
         pin: pin, // ✅ thêm dòng này để backend xử lý

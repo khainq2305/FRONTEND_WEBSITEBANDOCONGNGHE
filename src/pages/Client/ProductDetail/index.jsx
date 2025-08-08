@@ -92,7 +92,7 @@ const ProductDescription = ({ description }) => {
   }
   return (
     <div className="bg-white p-4 md:p-6 rounded-lg border border-gray-200 shadow-sm">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">Mô tả chi tiết sản phẩm</h2>
+      <h2 className="text-xl font-bold text-gray-800">Mô tả chi tiết sản phẩm</h2>
       <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: description }} />
     </div>
   );

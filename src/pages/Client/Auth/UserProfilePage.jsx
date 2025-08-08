@@ -208,7 +208,7 @@ const UserProfilePage = () => {
     { id: 'diem-thuong', label: 'Điểm thưởng', icon: Ticket, href: '#diem-thuong' },
     {
       id: 'vi-noi-bo',
-      label: 'Ví nội bộ',
+      label: 'Tài khoản CyBerZone',
       icon: Wallet2,
       href: '#vi-noi-bo'
     }

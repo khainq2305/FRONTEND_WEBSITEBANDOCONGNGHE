@@ -23,7 +23,7 @@ export default function ProductHighlights({ data }) {
 
   return (
     <div className="bg-white p-4 md:p-6 rounded-lg border border-gray-200 shadow-sm">
-      <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{data.title}</h2>
+      <h2 className="text-xl md:text-2xl font-bold text-gray-800">{data.title}</h2>
 
       {data.shortFeatures && data.shortFeatures.length > 0 && (
         <ul className="list-disc list-inside space-y-1 text-sm text-gray-700 mb-6 pl-4">
