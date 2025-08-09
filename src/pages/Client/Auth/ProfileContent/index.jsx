@@ -5,6 +5,7 @@ import { API_BASE_URL } from '../../../../constants/environment';
 import Loader from '../../../../components/common/Loader';
 import GradientButton from '../../../../components/Client/GradientButton';
 import Select from 'react-select';
+import  useAuthStore  from '../../../../stores/AuthStore';
 
 const SuccessModal = ({ isOpen, message, onClose }) => {
   useEffect(() => {

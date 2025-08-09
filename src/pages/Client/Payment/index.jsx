@@ -9,12 +9,16 @@ import PaymentMethod from './PaymentMethod';
 import OrderSummary from './OrderSummary';
 import Breadcrumb from '../../../components/common/Breadcrumb';
 import ShippingMethodSelector from './ShippingMethodSelector';
+import GoogleAuthModal from '../Auth/GoogleAuthModal';
+
+import { walletService } from '../../../services/client/walletService'; // nếu chưa import
 
 const CheckoutPage = () => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(1);
   const [shippingFee, setShippingFee] = useState(0);
   const [productsInOrder, setProductsInOrder] = useState([]);
   const [selectedCoupon, setSelectedCoupon] = useState(null);
+const [gaVersion, setGaVersion] = useState(0); // ⬅️ thêm
 
   const [addressList, setAddressList] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(null);
@@ -25,6 +29,35 @@ const CheckoutPage = () => {
     return stored ? JSON.parse(stored) : false;
   });
   const [pointInfo, setPointInfo] = useState({ maxUsablePoints: 0, canUsePoints: false });
+const [gaOpen, setGaOpen] = useState(false);
+const [gaQr, setGaQr] = useState('');
+const [gaLoading, setGaLoading] = useState(false);
+
+const openSetupGoogleAuth = async () => {
+  try {
+    setGaOpen(true);
+    setGaLoading(true);
+    const res = await walletService.enableGoogleAuth(); // API trả QR code
+    setGaQr(res?.data?.qrCode || '');
+  } catch (err) {
+    toast.error(err?.response?.data?.message || 'Không thể bật Google Authenticator.');
+    setGaOpen(false);
+  } finally {
+    setGaLoading(false);
+  }
+};
+
+const handleVerifyGaSetup = async (otp) => {
+  try {
+    await walletService.verifyGoogleAuth({ token: otp });
+    toast.success('Thiết lập Google Auth thành công.');
+    setGaOpen(false);
+
+    setGaVersion(v => v + 1); // ⬅️ báo cho con biết ví đã thay đổi
+  } catch (err) {
+    toast.error(err?.response?.data?.message || 'Mã OTP không hợp lệ hoặc đã hết hạn.');
+  }
+};
 
   useEffect(() => {
     const fetchCart = async () => {
@@ -208,7 +241,10 @@ const finalAmount = totals.totalAmount - totals.discount - (usePoints ? pointInf
   selectedPaymentMethod={selectedPaymentMethod}
   setSelectedPaymentMethod={setSelectedPaymentMethod}
   finalAmount={finalAmount}
+  openSetupGoogleAuth={openSetupGoogleAuth}
+  gaVersion={gaVersion}                 // ⬅️ thêm prop này
 />
+
 
 
           </div>
@@ -230,6 +266,14 @@ const finalAmount = totals.totalAmount - totals.discount - (usePoints ? pointInf
           />
         </div>
       </div>
+<GoogleAuthModal
+  open={gaOpen}
+  qrCode={gaQr}
+  loadingQr={gaLoading}
+  onClose={() => setGaOpen(false)}
+  onSubmit={handleVerifyGaSetup}
+/>
+
     </div>
   );
 };

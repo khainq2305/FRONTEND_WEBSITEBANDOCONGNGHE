@@ -4,7 +4,9 @@ import { orderService } from '../../../../services/client/orderService';
 import { paymentService } from '../../../../services/client/paymentService';
 import { toast } from 'react-toastify';
 import { FiInfo, FiChevronRight, FiChevronUp } from 'react-icons/fi';
-import PinModal from '../PinModal';
+// import PinModal from '../PinModal';
+import TotpModal from '../TotpModal';
+import GoogleAuthModal from '../../Auth/GoogleAuthModal';
 import { walletService } from '../../../../services/client/walletService'; // đã có
 
 import { useCartStore } from '@/stores/useCartStore';
@@ -32,14 +34,17 @@ const OrderSummary = ({
 }) => {
 
   const navigate = useNavigate();
-const [isPinModalOpen, setIsPinModalOpen] = useState(false);
-const [pendingPin, setPendingPin] = useState(null); // để lưu pin đã nhập
+// const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+// const [pendingPin, setPendingPin] = useState(null);
+const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
 
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
   const [selectedCoupon, setSelectedCoupon] = useState(null);
   const [isPlacing, setIsPlacing] = useState(false);
 const [showDiscountDetails, setShowDiscountDetails] = useState(false);
-
+const [gaOpen, setGaOpen] = useState(false);
+const [gaQr, setGaQr] = useState('');
+const [gaLoading, setGaLoading] = useState(false);
 
 const pointDiscountAmount = usePoints ? pointInfo.maxUsablePoints * 10 : 0;
 
@@ -108,6 +113,31 @@ const pointDiscountAmount = usePoints ? pointInfo.maxUsablePoints * 10 : 0;
       setIsPromoModalOpen(false);
     }
   };
+const openSetupGoogleAuth = async () => {
+  try {
+    setGaOpen(true);
+    setGaLoading(true);
+    const res = await walletService.enableGoogleAuth(); // trả { qrCode }
+    setGaQr(res?.data?.qrCode || '');
+  } catch (err) {
+    toast.error(err?.response?.data?.message || 'Không thể bật Google Authenticator.');
+    setGaOpen(false);
+  } finally {
+    setGaLoading(false);
+  }
+};
+
+const handleVerifyGaSetup = async (otp) => {
+  try {
+    await walletService.verifyGoogleAuth({ token: otp });
+    toast.success('Thiết lập Google Auth thành công.');
+    setGaOpen(false);
+    // Tiến hành đặt hàng luôn, dùng OTP vừa nhập
+    handlePlaceOrder(otp);
+  } catch (err) {
+    toast.error(err?.response?.data?.message || 'Mã OTP không hợp lệ hoặc đã hết hạn.');
+  }
+};
 
   const prevRef = useRef({ skuIds: [], orderTotal: null });
 
@@ -186,23 +216,20 @@ const pointDiscountAmount = usePoints ? pointInfo.maxUsablePoints * 10 : 0;
 const finalAmount =
   totalAmount - discount - couponDiscount + shippingFee - shippingDiscount - pointDiscountAmount;
 
-const handleSubmitPin = async (pin) => {
+const handleSubmitOtp = async (token) => {
   try {
-    // 🔒 Gọi API xác minh PIN
-    const res = await walletService.verifyPin(pin);
-
-    if (res.data?.success) {
-      setIsPinModalOpen(false);
-      handlePlaceOrder(pin); // Nếu đúng thì tiếp tục tạo đơn hàng
+    const res = await walletService.verifyGoogleAuth(token);
+    if (res.data?.message || res.data?.success) {
+      setIsOtpModalOpen(false);
+      handlePlaceOrder(null, token); // truyền token GA cho backend
     } else {
-      toast.error('Mã PIN không đúng!');
+      toast.error('Mã Google Authenticator không đúng!');
     }
   } catch (err) {
-    toast.error(err?.response?.data?.message || 'Xác minh PIN thất bại!');
+    toast.error(err?.response?.data?.message || 'Xác minh Google Authenticator thất bại!');
   }
 };
-
- const handlePlaceOrder = async (pin = null) => {
+const handlePlaceOrder = async (gaToken = null) => {
     if (!selectedAddress || !selectedAddress.id) {
       toast.error('Vui lòng nhập địa chỉ giao hàng!');
       return;
@@ -260,7 +287,7 @@ const handleSubmitPin = async (pin) => {
         
         paymentMethodId: selectedPaymentMethod,
         usePoints: usePoints,
-        pin: pin, // ✅ thêm dòng này để backend xử lý
+           gaToken, // ✅ thay vì pin
   pointsToSpend: usePoints ? pointInfo.maxUsablePoints : 0, // ✅
         couponCode: selectedCoupon?.code || null,
         note: '',
@@ -378,13 +405,28 @@ if (isPayOS) {
       setIsPlacing(false);
     }
   };
-const onClickPlaceOrder = () => {
+const onClickPlaceOrder = async () => {
   if (selectedPaymentMethod === 8) {
-    setIsPinModalOpen(true); // 👉 mở modal nhập mã PIN
+    // kiểm tra đã bật GA chưa
+    try {
+      const res = await walletService.getWallet();
+      const hasGoogleAuth = !!res?.data?.data?.hasGoogleAuth; // hoặc googleAuthStatus==='active'
+      if (!hasGoogleAuth) {
+        // chưa bật => mở thiết lập
+        openSetupGoogleAuth();
+        return;
+      }
+      // đã bật => yêu cầu OTP để thanh toán
+      setIsOtpModalOpen(true);
+    } catch (e) {
+      toast.error('Không kiểm tra được trạng thái ví.');
+    }
   } else {
-    handlePlaceOrder(); // 👉 gọi luôn nếu không phải ví nội bộ
+    handlePlaceOrder();
   }
 };
+
+
 
 return (
   <div className="relative">
@@ -644,28 +686,33 @@ return (
         orderTotal={+totalAmount || 0}
       />
     )}
-<PinModal
-  open={isPinModalOpen}
-  onClose={() => setIsPinModalOpen(false)}
-onSubmit={async (pin) => {
-  try {
-    const res = await walletService.verifyPinAndBalance({ pin });
-    console.log('PIN verify response:', res);
-
-    const balance = res?.data?.data?.balance; // ✅ Lấy đúng path
-
-    if (balance !== undefined) {
-      setIsPinModalOpen(false);
-      handlePlaceOrder(pin);
-    } else {
-      toast.error('Mã PIN không chính xác!');
+<TotpModal
+  open={isOtpModalOpen}
+  onClose={() => setIsOtpModalOpen(false)}
+  onSubmit={async (token) => {
+    try {
+      const res = await walletService.verifyPayment({ token }); // ✅ đổi sang verifyPayment
+      const ok = res?.data?.success;
+      if (ok) {
+        setIsOtpModalOpen(false);
+        handlePlaceOrder(token); // ✅ chỉ truyền 1 tham số
+      } else {
+        toast.error('Mã Google Authenticator không chính xác!');
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Xác minh Google Authenticator thất bại!');
     }
-  } catch (err) {
-    toast.error(err?.response?.data?.message || 'Xác minh mã PIN thất bại!');
-  }
-}}
-
+  }}
 />
+
+<GoogleAuthModal
+  open={gaOpen}
+  qrCode={gaQr}
+  loadingQr={gaLoading}
+  onClose={() => setGaOpen(false)}
+  onSubmit={handleVerifyGaSetup}
+/>
+
 
   </div>
   

@@ -233,20 +233,13 @@ wallet: {
   balance: '', // GET /
   transactions: '/transactions',
 
-  // 👉 Thiết lập PIN
-  sendPinVerification: '/send-pin-verification',
-  verifyPinToken: '/verify-pin-token',
-  setPin: '/set-pin',
-  pinCooldown: '/pin-cooldown',
-  verifyPinAndBalance: '/verify-pin-and-balance',
+  enableGoogleAuth: '/google-auth/enable', // POST - tạo secret + QR code
+  verifyGoogleAuth: '/google-auth/verify', // POST - xác minh mã 6 số
+  disableGa: '/google-auth/disable',       // Tắt GA bằng mã GA
 
-  // ✅ Thêm mới - Quên & đổi mã PIN
-  sendForgotPin: '/pin/send-forgot',
-  verifyForgotPinToken: '/pin/verify-forgot',
-  resetPin: '/pin/reset',
-  changePin: '/pin/change'
+  verifyPayment: '/auth/verify-payment'
 }
-,
+
 },
   admin: {
     permissions: {
