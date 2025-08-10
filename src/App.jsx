@@ -66,6 +66,7 @@ function AppContent() {
     </>
   );
 }
+console.log('API URL:', import.meta.env.VITE_API_BASE_URL);
 
 export default function App() {
   return (
