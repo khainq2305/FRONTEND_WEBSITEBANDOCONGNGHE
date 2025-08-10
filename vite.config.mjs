@@ -6,7 +6,6 @@ import path from 'path';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const API_URL = `${env.VITE_APP_BASE_NAME}`;
   const PORT = 9999;
 
   return {
@@ -33,11 +32,12 @@ export default defineConfig(({ mode }) => {
     },
     resolve: {
       alias: [
-        { find: 'react', replacement: path.resolve('./node_modules/react') },     
-        { find: 'react-dom', replacement: path.resolve('./node_modules/react-dom') } 
+        { find: 'react', replacement: path.resolve('./node_modules/react') },
+        { find: 'react-dom', replacement: path.resolve('./node_modules/react-dom') }
       ]
     },
-    base: API_URL,
+    base: env.VITE_APP_BASE_NAME || '/',
     plugins: [react(), jsconfigPaths(), tailwindcss()]
   };
 });
+
