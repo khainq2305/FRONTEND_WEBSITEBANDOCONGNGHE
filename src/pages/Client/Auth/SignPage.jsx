@@ -8,6 +8,8 @@ import Loader from '@/components/common/Loader';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import GradientButton from '@/components/Client/GradientButton';
 import { useGoogleLogin } from '@react-oauth/google';
+import GoogleLogo from '@/assets/Client/images/auth/Google__G__logo.svg.webp';
+
 const AuthPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -81,7 +83,7 @@ const AuthPage = () => {
     onSuccess: async (tokenResponse) => {
       try {
         setIsLoading(true);
-        const response =await authService.loginWithGoogle({ token: tokenResponse.access_token });
+        const response = await authService.loginWithGoogle({ token: tokenResponse.access_token });
 
         const { token, user } = response.data;
         if (user.fullName) {
@@ -248,7 +250,7 @@ const AuthPage = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <input type="checkbox" {...register('remember')} className="focus:ring-primary text-primary" />
-                 <label className="text-sm text-text-color">Giữ tôi đăng nhập trong 7 ngày</label>
+                  <label className="text-sm text-text-color">Giữ tôi đăng nhập trong 7 ngày</label>
 
                 </div>
                 <Link to="/quen-mat-khau" className="text-primary text-sm font-semibold">
@@ -290,7 +292,11 @@ const AuthPage = () => {
               onClick={() => googleLogin()}
               className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100 shadow"
             >
-              <img src="src/assets/Client/images/auth/Google__G__logo.svg.webp" alt="Google" className="w-7 h-7 object-cover" />
+              <img
+                src={GoogleLogo}
+                alt="Google"
+                className="w-7 h-7 object-cover"
+              />
             </button>
           </div>
         </div>
