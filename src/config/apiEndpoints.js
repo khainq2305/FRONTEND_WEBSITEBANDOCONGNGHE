@@ -46,7 +46,7 @@ export const API_ENDPOINT = {
       }
     },
     category: {
-      base: `${API_BASE_URL}/api/client/categories`,
+      base: `${API_BASE_URL}/categories`,
       combinedMenu: '/combined-menu'
     },
     section: {
