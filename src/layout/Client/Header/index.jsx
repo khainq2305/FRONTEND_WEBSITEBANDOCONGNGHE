@@ -576,15 +576,15 @@ const confirmLogout = async () => {
               >
                 Hủy bỏ
               </button>
-              <button
-                onClick={confirmLogout}
-                disabled={isLoggingOut}
-              
-                className="flex-1 px-5 py-2.5 bg-primary text-white rounded-lg font-medium text-lg
-                               hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200 ease-in-out"
-              >
-                {isLoggingOut ? 'Đang đăng xuất…' : 'Đăng xuất'}
-              </button>
+            <button
+  onClick={confirmLogout}
+  disabled={isLoggingOut}
+  className="flex-1 px-5 py-2.5 bg-primary text-white rounded-lg font-medium text-lg
+             hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200 ease-in-out whitespace-nowrap"
+>
+  {isLoggingOut ? 'Đang đăng xuất…' : 'Đăng xuất'}
+</button>
+
             </div>
           </div>
         </div>
