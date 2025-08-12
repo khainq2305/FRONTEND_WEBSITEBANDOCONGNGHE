@@ -73,14 +73,8 @@ const RegisterEmailSentNotice = () => {
     if (email) {
       setLoading(true);
       fetchStatus();
-      const intervalId = setInterval(() => {
-        fetchStatus();
-      }, 5000);
-
-      return () => {
-        clearInterval(intervalId);
-      };
     }
+
   }, [email, navigate]);
 
   useEffect(() => {
@@ -181,9 +175,8 @@ const RegisterEmailSentNotice = () => {
 
         {(isAccountLocked || isResendOnCooldown) && (
           <div
-            className={`mt-4 p-3 text-left border rounded-md flex items-center gap-2 ${
-              isAccountLocked ? 'text-red-700 bg-red-100 border-red-400' : 'text-amber-700 bg-amber-100 border-amber-400'
-            }`}
+            className={`mt-4 p-3 text-left border rounded-md flex items-center gap-2 ${isAccountLocked ? 'text-red-700 bg-red-100 border-red-400' : 'text-amber-700 bg-amber-100 border-amber-400'
+              }`}
           >
             {isAccountLocked ? (
               <XCircle className="w-5 h-5 text-red-600 mt-1 flex-shrink-0" />
