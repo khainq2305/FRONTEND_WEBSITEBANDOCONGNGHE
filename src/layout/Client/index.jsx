@@ -1,4 +1,3 @@
-// ClientLayout.jsx (Sửa lại để giữ đúng điều kiện render)
 import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
@@ -22,20 +21,18 @@ const ClientLayout = () => {
     injectNavigate(navigate);
   }, [navigate]);
 
-const isAuthPage = [
-  '/dang-nhap',
-  '/dang-ky',
-  '/quen-mat-khau',
-  '/dat-lai-mat-khau',
-  '/otp-verification',
-  '/forgot-password-notice',
-  '/register-email-sent',
-  '/xac-minh-ma-pin', 
-  '/cart',
-  '/checkout'
-].includes(location.pathname);
-
-
+  const isAuthPage = [
+    '/dang-nhap',
+    '/dang-ky',
+    '/quen-mat-khau',
+    '/dat-lai-mat-khau',
+    '/otp-verification',
+    '/forgot-password-notice',
+    '/register-email-sent',
+    '/xac-minh-ma-pin',
+    '/cart',
+    '/checkout'
+  ].includes(location.pathname);
 
   const isComparePage = location.pathname.startsWith('/compare-products');
 
@@ -43,10 +40,8 @@ const isAuthPage = [
     (location.pathname.startsWith('/category/') && location.pathname.split('/').length > 2) ||
     (location.pathname.startsWith('/product/') && location.pathname.split('/').length > 2);
 
-  // ✅ THÊM BIẾN KIỂM TRA TRANG MINI-GAME
   const isMiniGamePage = location.pathname === '/mini-game';
 
-  // ✅ LOGIC ĐIỀU KIỆN MỚI: Nếu là trang mini-game, chỉ render Outlet.
   if (isMiniGamePage) {
     return (
       <main>
@@ -55,7 +50,6 @@ const isAuthPage = [
     );
   }
 
-  // ✅ LOGIC HIỂN THỊ LAYOUT ĐẦY ĐỦ CHO CÁC TRANG CÒN LẠI
   return (
     <div className="bg-gray-100 min-h-screen text-gray-900">
       {isAuthPage ? (
@@ -69,9 +63,7 @@ const isAuthPage = [
 
       <main>
         <Outlet />
-        {!isComparePage && isCategoryOrProductDetail && (
-          <CompareBar />
-        )}
+        {!isComparePage && isCategoryOrProductDetail && <CompareBar />}
       </main>
 
       <Footer />

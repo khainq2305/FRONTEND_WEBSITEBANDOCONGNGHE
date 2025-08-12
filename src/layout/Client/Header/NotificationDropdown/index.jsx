@@ -48,7 +48,7 @@ const NotificationItem = ({ notification, onClick }) => {
       }
     }
     if (notification.link) {
-      navigate(notification.link); // ✅ Điều hướng sau khi đánh dấu đã đọc
+      navigate(notification.link);
     }
   };
 
@@ -69,20 +69,15 @@ const NotificationItem = ({ notification, onClick }) => {
           <div className="text-xs text-gray-500 mt-0.5 line-clamp-2" dangerouslySetInnerHTML={{ __html: notification.message }} />
           {notification.startAt && <p className="text-[11px] text-gray-400 mt-0.5">{dayjs(notification.startAt).fromNow()}</p>}
         </div>
-        {!notification.isRead && (
-          <span className="w-2 h-2 bg-blue-500 rounded-full mt-1.5 ml-auto flex-shrink-0" title="Chưa đọc" />
-        )}
+        {!notification.isRead && <span className="w-2 h-2 bg-blue-500 rounded-full mt-1.5 ml-auto flex-shrink-0" title="Chưa đọc" />}
       </div>
     </div>
   );
 };
 
-
 const NotificationDropdown = ({ isOpen, notifications = [], onClose, setNotifications, userInfo }) => {
   const [activeTab, setActiveTab] = useState('all');
   if (!isOpen) return null;
-
-  // Nếu chưa đăng nhậpp
   if (!userInfo) {
     return (
       <div className="absolute top-full right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-40 flex flex-col has-arrow-up">
@@ -106,36 +101,33 @@ const NotificationDropdown = ({ isOpen, notifications = [], onClose, setNotifica
   const unreadCount = notifications?.filter((n) => !n.isRead).length || 0;
   const totalPromotion = notifications.filter((n) => n.type === 'promotion').length;
   const totalOrder = notifications.filter((n) => n.type === 'order').length;
- const handleMarkAllAsRead = async () => {
-  try {
-    await notificationService.markAllAsRead();
-    
-    // ✅ GỌI LẠI API
-    const res = await notificationService.getForUser();
-    setNotifications(res.data || []);
-  } catch (err) {
-    console.error('Lỗi markAllAsRead:', err);
-  }
-};
+  const handleMarkAllAsRead = async () => {
+    try {
+      await notificationService.markAllAsRead();
+
+      const res = await notificationService.getForUser();
+      setNotifications(res.data || []);
+    } catch (err) {
+      console.error('Lỗi markAllAsRead:', err);
+    }
+  };
 
   const handleSingleRead = (id) => {
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
   };
 
-const filteredNotifications = notifications
-  .filter((n) => {
-   if (activeTab === 'order') return n.type?.toLowerCase() === 'order';
-if (activeTab === 'promotion') return n.type?.toLowerCase() === 'promotion';
+  const filteredNotifications = notifications
+    .filter((n) => {
+      if (activeTab === 'order') return n.type?.toLowerCase() === 'order';
+      if (activeTab === 'promotion') return n.type?.toLowerCase() === 'promotion';
 
-    return true; // All types
-  })
-  .sort((a, b) => {
-    const dateA = new Date(a.startAt || a.createdAt);
-    const dateB = new Date(b.startAt || b.createdAt);
-    return dateB - dateA; // Mới nhất lên đầu
-  });
-
-
+      return true;
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.startAt || a.createdAt);
+      const dateB = new Date(b.startAt || b.createdAt);
+      return dateB - dateA;
+    });
 
   return (
     <div className="absolute top-full right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-40 flex flex-col has-arrow-up">

@@ -12,10 +12,10 @@ import { notificationService } from '../../../services/client/notificationServic
 import Loader from '../../../components/common/Loader';
 import { useSystemSetting } from '@/contexts/SystemSettingContext';
 import FeatureBar from './FeatureBar';
-import socket from '../../../constants/socket'; 
+import socket from '../../../constants/socket';
 import ImageSearchBox from '@/components/common/ImageSearchBox';
 import useAuthStore from '../../../stores/AuthStore';
-
+import { toast } from 'react-toastify';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -42,7 +42,7 @@ const Header = () => {
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(true);
   const accountDropdownTimerRef = useRef(null);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
-  const [isConfirmLogoutModalOpen, setIsConfirmLogoutModalOpen] = useState(false); // <-- THÊM DÒNG NÀY
+  const [isConfirmLogoutModalOpen, setIsConfirmLogoutModalOpen] = useState(false);
 
   const handleAccountDropdownEnter = () => {
     clearTimeout(accountDropdownTimerRef.current);
@@ -144,12 +144,11 @@ const Header = () => {
     const intervalId = setInterval(fetchCombinedCategories, 300000);
     return () => clearInterval(intervalId);
   }, []);
-useEffect(() => {
-  if (user?.id) {
-    socket.emit("join", `user-${user.id}`);
-  }
-}, [user?.id]);
-
+  useEffect(() => {
+    if (user?.id) {
+      socket.emit('join', `user-${user.id}`);
+    }
+  }, [user?.id]);
 
   const getDisplayName = (fullName, maxLength = 8) => {
     if (!fullName) return '';
@@ -198,6 +197,7 @@ useEffect(() => {
   const confirmLogout = async () => {
     toggleConfirmLogoutModal();
     await logout();
+    toast.success('Đăng xuất thành công!');
     navigate('/');
   };
 
@@ -333,9 +333,9 @@ useEffect(() => {
               <button className="p-1 text-white flex-shrink-0 -ml-1" onClick={toggleMobilePanel} aria-label="Mở danh mục">
                 <LayoutGrid className="w-6 h-6" strokeWidth={2} />
               </button>
-<div className="flex-grow mx-1 min-w-0">
-  <ImageSearchBox />
-</div>
+              <div className="flex-grow mx-1 min-w-0">
+                <ImageSearchBox />
+              </div>
               <div className="flex items-center gap-x-1 flex-shrink-0">
                 <button className="p-1 text-white relative" onClick={toggleNotificationModal}>
                   <Bell className="w-6 h-6" strokeWidth={1.8} />

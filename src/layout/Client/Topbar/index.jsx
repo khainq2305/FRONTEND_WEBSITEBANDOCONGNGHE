@@ -24,7 +24,7 @@ const Topbar = () => {
 
   return (
     <div 
-      // style={{ backgroundColor: 'rgb(58, 140, 239)' }} 
+    
       className="w-full flex justify-center items-center overflow-hidden relative"
     >
       <img
