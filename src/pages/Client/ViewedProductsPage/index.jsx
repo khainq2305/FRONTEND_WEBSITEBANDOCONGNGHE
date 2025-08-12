@@ -253,7 +253,7 @@ const ViewedProductsPage = () => {
 
   return (
     <div className="max-w-[1200px] mx-auto bg-white p-2 rounded-md shadow border border-gray-200 mb-20">
-      <h2 className="py-4 pt-4 text-xl font-bold text-[#c51813]">
+      <h2 className="pl-3 py-4 pt-4 text-xl font-bold text-[#c51813] uppercase">
         Sản phẩm đã xem
       </h2>
 

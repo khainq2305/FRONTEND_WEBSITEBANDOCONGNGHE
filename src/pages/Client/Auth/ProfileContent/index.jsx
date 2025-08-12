@@ -5,7 +5,7 @@ import { API_BASE_URL } from '../../../../constants/environment';
 import Loader from '../../../../components/common/Loader';
 import GradientButton from '../../../../components/Client/GradientButton';
 import Select from 'react-select';
-import  useAuthStore  from '../../../../stores/AuthStore';
+import useAuthStore from '../../../../stores/AuthStore';
 
 const SuccessModal = ({ isOpen, message, onClose }) => {
   useEffect(() => {
@@ -30,24 +30,16 @@ const SuccessModal = ({ isOpen, message, onClose }) => {
         className="bg-white p-6 sm:p-8 rounded-md shadow-md text-center w-full max-w-xs sm:max-w-sm mx-auto relative dark:bg-gray-800 dark:text-gray-100"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Nút Đóng nằm ngoài góc phải */}
         <button
           onClick={onClose}
           className="absolute -top-4 -right-4 bg-white dark:bg-gray-700 text-gray-500 hover:text-gray-800 dark:hover:text-white p-2 rounded-full shadow-md"
           aria-label="Đóng"
         >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
-        {/* Nội dung modal */}
         <svg
           className="w-14 h-14 sm:w-16 sm:h-16 text-green-500 mx-auto mb-3 sm:mb-4"
           fill="none"
@@ -59,8 +51,6 @@ const SuccessModal = ({ isOpen, message, onClose }) => {
         </svg>
         <p className="text-base sm:text-lg font-medium text-gray-700 dark:text-gray-100">{message}</p>
       </div>
-
-
     </div>
   );
 };
@@ -121,9 +111,10 @@ const ProfileContent = () => {
 
       if (user.avatarUrl) {
         const cleanedApiBaseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL : `${API_BASE_URL}/`;
-        const finalAvatarUrl = user.avatarUrl.startsWith('http://') || user.avatarUrl.startsWith('https://')
-          ? `${user.avatarUrl}?_=${new Date().getTime()}`
-          : `${cleanedApiBaseUrl}${user.avatarUrl.startsWith('/') ? user.avatarUrl.substring(1) : user.avatarUrl}?_=${new Date().getTime()}`;
+        const finalAvatarUrl =
+          user.avatarUrl.startsWith('http://') || user.avatarUrl.startsWith('https://')
+            ? `${user.avatarUrl}?_=${new Date().getTime()}`
+            : `${cleanedApiBaseUrl}${user.avatarUrl.startsWith('/') ? user.avatarUrl.substring(1) : user.avatarUrl}?_=${new Date().getTime()}`;
         setUserAvatarPreview(finalAvatarUrl);
       } else {
         setUserAvatarPreview(null);
@@ -175,18 +166,18 @@ const ProfileContent = () => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
       const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-      const maxSize = 5 * 1024 * 1024; // 5MB
+      const maxSize = 5 * 1024 * 1024;
 
       if (!allowedTypes.includes(file.type)) {
         setAvatarError('Định dạng không hợp lệ. Chỉ chấp nhận .JPEG, .PNG, .JPG.');
         setSelectedAvatarFile(null);
-        if (fileInputRef.current) fileInputRef.current.value = null; // Clear file input
+        if (fileInputRef.current) fileInputRef.current.value = null;
         return;
       }
       if (file.size > maxSize) {
         setAvatarError(`Dung lượng ảnh vượt quá ${maxSize / (1024 * 1024)}MB.`);
         setSelectedAvatarFile(null);
-        if (fileInputRef.current) fileInputRef.current.value = null; // Clear file input
+        if (fileInputRef.current) fileInputRef.current.value = null;
         return;
       }
       setAvatarError('');
@@ -203,101 +194,94 @@ const ProfileContent = () => {
     setFormErrors((prev) => ({ ...prev, phone: undefined }));
   };
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
-  if (avatarError) return;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (avatarError) return;
 
-  setIsSubmitting(true);
-  setFormErrors({});
+    setIsSubmitting(true);
+    setFormErrors({});
 
-  try {
-    const formDataToSubmit = new FormData();
-    formDataToSubmit.append('fullName', formData.fullName);
-    formDataToSubmit.append('phone', formData.phone);
-    formDataToSubmit.append('gender', formData.gender);
+    try {
+      const formDataToSubmit = new FormData();
+      formDataToSubmit.append('fullName', formData.fullName);
+      formDataToSubmit.append('phone', formData.phone);
+      formDataToSubmit.append('gender', formData.gender);
 
-    const { day, month, year } = formData.birthDate;
+      const { day, month, year } = formData.birthDate;
 
-    if (day && month && year) {
-      const selectedDate = new Date(`${year}-${month}-${day}`);
-      const now = new Date();
-      const minDate = new Date('1920-01-01');
-      const maxDate = new Date(now.getFullYear() - 10, now.getMonth(), now.getDate());
+      if (day && month && year) {
+        const selectedDate = new Date(`${year}-${month}-${day}`);
+        const now = new Date();
+        const minDate = new Date('1920-01-01');
+        const maxDate = new Date(now.getFullYear() - 10, now.getMonth(), now.getDate());
 
-      if (selectedDate < minDate || selectedDate > maxDate) {
-        setFormErrors(prev => ({
-          ...prev,
-          dateOfBirth: 'Ngày sinh không hợp lệ. Vui lòng chọn lại.'
-        }));
-        setIsSubmitting(false);
-        return;
+        if (selectedDate < minDate || selectedDate > maxDate) {
+          setFormErrors((prev) => ({
+            ...prev,
+            dateOfBirth: 'Ngày sinh không hợp lệ. Vui lòng chọn lại.'
+          }));
+          setIsSubmitting(false);
+          return;
+        }
+
+        formDataToSubmit.append('birthDate', JSON.stringify({ day, month, year }));
       }
 
-      formDataToSubmit.append('birthDate', JSON.stringify({ day, month, year }));
-    }
-
-    if (selectedAvatarFile) {
-      formDataToSubmit.append('avatarImage', selectedAvatarFile);
-    }
-
-    const response = await authService.updateProfile(formDataToSubmit, true);
-    const updatedUser = response.data.user;
-
-    // ✅ Sync lại data
-    await fetchProfileData(); // đảm bảo state mới nhất
-
-    // ✅ Cập nhật avatar preview
-    if (updatedUser.avatarUrl) {
-      const cleanedApiBaseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL : `${API_BASE_URL}/`;
-      const finalAvatarUrl = updatedUser.avatarUrl.startsWith('http')
-        ? `${updatedUser.avatarUrl}?_=${Date.now()}`
-        : `${cleanedApiBaseUrl}${updatedUser.avatarUrl.replace(/^\//, '')}?_=${Date.now()}`;
-      setUserAvatarPreview(finalAvatarUrl);
-      window.dispatchEvent(new CustomEvent('avatarUpdated', { detail: finalAvatarUrl }));
-    } else {
-      setUserAvatarPreview(null);
-      window.dispatchEvent(new CustomEvent('avatarUpdated', { detail: null }));
-    }
-
-    // ✅ Cập nhật store (user info)
-    useAuthStore.getState().login(updatedUser);
-
-    // ✅ Emit custom event
-    window.dispatchEvent(
-      new CustomEvent('profileUpdated', {
-        detail: { user: { fullName: updatedUser.fullName, email: updatedUser.email } }
-      })
-    );
-
-    // ✅ Reset avatar state
-    setSelectedAvatarFile(null);
-    if (fileInputRef.current) fileInputRef.current.value = null;
-
-    // ✅ Show modal
-    setSuccessModalMessage('Cập nhật thông tin thành công');
-    setShowSuccessModal(true);
-  } catch (error) {
-    const serverErrors = error.response?.data?.errors;
-    const message = error.response?.data?.message;
-
-    if (serverErrors) {
-      setFormErrors(serverErrors);
-      if (serverErrors.dateOfBirth) setIsEditingBirthDate(true);
-    } else if (message) {
-      setFormErrors({ general: message });
-      if (message.toLowerCase().includes('date') || message.toLowerCase().includes('ngày sinh')) {
-        setIsEditingBirthDate(true);
-        setFormErrors(prev => ({ ...prev, dateOfBirth: message }));
+      if (selectedAvatarFile) {
+        formDataToSubmit.append('avatarImage', selectedAvatarFile);
       }
-      alert(message);
-    } else {
-      alert('Có lỗi xảy ra khi cập nhật hồ sơ. Vui lòng thử lại.');
-    }
-  } finally {
-    setIsSubmitting(false);
-  }
-};
 
+      const response = await authService.updateProfile(formDataToSubmit, true);
+      const updatedUser = response.data.user;
+
+      await fetchProfileData();
+
+      if (updatedUser.avatarUrl) {
+        const cleanedApiBaseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL : `${API_BASE_URL}/`;
+        const finalAvatarUrl = updatedUser.avatarUrl.startsWith('http')
+          ? `${updatedUser.avatarUrl}?_=${Date.now()}`
+          : `${cleanedApiBaseUrl}${updatedUser.avatarUrl.replace(/^\//, '')}?_=${Date.now()}`;
+        setUserAvatarPreview(finalAvatarUrl);
+        window.dispatchEvent(new CustomEvent('avatarUpdated', { detail: finalAvatarUrl }));
+      } else {
+        setUserAvatarPreview(null);
+        window.dispatchEvent(new CustomEvent('avatarUpdated', { detail: null }));
+      }
+
+      useAuthStore.getState().login(updatedUser);
+
+      window.dispatchEvent(
+        new CustomEvent('profileUpdated', {
+          detail: { user: { fullName: updatedUser.fullName, email: updatedUser.email } }
+        })
+      );
+
+      setSelectedAvatarFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = null;
+
+      setSuccessModalMessage('Cập nhật thông tin thành công');
+      setShowSuccessModal(true);
+    } catch (error) {
+      const serverErrors = error.response?.data?.errors;
+      const message = error.response?.data?.message;
+
+      if (serverErrors) {
+        setFormErrors(serverErrors);
+        if (serverErrors.dateOfBirth) setIsEditingBirthDate(true);
+      } else if (message) {
+        setFormErrors({ general: message });
+        if (message.toLowerCase().includes('date') || message.toLowerCase().includes('ngày sinh')) {
+          setIsEditingBirthDate(true);
+          setFormErrors((prev) => ({ ...prev, dateOfBirth: message }));
+        }
+        alert(message);
+      } else {
+        alert('Có lỗi xảy ra khi cập nhật hồ sơ. Vui lòng thử lại.');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const maskPhoneNumber = (phone) => {
     if (!phone || phone.length < 4) return phone;
@@ -318,19 +302,18 @@ const ProfileContent = () => {
   const showBirthDateForm = isEditingBirthDate || !birthDateComplete;
   const dayOptions = Array.from({ length: 31 }, (_, i) => ({
     value: String(i + 1).padStart(2, '0'),
-    label: String(i + 1).padStart(2, '0'),
+    label: String(i + 1).padStart(2, '0')
   }));
 
   const monthOptions = Array.from({ length: 12 }, (_, i) => ({
     value: String(i + 1).padStart(2, '0'),
-    label: String(i + 1).padStart(2, '0'),
+    label: String(i + 1).padStart(2, '0')
   }));
 
- const yearOptions = Array.from({ length: 100 }, (_, i) => {
-  const year = String(new Date().getFullYear() - 13 - i); 
-  return { value: year, label: year };
-});
-
+  const yearOptions = Array.from({ length: 100 }, (_, i) => {
+    const year = String(new Date().getFullYear() - 13 - i);
+    return { value: year, label: year };
+  });
 
   return (
     <>
@@ -339,9 +322,7 @@ const ProfileContent = () => {
         <p className="text-sm text-gray-600 dark:text-gray-300 mb-8">Quản lý thông tin hồ sơ để bảo mật tài khoản</p>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-10 gap-y-6">
-
           <form className="lg:col-span-2 space-y-5" onSubmit={handleSubmit}>
-
             <div className="flex flex-col items-center pt-3 pb-6 border-b border-gray-200 dark:border-gray-700 mb-6 lg:hidden">
               <div className="w-24 h-24 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center mb-4 overflow-hidden border border-gray-300 dark:border-gray-600">
                 {userAvatarPreview ? (
@@ -363,7 +344,8 @@ const ProfileContent = () => {
               <label
                 htmlFor="avatarUploadMobile"
                 className={`cursor-pointer bg-white border border-gray-300/80 text-gray-700 text-sm py-2 px-5 rounded hover:bg-gray-50 transition-colors shadow-sm mb-2.5                             dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:hover:bg-gray-600
-                            ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}                    >
+                            ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
                 Chọn Ảnh
               </label>
               <div className="text-xs text-gray-500 dark:text-gray-400 text-center leading-snug">
@@ -373,15 +355,10 @@ const ProfileContent = () => {
               {avatarError && <p className="text-xs text-red-500 mt-2 text-center">{avatarError}</p>}
             </div>
 
-
-
             <div className="grid grid-cols-1 sm:grid-cols-[110px_1fr] items-center gap-2 sm:gap-4">
               <label className="text-sm text-gray-500 dark:text-gray-400 sm:text-right sm:pr-2">Email</label>
-              <p className="text-sm text-gray-800 dark:text-gray-200 truncate font-medium">
-                {formData.email}
-              </p>
+              <p className="text-sm text-gray-800 dark:text-gray-200 truncate font-medium">{formData.email}</p>
             </div>
-
 
             <div className="grid grid-cols-1 sm:grid-cols-[110px_1fr] items-center gap-2 sm:gap-4">
               <label htmlFor="fullName" className="text-sm text-gray-500 dark:text-gray-400 sm:text-right sm:pr-2">
@@ -402,12 +379,8 @@ const ProfileContent = () => {
               </div>
             </div>
 
-
             <div className="grid grid-cols-1 sm:grid-cols-[110px_1fr] items-center gap-2 sm:gap-4">
-
-              <label className="text-sm text-gray-500 dark:text-gray-400 sm:text-right sm:pr-2 pt-2.5">
-                Số điện thoại
-              </label>
+              <label className="text-sm text-gray-500 dark:text-gray-400 sm:text-right sm:pr-2 pt-2.5">Số điện thoại</label>
 
               {isEditingPhone ? (
                 <div>
@@ -454,7 +427,6 @@ const ProfileContent = () => {
               )}
             </div>
 
-
             <div className="grid grid-cols-1 sm:grid-cols-[110px_1fr] items-center gap-2 sm:gap-4">
               <label className="text-sm text-gray-500 dark:text-gray-400 sm:text-right sm:pr-2">Giới tính</label>
               <div className="flex items-center gap-x-4 sm:gap-x-6 flex-wrap gap-y-2">
@@ -475,7 +447,6 @@ const ProfileContent = () => {
               </div>
             </div>
 
-
             <div className="grid grid-cols-1 sm:grid-cols-[110px_1fr] items-start gap-2 sm:gap-4">
               <label className="text-sm text-gray-500 dark:text-gray-400 sm:text-right sm:pr-2 pt-2.5">Ngày sinh</label>
               {showBirthDateForm ? (
@@ -485,11 +456,11 @@ const ProfileContent = () => {
                       <Select
                         options={dayOptions}
                         placeholder="Ngày"
-                        value={dayOptions.find(opt => opt.value === formData.birthDate.day)}
+                        value={dayOptions.find((opt) => opt.value === formData.birthDate.day)}
                         onChange={(selected) =>
-                          setFormData(prev => ({
+                          setFormData((prev) => ({
                             ...prev,
-                            birthDate: { ...prev.birthDate, day: selected?.value || '' },
+                            birthDate: { ...prev.birthDate, day: selected?.value || '' }
                           }))
                         }
                         isDisabled={isSubmitting}
@@ -501,11 +472,11 @@ const ProfileContent = () => {
                       <Select
                         options={monthOptions}
                         placeholder="Tháng"
-                        value={monthOptions.find(opt => opt.value === formData.birthDate.month)}
+                        value={monthOptions.find((opt) => opt.value === formData.birthDate.month)}
                         onChange={(selected) =>
-                          setFormData(prev => ({
+                          setFormData((prev) => ({
                             ...prev,
-                            birthDate: { ...prev.birthDate, month: selected?.value || '' },
+                            birthDate: { ...prev.birthDate, month: selected?.value || '' }
                           }))
                         }
                         isDisabled={isSubmitting}
@@ -517,11 +488,11 @@ const ProfileContent = () => {
                       <Select
                         options={yearOptions}
                         placeholder="Năm"
-                        value={yearOptions.find(opt => opt.value === formData.birthDate.year)}
+                        value={yearOptions.find((opt) => opt.value === formData.birthDate.year)}
                         onChange={(selected) =>
-                          setFormData(prev => ({
+                          setFormData((prev) => ({
                             ...prev,
-                            birthDate: { ...prev.birthDate, year: selected?.value || '' },
+                            birthDate: { ...prev.birthDate, year: selected?.value || '' }
                           }))
                         }
                         isDisabled={isSubmitting}
@@ -570,7 +541,6 @@ const ProfileContent = () => {
               )}
             </div>
 
-
             <div className="grid grid-cols-1 sm:grid-cols-[110px_1fr] items-center gap-2 sm:gap-4 pt-4">
               <div className="sm:col-start-2">
                 <GradientButton type="submit" disabled={isSubmitting} size="compact">
@@ -603,7 +573,8 @@ const ProfileContent = () => {
               htmlFor="avatarUploadDesktop"
               className={`cursor-pointer bg-white border border-gray-300/80 text-gray-700 text-sm py-2 px-5 rounded hover:bg-gray-50 transition-colors shadow-sm mb-2.5 
                 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:hover:bg-gray-600
-                ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}            >
+                ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
               Chọn Ảnh
             </label>
             <div className="text-xs text-gray-500 dark:text-gray-400 text-center leading-snug">
@@ -616,7 +587,6 @@ const ProfileContent = () => {
       </div>
 
       <SuccessModal isOpen={showSuccessModal} message={successModalMessage} onClose={() => setShowSuccessModal(false)} />
-      {isSubmitting && <Loader fullscreen />}
     </>
   );
 };

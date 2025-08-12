@@ -7,9 +7,7 @@ export const orderService = {
   createOrder: (data) => {
     return post(`${base}${API_ENDPOINT.client.order.create}`, data);
   },
-  getUserOrders: () => {
-    return get(`${base}/user-orders`);
-  },
+getUserOrders: (params = {}) => get(`${base}/user-orders`, params),
   lookupOrder: (code, phone) => {
     return get(`${base}${API_ENDPOINT.client.order.lookup(code, phone)}`);
   },

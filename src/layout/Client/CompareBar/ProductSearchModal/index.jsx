@@ -122,18 +122,18 @@ const ProductSearchModal = ({
             };
         } else {
             setSearchResults([]);
-            console.log("Modal useEffect: Search term too short or empty, clearing search results."); // DEBUG
+            console.log("Modal useEffect: Search term too short or empty, clearing search results."); 
         }
     }, [searchTerm, targetCategoryId]);
 
     const handleCompareButtonClick = (product) => {
-        // Đảm bảo product được chuẩn hóa ngay tại đây trước khi xử lý
+       
         const normalizedProduct = normalizeProductData(product);
 
         const existingProductInCompare = compareItems.find(item => item && item.id === normalizedProduct.id);
         const currentCompareCount = compareItems.filter(Boolean).length;
 
-        // Lấy sản phẩm đầu tiên thực sự tồn tại trong danh sách so sánh
+        
         const firstExistingCompareItem = compareItems.find(item => item !== null);
  const firstCompareItemCategoryId = firstExistingCompareItem?.category?.id;
 const productCategoryId = normalizedProduct.category?.id;
@@ -167,19 +167,19 @@ const productCategoryId = normalizedProduct.category?.id;
             removeFromCompare(normalizedProduct.id);
             showCustomMessage("Đã bỏ sản phẩm khỏi danh sách so sánh.");
         } else {
-            const productToStore = normalizedProduct; // Sử dụng sản phẩm đã được chuẩn hóa
+            const productToStore = normalizedProduct;
 if (currentCompareCount > 0) {
   if (firstCompareItemCategoryId !== productCategoryId) {
     clearCompare();
     addToCompare(productToStore);
     showCustomMessage(`Đã xóa các sản phẩm cũ và thêm "${productToStore.name}" vào danh sách so sánh.`);
-    if (onClose) onClose(); // ✅ ĐÓNG MODAL
+    if (onClose) onClose(); 
     return;
   } else {
     if (currentCompareCount < 3) {
       addToCompare(productToStore);
       showCustomMessage("Đã thêm sản phẩm vào danh sách so sánh.");
-      if (onClose) onClose(); // ✅ ĐÓNG MODAL khi cùng danh mục
+      if (onClose) onClose(); 
     } else {
       showCustomMessage("Bạn chỉ có thể so sánh tối đa 3 sản phẩm.");
     }
@@ -187,20 +187,17 @@ if (currentCompareCount > 0) {
 } else {
   addToCompare(productToStore);
   showCustomMessage("Đã thêm sản phẩm vào danh sách so sánh.");
-  if (onClose) onClose(); // ✅ ĐÓNG MODAL khi là sản phẩm đầu tiên
+  if (onClose) onClose(); 
 }
 
 
-// 👇 ADD THIS LINE
+
 useCompareStore.getState().setIsCompareBarCollapsed(false);
 
 if (onProductChange) onProductChange();
 
-// ✅ Chỉ đóng modal nếu là hành động thêm thành công
-// Nếu là hành động THÊM (không phải xoá) => đóng modal
-// ✅ Chỉ đóng modal nếu là hành động thêm (không phải xoá)
 if (!existingProductInCompare) {
-  if (onClose) onClose(); // 🔥 ĐÓNG trong mọi trường hợp thêm (kể cả cùng danh mục)
+  if (onClose) onClose();
 }
 
 
@@ -229,7 +226,7 @@ if (!existingProductInCompare) {
     return (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[1000]">
             <div className="bg-white rounded-tl-lg rounded-bl-lg rounded-br-lg shadow-xl w-full max-w-lg p-6 relative">
-                {/* Custom Message Display */}
+               
               
                 <button
                     style={{ right: '43px' }}
@@ -250,7 +247,7 @@ if (!existingProductInCompare) {
                     <div className="flex items-center justify-between mb-4 border border-gray-200 rounded-lg p-3">
                         <div className="flex items-center flex-1">
                             <img
-                                src={recentlyViewedProduct.image} // Đã được chuẩn hóa bởi normalizeProductData
+                                src={recentlyViewedProduct.image} 
                                 alt={recentlyViewedProduct.name}
                                 className="w-16 h-16 object-contain mr-3"
                             />
@@ -301,7 +298,7 @@ if (!existingProductInCompare) {
 
                 <p className="text-center text-gray-500 my-4">Hoặc nhập tên để tìm</p>
 
-                {/* Search input */}
+             
                 <div className="relative mb-4">
                     <input
                         type="text"
@@ -321,7 +318,7 @@ if (!existingProductInCompare) {
                     </svg>
                 </div>
 
-                {/* Search results */}
+         
                 {isLoadingSearch && <p className="text-center text-blue-600">Đang tìm kiếm...</p>}
                 {!isLoadingSearch && searchTerm.length > 1 && searchResults.length > 0 && (
                     <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-lg">
@@ -383,7 +380,7 @@ if (!existingProductInCompare) {
                 )}
             </div>
 
-            {/* Confirmation Modal */}
+            
             {showConfirmReplaceModal && productToConfirmReplace && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[1001]">
                     <div className="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full text-center">

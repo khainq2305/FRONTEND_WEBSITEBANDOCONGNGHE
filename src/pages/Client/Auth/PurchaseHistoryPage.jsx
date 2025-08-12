@@ -9,26 +9,10 @@ import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import socket from '../../../constants/socket';
-
-// Đảm bảo bạn có các dialog này
+import MUIPagination from '../../../components/common/Pagination';
 import CancelOrderDialog from './CancelOrderDialog';
 import { paymentService } from '../../../services/client/paymentService';
 
-// Hàm ánh xạ trạng thái trả hàng sang text hiển thị
-const getReturnStatusText = (status) => {
-    switch (status) {
-        case 'pending': return 'Đang chờ duyệt';
-        case 'approved': return 'Đã duyệt';
-        case 'rejected': return 'Đã từ chối';
-        case 'awaiting_pickup': return 'Chờ nhận hàng trả';
-        case 'pickup_booked': return 'Đã đặt GHN lấy';
-        case 'returning': return 'Đang hoàn về kho';
-        case 'received': return 'Đã nhận hàng trả';
-        case 'refunded': return 'Đã hoàn tiền';
-        case 'cancelled': return 'Đã hủy yêu cầu'; // Thêm trạng thái hủy yêu cầu trả hàng nếu có
-        default: return 'Không rõ';
-    }
-};
 
 const OrderItem = ({ order, searchTerm, refetchOrders }) => {
     const [showReturnDialog, setShowReturnDialog] = useState(false);
@@ -39,75 +23,75 @@ const OrderItem = ({ order, searchTerm, refetchOrders }) => {
     const moreButtonRef = useRef(null);
 
     const productsToShowInitially = 2;
-const getOrderStatusDisplay = (order) => {
-  const rr = order.returnRequest;
+    const getOrderStatusDisplay = (order) => {
+        const rr = order.returnRequest;
 
-  if (rr) {
-    if (rr.status === 'refunded') {
-      return {
-        text: 'Đã hoàn tiền',
-        dotColor: 'bg-green-500',
-        bgColor: 'bg-green-100',
-        textColor: 'text-green-600',
-      };
-    }
+        if (rr) {
+            if (rr.status === 'refunded') {
+                return {
+                    text: 'Đã hoàn tiền',
+                    dotColor: 'bg-green-500',
+                    bgColor: 'bg-green-100',
+                    textColor: 'text-green-600',
+                };
+            }
 
-    const highlightReturnRequest = [
-      'pending',
-      'approved',
-      'awaiting_pickup',
-      'pickup_booked',
-      'returning',
-      'received',
-      'cancelled',
-    ].includes(rr.status);
+            const highlightReturnRequest = [
+                'pending',
+                'approved',
+                'awaiting_pickup',
+                'pickup_booked',
+                'returning',
+                'received',
+                'cancelled',
+            ].includes(rr.status);
 
-    if (highlightReturnRequest) {
-      let text = 'Yêu cầu trả hàng/hoàn tiền';
+            if (highlightReturnRequest) {
+                let text = 'Yêu cầu trả hàng/hoàn tiền';
 
-      if (rr.status === 'pending') {
-        text = 'CYBERZONE ĐANG XEM XÉT';
-      } else if (rr.status === 'cancelled') {
-        text = 'YÊU CẦU ĐÃ BỊ HỦY';
-      }
+                if (rr.status === 'pending') {
+                    text = 'CYBERZONE ĐANG XEM XÉT';
+                } else if (rr.status === 'cancelled') {
+                    text = 'YÊU CẦU ĐÃ BỊ HỦY';
+                }
 
-      return {
-        text,
-        dotColor: 'bg-yellow-500',
-        bgColor: 'bg-yellow-100',
-        textColor: 'text-gray-800 dark:text-gray-200',
-      };
-    }
-  }
-
-  // Nếu không có returnRequest hoặc không thuộc trạng thái trên thì xét theo trạng thái đơn hàng chính
-  switch (order.status) {
-    case 'cancelled':
-      return {
-        text: order.statusText,
-        dotColor: 'bg-red-500',
-        bgColor: 'bg-red-100',
-        textColor: 'text-red-600',
-      };
-    case 'pending_payment':
-      return {
-        text: order.statusText,
-        dotColor: 'bg-yellow-500',
-        bgColor: 'bg-yellow-100',
-        textColor: 'text-yellow-600',
-      };
-    default:
-      return {
-        text: order.statusText,
-        dotColor: 'bg-green-500',
-        bgColor: 'bg-green-100',
-        textColor: 'text-gray-800 dark:text-gray-200',
-      };
-  }
-};
+                return {
+                    text,
+                    dotColor: 'bg-yellow-500',
+                    bgColor: 'bg-yellow-100',
+                    textColor: 'text-gray-800 dark:text-gray-200',
+                };
+            }
+        }
 
 
-const statusDisplay = getOrderStatusDisplay(order);
+        switch (order.status) {
+            case 'cancelled':
+                return {
+                    text: order.statusText,
+                    dotColor: 'bg-red-500',
+                    bgColor: 'bg-red-100',
+                    textColor: 'text-red-600',
+                };
+            case 'pending_payment':
+                return {
+                    text: order.statusText,
+                    dotColor: 'bg-yellow-500',
+                    bgColor: 'bg-yellow-100',
+                    textColor: 'text-yellow-600',
+                };
+            default:
+                return {
+                    text: order.statusText,
+                    dotColor: 'bg-green-500',
+                    bgColor: 'bg-green-100',
+                    textColor: 'text-gray-800 dark:text-gray-200',
+                };
+        }
+    };
+
+
+    const statusDisplay = getOrderStatusDisplay(order);
 
 
     const handleReorder = async () => {
@@ -122,23 +106,23 @@ const statusDisplay = getOrderStatusDisplay(order);
     };
 
     const handlePayAgain = async () => {
-    try {
-        const res = await paymentService.payAgain(order.id, { bankCode: '' });
-        if (res.data?.payUrl) {
-            window.location.href = res.data.payUrl;
-        } else {
-            toast.error('Không tạo được link thanh toán.');
+        try {
+            const res = await paymentService.payAgain(order.id, { bankCode: '' });
+            if (res.data?.payUrl) {
+                window.location.href = res.data.payUrl;
+            } else {
+                toast.error('Không tạo được link thanh toán.');
+            }
+        } catch (err) {
+            console.error('Pay-again error:', err);
+            toast.error(err.response?.data?.message || 'Không thể thanh toán lại.');
         }
-    } catch (err) {
-        console.error('Pay-again error:', err);
-        toast.error(err.response?.data?.message || 'Không thể thanh toán lại.');
-    }
-};
+    };
 
 
     const [showCancelDialog, setShowCancelDialog] = useState(false);
 
-    // Xử lý click ra ngoài để đóng dropdown "Thêm"
+
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (moreButtonRef.current && !moreButtonRef.current.contains(event.target)) {
@@ -150,30 +134,30 @@ const statusDisplay = getOrderStatusDisplay(order);
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
-useEffect(() => {
-    if (!socket.connected) {
-        socket.connect();
-    }
+    useEffect(() => {
+        if (!socket.connected) {
+            socket.connect();
+        }
 
-    const userId = localStorage.getItem('userId'); // hoặc lấy từ authStore nếu có
-    if (userId) {
-        socket.emit('join', `user-${userId}`);
-    }
+        const userId = localStorage.getItem('userId');
+        if (userId) {
+            socket.emit('join', `user-${userId}`);
+        }
 
-    const handleOrderUpdate = (data) => {
-        console.log('📦 Đơn hàng cập nhật:', data);
-        fetchOrders(); // Gọi lại API đơn hàng
-    };
+        const handleOrderUpdate = (data) => {
 
-    socket.on('order-updated', handleOrderUpdate);
+            fetchOrders();
+        };
 
-    return () => {
-        socket.off('order-updated', handleOrderUpdate);
-    };
-}, []);
+        socket.on('order-updated', handleOrderUpdate);
+
+        return () => {
+            socket.off('order-updated', handleOrderUpdate);
+        };
+    }, []);
 
     return (
-        
+
         <div className="bg-white dark:bg-gray-800 mb-3 sm:mb-4 border border-gray-200 dark:border-gray-700 rounded-sm">
             <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
                 <div className="flex flex-col">
@@ -189,85 +173,85 @@ useEffect(() => {
                         )}
                     </div>
                 </div>
-<div className="flex items-center gap-1.5">
-  <span className={`
+                <div className="flex items-center gap-1.5">
+                    <span className={`
     flex items-center justify-center h-5 w-5 rounded-full
     ${statusDisplay.bgColor}
   `}>
-    <span className={`h-2.5 w-2.5 rounded-full ${statusDisplay.dotColor}`} />
-  </span>
-  <span className={`text-xs sm:text-sm font-semibold uppercase ${statusDisplay.textColor}`}>
-    {statusDisplay.text}
-  </span>
-</div>
+                        <span className={`h-2.5 w-2.5 rounded-full ${statusDisplay.dotColor}`} />
+                    </span>
+                    <span className={`text-xs sm:text-sm font-semibold uppercase ${statusDisplay.textColor}`}>
+                        {statusDisplay.text}
+                    </span>
+                </div>
 
 
             </div>
 
-           <div className="">
+            <div className="">
 
-  {order.products.slice(0, showAllProducts ? order.products.length : productsToShowInitially).map((product, index) => {
-  const isReturning = order.returnRequest?.status !== 'cancelled' &&
-                    order.returnRequest?.items?.some(item => item.skuId === product.skuId);
-
-                // KIỂM TRA XEM SẢN PHẨM NÀY CÓ TRONG YÊU CẦU TRẢ HÀNG KHÔNG
-                const isProductInReturnRequest = order.returnRequest && 
-                                                 order.returnRequest.items.some(item => item.skuId === product.skuId);
-                
-                return (
-<div
-  key={`${order.id}-${product.skuId}-${index}`}
-  className="relative px-4 sm:px-6 py-3 sm:py-4 dark:border-gray-700 flex hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer"
-  onClick={() => navigate(`/user-profile/orders/${order.orderCode}`)}
->
-  {/* OVERLAY MỜ CẢ ITEM TRỪ BADGE */}
-{isProductInReturnRequest && order.returnRequest?.status !== 'cancelled' && (
-  <div className="absolute inset-0 bg-white dark:bg-gray-900 opacity-60 pointer-events-none z-10 rounded-sm" />
-)}
+                {order.products.slice(0, showAllProducts ? order.products.length : productsToShowInitially).map((product, index) => {
+                    const isReturning = order.returnRequest?.status !== 'cancelled' &&
+                        order.returnRequest?.items?.some(item => item.skuId === product.skuId);
 
 
+                    const isProductInReturnRequest = order.returnRequest &&
+                        order.returnRequest.items.some(item => item.skuId === product.skuId);
 
-                        <img src={product.imageUrl} alt={product.name} className="w-20 h-20 object-cover rounded-sm border border-gray-200 dark:border-gray-600 mr-3 sm:mr-4 flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-<p className="font-semibold text-sm text-gray-900">
-  {product.name}
-</p>
-{isReturning && (
-  <span className="inline-block mt-1 border border-yellow-500 text-yellow-600 bg-yellow-50 text-[9px] font-bold px-2 py-[2px] rounded-sm uppercase tracking-wide z-20 relative">
-    TRẢ HÀNG / HOÀN TIỀN
-  </span>
-)}
+                    return (
+                        <div
+                            key={`${order.id}-${product.skuId}-${index}`}
+                            className="relative px-4 sm:px-6 py-3 sm:py-4 dark:border-gray-700 flex hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer"
+                            onClick={() => navigate(`/user-profile/orders/${order.orderCode}`)}
+                        >
 
-
-                            {product.variation && <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Phân loại hàng: {product.variation}</p>}
-                            <p className="text-xs text-gray-700 dark:text-gray-300">x{product.quantity}
-                              
-                            </p>
-                            {/* Hiển thị trạng thái thanh toán dưới sản phẩm */}
-                            {order.paymentStatus === 'waiting' && (
-                                <>
-                                    {order.paymentMethod?.code === 'atm' ? (
-                                        <p className="text-xs text-yellow-600 dark:text-yellow-400 font-medium mt-0.5">
-                                            Chờ xác nhận chuyển khoản
-                                        </p>
-                                    ) : ['momo', 'vnpay', 'stripe', 'zalopay'].includes(order.paymentMethod?.code) && (
-                                        <p className="text-xs text-yellow-600 dark:text-yellow-400 font-medium mt-0.5">
-                                            Chờ thanh toán
-                                        </p>
-                                    )}
-                                </>
+                            {isProductInReturnRequest && order.returnRequest?.status !== 'cancelled' && (
+                                <div className="absolute inset-0 bg-white dark:bg-gray-900 opacity-60 pointer-events-none z-10 rounded-sm" />
                             )}
+
+
+
+                            <img src={product.imageUrl} alt={product.name} className="w-20 h-20 object-cover rounded-sm border border-gray-200 dark:border-gray-600 mr-3 sm:mr-4 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                                <p className="font-semibold text-sm text-gray-900">
+                                    {product.name}
+                                </p>
+                                {isReturning && (
+                                    <span className="inline-block mt-1 border border-yellow-500 text-yellow-600 bg-yellow-50 text-[9px] font-bold px-2 py-[2px] rounded-sm uppercase tracking-wide z-20 relative">
+                                        TRẢ HÀNG / HOÀN TIỀN
+                                    </span>
+                                )}
+
+
+                                {product.variation && <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Phân loại hàng: {product.variation}</p>}
+                                <p className="text-xs text-gray-700 dark:text-gray-300">x{product.quantity}
+
+                                </p>
+
+                                {order.paymentStatus === 'waiting' && (
+                                    <>
+                                        {order.paymentMethod?.code === 'atm' ? (
+                                            <p className="text-xs text-yellow-600 dark:text-yellow-400 font-medium mt-0.5">
+                                                Chờ xác nhận chuyển khoản
+                                            </p>
+                                        ) : ['momo', 'vnpay', 'stripe', 'zalopay'].includes(order.paymentMethod?.code) && (
+                                            <p className="text-xs text-yellow-600 dark:text-yellow-400 font-medium mt-0.5">
+                                                Chờ thanh toán
+                                            </p>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                            <div className="text-right ml-3 sm:ml-4 flex-shrink-0">
+                                {product.originalPrice && (
+                                    <span className="text-xs text-gray-500 dark:text-gray-400 line-through mr-1.5">{formatCurrencyVND(product.originalPrice)}</span>
+                                )}
+                                <span className="text-sm text-red-500 dark:text-red-400">{formatCurrencyVND(product.price)}</span>
+                            </div>
                         </div>
-                        <div className="text-right ml-3 sm:ml-4 flex-shrink-0">
-                            {product.originalPrice && (
-                                <span className="text-xs text-gray-500 dark:text-gray-400 line-through mr-1.5">{formatCurrencyVND(product.originalPrice)}</span>
-                            )}
-                            <span className="text-sm text-red-500 dark:text-red-400">{formatCurrencyVND(product.price)}</span>
-                        </div>
-                    </div>
-                );
-            })}
-</div>
+                    );
+                })}
+            </div>
             {order.products.length > productsToShowInitially && (
                 <div className="px-4 sm:px-6 py-2 text-center border-b border-gray-200 dark:border-gray-700">
                     <button
@@ -290,24 +274,24 @@ useEffect(() => {
                 </div>
 
                 <div className="px-4 py-3 sm:py-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-                    {/* Bên trái: Hướng dẫn nhận hàng */}
-                   {order.returnRequest ? (
-  order.returnRequest.status === 'cancelled' ? (
-    <p className="text-xs text-gray-500 italic dark:text-gray-400 max-w-[360px] leading-snug">
-      Yêu cầu <strong>đã bị hủy</strong>
-    </p>
-  ) : (
-    <p className="text-xs text-gray-600 dark:text-gray-400 max-w-[360px] leading-snug">
-      Yêu cầu <strong>trả hàng / hoàn tiền</strong>
-    </p>
-  )
-) : order.buttons.includes('Đã nhận hàng') ? (
-  <p className="text-xs text-gray-600 dark:text-gray-400 max-w-[360px] leading-snug">
-    Vui lòng chỉ nhấn <strong>"Đã nhận được hàng"</strong> khi đơn hàng đã được giao đến bạn và sản phẩm nhận được không có vấn đề nào.
-  </p>
-) : <div className="hidden sm:block" />}
 
-                    {/* Bên phải: Các nút thao tác */}
+                    {order.returnRequest ? (
+                        order.returnRequest.status === 'cancelled' ? (
+                            <p className="text-xs text-gray-500 italic dark:text-gray-400 max-w-[360px] leading-snug">
+                                Yêu cầu <strong>đã bị hủy</strong>
+                            </p>
+                        ) : (
+                            <p className="text-xs text-gray-600 dark:text-gray-400 max-w-[360px] leading-snug">
+                                Yêu cầu <strong>trả hàng / hoàn tiền</strong>
+                            </p>
+                        )
+                    ) : order.buttons.includes('Đã nhận hàng') ? (
+                        <p className="text-xs text-gray-600 dark:text-gray-400 max-w-[360px] leading-snug">
+                            Vui lòng chỉ nhấn <strong>"Đã nhận được hàng"</strong> khi đơn hàng đã được giao đến bạn và sản phẩm nhận được không có vấn đề nào.
+                        </p>
+                    ) : <div className="hidden sm:block" />}
+
+
                     <div className="relative flex flex-wrap justify-end items-center gap-2">
                         {order.buttons.slice(0, 3).map((label) => {
                             if (label === 'Thanh toán lại') {
@@ -344,16 +328,16 @@ useEffect(() => {
                                 );
                             }
                             if (label === 'Hủy đơn') {
-    return (
-        <button
-            key={label}
-            onClick={() => setShowCancelDialog(true)} // ✅ mở dialog
-            className="text-sm text-gray-700 border border-gray-300 bg-white hover:bg-gray-100 px-4 py-2 rounded-sm transition-colors dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700"
-        >
-            Hủy đơn
-        </button>
-    );
-}
+                                return (
+                                    <button
+                                        key={label}
+                                        onClick={() => setShowCancelDialog(true)}
+                                        className="text-sm text-gray-700 border border-gray-300 bg-white hover:bg-gray-100 px-4 py-2 rounded-sm transition-colors dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700"
+                                    >
+                                        Hủy đơn
+                                    </button>
+                                );
+                            }
 
                             if (label === 'Đã nhận hàng') {
                                 return (
@@ -445,7 +429,7 @@ useEffect(() => {
                                                             }
                                                         });
                                                     }
-                                                    // Thêm các trường hợp khác cho nút trong dropdown nếu có
+
                                                 }}
                                                 className="w-full text-left text-sm text-gray-700 hover:bg-red-50 px-4 py-2"
                                             >
@@ -460,44 +444,39 @@ useEffect(() => {
                 </div>
             </div>
 
-            {/* Modal/Dialogs */}
-            {/* Bạn cần đảm bảo các dialog này được import và sử dụng đúng cách nếu cần */}
-           <CancelOrderDialog
-  open={showCancelDialog}
-  onClose={() => setShowCancelDialog(false)}
-  orderCode={order.orderCode}
-  orderId={order.id}
-   onSuccess={refetchOrders} // ✅ Đúng
-/>
 
-             {/* <ReturnMethodDialog open={openReturnMethodDialog} onClose={() => setOpenReturnMethodDialog(false)} /> */}
+            <CancelOrderDialog
+                open={showCancelDialog}
+                onClose={() => setShowCancelDialog(false)}
+                orderCode={order.orderCode}
+                orderId={order.id}
+                onSuccess={refetchOrders}
+            />
+
+
         </div>
     );
 };
 
 
 const RenderDonMuaContent = () => {
-    // ... (Giữ nguyên phần này)
+
     const [activePurchaseTab, setActivePurchaseTab] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
+    const itemsPerPage = 10;
 
-    /* ================================================================
-    MAP API → VIEW
-    ================================================================ */
     const mapApiDataToView = (apiOrders = []) =>
         apiOrders.map(order => {
-            /* -------------------------------------------------- *
-             * 1. TAB ID
-             * -------------------------------------------------- */
+
             const tabId = order.status || 'unknown';
 
-            /* -------------------------------------------------- *
-             * 2. STATUS TEXT + COLOR
-             * -------------------------------------------------- */
+
             let statusText = '';
-            let statusColor = 'text-gray-800'; // Đặt mặc định là màu xám
+            let statusColor = 'text-gray-800';
 
             switch (order.status) {
                 case 'processing':
@@ -519,20 +498,12 @@ const RenderDonMuaContent = () => {
                     statusText = 'KHÔNG RÕ';
             }
 
-            /* -------------------------------------------------- *
-             * 3. BUTTONS
-             * -------------------------------------------------- */
             const rr = order.returnRequest;
             const hasRR = !!rr;
-            // const rrApproved = rr?.status === 'approved'; // Các biến này có thể không cần nếu dùng trực tiếp rr.status
-            // const rrAwaitingPickup = rr?.status === 'awaiting_pickup';
-            // const rrPickupBooked = rr?.status === 'pickup_booked';
-            // const rrReceived = rr?.status === 'received';
-            // const rrRefunded = rr?.status === 'refunded';
-
+       
             const buttons = [];
 
-            // ——— PROCESSING
+         
             if (order.status === 'processing') {
                 const manualTransferCodes = ['atm', 'vietqr', 'manual_transfer'];
                 const isManualTransfer = manualTransferCodes.includes(order.paymentMethod?.code);
@@ -540,7 +511,7 @@ const RenderDonMuaContent = () => {
                 if (order.paymentStatus === 'waiting' && !isManualTransfer) {
                     buttons.push('Thanh toán lại');
                 }
-                buttons.push('Hủy đơn'); // Giả định nút hủy đơn luôn có trong trạng thái processing
+                buttons.push('Hủy đơn'); 
             }
 
             // ——— SHIPPING
@@ -548,50 +519,47 @@ const RenderDonMuaContent = () => {
                 buttons.push('Đã nhận hàng');
             }
 
-            // ——— DELIVERED
-          if (order.status === 'delivered') {
-  if (!hasRR || (rr?.status === 'cancelled' && rr?.cancelledBy === 'user')) {
-    buttons.push('Trả hàng/Hoàn tiền');
-  }
-}
+          
+            if (order.status === 'delivered') {
+                if (!hasRR || (rr?.status === 'cancelled' && rr?.cancelledBy === 'user')) {
+                    buttons.push('Trả hàng/Hoàn tiền');
+                }
+            }
 
-            
-            // Logic cho nút 'Chọn cách hoàn hàng'
+
+       
             const allowChooseReturnMethodStatuses = ['approved', 'awaiting_pickup', 'pickup_booked', 'received', 'refunded'];
             if (
                 hasRR &&
-                rr.status && // Đảm bảo có status
+                rr.status && 
                 allowChooseReturnMethodStatuses.includes(rr.status) &&
-                !rr.returnMethod // đã chọn rồi thì ẩn nút
+                !rr.returnMethod
             ) {
                 buttons.push('Chọn cách hoàn hàng');
             }
 
-          if (order.status === 'completed') {
-  buttons.push('Mua Lại');
-  if (!hasRR || (rr?.status === 'cancelled' && rr?.cancelledBy === 'user')) {
-    buttons.push('Trả hàng/Hoàn tiền');
-  }
-}
+            if (order.status === 'completed') {
+                buttons.push('Mua Lại');
+                if (!hasRR || (rr?.status === 'cancelled' && rr?.cancelledBy === 'user')) {
+                    buttons.push('Trả hàng/Hoàn tiền');
+                }
+            }
 
-            
-            // Nút xem chi tiết trả hàng luôn hiển thị nếu có yêu cầu trả hàng
-if (hasRR) {
-  buttons.push('Xem chi tiết trả hàng');
-}
 
-            // ——— CANCELLED
+        
+            if (hasRR) {
+                buttons.push('Xem chi tiết trả hàng');
+            }
+
+          
             if (order.status === 'cancelled') buttons.push('Mua Lại');
 
-            /* -------------------------------------------------- *
-             * 4. OBJECT RETURN
-             * -------------------------------------------------- */
             return {
                 id: order.id,
                 tabId,
                 statusText,
-                 status: order.status,
-                statusColor, // Màu text cho status của đơn hàng (không phải dot)
+                status: order.status,
+                statusColor, 
                 orderCode: order.orderCode,
                 createdAt: order.createdAt,
                 totalAmount: order.finalPrice,
@@ -604,10 +572,10 @@ if (hasRR) {
                         returnCode: order.returnRequest.returnCode,
                         deadlineChooseReturnMethod: order.returnRequest.deadlineChooseReturnMethod,
                         status: order.returnRequest.status,
-                        cancelledBy: order.returnRequest.cancelledBy || null, // 👈 THÊM DÒNG NÀY
+                        cancelledBy: order.returnRequest.cancelledBy || null, 
                         returnMethod: order.returnRequest.returnMethod,
-                        // Thêm danh sách các sản phẩm trong yêu cầu trả hàng
-                        items: order.returnRequest.items || [] // RẤT QUAN TRỌNG: API cần trả về returnRequest.items
+                       
+                        items: order.returnRequest.items || [] 
                     }
                     : null,
                 paymentStatus: order.paymentStatus,
@@ -625,26 +593,42 @@ if (hasRR) {
         });
 
 
-    const fetchOrders = async () => {
+    const fetchOrders = async (page = 1) => {
         try {
             setLoading(true);
-            const response = await orderService.getUserOrders();
 
-            if (response && response.data?.data) {
-                const mappedData = mapApiDataToView(response.data.data);
-                setOrders(mappedData);
-            }
-        } catch (error) {
-            console.error("Lỗi khi tải lịch sử mua hàng:", error);
+            const res = await orderService.getUserOrders({
+                page,
+                limit: itemsPerPage
+            });
+
+
+
+            const apiData = res.data?.data ?? [];
+            const mapped = mapApiDataToView(apiData);
+            setOrders(mapped);
+
+            const pg = res.data?.pagination ?? {};
+            setTotalItems(pg.totalItems ?? 0);
+            setCurrentPage(pg.currentPage ?? page);
+
+        } catch (err) {
+            console.error("Lỗi khi tải lịch sử mua hàng:", err);
             setOrders([]);
+            setTotalItems(0);
+            setCurrentPage(1);
         } finally {
             setLoading(false);
         }
     };
 
-    useEffect(() => {
-        fetchOrders();
-    }, []);
+
+    useEffect(() => { fetchOrders(1); }, []);
+
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+        fetchOrders(page);
+    };
 
 
     const purchaseTabs = [
@@ -710,7 +694,14 @@ if (hasRR) {
             </div>
             <div className="px-0">
                 {filteredOrders.length > 0 ? (
-                    filteredOrders.map(order => <OrderItem key={order.id} order={order} searchTerm={searchTerm} refetchOrders={fetchOrders} />)
+                    filteredOrders.map(order => (
+                        <OrderItem
+                            key={order.id}
+                            order={order}
+                            searchTerm={searchTerm}
+                            refetchOrders={() => fetchOrders(currentPage)}
+                        />
+                    ))
                 ) : (
                     <div className="text-center py-16 text-gray-500 bg-white rounded-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400">
                         <PackageOpen size={48} className="mx-auto mb-3 text-gray-400" />
@@ -727,6 +718,18 @@ if (hasRR) {
                     scrollbar-width: none;
                 }
             `}</style>
+
+            {filteredOrders.length > 0 && totalItems > itemsPerPage && (
+                <MUIPagination
+                    currentPage={currentPage}
+                    totalItems={totalItems}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={handlePageChange}
+                />
+            )}
+
+
+
         </div>
     );
 };

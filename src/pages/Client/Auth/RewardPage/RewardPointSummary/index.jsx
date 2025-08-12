@@ -3,8 +3,10 @@ import { rewardPointService } from '@/services/client/rewardPointService';
 import Loader from '@/components/common/Loader';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import coinImg from '@/assets/Client/images/xudiem.png';
+import rewardBannerImg from '@/assets/Client/images/NENDIEM.png';
 
-const RewardPointSummary = () => {
+const RewardPointSummary = ({ onLoadingChange }) => {
   const [points, setPoints] = useState(0);
   const [expiringSoon, setExpiringSoon] = useState(0);
   const [expireDate, setExpireDate] = useState(null);
@@ -21,19 +23,17 @@ const RewardPointSummary = () => {
         console.error('Lỗi khi lấy điểm thưởng:', err);
       } finally {
         setLoading(false);
+        onLoadingChange?.(false);
       }
     })();
   }, []);
 
-  if (loading) return <Loader />;
-
   return (
     <div className="flex items-center justify-between bg-white border border-yellow-300 rounded-xl shadow-sm p-5 mb-5">
-
       <div className="flex items-center gap-4">
         <div className="w-25 h-25 bg-yellow-100 rounded-full flex items-center justify-center animate-[pulse_1.2s_ease-in-out_infinite]">
           <img
-            src="src/assets/Client/images/xudiem.png"
+            src={coinImg}
             alt="coin"
             className="w-18 h-18 object-contain"
           />
@@ -52,10 +52,9 @@ const RewardPointSummary = () => {
         </div>
       </div>
 
-
       <div className="w-30 object-center h-24 rounded-xl overflow-hidden shrink-0">
         <img
-          src="src/assets/Client/images/NENDIEM.png"
+          src={rewardBannerImg}
           alt="Reward Banner"
           className="w-full h-full object-cover object-center"
           draggable={false}

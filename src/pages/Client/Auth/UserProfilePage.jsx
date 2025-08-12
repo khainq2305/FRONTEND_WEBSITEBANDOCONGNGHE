@@ -15,6 +15,8 @@ import MembershipPage from './MembershipPage';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 import { rewardPointService } from '../../../services/client/rewardPointService';
 import { walletService } from '../../../services/client/walletService';
+import coinIcon from '@/assets/Client/images/xudiem.png';
+import coinBanner from '@/assets/Client/images/NENDIEM.png';
 
 import InternalWalletPage from './InternalWalletPage';
 const formatPoint = (value) => {
@@ -133,7 +135,8 @@ const UserProfilePage = () => {
     };
   }, [isDropdownOpen]);
   useEffect(() => {
-    rewardPointService.getTotalPoints()
+    rewardPointService
+      .getTotalPoints()
       .then((res) => {
         setTotalPoints(res?.data?.totalPoints || 0);
       })
@@ -141,8 +144,6 @@ const UserProfilePage = () => {
         console.error('Lỗi lấy điểm thưởng:', err);
         setTotalPoints(0);
       });
-
-
   }, []);
   useEffect(() => {
     const handleAvatarUpdate = (event) => {
@@ -175,7 +176,8 @@ const UserProfilePage = () => {
     };
   }, []);
   useEffect(() => {
-    walletService.getBalance()
+    walletService
+      .getBalance()
       .then((res) => {
         setWalletBalance(res?.data?.balance ?? 0);
       })
@@ -201,18 +203,16 @@ const UserProfilePage = () => {
   };
 
   const sidebarNavItems = [
-
     { id: 'quan-ly-don-hang', label: 'Quản lý đơn hàng', icon: ShoppingBag, href: '#quan-ly-don-hang' },
     { id: 'so-dia-chi', label: 'Sổ địa chỉ', icon: MapPin, href: '#so-dia-chi' },
-    { id: 'khach-hang-than-thiet', label: 'Khách hàng thân thiết', icon: Ticket, href: '#khach-hang-than-thiet' },
+   
     { id: 'diem-thuong', label: 'Điểm thưởng', icon: Ticket, href: '#diem-thuong' },
     {
       id: 'vi-noi-bo',
       label: 'Tài khoản CyBerZone',
       icon: Wallet2,
       href: '#vi-noi-bo'
-    }
-    ,
+    },
 
     { id: 'san-pham-da-xem', label: 'Sản phẩm đã xem', icon: Eye, href: '/san-pham-da-xem' },
     { id: 'san-pham-yeu-thich', label: 'Sản phẩm yêu thích', icon: Heart, href: '#san-pham-yeu-thich' },
@@ -262,48 +262,34 @@ const UserProfilePage = () => {
 
             {totalPoints !== null && (
               <div className="mt-3 bg-[#EFF6FF] rounded-md p-3 flex items-center justify-between">
-
                 <div>
                   <p className="text-xs text-gray-600">Điểm thưởng của bạn</p>
                   <p className="text-base font-semibold text-primary flex items-center gap-1 mt-0.5">
                     {formatPoint(totalPoints)}
-                    <img
-                      src="src/assets/Client/images/xudiem.png"
-                      alt="coin"
-                      className="w-4 h-4 object-contain"
-                    />
+                    <img src={coinIcon} alt="coin" className="w-4 h-4 object-contain" />
                   </p>
-                  <a
-                    href="/diem-thuong/the-le"
-                    className="text-xs text-blue-600 hover:underline mt-1 inline-block"
-                  >
+                  <a href="/diem-thuong/the-le" className="text-xs text-blue-600 hover:underline mt-1 inline-block">
                     Xem thể lệ
                   </a>
                 </div>
 
-
                 <img
-                  src="src/assets/Client/images/NENDIEM.png"
+                  src={coinBanner}
                   alt="coin banner"
                   className="w-20 h-20 object-cover ml-3 select-none pointer-events-none"
                   draggable={false}
                 />
               </div>
             )}
-
           </div>
 
           <nav className="bg-white rounded-lg shadow-sm my-2 py-2">
-
             <ul>
               {sidebarNavItems.map((item) => {
                 const itemIsActive = activeTab === item.id;
-                const isViewedProductsActive =
-                  item.id === 'san-pham-da-xem' && window.location.pathname === '/san-pham-da-xem';
+                const isViewedProductsActive = item.id === 'san-pham-da-xem' && window.location.pathname === '/san-pham-da-xem';
                 const currentIconColor =
-                  itemIsActive || isViewedProductsActive
-                    ? 'text-primary'
-                    : item.iconColor || 'text-gray-600 dark:text-gray-400';
+                  itemIsActive || isViewedProductsActive ? 'text-primary' : item.iconColor || 'text-gray-600 dark:text-gray-400';
 
                 return (
                   <li key={item.id} className={`mb-0.5 ${item.id === 'thong-tin-tai-khoan' ? 'mt-4' : ''}`}>
@@ -314,10 +300,11 @@ const UserProfilePage = () => {
                         handleTabClick(item.id);
                       }}
                       className={`flex items-center py-2.5 px-3  text-sm transition-all duration-200 relative
-              ${itemIsActive || isViewedProductsActive
-                          ? 'bg-[#EFF6FF] border-l-2 border-primary text-primary font-semibold'
-                          : 'text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
-                        }
+              ${
+                itemIsActive || isViewedProductsActive
+                  ? 'bg-[#EFF6FF] border-l-2 border-primary text-primary font-semibold'
+                  : 'text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
+              }
             `}
                     >
                       {item.icon && (
@@ -339,7 +326,6 @@ const UserProfilePage = () => {
               })}
             </ul>
           </nav>
-
         </div>
       </div>
     );
@@ -395,9 +381,10 @@ const UserProfilePage = () => {
                           handleTabClick(item.id);
                         }}
                         className={`flex items-center py-2.5 px-3 rounded-md text-sm transition-all duration-200 relative
-                          ${itemIsActive || isViewedProductsActive
-                            ? 'bg-primary-100 dark:bg-primary-900 text-primary font-semibold'
-                            : 'text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
+                          ${
+                            itemIsActive || isViewedProductsActive
+                              ? 'bg-primary-100 dark:bg-primary-900 text-primary font-semibold'
+                              : 'text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
                           }
                         `}
                       >
@@ -445,7 +432,7 @@ const UserProfilePage = () => {
           <DesktopSidebar />
 
           <div className="flex-1 min-w-0 lg:pl-8 md:pl-6 pl-0 pb-8">
-            {(orderCode || id || returnCode) ? (
+            {orderCode || id || returnCode ? (
               <Outlet />
             ) : (
               <>
@@ -458,7 +445,6 @@ const UserProfilePage = () => {
                 {activeTab === 'san-pham-yeu-thich' && <FavoriteProductsPage />}
                 {activeTab === 'doi-mat-khau' && <ChangePasswordTab />}
                 {activeTab === 'vi-noi-bo' && <InternalWalletPage />}
-
               </>
             )}
           </div>

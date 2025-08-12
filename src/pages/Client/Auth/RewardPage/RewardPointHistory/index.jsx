@@ -1,45 +1,44 @@
 import React, { useEffect, useState } from 'react';
-import { Coins } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { rewardPointService } from '@/services/client/rewardPointService';
-import Loader from '@/components/common/Loader';
 import MUIPagination from '@/components/common/Pagination';
+import xuBacCho from '@/assets/Client/images/xubacchotso.png';
+import xuHetHan from '@/assets/Client/images/xuhethan.png';
+import xuDiem from '@/assets/Client/images/xudiem.png';
 
 const TABS = [
   { key: 'all', label: 'Tất cả' },
   { key: 'earn', label: 'Đã tích điểm' },
   { key: 'spend', label: 'Đã sử dụng' }
 ];
-const formatPoint = (value) => {
-  return new Intl.NumberFormat('vi-VN').format(value);
-};
 
-export default function RewardPointHistory() {
-const [history, setHistory] = useState([]);
-const [page, setPage] = useState(1);
-const [total, setTotal] = useState(0);
-const limit = 10;
-const [loading, setLoading] = useState(true);
-const [active, setActive] = useState('all');
+const formatPoint = (value) => new Intl.NumberFormat('vi-VN').format(value);
 
- useEffect(() => {
-  (async () => {
-    setLoading(true);
-    try {
-      const { data } = await rewardPointService.getHistory({ page, limit });
-      setHistory(data?.history || []);
-      setTotal(data?.total || 0);
-    } catch (e) {
-      console.error('Lỗi getPointHistory:', e);
-    } finally {
-      setLoading(false);
-    }
-  })();
-}, [page]);
+export default function RewardPointHistory({ onLoadingChange }) {
+  const [history, setHistory] = useState([]);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const limit = 10;
+  const [loading, setLoading] = useState(true);
+  const [active, setActive] = useState('all');
 
-
-  if (loading) return <Loader />;
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      onLoadingChange?.(true);
+      try {
+        const { data } = await rewardPointService.getHistory({ page, limit });
+        setHistory(data?.history || []);
+        setTotal(data?.total || 0);
+      } catch (e) {
+        console.error('Lỗi getPointHistory:', e);
+      } finally {
+        setLoading(false);
+        onLoadingChange?.(false);
+      }
+    })();
+  }, [page, onLoadingChange]);
 
   const filtered = history.filter((h) => (active === 'all' ? true : active === 'earn' ? h.type === 'earn' : h.type === 'spend'));
 
@@ -53,30 +52,45 @@ const [active, setActive] = useState('all');
             key={t.key}
             onClick={() => setActive(t.key)}
             className={`flex-1 text-center py-3 text-sm font-medium relative
-        ${active === t.key ? 'text-[#1CA7EC] font-semibold' : 'text-gray-500'}
-        ${index > 0 ? '' : ''}
-        after:absolute after:left-0 after:right-0 after:-bottom-[1px] after:h-[2px]
-        ${active === t.key ? 'after:bg-[#1CA7EC]' : 'after:bg-transparent'}
-      `}
+              ${active === t.key ? 'text-[#1CA7EC] font-semibold' : 'text-gray-500'}
+              ${index > 0 ? '' : ''}
+              after:absolute after:left-0 after:right-0 after:-bottom-[1px] after:h-[2px]
+              ${active === t.key ? 'after:bg-[#1CA7EC]' : 'after:bg-transparent'}
+            `}
           >
             {t.label.toUpperCase()}
           </button>
         ))}
       </div>
 
-      {filtered.length === 0 ? (
-        <p className="text-gray-500">Không có giao dịch.</p>
+      {loading ? (
+        <ul className="divide-y divide-gray-200 border-x border-b border-gray-200 rounded-b-md">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <li key={i} className="px-4 py-3 bg-white animate-pulse">
+              <div className="flex items-center gap-2">
+                <div className="w-20 h-20 mr-2 rounded bg-gray-200" />
+                <div className="flex-1">
+                  <div className="h-4 w-48 bg-gray-200 rounded mb-2" />
+                  <div className="h-3 w-64 bg-gray-100 rounded mb-1.5" />
+                  <div className="h-3 w-40 bg-gray-100 rounded" />
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : filtered.length === 0 ? (
+        <div className="border-x border-b border-gray-200 rounded-b-md bg-white">
+          <div className="py-10 flex items-center justify-center text-gray-500">Không có giao dịch.</div>
+        </div>
       ) : (
         <ul className="divide-y divide-gray-200 border-x border-b border-gray-200 rounded-b-md">
           {filtered.map((item) => (
             <li key={item.id} className="flex justify-between items-center px-4 py-3 bg-white">
               <div className="pr-4 flex items-center gap-2">
                 <img
-                  src={item.type === 'expired' ? 'src/assets/Client/images/xubacchotso.png' : 'src/assets/Client/images/xuhethan.png'}
+                  src={item.type === 'expired' ? xuBacCho : xuHetHan}
                   alt="icon"
-                  className={`w-20 h-20 mr-2 mt-0.5 rounded 
-    ${item.type !== 'expired' ? 'bg-primary p-1' : ''}
-  `}
+                  className={`w-20 h-20 mr-2 mt-0.5 rounded ${item.type !== 'expired' ? 'bg-primary p-1' : ''}`}
                 />
 
                 <div>
@@ -109,26 +123,24 @@ const [active, setActive] = useState('all');
 
               <span
                 className={`shrink-0 flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-full
-    ${item.type === 'earn' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
+                  ${item.type === 'earn' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
               >
                 {item.type === 'earn' ? `+${formatPoint(item.points)}` : `-${formatPoint(item.points)}`}
-
-                <img src="src/assets/Client/images/xudiem.png" alt="coin" className="w-3 h-3 object-contain" />
+                <img src={xuDiem} alt="coin" className="w-3 h-3 object-contain" />
               </span>
             </li>
           ))}
         </ul>
-        
       )}
-      {total > limit && (
-  <MUIPagination
-    currentPage={page}
-    totalItems={total}
-    itemsPerPage={limit}
-    onPageChange={(newPage) => setPage(newPage)}
-  />
-)}
 
+      {!loading && filtered.length > limit && (
+        <MUIPagination
+          currentPage={page}
+          totalItems={filtered.length}
+          itemsPerPage={limit}
+          onPageChange={(newPage) => !loading && setPage(newPage)}
+        />
+      )}
     </section>
   );
 }
