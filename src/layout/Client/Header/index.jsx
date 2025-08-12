@@ -20,7 +20,7 @@ import { toast } from 'react-toastify';
 const Header = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
-
+const [isLoggingOut, setIsLoggingOut] = useState(false);
   const userInfo = user
     ? {
         fullName: user.fullName || '',
@@ -194,12 +194,20 @@ const Header = () => {
     setIsConfirmLogoutModalOpen(true);
   };
 
-  const confirmLogout = async () => {
-    toggleConfirmLogoutModal();
+const confirmLogout = async () => {
+  setIsLoggingOut(true);
+  try {
     await logout();
     toast.success('Đăng xuất thành công!');
     navigate('/');
-  };
+  } catch (e) {
+    console.error(e);
+    toast.error('Có lỗi khi đăng xuất. Vui lòng thử lại!');
+  } finally {
+    setIsLoggingOut(false);
+    toggleConfirmLogoutModal();
+  }
+};
 
   const handleOutsideClick = (e) => {
     if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -319,6 +327,7 @@ const Header = () => {
   return (
     <>
       {isCategoriesLoading && <Loader fullscreen={true} />}
+      {isLoggingOut && <Loader fullscreen={true} />}
       <div ref={sentinelRef} style={{ height: '1px', position: 'absolute', top: '0' }}></div>
 
       <div className="sticky top-0 z-30 ">
@@ -535,7 +544,7 @@ const Header = () => {
         </div>
       )}
       {isConfirmLogoutModalOpen && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-[1000]" onClick={toggleConfirmLogoutModal}>
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-[1000]" disabled={isLoggingOut} onClick={!isLoggingOut ? toggleConfirmLogoutModal : undefined}>
           <div
             className="bg-white rounded-2xl shadow-xl w-full max-w-sm relative flex flex-col p-8 md:p-10 text-center animate-fade-in-scale"
             onClick={(e) => e.stopPropagation()}
@@ -561,7 +570,7 @@ const Header = () => {
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <button
                 onClick={toggleConfirmLogoutModal}
-                // ✅ Nút Hủy bỏ: Hover nền xám, viền xám, chữ giữ màu xám đậm
+              
                 className="flex-1 px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium text-lg
                                hover:bg-gray-100 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-all duration-200 ease-in-out"
               >
@@ -569,11 +578,12 @@ const Header = () => {
               </button>
               <button
                 onClick={confirmLogout}
-                // ✅ Nút Đăng xuất: Hover opacity 90
+                disabled={isLoggingOut}
+              
                 className="flex-1 px-5 py-2.5 bg-primary text-white rounded-lg font-medium text-lg
                                hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200 ease-in-out"
               >
-                Đăng xuất
+                {isLoggingOut ? 'Đang đăng xuất…' : 'Đăng xuất'}
               </button>
             </div>
           </div>
