@@ -13,4 +13,5 @@ export const comboService = {
   restore: (id) => patch(`${base}${API_ENDPOINT.admin.combo.restore(id)}`),
   softDeleteMany: (ids) => post(`${base}/soft-delete-many`, { ids }),
   getAllSkus: () => get(`${base}/skus`)
+  
 };

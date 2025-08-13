@@ -17,6 +17,7 @@ import { bannerService } from '../../../services/client/bannerService';
 import { flashSaleService } from '../../../services/client/flashSaleService';
 import { sectionService } from '../../../services/client/sectionService';
 import RecommendedProductsSection from './RecommendedProductsSection';
+import ComboList from './ComboList'; // Đảm bảo import đúng
 
 import { API_BASE_URL } from '../../../constants/environment';
 import useAuthStore from '../../../stores/AuthStore';

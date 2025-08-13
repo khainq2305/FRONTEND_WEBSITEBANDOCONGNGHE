@@ -3,40 +3,28 @@ import { comboService } from '../../../services/admin/comboService';
 import {
   Typography,
   Box,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
   Paper,
-  IconButton,
-  Menu,
-  MenuItem,
-  Avatar,
   Checkbox,
-  Chip,
   TextField,
   Button,
   FormControl,
-  InputLabel,
   Select,
-  MenuItem as MuiMenuItem
+  MenuItem as MuiMenuItem,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow
 } from '@mui/material';
-import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import ImportExportIcon from '@mui/icons-material/ImportExport';
 import { toast } from 'react-toastify';
-import MoreActionsMenu from '../../../components/common/MoreActionsMenu';
 import dayjs from 'dayjs';
-
 import MUIPagination from '../../../components/common/Pagination';
-import Toastify from '../../../components/common/Toastify';
 import LoaderAdmin from '../../../components/common/Loader';
-import HighlightText from '../../../components/Admin/HighlightText';
 import { confirmDelete } from '../../../components/common/ConfirmDeleteDialog';
-import { API_BASE_URL } from '../../../constants/environment';
+import ComboRowItem from './ComboRowItem';
+import ComboDetailDialog from './ComboDetailDialog';
+import { useNavigate } from 'react-router-dom';
 
 export default function ComboListPage() {
   const [combos, setCombos] = useState([]);
@@ -48,12 +36,10 @@ export default function ComboListPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
-  const [tabCounts, setTabCounts] = useState({ all: 0, active: 0, inactive: 0, deleted: 0 });
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [menuState, setMenuState] = useState({
-    anchorEl: null,
-    comboId: null
-  });
+  const [tabCounts, setTabCounts] = useState({ all: 0, active: 0, inactive: 0, expired: 0, deleted: 0 });
+  const [selectedCombo, setSelectedCombo] = useState(null);
+  const [openDetailDialog, setOpenDetailDialog] = useState(false);
+  const navigate = useNavigate();
 
   const bulkActions =
     filter === 'deleted'
@@ -63,8 +49,6 @@ export default function ComboListPage() {
         ]
       : [{ value: 'delete', label: 'Chuyển vào thùng rác' }];
 
-  const sensors = useSensors(useSensor(PointerSensor));
-
   useEffect(() => {
     fetchData();
   }, [filter, searchText, currentPage, itemsPerPage]);
@@ -72,22 +56,21 @@ export default function ComboListPage() {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const res = await comboService.getAll(); // comboService
+      const res = await comboService.getAll();
       const data = res.data || [];
       const now = dayjs();
       const enriched = data.map((c) => ({
         ...c,
-        isExpired: c.expiredAt ? dayjs(c.expiredAt).isBefore(now, 'day') : false
+        isExpired: c.expiredAt ? dayjs(c.expiredAt).isBefore(now, 'day') : false,
+        searchText
       }));
-
-      const filtered = data.filter((c) => {
-if (filter === 'active' && (!c.isActive || c.deletedAt || c.isExpired)) return false;
-if (filter === 'inactive' && (c.isActive || c.deletedAt || c.isExpired)) return false;
+      const filtered = enriched.filter((c) => {
+        if (filter === 'active' && (!c.isActive || c.deletedAt || c.isExpired)) return false;
+        if (filter === 'inactive' && (c.isActive || c.deletedAt || c.isExpired)) return false;
         if (filter === 'deleted' && !c.deletedAt) return false;
         if (filter === 'all' && c.deletedAt) return false;
         if (filter !== 'deleted' && c.deletedAt) return false;
         if (filter === 'expired' && (!c.isExpired || c.deletedAt)) return false;
-
         if (searchText && !c.name?.toLowerCase().includes(searchText.toLowerCase())) return false;
         return true;
       });
@@ -95,17 +78,27 @@ if (filter === 'inactive' && (c.isActive || c.deletedAt || c.isExpired)) return 
       setCombos(filtered);
       setTotalItems(filtered.length);
       setTabCounts({
-  all: enriched.filter(c => !c.deletedAt).length,
-  active: enriched.filter(c => c.isActive && !c.deletedAt && !c.isExpired).length,
-  inactive: enriched.filter(c => !c.isActive && !c.deletedAt && !c.isExpired).length,
-  expired: enriched.filter(c => !c.deletedAt && c.isExpired).length,
-  deleted: data.filter(c => c.deletedAt).length
-});
-
+        all: enriched.filter((c) => !c.deletedAt).length,
+        active: enriched.filter((c) => c.isActive && !c.deletedAt && !c.isExpired).length,
+        inactive: enriched.filter((c) => !c.isActive && !c.deletedAt && !c.isExpired).length,
+        expired: enriched.filter((c) => !c.deletedAt && c.isExpired).length,
+        deleted: data.filter((c) => c.deletedAt).length
+      });
     } catch (err) {
       console.error('Lỗi lấy combo:', err);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleViewDetail = async (combo) => {
+    try {
+      const res = await comboService.getBySlug(combo.slug); // ✅ Lấy combo có comboSkus
+      setSelectedCombo(res.data); // ✅ lấy combo từ res.data
+      setOpenDetailDialog(true);
+    } catch (err) {
+      toast.error('Lỗi lấy chi tiết combo');
+      console.error('❌ Lỗi handleViewDetail:', err);
     }
   };
 
@@ -116,12 +109,13 @@ if (filter === 'inactive' && (c.isActive || c.deletedAt || c.isExpired)) return 
       await comboService.softDelete(id);
       toast.success(`Đã xoá combo "${name}"`);
       fetchData();
-    } catch (err) {
+    } catch {
       toast.error('Lỗi xoá combo');
     } finally {
       setIsLoading(false);
     }
   };
+
   const handleForceDelete = async (id) => {
     if (!(await confirmDelete('xoá vĩnh viễn', 'combo này'))) return;
     setIsLoading(true);
@@ -129,20 +123,20 @@ if (filter === 'inactive' && (c.isActive || c.deletedAt || c.isExpired)) return 
       await comboService.forceDelete(id);
       toast.success('Xoá vĩnh viễn combo thành công');
       fetchData();
-    } catch (err) {
+    } catch {
       toast.error('Lỗi xoá combo vĩnh viễn');
     } finally {
       setIsLoading(false);
     }
   };
+
   const handleRestore = async (id) => {
     setIsLoading(true);
     try {
       await comboService.restore(id);
       toast.success('Khôi phục combo thành công');
       fetchData();
-    } catch (err) {
-      console.error('❌ [LỖI KHÔI PHỤC COMBO]:', err?.response?.data || err);
+    } catch {
       toast.error('Lỗi khôi phục combo');
     } finally {
       setIsLoading(false);
@@ -151,7 +145,6 @@ if (filter === 'inactive' && (c.isActive || c.deletedAt || c.isExpired)) return 
 
   const handleBulkAction = async () => {
     if (!bulkAction || selectedIds.length === 0) return;
-
     const confirmText = {
       delete: 'Chuyển vào thùng rác',
       restore: 'Khôi phục',
@@ -159,12 +152,9 @@ if (filter === 'inactive' && (c.isActive || c.deletedAt || c.isExpired)) return 
     }[bulkAction];
 
     if (!(await confirmDelete(confirmText, `${selectedIds.length} combo`))) return;
-
     setIsLoading(true);
     try {
       if (bulkAction === 'delete') {
-        console.log('📤 Gửi yêu cầu xoá nhiều combo:', selectedIds);
-
         await comboService.softDeleteMany(selectedIds);
       } else {
         for (let id of selectedIds) {
@@ -175,26 +165,11 @@ if (filter === 'inactive' && (c.isActive || c.deletedAt || c.isExpired)) return 
       toast.success(`Đã ${confirmText.toLowerCase()} thành công`);
       setSelectedIds([]);
       fetchData();
-    } catch (err) {
+    } catch {
       toast.error(`Lỗi khi ${confirmText.toLowerCase()}`);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const SortableRow = ({ combo, children }) => {
-    const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: String(combo.id) });
-    const style = { transform: CSS.Transform.toString(transform), transition };
-    return (
-      <TableRow ref={setNodeRef} style={style}>
-        {children({ listeners, attributes })}
-      </TableRow>
-    );
-  };
-
-  const getThumbnailUrl = (thumb) => {
-    if (!thumb) return '';
-    return thumb.startsWith('http') ? thumb : `${API_BASE_URL}${thumb}`;
   };
 
   const toggleSelectAll = (checked) => setSelectedIds(checked ? combos.map((c) => c.id) : []);
@@ -206,19 +181,17 @@ if (filter === 'inactive' && (c.isActive || c.deletedAt || c.isExpired)) return 
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h4">Danh sách combo</Typography>
-        <Button variant="contained" onClick={() => (window.location.href = '/admin/combos/create')}>
+        <Button variant="contained" onClick={() => navigate('/admin/combos/create')}>
           + Thêm combo
         </Button>
       </Box>
 
-      {/* Tabs + Filters */}
       <Box sx={{ p: 2, mb: 2, border: '1px solid #eee', borderRadius: 2, bgcolor: '#fafafa' }}>
         <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
           {['all', 'active', 'inactive', 'expired', 'deleted'].map((value) => {
             const label = { all: 'Tất Cả', active: 'Hoạt Động', inactive: 'Tạm Tắt', expired: 'Hết hạn', deleted: 'Thùng Rác' }[value];
             const count = tabCounts[value] || 0;
             const isActive = filter === value;
-
             return (
               <Box
                 key={value}
@@ -234,9 +207,7 @@ if (filter === 'inactive' && (c.isActive || c.deletedAt || c.isExpired)) return 
                   color: isActive ? 'white' : 'text.primary',
                   '&:hover': { bgcolor: isActive ? 'primary.dark' : '#e0e0e0' }
                 }}
-              >
-                {`${label} (${count})`}
-              </Box>
+              >{`${label} (${count})`}</Box>
             );
           })}
         </Box>
@@ -280,159 +251,49 @@ if (filter === 'inactive' && (c.isActive || c.deletedAt || c.isExpired)) return 
         </Box>
       </Box>
 
-      {/* Table */}
       <Paper elevation={1}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell padding="checkbox">
-                <Checkbox
-                  checked={combos.length > 0 && selectedIds.length === combos.length}
-                  indeterminate={selectedIds.length > 0 && selectedIds.length < combos.length}
-                  onChange={(e) => toggleSelectAll(e.target.checked)}
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell padding="checkbox">
+                  <Checkbox
+                    checked={combos.length > 0 && selectedIds.length === combos.length}
+                    indeterminate={selectedIds.length > 0 && selectedIds.length < combos.length}
+                    onChange={(e) => toggleSelectAll(e.target.checked)}
+                  />
+                </TableCell>
+                <TableCell>Ảnh</TableCell>
+                <TableCell>Tên combo</TableCell>
+                <TableCell>Giá</TableCell>
+                <TableCell>Trạng thái</TableCell>
+                <TableCell>Slug</TableCell>
+                <TableCell>Hiệu lực</TableCell>
+                <TableCell>Tiến độ bán</TableCell>
+                <TableCell>Hành động</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {combos.map((combo, index) => (
+                <ComboRowItem
+                  key={combo.id}
+                  combo={combo}
+                  index={index}
+                  selected={selectedIds.includes(combo.id)}
+                  onSelect={toggleSelectOne}
+                  onEdit={() => navigate(`/admin/combos/edit/${combo.slug}`)}
+                  onDelete={handleDelete}
+                  onRestore={handleRestore}
+                  onForceDelete={handleForceDelete}
+                  filter={filter}
+                  onViewDetail={handleViewDetail} // ✅ truyền vào đây
                 />
-              </TableCell>
-              <TableCell>Ảnh</TableCell>
-              <TableCell>Tên combo</TableCell>
-              <TableCell>Giá</TableCell>
-              <TableCell>Trạng thái</TableCell>
-              <TableCell>Slug</TableCell>
-              <TableCell>Hiệu lực</TableCell>
-              <TableCell>Tiến độ bán</TableCell>
-              <TableCell>Hành động</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            <DndContext sensors={sensors} collisionDetection={closestCenter}>
-              <SortableContext items={combos.map((c) => String(c.id))} strategy={verticalListSortingStrategy}>
-                {combos.map((combo) => (
-                  <SortableRow key={combo.id} combo={combo}>
-                    {({ listeners, attributes }) => (
-                      <>
-                        <TableCell padding="checkbox">
-                          <Checkbox checked={selectedIds.includes(combo.id)} onChange={() => toggleSelectOne(combo.id)} />
-                        </TableCell>
-                        <TableCell>
-                          <Avatar
-                            variant="rounded"
-                            src={getThumbnailUrl(combo.thumbnail)}
-                            alt={combo.name}
-                            sx={{ width: 90, height: 100, borderRadius: 2 }}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <HighlightText text={combo.name} highlight={searchText} />
-                        </TableCell>
-
-                        <TableCell>{Number(combo.price)?.toLocaleString()} đ</TableCell>
-                        <TableCell>
-                          <Chip
-                            label={combo.isExpired ? 'Hết hạn' : combo.isActive ? 'Hoạt động' : 'Tạm tắt'}
-                            color={combo.isExpired ? 'default' : combo.isActive ? 'success' : 'warning'}
-                            size="small"
-                          />
-                        </TableCell>
-
-                        <TableCell>{combo.slug}</TableCell>
-                        <TableCell>
-                          <Typography variant="body2">
-                            {combo.startAt ? dayjs(combo.startAt).format('DD/MM/YYYY') : '...'}
-                            {' → '}
-                            {combo.expiredAt ? dayjs(combo.expiredAt).format('DD/MM/YYYY') : '...'}
-                          </Typography>
-                        </TableCell>
-
-                        <TableCell>
-                          <Box>
-                            <Typography variant="body2">
-                              {combo.sold}/{combo.quantity} ({combo.quantity > 0 ? Math.round((combo.sold / combo.quantity) * 100) : 0}%)
-                            </Typography>
-                            <Box sx={{ width: '100%', backgroundColor: '#eee', borderRadius: 1, height: 6, mt: 0.5 }}>
-                              <Box
-                                sx={{
-                                  width: `${combo.quantity > 0 ? (combo.sold / combo.quantity) * 100 : 0}%`,
-                                  backgroundColor: '#4caf50',
-                                  height: '100%',
-                                  borderRadius: 1
-                                }}
-                              ></Box>
-                            </Box>
-                          </Box>
-                        </TableCell>
-
-                        <TableCell>
-                          <IconButton
-                            onClick={(e) => {
-                              setMenuState({
-                                anchorEl: e.currentTarget,
-                                comboId: combo.id,
-                                comboSlug: combo.slug,
-                                comboName: combo.name
-                              });
-                            }}
-                          >
-                            <MoreVertIcon />
-                          </IconButton>
-                        </TableCell>
-                      </>
-                    )}
-                  </SortableRow>
-                ))}
-              </SortableContext>
-            </DndContext>
-          </TableBody>
-        </Table>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       </Paper>
-      <Menu
-        anchorEl={menuState.anchorEl}
-        open={Boolean(menuState.anchorEl)}
-        onClose={() => setMenuState({ anchorEl: null, comboId: null, comboSlug: null, comboName: null })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        {filter === 'deleted' ? (
-          <>
-            <MenuItem
-              onClick={() => {
-                handleRestore(menuState.comboId);
-                setMenuState({ anchorEl: null, comboId: null, comboSlug: null, comboName: null });
-              }}
-            >
-              Khôi phục
-            </MenuItem>
-            <MenuItem
-              onClick={() => {
-                handleForceDelete(menuState.comboId);
-                setMenuState({ anchorEl: null, comboId: null, comboSlug: null, comboName: null });
-              }}
-              sx={{ color: 'error.main' }}
-            >
-              Xoá vĩnh viễn
-            </MenuItem>
-          </>
-        ) : (
-          <>
-            <MenuItem
-              onClick={() => {
-                window.location.href = `/admin/combos/edit/${menuState.comboSlug}`;
-                setMenuState({ anchorEl: null, comboId: null, comboSlug: null, comboName: null });
-              }}
-            >
-              Sửa
-            </MenuItem>
-            <MenuItem
-              onClick={() => {
-                handleDelete(menuState.comboId, menuState.comboName);
-                setMenuState({ anchorEl: null, comboId: null, comboSlug: null, comboName: null });
-              }}
-              sx={{ color: 'error.main' }}
-            >
-              Xoá
-            </MenuItem>
-          </>
-        )}
-      </Menu>
-      {/* Pagination */}
+
       <MUIPagination
         currentPage={currentPage}
         totalItems={totalItems}
@@ -440,6 +301,7 @@ if (filter === 'inactive' && (c.isActive || c.deletedAt || c.isExpired)) return 
         onPageChange={setCurrentPage}
         onPageSizeChange={setItemsPerPage}
       />
+      <ComboDetailDialog open={openDetailDialog} onClose={() => setOpenDetailDialog(false)} combo={selectedCombo} />
     </Box>
   );
 }

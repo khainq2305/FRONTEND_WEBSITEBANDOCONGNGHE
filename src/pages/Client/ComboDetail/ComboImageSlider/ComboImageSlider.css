@@ -1,0 +1,86 @@
+.combo-slider-wrapper {
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: white;
+  padding: 1rem;
+  position: relative;
+  max-height: 450px;
+}
+
+.combo-slide-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: white;
+  max-height: 400px;
+  overflow: hidden;
+}
+
+.combo-slide-item img {
+  object-fit: contain;
+  width: 100%;
+  max-height: 400px;
+}
+
+/* Dots */
+.combo-image-slider .slick-dots li button:before {
+  color: #aaa;
+}
+.combo-image-slider .slick-dots li.slick-active button:before {
+  color: #000;
+}
+
+/* Custom arrow buttons */
+.combo-image-slider .slick-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  cursor: pointer;
+  border-radius: 9999px;
+  width: 48px;
+  height: 48px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  background-color: #000;
+  color: white;
+  border: none;
+  opacity: 1;
+  pointer-events: auto;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+}
+
+.combo-image-slider .slick-arrow:hover:not(.slick-disabled) {
+  background-color: #222;
+}
+
+.combo-image-slider .slick-arrow.slick-disabled {
+  opacity: 0.3;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* Fix vị trí mũi tên */
+.combo-image-slider .slick-prev {
+  display: flex !important;
+  left: 10px;
+  z-index: 11;
+}
+.combo-image-slider .slick-next {
+  right: 10px;
+}
+
+/* Loại bỏ mặc định */
+.combo-image-slider .slick-prev::before,
+.combo-image-slider .slick-next::before {
+  display: none !important;
+  content: none !important;
+}
+
+.slick-arrow-icon {
+  width: 24px;
+  height: 24px;
+  color: rgb(0, 0, 0);
+}

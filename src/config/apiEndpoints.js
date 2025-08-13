@@ -142,7 +142,7 @@ export const API_ENDPOINT = {
       byCategory: '/theo-danh-muc',
       calculateFee: '/calculate-fee'
     },
- search: {
+    search: {
       base: `${API_BASE_URL}`,
       search: '/search-by-image',
       history: '/search/history',
@@ -221,6 +221,11 @@ export const API_ENDPOINT = {
       history: '/history',
       claimTask: '/task'
     },
+    combo: {
+      base: `${API_BASE_URL}/combo`,
+      getBySlug: (slug) => `/${slug}`,
+      list: '/list'
+    }
   },
   admin: {
     permissions: {
@@ -266,7 +271,7 @@ export const API_ENDPOINT = {
       forceDelete: (id) => `/product/force/${id}`,
       updateOrderIndexBulk: '/product/update-order'
     },
-      product: {
+    product: {
       base: `${API_BASE_URL}/admin/products`,
       create: '/create',
       list: '/list',
@@ -341,8 +346,7 @@ export const API_ENDPOINT = {
       updateStatus: (id) => `/update-status/${id}`,
       cancel: (id) => `/cancel/${id}`,
       updatePaymentStatus: (id) => `/update-payment-status/${id}`
-    }
-    ,
+    },
     returnRefund: {
       base: `${API_BASE_URL}/admin`,
       getReturnsByOrder: (orderId) => `/order/${orderId}/returns`,
@@ -416,7 +420,7 @@ export const API_ENDPOINT = {
       reorder: '/reorder'
     },
 
-   flashSale: {
+    flashSale: {
       base: `${API_BASE_URL}/admin/flash-sales`,
       list: '/list',
       create: '/create',
@@ -509,7 +513,7 @@ export const API_ENDPOINT = {
       create: '/create',
       update: (id) => `/${id}`,
       delete: (id) => `/${id}`,
-      getById: (id) => get(`${base}/${id}`),
+      getById: (id) => get(`${base}/${id}`)
     },
     spinHistory: {
       base: `${API_BASE_URL}/admin/spin-history`,
@@ -540,7 +544,8 @@ export const API_ENDPOINT = {
       softDelete: (id) => `/${id}`,
       forceDelete: (id) => `/force/${id}`,
       restore: (id) => `/restore/${id}`, // ✅ chỉ trả path
-      softDeleteMany: '/soft-delete-many'
+      softDeleteMany: '/soft-delete-many',
+      skus: '/skus'
     }
   }
 };
