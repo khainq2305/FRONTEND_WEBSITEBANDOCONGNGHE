@@ -277,7 +277,9 @@ wallet: {
       getRevenueByDate: '/revenue-by-date',
       getOrdersByDate: '/orders-by-date',
       getTopSellingProducts: '/top-selling-products',
-      getFavoriteProducts: '/favorite-products'
+      getFavoriteProducts: '/favorite-products',
+      getAllTopSellingProducts: '/all-top-selling-products',
+      getAllFavoriteProducts: '/all-favorite-products',
     },
     sku: {
       base: `${API_BASE_URL}/admin/sku`,

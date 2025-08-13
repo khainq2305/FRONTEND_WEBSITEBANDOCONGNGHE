@@ -35,4 +35,18 @@ export const dashboardService = {
         const res = await get(`${base}${API_ENDPOINT.admin.dashboard.getFavoriteProducts}?${query}`);
         return res.data;
     },
+
+    getAllTopSellingProducts: async (params = {}) => {
+        const query = new URLSearchParams(params).toString();
+        const res = await get(`${base}${API_ENDPOINT.admin.dashboard.getAllTopSellingProducts}?${query}`);
+        return res.data;
+    },
+
+    getAllFavoriteProducts: async (params = {}) => {
+        const query = new URLSearchParams(params).toString();
+        const res = await get(`${base}${API_ENDPOINT.admin.dashboard.getAllFavoriteProducts}?${query}`);
+        return res.data;
+    },
+
+    
 };
