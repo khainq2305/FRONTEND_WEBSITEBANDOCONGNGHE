@@ -57,25 +57,17 @@ export default function LuckyWheelPage() {
   }, []);
 
   useEffect(() => {
-    // Sửa đổi: Lắng nghe sự thay đổi của người dùng. 
-    // Giả sử bạn có một cách để lấy userId hiện tại, ví dụ từ context hoặc store.
-    // Khi userId thay đổi (người dùng đăng nhập/đăng xuất), fetch lại trạng thái.
+   
     const handleUserChange = () => {
         fetchSpinStatus();
     };
-
-    // Thêm event listener hoặc logic để lắng nghe thay đổi người dùng
-    // Ví dụ: window.addEventListener('user-changed', handleUserChange);
-    // return () => window.removeEventListener('user-changed', handleUserChange);
-    
-    // Nếu bạn đang sử dụng localStorage, có thể kiểm tra trực tiếp
     const user = localStorage.getItem("user");
     const token = localStorage.getItem("token");
     if (user || token) {
         fetchSpinStatus();
     }
 
-  }, [/* dependencies on user state, e.g., auth.userId */]); // Thêm biến trạng thái người dùng vào đây
+  }, []); 
 
   useEffect(() => {
     if (spinsRemaining === 0) {

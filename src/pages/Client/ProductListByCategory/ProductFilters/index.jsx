@@ -46,18 +46,14 @@ export default function ProductFilters({ currentFilters, onApplyFilters, brandOp
 
     return (
         <div className="flex flex-col sm:flex-row sm:items-center sm:flex-wrap gap-y-2">
-            {/* CONTAINER CỦA CÁC NÚT LỌC:
-                - Sử dụng flex flex-wrap để các item tự động xuống dòng
-                - items-center để căn chỉnh chiều dọc của các item trong cùng một hàng
-                - gap-x và gap-y để tạo khoảng cách giữa các item */}
+            
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2 w-full">
-                {/* SPAN TIÊU ĐỀ: Đảm bảo không bị co và nằm riêng nếu muốn */}
+               
                 <span className="font-semibold text-sm sm:text-[15px] mr-1 text-gray-800 flex items-center py-2 leading-none flex-shrink-0">
                     Chọn theo tiêu chí:
                 </span>
 
-                {/* DIV BỌC NÚT: flex-shrink-0 để đảm bảo nút không bị co lại khi không gian hẹp.
-                    Không thêm w-full để chúng giữ kích thước tự nhiên và wrap khi cần. */}
+               
                 <div className="flex-shrink-0">
                     <button
                         className={`px-3 py-2 sm:px-4 sm:py-2 text-xs sm:text-sm rounded-md flex items-center gap-1.5 transition-all duration-200 ease-in-out border leading-none ${

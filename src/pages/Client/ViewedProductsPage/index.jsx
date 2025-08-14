@@ -4,9 +4,27 @@ import { EyeIcon } from 'lucide-react';
 import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { productViewService } from '../../../services/client/productViewService';
+import giaoNhanh from '@/assets/Client/images/1717405144807-Left-Tag-Giao-Nhanh.webp';
+import thuCuDoiMoi from '@/assets/Client/images/1740550907303-Left-tag-TCDM (1).webp';
+import traGop0 from '@/assets/Client/images/1717405144808-Left-Tag-Tra-Gop-0.webp';
+import giaTot from '@/assets/Client/images/1732077440142-Left-tag-Bestprice-0.gif';
+import giaKho from '@/assets/Client/images/1739182448835-Left-tag-GK-Choice.gif';
 
-const InlinedProductCard = ({ id, badgeImage, productId, name, price, oldPrice, discount, image, rating, slug, soldCount, inStock, badge }) => {
-
+const InlinedProductCard = ({
+  id,
+  badgeImage,
+  productId,
+  name,
+  price,
+  oldPrice,
+  discount,
+  image,
+  rating,
+  slug,
+  soldCount,
+  inStock,
+  badge
+}) => {
   const renderStars = (rate) => {
     const stars = [];
     const numRating = parseFloat(rate);
@@ -37,11 +55,11 @@ const InlinedProductCard = ({ id, badgeImage, productId, name, price, oldPrice, 
     }
 
     const badgeImageMap = {
-      'GIAO NHANH': 'src/assets/Client/images/1717405144807-Left-Tag-Giao-Nhanh.webp',
-      'THU CŨ ĐỔI MỚI': 'src/assets/Client/images/1740550907303-Left-tag-TCDM (1).webp',
-      'TRẢ GÓP 0%': 'src/assets/Client/images/1717405144808-Left-Tag-Tra-Gop-0.webp',
-      'GIÁ TỐT': 'src/assets/Client/images/1732077440142-Left-tag-Bestprice-0.gif',
-      'GIÁ KHO': 'src/assets/Client/images/1739182448835-Left-tag-GK-Choice.gif'
+      'GIAO NHANH': giaoNhanh,
+      'THU CŨ ĐỔI MỚI': thuCuDoiMoi,
+      'TRẢ GÓP 0%': traGop0,
+      'GIÁ TỐT': giaTot,
+      'GIÁ KHO': giaKho
     };
 
     const upperCaseBadge = badge.toUpperCase();
@@ -52,7 +70,6 @@ const InlinedProductCard = ({ id, badgeImage, productId, name, price, oldPrice, 
     else if (upperCaseBadge.includes('TRẢ GÓP')) imageUrl = badgeImageMap['TRẢ GÓP 0%'];
     else if (upperCaseBadge.includes('GIÁ TỐT') || upperCaseBadge.includes('BEST PRICE')) imageUrl = badgeImageMap['GIÁ TỐT'];
     else if (upperCaseBadge.includes('GIÁ KHO')) imageUrl = badgeImageMap['GIÁ KHO'];
-
 
     if (imageUrl) {
       return (
@@ -66,8 +83,10 @@ const InlinedProductCard = ({ id, badgeImage, productId, name, price, oldPrice, 
   };
 
   return (
-    <div className="product-card-item w-full h-full flex flex-col bg-white relative transition-all duration-300 ease-in-out group/productCard rounded-lg overflow-hidden p-2
-                     border border-gray-200/70 hover:shadow-xl hover:-translate-y-1 hover:border-blue-300 z-10">
+    <div
+      className="product-card-item w-full h-full flex flex-col bg-white relative transition-all duration-300 ease-in-out group/productCard rounded-lg overflow-hidden p-2
+                     border border-gray-200/70 hover:shadow-xl hover:-translate-y-1 hover:border-blue-300 z-10"
+    >
       <div className="relative">
         {!inStock && (
           <div className="absolute inset-0 bg-white/40 flex items-center justify-center z-20 rounded-t-lg pointer-events-none">
@@ -167,7 +186,6 @@ const InlinedProductCard = ({ id, badgeImage, productId, name, price, oldPrice, 
   );
 };
 
-
 const ViewedProductsPage = () => {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -193,7 +211,7 @@ const ViewedProductsPage = () => {
         const formattedProducts = viewedIds
           .map((id) => rawProducts.find((p) => p.id === id))
           .filter(Boolean)
-          .map(p => ({
+          .map((p) => ({
             id: p.id,
             productId: p.id,
             name: p.name,
@@ -211,12 +229,11 @@ const ViewedProductsPage = () => {
 
             inStock: p.inStock ?? true,
             badge: p.badge,
-            badgeImage: p.badgeImage,
+            badgeImage: p.badgeImage
           }));
 
         setProducts(formattedProducts);
       } catch (err) {
-
         setError(err.message || 'Lỗi không xác định');
         toast.error(err.message || 'Lỗi khi tải sản phẩm đã xem');
       } finally {
@@ -233,7 +250,11 @@ const ViewedProductsPage = () => {
         <div className="flex items-center justify-center mb-3">
           <svg className="animate-spin h-8 w-8 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
           </svg>
         </div>
         Đang tải sản phẩm đã xem...
@@ -253,10 +274,7 @@ const ViewedProductsPage = () => {
 
   return (
     <div className="max-w-[1200px] mx-auto bg-white p-2 rounded-md shadow border border-gray-200 mb-20">
-      <h2 className="pl-3 py-4 pt-4 text-xl font-bold text-[#c51813] uppercase">
-        Sản phẩm đã xem
-      </h2>
-
+      <h2 className="pl-3 py-4 pt-4 text-xl font-bold text-[#c51813] uppercase">Sản phẩm đã xem</h2>
 
       {products.length === 0 ? (
         <div className="text-center py-10 text-gray-500">
@@ -264,7 +282,6 @@ const ViewedProductsPage = () => {
           <p className="text-sm">Hãy duyệt qua các sản phẩm của chúng tôi để bắt đầu!</p>
         </div>
       ) : (
-
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-2 gap-y-4">
           {products.map((product) => (
             <InlinedProductCard key={product.id} {...product} />

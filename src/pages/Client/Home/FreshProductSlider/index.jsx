@@ -2,11 +2,16 @@ import React, { useState, useEffect, useRef } from 'react';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import './FreshProductSlider.css'; 
+import './FreshProductSlider.css';
 
 import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
 import { Link } from 'react-router-dom';
+import giaoNhanh from '@/assets/Client/images/1717405144807-Left-Tag-Giao-Nhanh.webp';
+import thuCuDoiMoi from '@/assets/Client/images/1740550907303-Left-tag-TCDM (1).webp';
+import traGop0 from '@/assets/Client/images/1717405144808-Left-Tag-Tra-Gop-0.webp';
+import giaTot from '@/assets/Client/images/1732077440142-Left-tag-Bestprice-0.gif';
+import giaKho from '@/assets/Client/images/1739182448835-Left-tag-GK-Choice.gif';
 
 const InlinedProductCard = ({
   id,
@@ -52,11 +57,11 @@ const InlinedProductCard = ({
     }
 
     const badgeImageMap = {
-      'GIAO NHANH': 'src/assets/Client/images/1717405144807-Left-Tag-Giao-Nhanh.webp',
-      'THU CŨ ĐỔI MỚI': 'src/assets/Client/images/1740550907303-Left-tag-TCDM (1).webp',
-      'TRẢ GÓP 0%': 'src/assets/Client/images/1717405144808-Left-Tag-Tra-Gop-0.webp',
-      'GIÁ TỐT': 'src/assets/Client/images/1732077440142-Left-tag-Bestprice-0.gif',
-      'GIÁ KHO': 'src/assets/Client/images/1739182448835-Left-tag-GK-Choice.gif'
+      'GIAO NHANH': giaoNhanh,
+      'THU CŨ ĐỔI MỚI': thuCuDoiMoi,
+      'TRẢ GÓP 0%': traGop0,
+      'GIÁ TỐT': giaTot,
+      'GIÁ KHO': giaKho
     };
 
     const upperCaseBadge = badge.toUpperCase();
@@ -82,7 +87,7 @@ const InlinedProductCard = ({
   return (
     <div className="product-card-item w-full h-full flex flex-col bg-white relative transition-all duration-300 ease-in-out group/productCard border-l border-r border-transparent hover:shadow-2xl hover:z-20 hover:border-l-gray-200 hover:border-r-gray-200 rounded-lg overflow-hidden">
       <div className="relative">
-       {!inStock && (
+        {!inStock && (
           <div className="absolute inset-0 bg-white/40 flex items-center justify-center z-20 rounded-t-lg pointer-events-none">
             <span className="text-rose-600 font-bold text-base border-2 border-rose-500 rounded-lg px-4 py-2 transform -rotate-12 shadow-lg bg-white">
               Hết Hàng
@@ -113,7 +118,7 @@ const InlinedProductCard = ({
               alt="badge overlay"
               className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
                     w-full h-full object-contain z-20 pointer-events-none select-none hidden sm:block
-                    transform scale-[1.1]" 
+                    transform scale-[1.1]"
               loading="lazy"
             />
           )}
@@ -204,7 +209,7 @@ const FreshProductSlider = ({
   const [sectionTitle, setSectionTitle] = useState(titleFromProp || 'SẢN PHẨM NỔI BẬT');
   const [banners, setBanners] = useState([]);
   const [currentProducts, setCurrentProducts] = useState([]);
-  const [standardSlidesToShow, setStandardSlidesToShow] = useState(5); 
+  const [standardSlidesToShow, setStandardSlidesToShow] = useState(5);
 
   useEffect(() => {
     const handleResize = () => {
@@ -257,7 +262,6 @@ const FreshProductSlider = ({
     setCurrentProducts(mappedProducts);
   }, [titleFromProp, bannersFromProp, productsFromProp]);
 
-  
   const finalSlidesToShow = standardSlidesToShow;
 
   const shouldEnableSliderFeatures = currentProducts.length > standardSlidesToShow;
@@ -274,7 +278,6 @@ const FreshProductSlider = ({
     centerMode: false,
     centerPadding: '0px',
     swipeToSlide: true,
-   
 
     responsive: [
       {
@@ -302,7 +305,7 @@ const FreshProductSlider = ({
       {
         breakpoint: 767,
         settings: {
-          slidesToShow: 2, 
+          slidesToShow: 2,
           slidesToScroll: 1,
           infinite: currentProducts.length > 2,
           arrows: false,
@@ -318,8 +321,7 @@ const FreshProductSlider = ({
   }
 
   return (
-<div className="fresh-slider-wrapper group max-w-[1200px] mx-auto bg-gray-50 rounded-lg shadow-md mt-2 mb-2">
-
+    <div className="fresh-slider-wrapper group max-w-[1200px] mx-auto bg-gray-50 rounded-lg shadow-md mt-2 mb-2">
       <div className="header-block px-2 sm:px-4 pt-4">
         <div className="flex flex-wrap justify-between items-center gap-y-2 mb-2 sm:mb-3">
           <h3 className="text-xl sm:text-xl font-bold uppercase whitespace-nowrap text-[#c51813]">{sectionTitle}</h3>

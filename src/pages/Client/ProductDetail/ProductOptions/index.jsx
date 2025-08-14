@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { CheckCircleIcon, CubeIcon, XCircleIcon, TagIcon } from '@heroicons/react/24/solid';
 import CountdownTimer from '../../Home/TwoRowMarketSlider/CountdownTimer';
+import flashSaleImg from '@/assets/Client/images/flash-sale.png';
 
 import GiaoNhanhBadge from '@/assets/Client/images/1717405144807-Left-Tag-Giao-Nhanh.webp';
 import TraGopBadge from '@/assets/Client/images/1717405144808-Left-Tag-Tra-Gop-0.webp';
@@ -61,12 +62,12 @@ export default function ProductOptions({
   const renderBadge = () => {
     if (!badge) return null;
     const badgeImageMap = {
-  'GIAO NHANH': GiaoNhanhBadge,
-  'THU CŨ ĐỔI MỚI': ThuCuDoiMoiBadge,
-  'TRẢ GÓP 0%': TraGopBadge,
-  'GIÁ TỐT': GiaTotBadge,
-  'GIÁ KHO': GiaKhoBadge
-};
+      'GIAO NHANH': GiaoNhanhBadge,
+      'THU CŨ ĐỔI MỚI': ThuCuDoiMoiBadge,
+      'TRẢ GÓP 0%': TraGopBadge,
+      'GIÁ TỐT': GiaTotBadge,
+      'GIÁ KHO': GiaKhoBadge
+    };
 
     const upperCaseBadge = badge.toUpperCase();
     let imageUrl = null;
@@ -75,7 +76,6 @@ export default function ProductOptions({
     else if (upperCaseBadge.includes('TRẢ GÓP')) imageUrl = badgeImageMap['TRẢ GÓP 0%'];
     else if (upperCaseBadge.includes('GIÁ TỐT') || upperCaseBadge.includes('BEST PRICE')) imageUrl = badgeImageMap['GIÁ TỐT'];
     else if (upperCaseBadge.includes('GIÁ KHO')) imageUrl = badgeImageMap['GIÁ KHO'];
-
 
     if (imageUrl) {
       return (
@@ -86,9 +86,9 @@ export default function ProductOptions({
     }
     return null;
   };
-useEffect(() => {
-  console.log('📦 banners trong ProductOptions:', banners);
-}, [banners]);
+  useEffect(() => {
+    console.log('📦 banners trong ProductOptions:', banners);
+  }, [banners]);
 
   if (!productOptionsData || productOptionsData.length === 0) {
     return <div className="text-gray-500 text-sm">Đang tải...</div>;
@@ -124,11 +124,10 @@ useEffect(() => {
     <div
       className="p-2 rounded-lg border border-gray-200 shadow-sm space-y-4 text-gray-800 md:sticky md:top-4 h-fit"
       style={{
-        background: 'linear-gradient(180deg, rgb(255,89,0), rgb(255,226,129), rgb(255,255,255))',
+        background: 'linear-gradient(180deg, rgb(255,89,0), rgb(255,226,129), rgb(255,255,255))'
       }}
     >
       <div className="p-4 space-y-4 text-gray-800 bg-white rounded-lg">
-   
         <div>
           <h1 className="text-2xl font-bold text-gray-900 leading-tight">{productName}</h1>
           <div className="mt-2 space-y-2">
@@ -155,8 +154,8 @@ useEffect(() => {
             <div className="rounded-md bg-gradient-to-r from-yellow-300 to-yellow-400 p-4 flex justify-between items-center shadow-inner">
               <div>
                 <div className="flex items-center gap-2 text-white font-bold text-base mb-1 uppercase">
-                  <img src="/src/assets/Client/images/flash-sale.png" alt="🔥" className="h-6 w-6" />
-                 <span className="text-white text-[16px] md:text-[18px]">Flash Sale</span>
+                  <img src={flashSaleImg} alt="🔥" className="h-6 w-6" />
+                  <span className="text-white text-[16px] md:text-[18px]">Flash Sale</span>
                 </div>
                 <div className="text-red-700 font-extrabold text-3xl">{current.price}</div>
               </div>
@@ -264,21 +263,13 @@ useEffect(() => {
             })}
           </div>
         </div>
-              {banners.length > 0 && (
- <div className="w-full mb-3">
-  {banners?.map((banner) => (
-    <img
-      key={banner.id}
-      src={banner.imageUrl}
-      alt={banner.title || 'Banner'}
-      className="w-full rounded-sm "
-      loading="lazy"
-    />
-  ))}
-</div>
-
-   
-  )}
+        {banners.length > 0 && (
+          <div className="w-full mb-3">
+            {banners?.map((banner) => (
+              <img key={banner.id} src={banner.imageUrl} alt={banner.title || 'Banner'} className="w-full rounded-sm " loading="lazy" />
+            ))}
+          </div>
+        )}
         <div className="space-y-2 pt-2">
           {areAllOptionsOutOfStock ? (
             <button
@@ -310,7 +301,6 @@ useEffect(() => {
             </>
           )}
         </div>
-
       </div>
     </div>
   );

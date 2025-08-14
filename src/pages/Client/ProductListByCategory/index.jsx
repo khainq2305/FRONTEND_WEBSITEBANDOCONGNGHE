@@ -141,13 +141,13 @@ export default function ProductListByCategory() {
 
   return (
     <main className="w-full flex justify-center">
-      {/* THÊM overflow-x-hidden VÀO DIV CHỨA NỘI DUNG CHÍNH */}
+     
       <div className="w-full max-w-[1200px] overflow-x-hidden">
         <div className="px-4">
           <Breadcrumb items={[{ label: 'Trang chủ', href: '/' }, { label: categoryInfo.name }]} />
         </div>
 
-        <Banner banners={banners} /> {/* Kiểm tra kỹ component này */}
+        <Banner banners={banners} /> 
         
         <FilterBar 
           categorySlug={slug} 
@@ -178,7 +178,7 @@ export default function ProductListByCategory() {
               <ProductList
                 products={products}
                 favorites={favorites}
-                 categoryInfo={categoryInfo} // 👈 THÊM DÒNG NÀY
+                 categoryInfo={categoryInfo} 
                 loading={false}
                 currentPage={currentPage}
                 totalItems={totalItems}
@@ -192,7 +192,7 @@ export default function ProductListByCategory() {
           )}
         </div>
         
-        <ViewedProducts /> {/* RẤT RẤT CÓ THỂ ĐÂY LÀ THỦ PHẠM CHÍNH */}
+        <ViewedProducts /> 
         <Description content={categoryInfo.description} />
       </div>
     </main>
