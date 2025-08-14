@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import DOMPurify from 'dompurify';
 import './FloatingContact.css';
 import resetIcon from '@/assets/Client/images/Logo/reset-reload.svg';
 import { chatService } from '@/services/client/chatService';
@@ -30,7 +31,7 @@ export default function FloatingContactBox() {
   const inputRef = useRef(null);
 
   const initialTooltipMessage = 'Em rất sẵn lòng hỗ trợ Anh/Chị 😊';
-  const secondaryTooltipMessage = 'Xin chào Anh/Chị! Em là trợ lý ảo của HomePower.';
+  const secondaryTooltipMessage = 'Xin chào Anh/Chị! Em là trợ lý ảo của CYBERZONE.';
   const [displayTooltipMessage, setDisplayTooltipMessage] = useState(initialTooltipMessage);
   const [messageKey, setMessageKey] = useState(0);
 
@@ -40,10 +41,11 @@ export default function FloatingContactBox() {
     content: '👋 Xin chào Anh/Chị! Em là trợ lý ảo của CYBERZONE.'
   };
 
+  // Load chat từ localStorage + đổi tooltip sau 2s
   useEffect(() => {
-    const changeTooltipContentTimer = setTimeout(() => {
+    const timer = setTimeout(() => {
       setDisplayTooltipMessage(secondaryTooltipMessage);
-      setMessageKey((prevKey) => prevKey + 1);
+      setMessageKey((k) => k + 1);
     }, 2000);
 
     const savedChat = localStorage.getItem('hp_chat_history');
@@ -51,24 +53,23 @@ export default function FloatingContactBox() {
       setChatHistory(JSON.parse(savedChat));
     }
 
-    return () => {
-      clearTimeout(changeTooltipContentTimer);
-    };
+    return () => clearTimeout(timer);
   }, []);
 
+  // Lưu chat vào localStorage
   useEffect(() => {
     localStorage.setItem('hp_chat_history', JSON.stringify(chatHistory));
   }, [chatHistory]);
 
+  // Khi mở lần đầu -> chèn systemGreeting
   useEffect(() => {
     if (open && chatHistory.length === 0) {
       setChatHistory([systemGreeting]);
     }
-    if (open) {
-      inputRef.current?.focus();
-    }
+    if (open) inputRef.current?.focus();
   }, [open, chatHistory.length]);
 
+  // Auto scroll khi có tin nhắn mới
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatHistory, isLoading]);
@@ -81,7 +82,7 @@ export default function FloatingContactBox() {
   const handleCloseChat = () => {
     setOpen(false);
     setDisplayTooltipMessage(initialTooltipMessage);
-    setMessageKey((prevKey) => prevKey + 1);
+    setMessageKey((k) => k + 1);
     setTooltipVisible(true);
   };
 
@@ -92,122 +93,99 @@ export default function FloatingContactBox() {
     inputRef.current?.focus();
   };
 
-  const sendMessage = async (msg = message) => {
+  const sendMessage = useCallback(async (msg = message) => {
     const trimmed = msg.trim();
     if (!trimmed) return;
 
     const isFromSuggestion = quickSuggestions.includes(msg);
-    if (showSuggestions && !isFromSuggestion) {
-      setShowSuggestions(false);
-    }
+    if (showSuggestions && !isFromSuggestion) setShowSuggestions(false);
 
     setChatHistory((prev) => [...prev, { role: 'user', type: 'text', content: trimmed }]);
     setMessage('');
     setIsLoading(true);
+
     try {
       const res = await chatService.sendMessage({ message: trimmed });
       const replyData = res?.data?.data;
 
-      if (replyData) {
-        if (replyData.replyMessage) {
-          setChatHistory((prev) => [...prev, { role: 'ai', type: 'text', content: replyData.replyMessage }]);
-        }
-        if (replyData.type === 'product_grid' && replyData.content?.table) {
-          setChatHistory((prev) => [
-            ...prev,
-            {
-              role: 'ai',
-              type: 'text',
-              content: replyData.content.descriptionTop + '<br /><i>Nếu bạn cần thêm thông tin chi tiết về sản phẩm nào, hãy cho em biết nhé!</i>'
-            },
-            {
-              role: 'ai',
-              type: 'table_only',
-              content: replyData.content.table
-            },
-            {
-              role: 'ai',
-              type: 'product_grid_only',
-              content: {
-                title: replyData.content.title,
-                products: replyData.content.products,
-                noteAfterGrid: replyData.content.noteAfterGrid
-              }
-            }
-          ]);
-        } else {
-          setChatHistory((prev) => [...prev, { role: 'ai', type: replyData.type, content: replyData.content }]);
-        }
-      } else {
+      if (!replyData) {
         setChatHistory((prev) => [...prev, { role: 'ai', type: 'text', content: '🤖 Xin lỗi, em chưa hiểu rõ câu hỏi. Anh/Chị vui lòng thử lại.' }]);
+        return;
+      }
+
+      if (replyData.replyMessage) {
+        setChatHistory((prev) => [...prev, { role: 'ai', type: 'text', content: replyData.replyMessage }]);
+      }
+
+      if (replyData.type === 'product_grid' && replyData.content?.table) {
+        setChatHistory((prev) => [
+          ...prev,
+          {
+            role: 'ai',
+            type: 'text',
+            content: `${replyData.content.descriptionTop}<br /><i>Nếu bạn cần thêm thông tin chi tiết về sản phẩm nào, hãy cho em biết nhé!</i>`
+          },
+          { role: 'ai', type: 'table_only', content: replyData.content.table },
+          {
+            role: 'ai',
+            type: 'product_grid_only',
+            content: {
+              title: replyData.content.title,
+              products: replyData.content.products,
+              noteAfterGrid: replyData.content.noteAfterGrid
+            }
+          }
+        ]);
+      } else {
+        setChatHistory((prev) => [...prev, { role: 'ai', type: replyData.type, content: replyData.content }]);
       }
     } catch (error) {
-      console.error("Lỗi gửi tin nhắn:", error);
+      console.error('Lỗi gửi tin nhắn:', error);
       setChatHistory((prev) => [...prev, { role: 'ai', type: 'text', content: '❌ Đã xảy ra lỗi. Vui lòng thử lại sau.' }]);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [message, showSuggestions]);
 
   const renderMessageContent = (msg) => {
-  switch (msg.type) {
-    case 'text':
-      return <div dangerouslySetInnerHTML={{ __html: msg.content || '' }} />;
+    const safeHtml = (html) => ({ __html: DOMPurify.sanitize(html || '') });
 
-    case 'table_only':
-      if (!msg.content || !msg.content.headers || !msg.content.rows) return null;
-      return (
-        <div className="overflow-x-auto max-w-full">
-          <ProductTableDisplay
-            tableTitle={null}
-            headers={msg.content.headers}
-            rows={msg.content.rows}
-          />
-        </div>
-      );
+    switch (msg.type) {
+      case 'text':
+        return <div dangerouslySetInnerHTML={safeHtml(msg.content)} />;
 
-    case 'product_grid_only':
-      if (!msg.content || !msg.content.products) return null;
-      return (
-        <>
-          <ProductGridDisplay
-            title={msg.content.title || 'Sản phẩm đề xuất'}
-            products={msg.content.products || []}
-          />
-          {msg.content.noteAfterGrid && (
-            <p className="text-[13px] mt-2 text-gray-600">{msg.content.noteAfterGrid}</p>
-          )}
-        </>
-      );
+      case 'table_only':
+        return msg.content?.headers && msg.content?.rows ? (
+          <div className="overflow-x-auto max-w-full">
+            <ProductTableDisplay headers={msg.content.headers} rows={msg.content.rows} />
+          </div>
+        ) : null;
 
-    case 'product_grid':
-      if (!msg.content || !msg.content.products) return null;
-      return (
-        <>
-          {msg.content?.table && msg.content?.table.headers && msg.content?.table.rows && (
-            <div className="overflow-x-auto max-w-full">
-              <ProductTableDisplay
-                tableTitle={msg.content.descriptionTop || ''}
-                headers={msg.content.table.headers}
-                rows={msg.content.table.rows}
-              />
-            </div>
-          )}
-          <ProductGridDisplay
-            title={msg.content.title || 'Sản phẩm đề xuất'}
-            products={msg.content.products || []}
-          />
-          {msg.content.noteAfterGrid && (
-            <p className="text-[13px] mt-2 text-gray-600">{msg.content.noteAfterGrid}</p>
-          )}
-        </>
-      );
+      case 'product_grid_only':
+        return msg.content?.products ? (
+          <>
+            <ProductGridDisplay title={msg.content.title || 'Sản phẩm đề xuất'} products={msg.content.products} />
+            {msg.content.noteAfterGrid && <p className="text-[13px] mt-2 text-gray-600">{msg.content.noteAfterGrid}</p>}
+          </>
+        ) : null;
 
-    default:
-      return <div dangerouslySetInnerHTML={{ __html: msg.content || '' }} />;
-  }
-};
+      case 'product_grid':
+        return msg.content?.products ? (
+          <>
+            {msg.content.table?.headers && msg.content.table?.rows && (
+              <div className="overflow-x-auto max-w-full">
+                <ProductTableDisplay tableTitle={msg.content.descriptionTop || ''} headers={msg.content.table.headers} rows={msg.content.table.rows} />
+              </div>
+            )}
+            <ProductGridDisplay title={msg.content.title || 'Sản phẩm đề xuất'} products={msg.content.products} />
+            {msg.content.noteAfterGrid && <p className="text-[13px] mt-2 text-gray-600">{msg.content.noteAfterGrid}</p>}
+          </>
+        ) : null;
 
+      default:
+        return <div dangerouslySetInnerHTML={safeHtml(msg.content)} />;
+    }
+  };
 
   return (
     <>
@@ -215,7 +193,7 @@ export default function FloatingContactBox() {
         <div className="floating-contact">
           <div className={`contact-tooltip ${!tooltipVisible ? 'hidden' : ''}`}>
             <div className="tooltip-header">
-              <span className="tooltip-title">ZYBERZONE</span>
+              <span className="tooltip-title">CYBERZONE</span>
             </div>
             <div key={messageKey} className="tooltip-message-wrapper">
               <p className="tooltip-message-content">{displayTooltipMessage}</p>
@@ -232,7 +210,7 @@ export default function FloatingContactBox() {
         <div className="chatbox-container">
           <div className="chatbox-header">
             <div className="header-content w-45">
-              <img src={logo} alt="Home Power" />
+              <img src={logo} alt="CYBERZONE" />
             </div>
             <div className="header-actions">
               <button onClick={resetChat} className="header-button" title="Đặt lại cuộc trò chuyện">
@@ -248,21 +226,14 @@ export default function FloatingContactBox() {
 
           <div className="chat-content">
             {chatHistory.map((msg, i) => (
-              <div
-                key={i}
-                className={`chat-message ${msg.role === 'user' ? 'user-message' : 'ai-message'}`}
-              >
+              <div key={i} className={`chat-message ${msg.role === 'user' ? 'user-message' : 'ai-message'}`}>
                 {renderMessageContent(msg)}
               </div>
             ))}
             {isLoading && (
               <div className="chat-message ai-message">
                 <span className="loading-text">Trợ lý đang trả lời...</span>
-                <div className="loading-dots">
-                  <span>.</span>
-                  <span>.</span>
-                  <span>.</span>
-                </div>
+                <div className="loading-dots"><span>.</span><span>.</span><span>.</span></div>
               </div>
             )}
             <div ref={chatEndRef} />
@@ -301,7 +272,6 @@ export default function FloatingContactBox() {
                 </svg>
               </button>
             </div>
-
             <p className="disclaimer-text">Trợ lý AI hỗ trợ 24/7 - Nội dung tham khảo</p>
           </div>
         </div>
