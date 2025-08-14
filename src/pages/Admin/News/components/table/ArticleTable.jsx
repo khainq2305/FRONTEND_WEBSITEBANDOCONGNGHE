@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { ImportExport } from '@mui/icons-material';
+import { useCanManage } from '@/hooks/usePermission';
 
 const ArticleTable = ({
   articles = [],
@@ -23,6 +24,8 @@ const ArticleTable = ({
   pageSize,
   slug
 }) => {
+  const canManagePost = useCanManage('Post');
+  console.log('🚀 Component canManagePost:', canManagePost);
   const navigate = useNavigate();
   const rows = articles;
 
@@ -110,19 +113,16 @@ const ArticleTable = ({
                         </TableCell>
                         <TableCell align="right">
                           <div style={{ display: 'flex', justifyContent: 'end', alignItems: 'center' }}>
-                            <MoreActionsMenu
-                              tabStatus={filters.status}
-                              onDelete={() => handleSoftDelete(row)}
-                              onEdit={() =>
-                                navigate(`/admin/quan-ly-bai-viet/chinh-sua-bai-viet/${row.slug}`)
-                              }
-                              onView={() =>
-                              navigate(`/admin/quan-ly-bai-viet/chi-tiet-bai-viet/${row.slug}`)
-
-                              }
-                              onRestore={() => handleRestore(row.slug)}
-                              onForceDelete={() => handleForceDelete(row.slug)}
-                            />
+                          {canManagePost && (
+  <MoreActionsMenu
+    tabStatus={filters.status}
+    onDelete={() => handleSoftDelete(row)}
+    onEdit={() => navigate(`/admin/quan-ly-bai-viet/chinh-sua-bai-viet/${row.slug}`)}
+    onView={() => navigate(`/admin/quan-ly-bai-viet/chi-tiet-bai-viet/${row.slug}`)}
+    onRestore={() => handleRestore(row.slug)}
+    onForceDelete={() => handleForceDelete(row.slug)}
+  />
+)}
                             <div
                               {...provided.dragHandleProps}
                               style={{

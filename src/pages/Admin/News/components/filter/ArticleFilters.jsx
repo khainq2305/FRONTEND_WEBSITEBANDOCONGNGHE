@@ -4,6 +4,7 @@ import SearchInput from 'components/common/SearchInput';
 import FilterSelect from 'components/common/FilterSelect';
 import { newsCategoryService } from '@/services/admin/newCategoryService';
 import { normalizeCategoryList } from "@/utils/index";
+import ButtonCustom from '@/components/Admin/Button';
 const ArticleFilters = ({
   filters = {},
   setFilters,
@@ -12,17 +13,16 @@ const ArticleFilters = ({
   getActionOptions
 }) => {
   const [categoryOptions, setCategoryOptions] = useState([]);
-  console.log("DEBUG filters:", filters);
+  
 useEffect(() => {
   newsCategoryService.getAll().then(res => {
     const normalized = normalizeCategoryList(res.data.data);
-    console.log("💡 normalized categories:", normalized);
+    
 
     const flatOptions = normalized.map(item => ({
       value: item.id.toString(),
       label: `${'— '.repeat(item.level)}${item.name}`
     }));
-    console.log("✅ categoryOptions:", flatOptions);
 
     setCategoryOptions(flatOptions);
   });
@@ -54,6 +54,11 @@ useEffect(() => {
     >
       Thực hiện
     </Button>
+   <ButtonCustom  className="whitespace-nowrap flex-[1] p-1"
+      onClick={handleAction}
+      // disabled={!selectedRows || selectedRows.length === 0 || filters.action === ''}
+      label={'Thực hiện'}
+      action={'softDelete'} />
   </div>
 
   <div className="w-1/6">

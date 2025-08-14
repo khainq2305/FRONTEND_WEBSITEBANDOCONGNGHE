@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import MUIPagination from '@/components/common/Pagination';
 import { confirmDelete } from '@/components/common/ConfirmDeleteDialog'; 
 import { useParams } from 'react-router';
+import ButtonCustom from '@/components/Admin/Button';
 const News = () => {
   const { slug } = useParams()
   const [filters, setFilters] = useState({
@@ -158,7 +159,7 @@ const News = () => {
         to="/admin/them-bai-viet-moi" 
         label="Thêm bài viết"
       />
-
+      <ButtonCustom label="Thêm bài viết" to="/admin/them-bai-viet-moi" action={'create'} />
       <div className="p-4">
         <ArticleFilters
   filters={filters}

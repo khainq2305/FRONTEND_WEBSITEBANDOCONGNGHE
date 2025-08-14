@@ -22,6 +22,7 @@ import axios from 'axios';
 // import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import RenderSubject from "./RenderSubject";
 import { permissionsService } from "@/services/admin/permissionService";
+import { toast } from "react-toastify";
 
 
 export default function PermissionManagementPage() {
@@ -67,19 +68,32 @@ export default function PermissionManagementPage() {
 
   // Cập nhật quyền
   const handleUpdatePermission = async (roleId, subject, action, checked) => {
-    await permissionsService.updatePermission({ roleId, subject, action, hasPermission: checked });
-    // Cập nhật lại matrix local
-    setMatrixBySubject(prev => {
-      const newMatrix = { ...prev };
-      if (!newMatrix[subject]) newMatrix[subject] = {};
-      if (!newMatrix[subject][roleId]) newMatrix[subject][roleId] = {};
-      newMatrix[subject][roleId][action] = checked;
-      return { ...newMatrix };
-    });
+    try {
+      await permissionsService.updatePermission({ 
+        roleId, 
+        subject, 
+        action, 
+        hasPermission: checked 
+      });
+  
+      setMatrixBySubject(prev => {
+        const newMatrix = { ...prev };
+        newMatrix[subject] = { ...newMatrix[subject] };
+        newMatrix[subject][roleId] = { ...newMatrix[subject][roleId] };
+        newMatrix[subject][roleId][action] = checked;
+        return newMatrix;
+      });
+  
+      toast.success(`Quyền "${action}" đã được ${checked ? "bật" : "tắt"}`);
+    } catch (error) {
+      console.error("Update permission error:", error);
+      toast.error("Có lỗi khi cập nhật quyền");
+    }
   };
+  
 
   // Chọn/bỏ tất cả quyền trong subject cho role
-  const handleToggleAll = (subjectKey, checked) => {
+  const handleToggleAll = async (subjectKey, checked) => {
     const actions = actionsBySubject[subjectKey] || [];
     const updates = actions.map(actionObj => ({
       roleId: selectedRole,
@@ -87,28 +101,33 @@ export default function PermissionManagementPage() {
       action: actionObj.action,
       hasPermission: checked
     }));
-    permissionsService.updatePermission(updates)
-      .then(() => {
-        // Cập nhật lại matrix local
-        setMatrixBySubject(prev => {
-          const newMatrix = { ...prev };
-          if (!newMatrix[subjectKey]) newMatrix[subjectKey] = {};
-          if (!newMatrix[subjectKey][selectedRole]) newMatrix[subjectKey][selectedRole] = {};
-          actions.forEach(actionObj => {
-            newMatrix[subjectKey][selectedRole][actionObj.action] = checked;
-          });
-          return { ...newMatrix };
-        });
-      })
-      .catch(err => {
   
-        console.error('Bulk update permissions error:', err);
-        if (err.response) {
-          console.error('Backend error:', err.response.data);
-          alert(JSON.stringify(err.response.data));
-        }
+    try {
+      await permissionsService.updatePermission(updates);
+  
+      // Cập nhật matrix local an toàn hơn
+      setMatrixBySubject(prev => {
+        const newMatrix = structuredClone(prev); // deep copy (Node 17+/browser hỗ trợ)
+        if (!newMatrix[subjectKey]) newMatrix[subjectKey] = {};
+        if (!newMatrix[subjectKey][selectedRole]) newMatrix[subjectKey][selectedRole] = {};
+        actions.forEach(actionObj => {
+          newMatrix[subjectKey][selectedRole][actionObj.action] = checked;
+        });
+        return newMatrix;
       });
+  
+      toast.success(`Đã ${checked ? "bật" : "tắt"} toàn bộ quyền cho ${subjectKey}`);
+    } catch (err) {
+      console.error("Bulk update permissions error:", err);
+      if (err.response) {
+        console.error("Backend error:", err.response.data);
+        alert(JSON.stringify(err.response.data));
+      } else {
+        toast.error("Có lỗi xảy ra khi cập nhật quyền");
+      }
+    }
   };
+  
 
   // Tạo sự kiện để mở/đóng nhóm
   const handleToggleSubject = (subjectKey) => {
@@ -177,25 +196,38 @@ const isAdminRole = selectedRole === "admin" || selectedRole === 1 || selectedRo
       })
     : subjects;
 
-  const handleResetPermissions = async () => {
-    // Lặp qua tất cả subject và action, gọi API updatePermission với hasPermission: false
-    for (const subject of subjects) {
-      const actions = actionsBySubject[subject.key] || [];
-      for (const actionObj of actions) {
-        await permissionsService.updatePermission({
-          roleId: selectedRole,
-          subject: subject.key,
-          action: actionObj.action,
-          hasPermission: false,
-        });
+    const handleResetPermissions = async () => {
+      try {
+        // Reset toàn bộ quyền
+        for (const subject of subjects) {
+          const actions = actionsBySubject[subject.key] || [];
+          for (const actionObj of actions) {
+            await permissionsService.updatePermission({
+              roleId: selectedRole,
+              subject: subject.key,
+              action: actionObj.action,
+              hasPermission: false,
+            });
+          }
+        }
+    
+        // Reload lại matrix sau khi reset
+        for (const subject of subjects) {
+          const matrixRes = await permissionsService.getMatrix(subject.key);
+          setMatrixBySubject(prev => ({
+            ...prev,
+            [subject.key]: matrixRes.data.data || {},
+          }));
+        }
+    
+        // Thông báo thành công
+        toast.success("Đã reset quyền thành công");
+      } catch (error) {
+        console.error(error);
+        toast.error("Có lỗi xảy ra khi reset quyền");
       }
-    }
-    // Sau khi reset, reload lại matrix
-    subjects.forEach(async (subject) => {
-      const matrixRes = await permissionsService.getMatrix(subject.key);
-      setMatrixBySubject(prev => ({ ...prev, [subject.key]: matrixRes.data.data || {} }));
-    });
-  };
+    };
+    
 
   return (
     <Box className="container mx-auto p-6 space-y-6">

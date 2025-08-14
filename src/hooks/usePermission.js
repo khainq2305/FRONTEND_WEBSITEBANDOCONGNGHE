@@ -1,21 +1,18 @@
-import { useMemo } from 'react';
+// src/hooks/usePermission.js
 import useAuthStore from '@/stores/AuthStore';
+import { hasPermission, hasActionOnAnySubject } from '@/utils/disableAction';
 
-// Hook đơn giản để kiểm tra quyền
 export const usePermission = (action, subject) => {
-  const user = useAuthStore((state) => state.user);
+  const { user } = useAuthStore();
   
-  return useMemo(() => {
-    if (!user?.permissions) return false;
-    
-    return user.permissions.some(permission => 
-      permission.action === action && permission.subject === subject
-    );
-  }, [user, action, subject]);
+  return hasPermission(user?.permissions || [], action, subject);
 };
 
-// Hook để kiểm tra trạng thái disable
-export const usePermissionDisabled = (action, subject) => {
-  const hasPermission = usePermission(action, subject);
-  return !hasPermission;
+// Check if user can manage a subject (has any action on it)
+export const useCanManage = (subject) => {
+  const { user } = useAuthStore();
+  
+  if (!user?.permissions || !subject) return false;
+  
+  return user.permissions.some(permission => permission.subject === subject);
 };
