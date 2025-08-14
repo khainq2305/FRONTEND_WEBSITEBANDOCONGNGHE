@@ -51,8 +51,8 @@ const CategoryMenu = ({ topLevelCategories = [], allCategories = [], isOpen = fa
     return `#`;
   };
 
-  const tinNoiBat = { id: 'tin-noi-bat', name: 'Tin nổi bật', type: 'post', slug: 'tin-noi-bat' };
-  const menuCategories = [tinNoiBat, ...topLevelCategories];
+
+  const menuCategories = [...topLevelCategories];
 
   if (!isOpen) return null;
 
@@ -61,17 +61,16 @@ const CategoryMenu = ({ topLevelCategories = [], allCategories = [], isOpen = fa
       className="absolute top-full left-0 z-[9999 bg-white shadow-lg text-black flex border border-gray-200 border-t-0 rounded-b-lg min-w-[780px] overflow-hidden"
       style={{ height: '460px' }}
     >
-      {/* Cột trái - danh mục cha */}
+
       <div className="w-[250px] bg-[#F0F0F0] border-r border-gray-200 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 rounded-bl-lg">
         <ul>
           {menuCategories.map((cat) => (
             <li key={cat.id} className="relative">
               <button
-                className={`w-full text-left px-4 py-2.5 flex justify-between items-center text-sm ${
-                  activeL1Category?.id === cat.id
+                className={`w-full text-left px-4 py-2.5 flex justify-between items-center text-sm ${activeL1Category?.id === cat.id
                     ? 'bg-white text-primary font-medium'
                     : 'text-gray-700 hover:bg-gray-50 hover:text-primary'
-                }`}
+                  }`}
                 onMouseEnter={() => handleCategoryHover(cat)}
               >
                 {activeL1Category?.id === cat.id && <span className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-sm"></span>}
@@ -84,9 +83,14 @@ const CategoryMenu = ({ topLevelCategories = [], allCategories = [], isOpen = fa
             </li>
           ))}
         </ul>
-        <Link to="/tin-noi-bat" className="w-full text-left px-4 py-2.5 flex justify-between items-center text-sm">
-          <span className="text-primary ">Tin nổi bật</span>
+        <Link
+          to="/tin-noi-bat"
+          className="relative w-full text-left px-4 py-2.5 flex justify-between items-center text-sm text-gray-700 hover:bg-gray-50 hover:text-primary"
+        >
+          <span className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-sm opacity-0 hover:opacity-100 transition"></span>
+          <span className="truncate pr-1">Tin nổi bật</span>
         </Link>
+
       </div>
 
       <div className="flex-1 pl-6 pr-5 py-3 rounded-br-lg">

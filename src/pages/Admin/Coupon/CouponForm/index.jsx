@@ -138,7 +138,6 @@ export default function CouponForm() {
       userIds: selectedType === 'private' && applyUser ? selectedUserIds : [],
       productIds: applyProduct ? selectedProductIds : [],
 
-
       discountValue: values.discountValue !== '' ? parseNumber(values.discountValue) : null,
       minOrderValue: values.minOrderValue !== '' ? parseNumber(values.minOrderValue) : null,
 
@@ -155,7 +154,6 @@ export default function CouponForm() {
     } else {
       clearErrors('userIds');
     }
-
 
     if (applyProduct && selectedProductIds.length === 0) {
       setError('productIds', { message: 'Vui lòng chọn ít nhất 1 sản phẩm' });
@@ -217,13 +215,10 @@ export default function CouponForm() {
         }}
       >
         <form
-          onSubmit={handleSubmit(
-            onSubmit,
-            (invalidErrors) => {
-              console.log('❌ Form invalid:', invalidErrors);
-              toast.error('Vui lòng kiểm tra lại các trường bắt buộc!');
-            }
-          )}
+          onSubmit={handleSubmit(onSubmit, (invalidErrors) => {
+            console.log('❌ Form invalid:', invalidErrors);
+            toast.error('Vui lòng kiểm tra lại các trường bắt buộc!');
+          })}
         >
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
@@ -245,8 +240,6 @@ export default function CouponForm() {
                   />
                 )}
               />
-
-
             </Grid>
             <Grid item xs={12} sm={6}>
               <Controller
@@ -267,7 +260,6 @@ export default function CouponForm() {
                   />
                 )}
               />
-
             </Grid>
 
             <Grid item xs={12}>
@@ -291,7 +283,6 @@ export default function CouponForm() {
                   </TextField>
                 )}
               />
-
             </Grid>
 
             {selectedType === 'private' && (
@@ -360,9 +351,6 @@ export default function CouponForm() {
                 rules={{
                   validate: (val) => {
                     if (!val) return 'Ngày bắt đầu là bắt buộc';
-                    const now = new Date();
-                    const start = new Date(val);
-                    if (start < now) return 'Ngày bắt đầu không được trong quá khứ';
                     return true;
                   }
                 }}
@@ -412,7 +400,6 @@ export default function CouponForm() {
               />
             </Grid>
 
-
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth error={!!errors.discountType}>
                 <InputLabel>
@@ -454,9 +441,8 @@ export default function CouponForm() {
                   <TextField
                     label={
                       <span>
-                        {selectedDiscountType === 'shipping'
-                          ? 'Giá trị hỗ trợ phí vận chuyển'
-                          : 'Giá trị giảm'} <span style={{ color: 'red' }}>*</span>
+                        {selectedDiscountType === 'shipping' ? 'Giá trị hỗ trợ phí vận chuyển' : 'Giá trị giảm'}{' '}
+                        <span style={{ color: 'red' }}>*</span>
                       </span>
                     }
                     value={value ?? ''}
@@ -476,7 +462,6 @@ export default function CouponForm() {
                 )}
               />
             </Grid>
-
 
             <Grid item xs={12} sm={6}>
               <Controller
@@ -556,11 +541,7 @@ export default function CouponForm() {
                   )}
                 />
               </Grid>
-
-
             )}
-
-
 
             <Grid item xs={12}>
               <Typography fontWeight="bold" gutterBottom>
@@ -583,14 +564,11 @@ export default function CouponForm() {
                 Điều kiện áp dụng
               </Typography>
 
-
               <FormControlLabel
                 control={<Checkbox checked={applyProduct} onChange={(e) => setApplyProduct(e.target.checked)} />}
                 label="Áp dụng theo sản phẩm"
               />
             </Grid>
-
-
 
             {applyProduct && (
               <Grid item xs={12}>
@@ -600,8 +578,7 @@ export default function CouponForm() {
                   getOptionLabel={(o) => o.label}
                   value={productList.filter((p) => selectedProductIds.includes(p.id))}
                   onChange={(e, val) => setSelectedProductIds(val.map((p) => p.id))}
-                  renderInput={(params) =>
-                  (
+                  renderInput={(params) => (
                     <TextField
                       {...params}
                       label={
@@ -609,14 +586,11 @@ export default function CouponForm() {
                           Chọn sản phẩm <span style={{ color: 'red' }}>*</span>
                         </span>
                       }
-
                       fullWidth
                       error={!!errors.productIds}
                       helperText={errors.productIds?.message}
-
                     />
-                  )
-                  }
+                  )}
                   isOptionEqualToValue={(o, v) => o.id === v.id}
                   renderTags={() => null}
                 />

@@ -10,51 +10,26 @@ import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import Popper from '@mui/material/Popper';
 import Stack from '@mui/material/Stack';
-import Tab from '@mui/material/Tab';
-import Tabs from '@mui/material/Tabs';
-import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import Divider from '@mui/material/Divider';
 
 // project imports
-import ProfileTab from './ProfileTab';
-import SettingTab from './SettingTab';
 import Avatar from 'components/Admin/@extended/Avatar';
 import MainCard from 'components/Admin/MainCard';
 import Transitions from 'components/Admin/@extended/Transitions';
-import IconButton from 'components/Admin/@extended/IconButton';
 
 // assets
 import LogoutOutlined from '@ant-design/icons/LogoutOutlined';
-import SettingOutlined from '@ant-design/icons/SettingOutlined';
-import UserOutlined from '@ant-design/icons/UserOutlined';
 import avatar1 from 'assets/Admin/images/users/avatar-1.png';
 import useAuthStore from '@/stores/AuthStore';
 
-// tab panel wrapper
-function TabPanel({ children, value, index, ...other }) {
-  return (
-    <div role="tabpanel" hidden={value !== index} id={`profile-tabpanel-${index}`} aria-labelledby={`profile-tab-${index}`} {...other}>
-      {value === index && children}
-    </div>
-  );
-}
-
-function a11yProps(index) {
-  return {
-    id: `profile-tab-${index}`,
-    'aria-controls': `profile-tabpanel-${index}`
-  };
-}
-
-// ==============================|| HEADER CONTENT - PROFILE ||============================== //
-
 export default function Profile() {
-  const { user } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const theme = useTheme();
-  console.log('user la',user)
   const anchorRef = useRef(null);
   const [open, setOpen] = useState(false);
+
   const handleToggle = () => {
     setOpen((prevOpen) => !prevOpen);
   };
@@ -64,12 +39,6 @@ export default function Profile() {
       return;
     }
     setOpen(false);
-  };
-
-  const [value, setValue] = useState(0);
-
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
   };
 
   return (
@@ -92,10 +61,11 @@ export default function Profile() {
         <Stack direction="row" sx={{ gap: 1.25, alignItems: 'center', p: 0.5 }}>
           <Avatar alt="profile user" src={avatar1} size="sm" />
           <Typography variant="subtitle1" sx={{ textTransform: 'capitalize' }}>
-            Xin chào {user.fullName}
+            Xin chào {user?.fullName}
           </Typography>
         </Stack>
       </ButtonBase>
+
       <Popper
         placement="bottom-end"
         open={open}
@@ -116,75 +86,45 @@ export default function Profile() {
       >
         {({ TransitionProps }) => (
           <Transitions type="grow" position="top-right" in={open} {...TransitionProps}>
-            <Paper sx={(theme) => ({ boxShadow: theme.customShadows.z1, width: 290, minWidth: 240, maxWidth: { xs: 250, md: 290 } })}>
+            <Paper sx={(theme) => ({ boxShadow: theme.customShadows.z1, width: 240 })}>
               <ClickAwayListener onClickAway={handleClose}>
                 <MainCard elevation={0} border={false} content={false}>
-                  <CardContent sx={{ px: 2.5, pt: 3 }}>
-                    <Grid container justifyContent="space-between" alignItems="center">
-                      <Grid>
-                        <Stack direction="row" sx={{ gap: 1.25, alignItems: 'center' }}>
+                  {/* Header user info */}
+                  <CardContent sx={{ px: 2.5, pt: 3, pb: 1 }}>
+                    <Grid container alignItems="center">
+                      <Grid item>
+                        <Stack direction="row" spacing={1.25} alignItems="center">
                           <Avatar alt="profile user" src={avatar1} sx={{ width: 32, height: 32 }} />
                           <Stack>
                             <Typography variant="h6">{user?.fullName}</Typography>
-                            {user?.roles?.some((r) => r.name === 'Admin') ? (
-                              <Typography variant="body2" color="text.secondary">
-                                Admin
+                            {user?.roles?.map((r) => (
+                              <Typography key={r.id} variant="body2" color="text.secondary">
+                                {r.name}
                               </Typography>
-                            ) : (
-                              user?.roles?.map((r) => (
-                                <Typography key={r.id} variant="body2" color="text.secondary">
-                                  {r.name}
-                                </Typography>
-                              ))
-                            )}
+                            ))}
                           </Stack>
                         </Stack>
                       </Grid>
                     </Grid>
                   </CardContent>
 
-                  <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <Tabs variant="fullWidth" value={value} onChange={handleChange} aria-label="profile tabs">
-                      <Tab
-                        sx={{
-                          display: 'flex',
-                          flexDirection: 'row',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          textTransform: 'capitalize',
-                          gap: 1.25,
-                          '& .MuiTab-icon': {
-                            marginBottom: 0
-                          }
-                        }}
-                        icon={<UserOutlined />}
-                        label="Profile"
-                        {...a11yProps(0)}
-                      />
-                      <Tab
-                        sx={{
-                          display: 'flex',
-                          flexDirection: 'row',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          textTransform: 'capitalize',
-                          gap: 1.25,
-                          '& .MuiTab-icon': {
-                            marginBottom: 0
-                          }
-                        }}
-                        icon={<SettingOutlined />}
-                        label="Setting"
-                        {...a11yProps(1)}
-                      />
-                    </Tabs>
+                  <Divider />
+
+                  {/* Logout button */}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      px: 2.5,
+                      py: 1.5,
+                      cursor: 'pointer',
+                      '&:hover': { bgcolor: 'action.hover' }
+                    }}
+                    onClick={logout}
+                  >
+                    <LogoutOutlined style={{ marginRight: 8 }} />
+                    <Typography variant="body1">Đăng xuất</Typography>
                   </Box>
-                  <TabPanel value={value} index={0} dir={theme.direction}>
-                    <ProfileTab />
-                  </TabPanel>
-                  <TabPanel value={value} index={1} dir={theme.direction}>
-                    <SettingTab />
-                  </TabPanel>
                 </MainCard>
               </ClickAwayListener>
             </Paper>
@@ -195,4 +135,3 @@ export default function Profile() {
   );
 }
 
-TabPanel.propTypes = { children: PropTypes.node, value: PropTypes.number, index: PropTypes.number, other: PropTypes.any };

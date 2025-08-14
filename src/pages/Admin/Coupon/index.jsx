@@ -1,8 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Box, Typography, Table, TableHead, TableRow, TableCell, TableBody, Paper,
-  TextField, Chip, Button, Tabs, Tab, FormControl, Select, InputLabel,
-  Checkbox, IconButton, Menu, MenuItem
+  Box,
+  Typography,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  Paper,
+  TextField,
+  Chip,
+  Button,
+  Tabs,
+  Tab,
+  FormControl,
+  Select,
+  InputLabel,
+  Checkbox,
+  IconButton,
+  Menu,
+  MenuItem
 } from '@mui/material';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
@@ -15,9 +32,9 @@ import { confirmDelete } from '../../../components/common/ConfirmDeleteDialog';
 import LoaderAdmin from '../../../components/Admin/LoaderVip';
 import HighlightText from '../../../components/Admin/HighlightText';
 const formatNumber = (num) => {
-  if (num === null || num === undefined || num === "") return "";
+  if (num === null || num === undefined || num === '') return '';
   const number = Number(num);
-  if (isNaN(number)) return "";
+  if (isNaN(number)) return '';
 
   if (Number.isInteger(number)) {
     return number.toLocaleString('vi-VN');
@@ -25,7 +42,6 @@ const formatNumber = (num) => {
 
   return number.toLocaleString('vi-VN', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 };
-
 
 export default function CouponList() {
   const [coupons, setCoupons] = useState([]);
@@ -44,12 +60,13 @@ export default function CouponList() {
   const [selectedId, setSelectedId] = useState(null);
   const [menuPosition, setMenuPosition] = useState(null);
 
-  const menuActions = statusFilter === 'deleted'
-    ? [
-      { label: 'Khôi phục', value: 'restore' },
-      { label: 'Xoá vĩnh viễn', value: 'forceDelete' }
-    ]
-    : [{ label: 'Chuyển vào thùng rác', value: 'delete' }];
+  const menuActions =
+    statusFilter === 'deleted'
+      ? [
+          { label: 'Khôi phục', value: 'restore' },
+          { label: 'Xoá vĩnh viễn', value: 'forceDelete' }
+        ]
+      : [{ label: 'Chuyển vào thùng rác', value: 'delete' }];
 
   const openMenu = (e, id) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -112,7 +129,8 @@ export default function CouponList() {
         }
       }
     } catch (err) {
-      toast.error('Thao tác thất bại');
+      const msg = err?.response?.data?.message || 'Thao tác thất bại';
+      toast.error(msg);
       console.error(err);
     }
 
@@ -150,7 +168,8 @@ export default function CouponList() {
         setBulkAction('');
       }
     } catch (err) {
-      toast.error('Thao tác hàng loạt thất bại');
+      const msg = err?.response?.data?.message || 'Thao tác hàng loạt thất bại';
+      toast.error(msg);
       console.error(err);
     }
   };
@@ -173,7 +192,7 @@ export default function CouponList() {
   const isAllSelected = coupons.length > 0 && selectedIds.length === coupons.length;
   const toggleSelectAll = () => {
     if (isAllSelected) setSelectedIds([]);
-    else setSelectedIds(coupons.map(c => c.id));
+    else setSelectedIds(coupons.map((c) => c.id));
   };
 
   const getDiscountLabel = (coupon) =>
@@ -181,19 +200,13 @@ export default function CouponList() {
       ? `${formatNumber(coupon.discountValue)}%`
       : `${Number(coupon.discountValue).toLocaleString('vi-VN')}₫`;
 
-  const formatDate = (date) =>
-    date ? new Date(date).toLocaleDateString('vi-VN') : '---';
+  const formatDate = (date) => (date ? new Date(date).toLocaleDateString('vi-VN') : '---');
 
   return (
     <Box>
       {loading && <LoaderAdmin fullscreen />}
       <Box sx={{ mb: 1 }}>
-        <Breadcrumb
-          items={[
-            { label: 'Trang chủ', href: '/admin' },
-            { label: 'Mã giảm giá' }
-          ]}
-        />
+        <Breadcrumb items={[{ label: 'Trang chủ', href: '/admin' }, { label: 'Mã giảm giá' }]} />
       </Box>
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -223,13 +236,13 @@ export default function CouponList() {
               border: '1px solid transparent',
               '&:not(.Mui-selected):hover': {
                 backgroundColor: '#f0f7ff',
-                borderColor: '#d0e2ff',
+                borderColor: '#d0e2ff'
               },
               '&.Mui-selected': {
                 backgroundColor: '#007bff',
                 color: '#fff',
-                borderColor: '#007bff',
-              },
+                borderColor: '#007bff'
+              }
             }
           }}
           TabIndicatorProps={{ style: { display: 'none' } }}
@@ -244,16 +257,15 @@ export default function CouponList() {
           <Box sx={{ display: 'flex', gap: 2 }}>
             <FormControl size="small" sx={{ minWidth: 200 }}>
               <InputLabel id="bulk-action-label">Hành động hàng loạt</InputLabel>
-              <Select
-                labelId="bulk-action-label"
-                value={bulkAction}
-                onChange={handleBulkChange}
-                label="Hành động hàng loạt"
-              >
+              <Select labelId="bulk-action-label" value={bulkAction} onChange={handleBulkChange} label="Hành động hàng loạt">
                 {statusFilter !== 'deleted' && <MenuItem value="delete">Chuyển vào thùng rác</MenuItem>}
                 {statusFilter === 'deleted' && [
-                  <MenuItem key="restore" value="restore">Khôi phục</MenuItem>,
-                  <MenuItem key="forceDelete" value="forceDelete">Xoá vĩnh viễn</MenuItem>
+                  <MenuItem key="restore" value="restore">
+                    Khôi phục
+                  </MenuItem>,
+                  <MenuItem key="forceDelete" value="forceDelete">
+                    Xoá vĩnh viễn
+                  </MenuItem>
                 ]}
               </Select>
             </FormControl>
@@ -264,11 +276,11 @@ export default function CouponList() {
               disabled={!bulkAction || selectedIds.length === 0}
               sx={{
                 minWidth: 100,
-                backgroundColor: (!bulkAction || selectedIds.length === 0) ? '#f5f5f5' : '#007bff',
-                color: (!bulkAction || selectedIds.length === 0) ? '#aaa' : '#fff',
+                backgroundColor: !bulkAction || selectedIds.length === 0 ? '#f5f5f5' : '#007bff',
+                color: !bulkAction || selectedIds.length === 0 ? '#aaa' : '#fff',
                 boxShadow: 'none',
                 '&:hover': {
-                  backgroundColor: (!bulkAction || selectedIds.length === 0) ? '#f5f5f5' : '#0066d6'
+                  backgroundColor: !bulkAction || selectedIds.length === 0 ? '#f5f5f5' : '#0066d6'
                 }
               }}
             >
@@ -290,13 +302,16 @@ export default function CouponList() {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell padding="checkbox"><Checkbox checked={isAllSelected} onChange={toggleSelectAll} /></TableCell>
+              <TableCell padding="checkbox">
+                <Checkbox checked={isAllSelected} onChange={toggleSelectAll} />
+              </TableCell>
               <TableCell>STT</TableCell>
+              <TableCell>Tiêu đề</TableCell>
               <TableCell>Mã</TableCell>
               <TableCell>Loại</TableCell>
               <TableCell>Giảm</TableCell>
               <TableCell>Số lượng</TableCell>
-                <TableCell>Đã dùng</TableCell> 
+              <TableCell>Đã dùng</TableCell>
               <TableCell>Thời gian</TableCell>
               <TableCell>Trạng thái</TableCell>
               <TableCell align="right"></TableCell>
@@ -305,7 +320,9 @@ export default function CouponList() {
           <TableBody>
             {coupons.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} align="center">Không tìm thấy mã giảm giá.</TableCell>
+                <TableCell colSpan={9} align="center">
+                  Không tìm thấy mã giảm giá.
+                </TableCell>
               </TableRow>
             ) : (
               coupons.map((coupon, idx) => (
@@ -314,11 +331,7 @@ export default function CouponList() {
                     <Checkbox
                       checked={selectedIds.includes(coupon.id)}
                       onChange={() => {
-                        setSelectedIds(prev =>
-                          prev.includes(coupon.id)
-                            ? prev.filter(id => id !== coupon.id)
-                            : [...prev, coupon.id]
-                        );
+                        setSelectedIds((prev) => (prev.includes(coupon.id) ? prev.filter((id) => id !== coupon.id) : [...prev, coupon.id]));
                       }}
                     />
                   </TableCell>
@@ -327,17 +340,18 @@ export default function CouponList() {
                     <HighlightText text={coupon.code} highlight={search} />
                   </TableCell>
                   <TableCell>
-                    {coupon.discountType === 'percent'
-                      ? 'Phần trăm'
-                      : coupon.discountType === 'amount'
-                        ? 'Số tiền'
-                        : 'Miễn phí vận chuyển'}
+                    <HighlightText text={coupon.title} highlight={search} />
+                  </TableCell>
+                  <TableCell>
+                    {coupon.discountType === 'percent' ? 'Phần trăm' : coupon.discountType === 'amount' ? 'Số tiền' : 'Miễn phí vận chuyển'}
                   </TableCell>
                   <TableCell>{getDiscountLabel(coupon)}</TableCell>
                   <TableCell>{coupon.totalQuantity}</TableCell>
-<TableCell>{coupon.usedCount}</TableCell> 
+                  <TableCell>{coupon.usedCount}</TableCell>
 
-                  <TableCell>{formatDate(coupon.startTime)} - {formatDate(coupon.endTime)}</TableCell>
+                  <TableCell>
+                    {formatDate(coupon.startTime)} - {formatDate(coupon.endTime)}
+                  </TableCell>
                   <TableCell>
                     <Chip
                       label={coupon.isActive ? 'Hoạt động' : 'Tạm ngưng'}
@@ -366,10 +380,12 @@ export default function CouponList() {
           transformOrigin={{ vertical: 'top', horizontal: 'left' }}
           PaperProps={{ sx: { minWidth: 180, p: 1 } }}
         >
-          <MenuItem onClick={() => {
-            navigate(`/admin/coupons/edit/${selectedId}`);
-            closeMenu();
-          }}>
+          <MenuItem
+            onClick={() => {
+              navigate(`/admin/coupons/edit/${selectedId}`);
+              closeMenu();
+            }}
+          >
             Sửa
           </MenuItem>
 
@@ -388,12 +404,7 @@ export default function CouponList() {
       )}
 
       {totalItems > itemsPerPage && (
-        <MUIPagination
-          currentPage={currentPage}
-          totalItems={totalItems}
-          itemsPerPage={itemsPerPage}
-          onPageChange={setCurrentPage}
-        />
+        <MUIPagination currentPage={currentPage} totalItems={totalItems} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
       )}
     </Box>
   );

@@ -5,14 +5,14 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
 export default function Banner({ banners = [] }) {
-  // Nếu không có banner thì không hiển thị gì cả
+ 
   if (banners.length === 0) {
     return null;
   }
 
   const settings = {
     dots: true,
-    infinite: banners.length > 1, // Chỉ lặp lại nếu có nhiều hơn 1 banner
+    infinite: banners.length > 1, 
     speed: 500,
     arrows: false,
     slidesToShow: 1,

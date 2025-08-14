@@ -107,6 +107,18 @@ const MobileCategoryPanel = ({ isOpen, onClose, categories = [] }) => {
                   </button>
                 </li>
               ))}
+              <li className="block relative border-b border-gray-200 last:border-b-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigate('/tin-noi-bat');
+                    onClose();
+                  }}
+                  className="w-full text-left px-3 py-3 flex justify-between items-center text-xs sm:text-sm text-gray-800 hover:bg-gray-200 hover:text-[#0058AB]"
+                >
+                  <span className="truncate pr-1">Tin nổi bật</span>
+                </button>
+              </li>
             </ul>
           ) : (
             <p className="p-3 text-xs text-gray-500 text-center">Không có danh mục.</p>
@@ -159,7 +171,6 @@ const MobileCategoryPanel = ({ isOpen, onClose, categories = [] }) => {
                     </a>
                   </h4>
 
-                  
                   {categoryL2.children && categoryL2.children.length > 0 && (
                     <ul className="text-left w-full mt-2">
                       {categoryL2.children.map((categoryL3) => (
@@ -168,7 +179,7 @@ const MobileCategoryPanel = ({ isOpen, onClose, categories = [] }) => {
                             href={`/category/${categoryL3.slug}`}
                             onClick={(e) => {
                               e.preventDefault();
-                              handleNavigateCommon(categoryL3.slug); 
+                              handleNavigateCommon(categoryL3.slug);
                             }}
                             className="block px-1 py-1 text-[10px] sm:text-xs text-gray-600 hover:text-blue-600 hover:underline transition-colors duration-150 truncate"
                           >

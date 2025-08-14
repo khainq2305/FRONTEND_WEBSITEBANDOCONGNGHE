@@ -86,7 +86,7 @@ const SpinHistoryAdminPage = () => {
     return (
         <Box sx={{ p: 2 }}>
             {loading && <LoaderAdmin fullscreen />}
-            <Toastify />
+        
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h6" fontWeight={600}>

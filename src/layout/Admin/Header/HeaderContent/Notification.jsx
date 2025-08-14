@@ -1,6 +1,4 @@
 import { useRef, useState, useEffect } from 'react';
-
-// material-ui
 import useMediaQuery from '@mui/material/useMediaQuery';
 import Avatar from '@mui/material/Avatar';
 import Badge from '@mui/material/Badge';
@@ -15,30 +13,20 @@ import Popper from '@mui/material/Popper';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-
-import socket from '../../../../constants/socket'; // điều chỉnh đường dẫn nếu cần
-
-// project imports
+import socket from '../../../../constants/socket';
 import MainCard from 'components/Admin/MainCard';
 import IconButton from 'components/Admin/@extended/IconButton';
 import Transitions from 'components/Admin/@extended/Transitions';
-
-// services
 import { notificationService } from '../../../../services/admin/notificationService';
-
-// icons
 import BellOutlined from '@ant-design/icons/BellOutlined';
 import CheckCircleOutlined from '@ant-design/icons/CheckCircleOutlined';
 import GiftOutlined from '@ant-design/icons/GiftOutlined';
 import MessageOutlined from '@ant-design/icons/MessageOutlined';
 import SettingOutlined from '@ant-design/icons/SettingOutlined';
-
-// dayjs for time formatting
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 dayjs.extend(relativeTime);
 
-// styles
 const avatarSX = { width: 36, height: 36, fontSize: '1rem' };
 const actionSX = {
   mt: '6px',
@@ -49,8 +37,6 @@ const actionSX = {
   transform: 'none'
 };
 
-// ==============================|| ADMIN HEADER - NOTIFICATION ||============================== //
-
 export default function Notification() {
   const downMD = useMediaQuery((theme) => theme.breakpoints.down('md'));
   const anchorRef = useRef(null);
@@ -58,42 +44,36 @@ export default function Notification() {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // --- Hàm đánh dấu 1 thông báo đã đọc ---
   const handleMarkAsRead = async (id) => {
     try {
       await notificationService.markAsRead(id);
       setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
       setUnreadCount((prev) => (prev > 0 ? prev - 1 : 0));
     } catch (err) {
-      console.error('Lỗi đánh dấu đã đọc:', err);
+      console.error(err);
     }
   };
 
-  // --- Hàm đánh dấu tất cả đã đọc ---
   const handleMarkAllAsRead = async () => {
     try {
       await notificationService.markAllAsRead();
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
       setUnreadCount(0);
     } catch (err) {
-      console.error('Lỗi đánh dấu tất cả đã đọc:', err);
+      console.error(err);
     }
   };
 
   useEffect(() => {
-    // Lắng nghe khi backend gửi event
     socket.on('new-admin-notification', (newNoti) => {
       setNotifications((prev) => [newNoti, ...prev]);
       setUnreadCount((prev) => prev + 1);
     });
-
     return () => {
-      // Dọn sự kiện khi unmount component
       socket.off('new-admin-notification');
     };
   }, []);
 
-  const handleToggle = () => setOpen((prev) => !prev);
   const handleClose = (event) => {
     if (anchorRef.current && anchorRef.current.contains(event.target)) return;
     setOpen(false);
@@ -106,7 +86,7 @@ export default function Notification() {
       setNotifications(data);
       setUnreadCount(data.filter((n) => !n.isRead).length);
     } catch (err) {
-      console.error('Lỗi khi lấy thông báo:', err);
+      console.error(err);
     }
   };
 
@@ -118,7 +98,6 @@ export default function Notification() {
     const isSystem = item.type === 'system';
     const title = item.title;
     const createdBy = item.createdBy ? `Admin ${item.createdBy}` : 'Hệ thống';
-
     return {
       avatar: (
         <Avatar
@@ -126,17 +105,17 @@ export default function Notification() {
             bgcolor: isSystem
               ? 'warning.lighter'
               : item.type === 'order'
-                ? 'primary.lighter'
-                : item.type === 'promotion'
-                  ? 'success.lighter'
-                  : 'grey.200',
+              ? 'primary.lighter'
+              : item.type === 'promotion'
+              ? 'success.lighter'
+              : 'grey.200',
             color: isSystem
               ? 'warning.main'
               : item.type === 'order'
-                ? 'primary.main'
-                : item.type === 'promotion'
-                  ? 'success.main'
-                  : 'grey.800'
+              ? 'primary.main'
+              : item.type === 'promotion'
+              ? 'success.main'
+              : 'grey.800'
           }}
         >
           {isSystem ? (
@@ -150,11 +129,7 @@ export default function Notification() {
           )}
         </Avatar>
       ),
-      primaryText: (
-        <Typography variant="body2" color="text.secondary">
-          {`[${item.type?.toUpperCase() || 'SYSTEM'}] ${createdBy} đã tạo thông báo:`}
-        </Typography>
-      ),
+      
       secondaryText: (
         <>
           <Typography variant="h6" fontStyle="italic" sx={{ mb: 0.25 }}>
@@ -167,7 +142,11 @@ export default function Notification() {
   };
 
   return (
-    <Box sx={{ flexShrink: 0, ml: 0.75 }}>
+    <Box
+      sx={{ flexShrink: 0, ml: 0.75 }}
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
       <IconButton
         color="secondary"
         variant="light"
@@ -182,7 +161,6 @@ export default function Notification() {
         ref={anchorRef}
         aria-controls={open ? 'notification-grow' : undefined}
         aria-haspopup="true"
-        onClick={handleToggle}
       >
         <Badge badgeContent={unreadCount} color="primary">
           <BellOutlined />
@@ -219,11 +197,7 @@ export default function Notification() {
                   secondary={
                     unreadCount > 0 && (
                       <Tooltip title="Đánh dấu tất cả là đã đọc">
-                        <IconButton
-                          color="success"
-                          size="small"
-                          onClick={handleMarkAllAsRead} // Gọi hàm xử lý mới
-                        >
+                        <IconButton color="success" size="small" onClick={handleMarkAllAsRead}>
                           <CheckCircleOutlined style={{ fontSize: '1.15rem' }} />
                         </IconButton>
                       </Tooltip>
@@ -234,7 +208,7 @@ export default function Notification() {
                     component="nav"
                     sx={{
                       p: 0,
-                      maxHeight: 505,
+                      maxHeight: 400,
                       overflowY: 'auto',
                       '& .MuiListItemButton-root': {
                         py: 0.5,
@@ -258,38 +232,37 @@ export default function Notification() {
                     ) : (
                       notifications.map((item) => {
                         const { avatar, primaryText, secondaryText } = renderNotificationContent(item);
-
                         return (
-                          <ListItem
-                            key={item.id}
-                            component={ListItemButton}
-                            divider
-                            selected={!item.isRead}
-                            onClick={() => handleMarkAsRead(item.id)} // Gọi hàm đánh dấu đọc từng thông báo
-                            secondaryAction={
-                              <Typography variant="caption" noWrap>
-                                {dayjs(item.createdAt).fromNow()}
-                              </Typography>
-                            }
-                          >
-                            <ListItemAvatar>{avatar}</ListItemAvatar>
-                            <ListItemText primary={primaryText} secondary={secondaryText} />
-                            {/* Hiện chấm xanh khi chưa đọc */}
-                            {!item.isRead && (
-                              <Box
-                                sx={{
-                                  width: 12,
-                                  height: 12,
-                                  bgcolor: 'primary.main',
-                                  borderRadius: '50%',
-                                  position: 'absolute',
-                                  top: 12,
-                                  right: 12
-                                }}
-                                title="Chưa đọc"
-                              />
-                            )}
-                          </ListItem>
+                        <ListItem
+  key={item.id}
+  component={ListItemButton}
+  divider
+  selected={!item.isRead}
+  onClick={() => handleMarkAsRead(item.id)}
+  secondaryAction={
+    <Typography variant="caption" noWrap sx={{ pr: 2 }}>
+      {dayjs(item.createdAt).fromNow()}
+    </Typography>
+  }
+>
+  <ListItemAvatar>{avatar}</ListItemAvatar>
+  <ListItemText primary={primaryText} secondary={secondaryText} />
+  {!item.isRead && (
+    <Box
+      sx={{
+        width: 9,
+        height: 9,
+        bgcolor: 'primary.main',
+        borderRadius: '50%',
+        position: 'absolute',
+        top: 17,
+        right: 7
+      }}
+      title="Chưa đọc"
+    />
+  )}
+</ListItem>
+
                         );
                       })
                     )}

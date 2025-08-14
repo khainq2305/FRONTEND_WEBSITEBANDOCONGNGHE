@@ -23,19 +23,8 @@ import {
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useNavigate } from 'react-router-dom';
 import formatDateFlexible from '../../../utils/formatCurrentDateTime';
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy
-} from '@dnd-kit/sortable';
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
 import { flashSaleService } from '../../../services/admin/flashSaleService';
@@ -62,83 +51,77 @@ const FlashSaleList = () => {
   const [menuRowId, setMenuRowId] = useState(null);
   const openMenu = Boolean(anchorEl);
   const [bulkAction, setBulkAction] = useState('');
-const [menuRow, setMenuRow] = useState(null); // lưu row đang mở menu
-const [menuPosition, setMenuPosition] = useState(null); // lưu toạ độ menu
+  const [menuRow, setMenuRow] = useState(null);
+  const [menuPosition, setMenuPosition] = useState(null);
 
   const isTrashTab = tab === 'trash';
 
-const handleMenuClick = (e, row) => {
-  const rect = e.currentTarget.getBoundingClientRect();
-  setMenuRow(row);
-  setMenuPosition({ top: rect.bottom, left: rect.right });
-};
-
-const handleMenuClose = () => {
-  setMenuRow(null);
-  setMenuPosition(null);
-};
-
-const SortableRow = ({ row, children }) => {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: row.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition
+  const handleMenuClick = (e, row) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMenuRow(row);
+    setMenuPosition({ top: rect.bottom, left: rect.right });
   };
 
-  return (
-    <TableRow ref={setNodeRef} style={style} {...attributes}>
-      {React.Children.map(children, (child) => {
-        if (
-          React.isValidElement(child) &&
-          child.props.align === 'center' &&
-          React.Children.toArray(child.props.children).some(
-            (c) => c?.type === IconButton
-          )
-        ) {
-          return React.cloneElement(child, {
-            children: (
-              <Box display="flex" alignItems="center" justifyContent="center" gap={0.5}>
-                <DragIndicatorIcon {...listeners} sx={{ cursor: 'grab', color: '#888' }} />
-                {child.props.children}
-              </Box>
-            )
-          });
-        }
+  const handleMenuClose = () => {
+    setMenuRow(null);
+    setMenuPosition(null);
+  };
 
-        return child;
-      })}
-    </TableRow>
-  );
-};
+  const SortableRow = ({ row, children }) => {
+    const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: row.id });
 
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition
+    };
 
-const [dragList, setDragList] = useState([]);
-const sensors = useSensors(useSensor(PointerSensor));
-const handleDragEnd = async ({ active, over }) => {
-  if (!over || active.id === over.id) return;
-  const oldIndex = dragList.findIndex((x) => x.id === active.id);
-  const newIndex = dragList.findIndex((x) => x.id === over.id);
-  const newList = arrayMove(dragList, oldIndex, newIndex);
+    return (
+      <TableRow ref={setNodeRef} style={style} {...attributes}>
+        {React.Children.map(children, (child) => {
+          if (
+            React.isValidElement(child) &&
+            child.props.align === 'center' &&
+            React.Children.toArray(child.props.children).some((c) => c?.type === IconButton)
+          ) {
+            return React.cloneElement(child, {
+              children: (
+                <Box display="flex" alignItems="center" justifyContent="center" gap={0.5}>
+                  <DragIndicatorIcon {...listeners} sx={{ cursor: 'grab', color: '#888' }} />
+                  {child.props.children}
+                </Box>
+              )
+            });
+          }
 
-  // ✅ Cập nhật orderIndex theo vị trí mới
- const updatedList = newList.map((item, i) => ({
-  ...item,
-  orderIndex: i // ✅ 0-based
-}));
+          return child;
+        })}
+      </TableRow>
+    );
+  };
 
-  setDragList(updatedList);
-  setData(updatedList); // để đồng bộ bảng hiển thị
+  const [dragList, setDragList] = useState([]);
+  const sensors = useSensors(useSensor(PointerSensor));
+  const handleDragEnd = async ({ active, over }) => {
+    if (!over || active.id === over.id) return;
+    const oldIndex = dragList.findIndex((x) => x.id === active.id);
+    const newIndex = dragList.findIndex((x) => x.id === over.id);
+    const newList = arrayMove(dragList, oldIndex, newIndex);
 
-  try {
-    await flashSaleService.updateOrder({ orderedIds: updatedList.map(i => i.id) });
-    toast.success('Cập nhật thứ tự thành công!');
-  } catch (e) {
-    toast.error('Cập nhật thứ tự thất bại!');
-  }
-};
+    const updatedList = newList.map((item, i) => ({
+      ...item,
+      orderIndex: i
+    }));
 
+    setDragList(updatedList);
+    setData(updatedList);
 
+    try {
+      await flashSaleService.updateOrder({ orderedIds: updatedList.map((i) => i.id) });
+      toast.success('Cập nhật thứ tự thành công!');
+    } catch (e) {
+      toast.error('Cập nhật thứ tự thất bại!');
+    }
+  };
 
   const handleTabChange = (e, newValue) => {
     setTab(newValue);
@@ -163,7 +146,7 @@ const handleDragEnd = async ({ active, over }) => {
     try {
       const res = await flashSaleService.list({ page, limit: rowsPerPage, tab, search });
       setData(res.data.rows);
-      setDragList(res.data.rows); // <- THÊM DÒNG NÀY
+      setDragList(res.data.rows);
       setTotal(res.data.count);
       setStats({
         active: res.data.totalActive || 0,
@@ -326,7 +309,7 @@ const handleDragEnd = async ({ active, over }) => {
                 <TableCell>Trạng thái</TableCell>
                 <TableCell>Slug</TableCell>
                 <TableCell align="center">Màu nền</TableCell>
-<TableCell align="center">Thứ tự</TableCell>
+                <TableCell align="center">Thứ tự</TableCell>
 
                 <TableCell align="center">Hành động</TableCell>
               </TableRow>
@@ -341,184 +324,179 @@ const handleDragEnd = async ({ active, over }) => {
                   </TableCell>
                 </TableRow>
               ) : (
-               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-  <SortableContext items={dragList.map(i => i.id)} strategy={verticalListSortingStrategy}>
-    {dragList.map((row, index) => (
-      <SortableRow key={row.id} row={row}>
-       <TableCell padding="checkbox">
-                      <Checkbox checked={selectedIds.includes(row.id)} onChange={() => handleSelect(row.id)} />
-                    </TableCell>
-                    <TableCell align="center">{(page - 1) * rowsPerPage + index + 1}</TableCell>
-                    <TableCell>
-                      {row.bannerUrl ? (
-                        <img
-                          src={row.bannerUrl}
-                          alt="banner"
-                          style={{
-                            width: '150px',
-                            height: '58px',
-                            objectFit: 'cover',
-                            borderRadius: '4px',
-                            verticalAlign: 'middle'
-                          }}
-                        />
-                      ) : (
-                        <Typography variant="body2" color="text.secondary">
-                          Không có
-                        </Typography>
-                      )}
-                    </TableCell>
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                  <SortableContext items={dragList.map((i) => i.id)} strategy={verticalListSortingStrategy}>
+                    {dragList.map((row, index) => (
+                      <SortableRow key={row.id} row={row}>
+                        <TableCell padding="checkbox">
+                          <Checkbox checked={selectedIds.includes(row.id)} onChange={() => handleSelect(row.id)} />
+                        </TableCell>
+                        <TableCell align="center">{(page - 1) * rowsPerPage + index + 1}</TableCell>
+                        <TableCell>
+                          {row.bannerUrl ? (
+                            <img
+                              src={row.bannerUrl}
+                              alt="banner"
+                              style={{
+                                width: '150px',
+                                height: '58px',
+                                objectFit: 'cover',
+                                borderRadius: '4px',
+                                verticalAlign: 'middle'
+                              }}
+                            />
+                          ) : (
+                            <Typography variant="body2" color="text.secondary">
+                              Không có
+                            </Typography>
+                          )}
+                        </TableCell>
 
-                    <TableCell>
-                      <HighlightText text={row.title} highlight={search} />
-                    </TableCell>
+                        <TableCell>
+                          <HighlightText text={row.title} highlight={search} />
+                        </TableCell>
 
-                    <TableCell>
-                      {`${formatDateFlexible(row.startTime, { showTime: true })} - ${formatDateFlexible(row.endTime, { showTime: true })}`}
-                    </TableCell>
+                        <TableCell>
+                          {`${formatDateFlexible(row.startTime, { showTime: true })} - ${formatDateFlexible(row.endTime, { showTime: true })}`}
+                        </TableCell>
 
-                    <TableCell>{row.isActive ? 'Đang chạy' : 'Tạm dừng'}</TableCell>
-                    <TableCell>{row.slug}</TableCell>
-                    <TableCell align="center">
-                      <Box display="flex" justifyContent="center">
-                        <Box
-                          sx={{
-                            width: 20,
-                            height: 20,
-                            borderRadius: '4px',
-                            backgroundColor: row.bgColor || '#ccc',
-                            border: '1px solid #999'
-                          }}
-                          title={row.bgColor}
-                        />
-                      </Box>
-                    </TableCell>
-<TableCell align="center">{row.orderIndex}</TableCell>
+                        <TableCell>{row.isActive ? 'Đang chạy' : 'Tạm dừng'}</TableCell>
+                        <TableCell>{row.slug}</TableCell>
+                        <TableCell align="center">
+                          <Box display="flex" justifyContent="center">
+                            <Box
+                              sx={{
+                                width: 20,
+                                height: 20,
+                                borderRadius: '4px',
+                                backgroundColor: row.bgColor || '#ccc',
+                                border: '1px solid #999'
+                              }}
+                              title={row.bgColor}
+                            />
+                          </Box>
+                        </TableCell>
+                        <TableCell align="center">{row.orderIndex}</TableCell>
 
-                    <TableCell align="center" sx={{ minWidth: 60 }}>
-
-
-<IconButton
-  size="small"
-  onClick={(e) => {
-    e.stopPropagation();
-    handleMenuClick(e, row);
-  }}
->
-  <MoreVertIcon />
-</IconButton>
-
-
-                      <Menu
-                        anchorEl={anchorEl}
-                        open={openMenu && menuRowId === row.id}
-                        onClose={handleMenuClose}
-                        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                      >
-                        {!row.deletedAt && (
-                          <MenuItem
-                            onClick={() => {
-                              handleMenuClose();
-                              navigate(`/admin/flash-sale/edit/${row.slug}`);
+                        <TableCell align="center" sx={{ minWidth: 60 }}>
+                          <IconButton
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleMenuClick(e, row);
                             }}
                           >
-                            Sửa
-                          </MenuItem>
-                        )}
-                        {row.deletedAt ? (
-                          <>
-                            <MenuItem
-                              onClick={() => {
-                                handleMenuClose();
-                                handleRestore(row.id);
-                              }}
-                            >
-                              Khôi phục
-                            </MenuItem>
-                            <MenuItem
-                              onClick={() => {
-                                handleMenuClose();
-                                handleForceDelete(row.id);
-                              }}
-                            >
-                              Xoá vĩnh viễn
-                            </MenuItem>
-                          </>
-                        ) : (
-                          <MenuItem
-                            onClick={() => {
-                              handleMenuClose();
-                              handleDelete(row.id);
-                            }}
-                          >
-                            Xoá
-                          </MenuItem>
-                        )}
-                      </Menu>
-                    </TableCell>
-      </SortableRow>
-    ))}
-  </SortableContext>
-</DndContext>
+                            <MoreVertIcon />
+                          </IconButton>
 
+                          <Menu
+                            anchorEl={anchorEl}
+                            open={openMenu && menuRowId === row.id}
+                            onClose={handleMenuClose}
+                            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                          >
+                            {!row.deletedAt && (
+                              <MenuItem
+                                onClick={() => {
+                                  handleMenuClose();
+                                  navigate(`/admin/flash-sale/edit/${row.slug}`);
+                                }}
+                              >
+                                Sửa
+                              </MenuItem>
+                            )}
+                            {row.deletedAt ? (
+                              <>
+                                <MenuItem
+                                  onClick={() => {
+                                    handleMenuClose();
+                                    handleRestore(row.id);
+                                  }}
+                                >
+                                  Khôi phục
+                                </MenuItem>
+                                <MenuItem
+                                  onClick={() => {
+                                    handleMenuClose();
+                                    handleForceDelete(row.id);
+                                  }}
+                                >
+                                  Xoá vĩnh viễn
+                                </MenuItem>
+                              </>
+                            ) : (
+                              <MenuItem
+                                onClick={() => {
+                                  handleMenuClose();
+                                  handleDelete(row.id);
+                                }}
+                              >
+                                Xoá
+                              </MenuItem>
+                            )}
+                          </Menu>
+                        </TableCell>
+                      </SortableRow>
+                    ))}
+                  </SortableContext>
+                </DndContext>
               )}
             </TableBody>
           </Table>
         </Paper>
       )}
       <Menu
-  open={Boolean(menuRow && menuPosition)}
-  onClose={handleMenuClose}
-  anchorReference="anchorPosition"
-  anchorPosition={menuPosition}
-  transformOrigin={{ vertical: 'top', horizontal: 'right' }}
->
-  {menuRow && !menuRow.deletedAt && (
-    <MenuItem
-      onClick={() => {
-        handleMenuClose();
-        navigate(`/admin/flash-sale/edit/${menuRow.slug}`);
-      }}
-    >
-      Sửa
-    </MenuItem>
-  )}
-  {menuRow?.deletedAt ? (
-    <>
-      <MenuItem
-        onClick={() => {
-          handleMenuClose();
-          handleRestore(menuRow.id);
-        }}
+        open={Boolean(menuRow && menuPosition)}
+        onClose={handleMenuClose}
+        anchorReference="anchorPosition"
+        anchorPosition={menuPosition}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        Khôi phục
-      </MenuItem>
-      <MenuItem
-        onClick={() => {
-          handleMenuClose();
-          handleForceDelete(menuRow.id);
-        }}
-      >
-        Xoá vĩnh viễn
-      </MenuItem>
-    </>
-  ) : (
-    <MenuItem
-      onClick={() => {
-        handleMenuClose();
-        handleDelete(menuRow.id);
-      }}
-    >
-      Xoá
-    </MenuItem>
-  )}
-</Menu>
+        {menuRow && !menuRow.deletedAt && (
+          <MenuItem
+            onClick={() => {
+              handleMenuClose();
+              navigate(`/admin/flash-sale/edit/${menuRow.slug}`);
+            }}
+          >
+            Sửa
+          </MenuItem>
+        )}
+        {menuRow?.deletedAt ? (
+          <>
+            <MenuItem
+              onClick={() => {
+                handleMenuClose();
+                handleRestore(menuRow.id);
+              }}
+            >
+              Khôi phục
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                handleMenuClose();
+                handleForceDelete(menuRow.id);
+              }}
+            >
+              Xoá vĩnh viễn
+            </MenuItem>
+          </>
+        ) : (
+          <MenuItem
+            onClick={() => {
+              handleMenuClose();
+              handleDelete(menuRow.id);
+            }}
+          >
+            Xoá
+          </MenuItem>
+        )}
+      </Menu>
 
       {total > rowsPerPage && <MUIPagination currentPage={page} totalItems={total} itemsPerPage={rowsPerPage} onPageChange={setPage} />}
     </Box>
   );
-  
 };
 
 export default FlashSaleList;

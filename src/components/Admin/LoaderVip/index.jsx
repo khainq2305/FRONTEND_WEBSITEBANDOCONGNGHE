@@ -15,42 +15,44 @@ const LoaderAdmin = ({ fullscreen }) => {
   }, [fullscreen]);
 
   return (
-    <div
+  <div
+    style={{
+      position: "fixed", // luôn luôn fixed
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: fullscreen
+        ? "rgba(255, 255, 255, 0.85)"
+        : "transparent",
+      zIndex: 9999,
+      width: "100%",
+      height: "100vh", // chiều cao toàn màn hình
+    }}
+  >
+    <Lottie
+      animationData={loadingAnimation}
+      style={{ height: 100, width: 100 }}
+      loop
+      autoplay
+    />
+
+    <p
       style={{
-        position: fullscreen ? "fixed" : "relative",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        display: "flex",
-        flexDirection: "column", 
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: fullscreen ? "rgba(255, 255, 255, 0.85)" : "transparent", 
-        zIndex: fullscreen ? 9999 : 1, 
-        width: fullscreen ? "100%" : "auto",
-        height: fullscreen ? "100vh" : "auto",
+        marginTop: "15px",
+        fontSize: "1rem",
+        color: "#333333",
       }}
     >
-      <Lottie
-        animationData={loadingAnimation}
-        style={{ height: 100, width: 100 }} 
-        loop={true}     
-        autoplay={true}  
-      />
-      
-      <p
-        style={{
-          marginTop: "15px",
-          fontSize: "1rem", 
-          color: "#333333",  
-         
-        }}
-      >
-        Chờ một chút nhé...
-      </p>
-    </div>
-  );
+      Chờ một chút nhé...
+    </p>
+  </div>
+);
+
 };
 
 export default LoaderAdmin;

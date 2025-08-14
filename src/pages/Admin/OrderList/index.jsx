@@ -12,6 +12,7 @@ import {
   Box,
   Menu,
   MenuItem,
+  Button,
   IconButton,
   CircularProgress,
   Typography,
@@ -249,7 +250,7 @@ const OrderList = () => {
                   fontSize: 14,
                   fontWeight: 500,
                   textAlign: 'center',
-                  minWidth: 100, // hoặc minWidth: 100
+                  minWidth: 100, 
                   backgroundColor: isActive ? tab.color : '#f5f5f5',
                   color: isActive ? '#fff' : '#333',
                   border: `1px solid ${tab.color}`,
@@ -274,7 +275,7 @@ const OrderList = () => {
             gap: 1.5
           }}
         >
-          {/* Search chiếm toàn bộ còn lại */}
+          
           <Box sx={{ flex: 1, minWidth: '240px', height: '40px' }}>
             <SearchInput
               placeholder="Tìm mã đơn hoặc khách hàng..."
@@ -285,13 +286,36 @@ const OrderList = () => {
                   height: '40px'
                 },
                 '& input': {
-                  padding: '8px 14px', // tùy chỉnh nếu cần
+                  padding: '8px 14px', 
                   fontSize: '16px'
                 }
               }}
             />
           </Box>
-
+ <Box sx={{ width: '180px' }}>
+            <select
+              value={paymentStatus}
+              onChange={(e) => setPaymentStatus(e.target.value)}
+              style={{
+                width: '100%',
+                height: '40px',
+                padding: '8px',
+                fontSize: '16px',
+                borderRadius: '6px',
+                border: '1px solid #ccc',
+                boxSizing: 'border-box', 
+                appearance: 'none', 
+                WebkitAppearance: 'none', 
+                MozAppearance: 'none' 
+              }}
+            >
+              <option value="">Tất cả thanh toán</option>
+              <option value="waiting">Chờ thanh toán</option>
+              <option value="unpaid">Chưa thanh toán</option>
+              <option value="paid">Đã thanh toán</option>
+              <option value="refunded">Đã hoàn tiền</option>
+            </select>
+          </Box>
           <Box sx={{ width: '150px' }}>
             <input
               type="date"
@@ -319,31 +343,16 @@ const OrderList = () => {
               }}
             />
           </Box>
-
-          <Box sx={{ width: '180px' }}>
-            <select
-              value={paymentStatus}
-              onChange={(e) => setPaymentStatus(e.target.value)}
-              style={{
-                width: '100%',
-                height: '40px', // hoặc match với padding input
-                padding: '8px',
-                fontSize: '16px',
-                borderRadius: '6px',
-                border: '1px solid #ccc',
-                boxSizing: 'border-box', // đảm bảo không bị tràn padding
-                appearance: 'none', // loại bỏ style mặc định trình duyệt
-                WebkitAppearance: 'none', // Safari
-                MozAppearance: 'none' // Firefox
-              }}
-            >
-              <option value="">Tất cả thanh toán</option>
-              <option value="waiting">Chờ thanh toán</option>
-              <option value="unpaid">Chưa thanh toán</option>
-              <option value="paid">Đã thanh toán</option>
-              <option value="refunded">Đã hoàn tiền</option>
-            </select>
-          </Box>
+<Button
+  variant="text"
+  size="small"
+  onClick={() => { setStartDate(''); setEndDate(''); }}
+  disabled={!startDate && !endDate}
+  sx={{ ml: 1 }}
+>
+  Xóa lọc ngày
+</Button>
+         
         </Box>
       </Box>
 

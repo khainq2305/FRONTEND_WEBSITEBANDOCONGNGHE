@@ -566,97 +566,89 @@ const ReturnOrderPage = () => {
                 <Divider sx={{ my: 4 }} />
 
                 {/* PHẦN 5: THÔNG TIN HOÀN TIỀN */}
-                <Box sx={{ p: 2, border: 1, borderColor: 'grey.300', borderRadius: 1, bgcolor: 'white' }}>
-                    <Typography variant="h6" component="p" className="font-semibold text-gray-800 mb-3">5. Thông tin hoàn tiền</Typography>
-                    
-                    <Box mb={2}>
-                        <Typography variant="body1" sx={{ color: 'text.secondary', mb: 0.5 }}>Số tiền hoàn lại:</Typography>
-                        <Typography variant="h5" component="div" className="font-bold text-red-500">
-                            {formatCurrencyVND(totalRefundAmount)}
-                        </Typography>
-                    </Box>
+              <Box sx={{ p: 2, border: 1, borderColor: 'grey.300', borderRadius: 1, bgcolor: 'white' }}>
+  <Typography variant="h6" component="p" className="font-semibold text-gray-800 mb-3">
+    5. Thông tin hoàn tiền
+  </Typography>
 
-                    <Box mb={2}>
-                        <Typography variant="body1" sx={{ color: 'text.secondary', mb: 0.5 }}>Hoàn trả vào:</Typography>
-                        {showBankInfoForm ? (
-                            <Box className="bg-orange-50 p-3 rounded-lg border border-orange-200">
-                                <Typography variant="body2" sx={{ color: 'orange.700', fontWeight: 'medium' }}>
-                                    Ngân hàng:
-                                </Typography>
-                                <TextField
-                                    label="Tên ngân hàng"
-                                    variant="outlined"
-                                    size="small"
-                                    fullWidth
-                                    margin="normal"
-                                    value={bankName}
-                                    onChange={(e) => { setBankName(e.target.value); setErrors(prev => ({ ...prev, bankName: undefined })); }}
-                                    error={!!errors.bankName}
-                                    helperText={errors.bankName}
-                                    required
-                                    InputLabelProps={{ shrink: true }}
-                                />
-                                <TextField
-                                    label="Số tài khoản"
-                                    variant="outlined"
-                                    size="small"
-                                    fullWidth
-                                    margin="normal"
-                                    value={accountNumber}
-                                    onChange={(e) => { setAccountNumber(e.target.value); setErrors(prev => ({ ...prev, accountNumber: undefined })); }}
-                                    error={!!errors.accountNumber}
-                                    helperText={errors.accountNumber}
-                                    required
-                                    InputLabelProps={{ shrink: true }}
-                                />
-                                <TextField
-                                    label="Tên chủ tài khoản"
-                                    variant="outlined"
-                                    size="small"
-                                    fullWidth
-                                    margin="normal"
-                                    value={accountHolderName}
-                                    onChange={(e) => { setAccountHolderName(e.target.value); setErrors(prev => ({ ...prev, accountHolderName: undefined })); }}
-                                    error={!!errors.accountHolderName}
-                                    helperText={errors.accountHolderName}
-                                    required
-                                    InputLabelProps={{ shrink: true }}
-                                />
-                            </Box>
-                        ) : (
-                            <Box className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-                                    {orderPaymentMethodCode && paymentIconMap[orderPaymentMethodCode.toLowerCase()] && (
-                                        <img
-                                            src={paymentIconMap[orderPaymentMethodCode.toLowerCase()]}
-                                            alt={orderPaymentMethodCode}
-                                            style={{ width: 24, height: 24, objectFit: 'contain', verticalAlign: 'middle', marginRight: 8 }}
-                                        />
-                                    )}
-                                    <Typography variant="body1" fontWeight="bold" sx={{ color: 'blue.800' }}>
-                                        {orderPaymentMethodCode?.toUpperCase() || 'PHƯƠNG THỨC ĐIỆN TỬ'}
-                                    </Typography>
-                                </Box>
-                                <Typography variant="caption" sx={{ color: 'blue.600', display: 'block' }}>
-                                    Tiền hoàn sẽ được xử lý tự động về phương thức thanh toán ban đầu của bạn.
-                                </Typography>
-                            </Box>
-                        )}
-                    </Box>
+  <Box mb={2}>
+    <Typography variant="body1" sx={{ color: 'text.secondary', mb: 0.5 }}>
+      Số tiền hoàn lại:
+    </Typography>
+    <Typography variant="h5" component="div" className="font-bold text-red-500">
+      {formatCurrencyVND(totalRefundAmount)}
+    </Typography>
+  </Box>
 
-                    <Box>
-                        <Typography variant="body1" sx={{ color: 'text.secondary', mb: 0.5 }}>Email nhận thông báo:</Typography>
-                        <TextField
-                            variant="outlined"
-                            size="small"
-                            fullWidth
-                            value={refundEmail}
-                            onChange={(e) => setRefundEmail(e.target.value)}
-                            InputProps={{ readOnly: true }}
-                            sx={{ bgcolor: 'grey.100' }}
-                        />
-                    </Box>
-                </Box>
+  <Box mb={2}>
+    <Typography variant="body1" sx={{ color: 'text.secondary', mb: 0.5 }}>
+      Hoàn trả vào:
+    </Typography>
+    <Box className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+        {['atm', 'cod'].includes(orderPaymentMethodCode?.toLowerCase()) ? (
+          <>
+            <img
+              src="https://cdn-icons-png.flaticon.com/512/1041/1041876.png"
+              alt="Tài khoản CyBerZOne"
+              style={{
+                width: 24,
+                height: 24,
+                objectFit: 'contain',
+                verticalAlign: 'middle',
+                marginRight: 8
+              }}
+            />
+            <Typography variant="body1" fontWeight="bold" sx={{ color: 'blue.800' }}>
+              Tài khoản CyBerZone
+            </Typography>
+          </>
+        ) : (
+          <>
+            {orderPaymentMethodCode &&
+              paymentIconMap[orderPaymentMethodCode.toLowerCase()] && (
+                <img
+                  src={paymentIconMap[orderPaymentMethodCode.toLowerCase()]}
+                  alt={orderPaymentMethodCode}
+                  style={{
+                    width: 24,
+                    height: 24,
+                    objectFit: 'contain',
+                    verticalAlign: 'middle',
+                    marginRight: 8
+                  }}
+                />
+              )}
+            <Typography variant="body1" fontWeight="bold" sx={{ color: 'blue.800' }}>
+              {orderPaymentMethodCode?.toUpperCase() || 'PHƯƠNG THỨC ĐIỆN TỬ'}
+            </Typography>
+          </>
+        )}
+      </Box>
+      <Typography variant="caption" sx={{ color: 'blue.600', display: 'block' }}>
+        {['atm', 'cod'].includes(orderPaymentMethodCode?.toLowerCase())
+          ? 'Tiền hoàn sẽ được xử lý tự động về ví CyBerZone của bạn.'
+          : 'Tiền hoàn sẽ được xử lý tự động về phương thức thanh toán ban đầu của bạn.'}
+      </Typography>
+    </Box>
+  </Box>
+
+  <Box>
+    <Typography variant="body1" sx={{ color: 'text.secondary', mb: 0.5 }}>
+      Email nhận thông báo:
+    </Typography>
+    <TextField
+      variant="outlined"
+      size="small"
+      fullWidth
+      value={refundEmail}
+      onChange={(e) => setRefundEmail(e.target.value)}
+      InputProps={{ readOnly: true }}
+      sx={{ bgcolor: 'grey.100' }}
+    />
+  </Box>
+</Box>
+
             </Box>
 
             {/* Nút gửi yêu cầu duy nhất */}

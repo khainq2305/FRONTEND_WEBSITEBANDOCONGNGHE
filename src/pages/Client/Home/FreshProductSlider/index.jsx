@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import './FreshProductSlider.css'; // Đảm bảo CSS này được tải
+import './FreshProductSlider.css'; 
 
 import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
@@ -113,7 +113,7 @@ const InlinedProductCard = ({
               alt="badge overlay"
               className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
                     w-full h-full object-contain z-20 pointer-events-none select-none hidden sm:block
-                    transform scale-[1.1]" // Đã điều chỉnh thành scale-[1.1]
+                    transform scale-[1.1]" 
               loading="lazy"
             />
           )}
@@ -204,7 +204,7 @@ const FreshProductSlider = ({
   const [sectionTitle, setSectionTitle] = useState(titleFromProp || 'SẢN PHẨM NỔI BẬT');
   const [banners, setBanners] = useState([]);
   const [currentProducts, setCurrentProducts] = useState([]);
-  const [standardSlidesToShow, setStandardSlidesToShow] = useState(5); // Số slideToShow chuẩn cho breakpoint hiện tại
+  const [standardSlidesToShow, setStandardSlidesToShow] = useState(5); 
 
   useEffect(() => {
     const handleResize = () => {
@@ -223,7 +223,7 @@ const FreshProductSlider = ({
     };
 
     window.addEventListener('resize', handleResize);
-    handleResize(); // Chạy lần đầu khi component mount
+    handleResize();
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
@@ -257,19 +257,16 @@ const FreshProductSlider = ({
     setCurrentProducts(mappedProducts);
   }, [titleFromProp, bannersFromProp, productsFromProp]);
 
-  // Số slide thực tế sẽ hiển thị (luôn là số slide tiêu chuẩn của breakpoint)
-  // Nếu số sản phẩm ít hơn, Slick sẽ hiển thị tất cả và CSS sẽ giữ kích thước
+  
   const finalSlidesToShow = standardSlidesToShow;
 
-  // Quyết định có nên bật infinite loop và arrows hay không
-  // Chỉ bật infinite và arrows khi số lượng sản phẩm lớn hơn số slide tiêu chuẩn
   const shouldEnableSliderFeatures = currentProducts.length > standardSlidesToShow;
 
   const productSliderSettings = {
     dots: false,
     infinite: shouldEnableSliderFeatures,
     speed: 500,
-    slidesToShow: finalSlidesToShow, // Sử dụng standardSlidesToShow để Slick biết số cột mặc định
+    slidesToShow: finalSlidesToShow,
     slidesToScroll: 1,
     arrows: shouldEnableSliderFeatures,
     prevArrow: <CustomSlickArrow type="prev" />,
@@ -277,13 +274,13 @@ const FreshProductSlider = ({
     centerMode: false,
     centerPadding: '0px',
     swipeToSlide: true,
-    //initialSlide: 0, // Không cần thiết nếu infinite là false và muốn sát trái
+   
 
     responsive: [
       {
         breakpoint: 1279,
         settings: {
-          slidesToShow: 4, // Đặt slidesToSHow mặc định cho breakpoint này
+          slidesToShow: 4,
           slidesToScroll: 1,
           infinite: currentProducts.length > 4,
           arrows: currentProducts.length > 4,
@@ -294,7 +291,7 @@ const FreshProductSlider = ({
       {
         breakpoint: 1023,
         settings: {
-          slidesToShow: 3, // Đặt slidesToSHow mặc định cho breakpoint này
+          slidesToShow: 3,
           slidesToScroll: 1,
           infinite: currentProducts.length > 3,
           arrows: currentProducts.length > 3,
@@ -305,7 +302,7 @@ const FreshProductSlider = ({
       {
         breakpoint: 767,
         settings: {
-          slidesToShow: 2, // Đặt slidesToSHow mặc định cho breakpoint này
+          slidesToShow: 2, 
           slidesToScroll: 1,
           infinite: currentProducts.length > 2,
           arrows: false,
@@ -321,7 +318,8 @@ const FreshProductSlider = ({
   }
 
   return (
-    <div className="fresh-slider-wrapper group max-w-[1200px] mx-auto bg-gray-50 rounded-lg shadow-md my-8">
+<div className="fresh-slider-wrapper group max-w-[1200px] mx-auto bg-gray-50 rounded-lg shadow-md mt-2 mb-2">
+
       <div className="header-block px-2 sm:px-4 pt-4">
         <div className="flex flex-wrap justify-between items-center gap-y-2 mb-2 sm:mb-3">
           <h3 className="text-xl sm:text-xl font-bold uppercase whitespace-nowrap text-[#c51813]">{sectionTitle}</h3>

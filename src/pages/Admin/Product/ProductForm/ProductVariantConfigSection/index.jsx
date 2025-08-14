@@ -37,17 +37,46 @@ const ProductVariantConfigSection = ({
     setProductConfiguredVariants((p) => p.filter((_, i) => i !== pvcIndex));
   };
 
-  const handlePvcTypeChange = (pvcIndex, event) => {
-    if (event.target.value === ADD_NEW_VARIANT_TYPE_VALUE) {
-      return handleOpenAddVariantTypeDialog(pvcIndex);
-    }
-    const selectedAV = availableVariants.find((av) => av.id === event.target.value);
+const handlePvcTypeChange = (pvcIndex, event) => {
+  const value = event.target.value;
+
+  if (value === ADD_NEW_VARIANT_TYPE_VALUE) {
+    return handleOpenAddVariantTypeDialog(pvcIndex);
+  }
+
+  
+  if (!value) {
     setProductConfiguredVariants((prev) => {
       const updated = [...prev];
-      updated[pvcIndex] = { ...updated[pvcIndex], variantTypeId: selectedAV.id, variantTypeName: selectedAV.name, applicableValueIds: [] };
+      updated[pvcIndex] = {
+        ...updated[pvcIndex],
+        variantTypeId: '',
+        variantTypeName: '',
+        applicableValueIds: []
+      };
       return updated;
     });
-  };
+    return;
+  }
+
+  const selectedAV = availableVariants.find(
+    (av) => String(av.id) === String(value)
+  );
+
+  if (!selectedAV) return; // tránh undefined
+
+  setProductConfiguredVariants((prev) => {
+    const updated = [...prev];
+    updated[pvcIndex] = {
+      ...updated[pvcIndex],
+      variantTypeId: selectedAV.id,
+      variantTypeName: selectedAV.name,
+      applicableValueIds: []
+    };
+    return updated;
+  });
+};
+
 
   const handlePvcValuesChange = (pvcIndex, event) => {
     const value = event.target.value;
@@ -71,14 +100,18 @@ const ProductVariantConfigSection = ({
         <Box key={`pvc-${pvcIndex}`} sx={{ mb: 2, p: 2, border: '1px dashed #ccc', borderRadius: 1 }}>
           <Grid container spacing={1} alignItems="center">
             <Grid item xs={12} sm={5}>
-              <TextField
-                select
-                fullWidth
-                label={`Loại thuộc tính ${pvcIndex + 1}`}
-                value={pvc.variantTypeId || ''}
-                onChange={(e) => handlePvcTypeChange(pvcIndex, e)}
-                size="small"
-              >
+            <TextField
+  select
+  fullWidth
+  label={`Loại thuộc tính ${pvcIndex + 1}`}
+  value={pvc.variantTypeId || ''}
+  onChange={(e) => handlePvcTypeChange(pvcIndex, e)}
+  sx={{
+    '& .MuiInputBase-root': { height: '40px' },
+    '& .MuiInputBase-input': { padding: '8px 14px' }
+  }}
+>
+
                 <MenuItem value="">-- Chọn loại --</MenuItem>
                 {availableVariants.map((av) => (
                   <MenuItem
@@ -96,41 +129,55 @@ const ProductVariantConfigSection = ({
             </Grid>
             <Grid item xs={12} sm={6}>
               {pvc.variantTypeId && (
-                <FormControl fullWidth size="small">
-                  <InputLabel>Chọn các giá trị sẽ dùng</InputLabel>
-                  <Select
-                    multiple
-                    value={pvc.applicableValueIds}
-                    onChange={(e) => handlePvcValuesChange(pvcIndex, e)}
-                    renderValue={(selected) =>
-                      (availableVariants.find((av) => av.id === pvc.variantTypeId)?.values || [])
-                        .filter((v) => selected.includes(v.id))
-                        .map((v) => v.value)
-                        .join(', ')
-                    }
-                  >
-                    {(availableVariants.find((av) => av.id === pvc.variantTypeId)?.values || []).map((val) => (
-                      <MenuItem key={val.id} value={val.id}>
-                        <Checkbox checked={pvc.applicableValueIds.includes(val.id)} />
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Box
-                            sx={{
-                              width: 14,
-                              height: 14,
-                              borderRadius: '50%',
-                              bgcolor: val.colorCode || '#ffffff',
-                              border: '1px solid #ccc'
-                            }}
-                          />
-                          <ListItemText primary={val.value} />
-                        </Box>
-                      </MenuItem>
-                    ))}
-                    <MenuItem value={ADD_NEW_VARIANT_VALUE} dense sx={{ color: 'primary.main', fontStyle: 'italic' }}>
-                      <AddCircleOutlineIcon fontSize="small" sx={{ mr: 0.5 }} /> Thêm giá trị mới...
-                    </MenuItem>
-                  </Select>
-                </FormControl>
+               <FormControl
+  fullWidth
+  size="small"
+  sx={{
+    '& .MuiInputBase-root': { height: '40px' },
+    '& .MuiInputBase-input': { padding: '8px 14px' }
+  }}
+>
+  <InputLabel>Chọn các giá trị sẽ dùng</InputLabel>
+  <Select
+    multiple
+    value={pvc.applicableValueIds}
+    onChange={(e) => handlePvcValuesChange(pvcIndex, e)}
+    renderValue={(selected) =>
+      (availableVariants.find((av) => av.id === pvc.variantTypeId)?.values || [])
+        .filter((v) => selected.includes(v.id))
+        .map((v) => v.value)
+        .join(', ')
+    }
+  >
+    {(availableVariants.find((av) => av.id === pvc.variantTypeId)?.values || []).map((val) => {
+      const variantType = availableVariants.find((av) => av.id === pvc.variantTypeId)?.type;
+      const showColor = variantType === 'color' && val.colorCode;
+      return (
+        <MenuItem key={val.id} value={val.id}>
+          <Checkbox checked={pvc.applicableValueIds.includes(val.id)} />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {showColor && (
+              <Box
+                sx={{
+                  width: 14,
+                  height: 14,
+                  borderRadius: '50%',
+                  bgcolor: val.colorCode,
+                  border: '1px solid #ccc'
+                }}
+              />
+            )}
+            <ListItemText primary={val.value} />
+          </Box>
+        </MenuItem>
+      );
+    })}
+    <MenuItem value={ADD_NEW_VARIANT_VALUE} dense sx={{ color: 'primary.main', fontStyle: 'italic' }}>
+      <AddCircleOutlineIcon fontSize="small" sx={{ mr: 0.5 }} /> Thêm giá trị mới...
+    </MenuItem>
+  </Select>
+</FormControl>
+
               )}
             </Grid>
             <Grid item xs={12} sm={1}>

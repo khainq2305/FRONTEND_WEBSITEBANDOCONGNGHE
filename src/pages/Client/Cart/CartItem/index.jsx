@@ -6,11 +6,11 @@ import { toast } from 'react-toastify';
 import { confirmDelete as showConfirmDeleteDialog } from '../../../../components/common/ConfirmDeleteDialog';
 import { Tooltip } from 'react-tooltip';
 import { Gift } from 'lucide-react';
-
+import Loader from '../../../../components/common/Loader';
 const CartItem = ({ item, isChecked, onToggleChecked, onQuantityChange, isLastItem }) => {
   const [quantity, setQuantity] = useState(item.quantity);
   const [isUpdating, setIsUpdating] = useState(false);
-
+const [isDeleting, setIsDeleting] = useState(false);
   const isOutOfStock = item.stock <= 0;
   const isQuantityAtStockLimit = quantity >= item.stock;
 
@@ -18,96 +18,98 @@ const CartItem = ({ item, isChecked, onToggleChecked, onQuantityChange, isLastIt
     setQuantity(item.quantity);
   }, [item.quantity]);
 
-  const handleDeleteItem = async () => {
-    const isConfirmed = await showConfirmDeleteDialog('xoá', `sản phẩm "${item.productName}" này`);
-    if (!isConfirmed) return;
+const handleDeleteItem = async () => {
+  const isConfirmed = await showConfirmDeleteDialog('xoá', `sản phẩm "${item.productName}" này`);
+  if (!isConfirmed) return;
+  try {
+    setIsDeleting(true);
+    await cartService.deleteItem(item.id);
+    if (toast.isActive('cart-delete-success')) {
+      toast.dismiss('cart-delete-success');
+    }
+    toast.success('Sản phẩm đã được xóa khỏi giỏ hàng!', {
+      toastId: 'cart-delete-success',
+      position: 'top-right',
+    });
+    if (onQuantityChange) onQuantityChange();
+  } catch (error) {
+    const msg = error.response?.data?.message || 'Không thể xóa sản phẩm khỏi giỏ hàng.';
+    if (toast.isActive('cart-delete-error')) {
+      toast.dismiss('cart-delete-error');
+    }
+    toast.error(msg, {
+      toastId: 'cart-delete-error',
+      position: 'top-right',
+    });
+  } finally {
+    setIsDeleting(false);
+  }
+};
 
-    try {
-      await cartService.deleteItem(item.id);
-      if (toast.isActive('cart-delete-success')) {
-        toast.dismiss('cart-delete-success');
-      }
-      toast.success('Sản phẩm đã được xóa khỏi giỏ hàng!', {
-        toastId: 'cart-delete-success',
-        position: 'top-right',
-      });
-      if (onQuantityChange) onQuantityChange();
-    } catch (error) {
-      console.error('Lỗi khi xóa sản phẩm:', error);
-      const msg = error.response?.data?.message || 'Không thể xóa sản phẩm khỏi giỏ hàng.';
-      if (toast.isActive('cart-delete-error')) {
-        toast.dismiss('cart-delete-error');
-      }
-      toast.error(msg, {
-        toastId: 'cart-delete-error',
-        position: 'top-right',
-      });
-    }
-  };
 
-  const handleQuantityChange = async (delta) => {
-    const newQty = quantity + delta;
-    if (isUpdating || newQty < 1) return;
+const handleQuantityChange = async (delta) => {
+  const newQty = quantity + delta;
+  if (isUpdating || newQty < 1) return;
 
-    if (isOutOfStock) {
-      toast.dismiss('cart-stock-warn-disabled');
-      toast.warn('Sản phẩm đã hết hàng, không thể thay đổi số lượng.', {
-        toastId: 'cart-stock-warn-disabled',
-        position: 'top-right',
-      });
-      return;
-    }
+  if (isOutOfStock) {
+    toast.dismiss('cart-stock-warn-disabled');
+    toast.warn('Sản phẩm đã hết hàng, không thể thay đổi số lượng.', {
+      toastId: 'cart-stock-warn-disabled',
+      position: 'top-right',
+    });
+    return;
+  }
 
-    if (newQty > item.stock) {
-      toast.dismiss('cart-stock-warn');
-      toast.warn(`Chỉ còn ${item.stock} sản phẩm trong kho.`, {
-        toastId: 'cart-stock-warn',
-        position: 'top-right',
-      });
-      return;
-    }
+  if (newQty > item.stock) {
+    toast.dismiss('cart-stock-warn');
+    toast.warn(`Chỉ còn ${item.stock} sản phẩm trong kho.`, {
+      toastId: 'cart-stock-warn',
+      position: 'top-right',
+    });
+    return;
+  }
 
-    try {
-      setIsUpdating(true);
-      const res = await cartService.updateQuantity({
-        cartItemId: item.id,
-        quantity: newQty,
-      });
+  try {
+    setIsUpdating(true);
+    const res = await cartService.updateQuantity({
+      cartItemId: item.id,
+      quantity: newQty,
+    });
 
-      setQuantity(newQty);
+    setQuantity(newQty);
 
-      const backendMessage = res?.data?.message || 'Cập nhật số lượng thành công.';
-      const flashSaleWarning = res?.data?.flashNotice || '';
+    const backendMessage = res?.data?.message || 'Cập nhật số lượng thành công.';
+    const flashSaleWarning = res?.data?.flashNotice || '';
 
-      toast.dismiss('cart-update-success');
-      toast.dismiss('cart-update-flash-warning');
-      toast.dismiss('cart-update-error');
+    toast.dismiss('cart-update-success');
+    toast.dismiss('cart-update-flash-warning');
+    toast.dismiss('cart-update-error');
 
-      if (flashSaleWarning) {
-        toast.info(flashSaleWarning, {
-          toastId: 'cart-update-flash-warning',
-          position: 'top-right',
-          autoClose: 5000,
-        });
-      } else {
-        toast.success(backendMessage, {
-          toastId: 'cart-update-success',
-          position: 'top-right',
-        });
-      }
-      if (onQuantityChange) onQuantityChange();
-    } catch (error) {
-      console.error('Lỗi cập nhật số lượng:', error);
-      const msg = error.response?.data?.message || 'Không thể cập nhật số lượng sản phẩm.';
-      toast.dismiss('cart-update-error');
-      toast.error(msg, {
-        toastId: 'cart-update-error',
-        position: 'top-right',
-      });
-    } finally {
-      setIsUpdating(false);
-    }
-  };
+    if (flashSaleWarning) {
+      toast.info(flashSaleWarning, {
+        toastId: 'cart-update-flash-warning',
+        position: 'top-right',
+        autoClose: 5000,
+      });
+    } else {
+      toast.success(backendMessage, {
+        toastId: 'cart-update-success',
+        position: 'top-right',
+      });
+    }
+    if (onQuantityChange) onQuantityChange();
+  } catch (error) {
+    const msg = error.response?.data?.message || 'Không thể cập nhật số lượng sản phẩm.';
+    toast.dismiss('cart-update-error');
+    toast.error(msg, {
+      toastId: 'cart-update-error',
+      position: 'top-right',
+    });
+  } finally {
+    setIsUpdating(false);
+  }
+};
+
 
   const calculateTotalPrice = () => {
     return item.price > 0 ? item.price * quantity : item.originalPrice * quantity;
@@ -115,6 +117,9 @@ const CartItem = ({ item, isChecked, onToggleChecked, onQuantityChange, isLastIt
 
   return (
     <div className={`bg-white ${!isLastItem ? 'border-b border-gray-200' : ''} ${isOutOfStock ? 'bg-gray-50' : ''}`}>
+  {isDeleting && <Loader fullscreen />}
+{isUpdating && <Loader fullscreen />}
+
       <div className="flex flex-col p-3 sm:hidden">
         <div className="flex items-start w-full">
           {isOutOfStock ? (

@@ -1,5 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { FormControl, FormHelperText } from '@mui/material';
+
 import { Box, Button, Grid, TextField, Typography, Switch, Paper, Checkbox, FormControlLabel, Autocomplete } from '@mui/material';
+import SkuSelectionDialog from './SkuSelectionDialog';
 import { useForm, Controller } from 'react-hook-form';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -32,6 +35,7 @@ const FlashSaleForm = () => {
     reset,
     watch,
     setError,
+    clearErrors,
     formState: { errors }
   } = useForm({
     defaultValues: {
@@ -55,7 +59,7 @@ const FlashSaleForm = () => {
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [bannerPreview, setBannerPreview] = useState(null);
   const [bannerFile, setBannerFile] = useState(null);
-
+  const [isSkuDialogOpen, setIsSkuDialogOpen] = useState(false);
   const initialBannerUrl = watch('bannerUrl');
 
   useEffect(() => {
@@ -82,31 +86,11 @@ const FlashSaleForm = () => {
     setBannerPreview(null);
     setBannerFile(null);
   };
-
-  // FlashSaleForm.jsx
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [skuRes, catRes] = await Promise.all([flashSaleService.getSkus(), flashSaleService.getCategories()]);
-        const skuOpts = (skuRes.data || []).map((s) => ({
-          ...s,
-          label: `${s.productName} - ${s.skuCode} - ${formatCurrencyVND(s.originalPrice)}`
-        }));
-
-        setSkuOptions(skuOpts);
-        setCategoryOptions(flattenCategoryTree(catRes.data || []));
-      } catch (err) {
-        toast.error('Lỗi tải dữ liệu SKU hoặc danh mục');
-      }
-    };
-
-    loadData();
-  }, []);
-
   const flattenCategoryTree = (tree, level = 0) => {
     return tree.reduce((acc, node) => {
       const indentation = '│   '.repeat(level) + (level > 0 ? '├─ ' : '');
       const label = `${indentation}${node.name}`;
+
       acc.push({ ...node, label, categoryId: node.id });
       if (node.children?.length) {
         acc = acc.concat(flattenCategoryTree(node.children, level + 1));
@@ -114,6 +98,31 @@ const FlashSaleForm = () => {
       return acc;
     }, []);
   };
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [skuRes, catRes] = await Promise.all([flashSaleService.getSkus(), flashSaleService.getCategories()]);
+
+        const skuOpts = (skuRes.data?.data || []).map((s) => ({
+          ...s,
+          label: `${s.productName} - ${s.skuCode} - ${formatCurrencyVND(s.originalPrice)}`
+        }));
+        setSkuOptions(skuOpts);
+
+        const flatCats = flattenCategoryTree(catRes.data || []);
+        console.log('Category tree gốc:', catRes.data);
+        console.log('Category options sau flatten:', flatCats);
+        setCategoryOptions(flatCats);
+
+        console.log('skuOptions sau khi được set:', skuOpts);
+      } catch (err) {
+        console.error('Lỗi loadData:', err);
+        toast.error('Lỗi tải dữ liệu SKU hoặc danh mục');
+      }
+    };
+    loadData();
+  }, []);
 
   useEffect(() => {
     if (!isEdit) {
@@ -125,21 +134,22 @@ const FlashSaleForm = () => {
       .getById(slug)
       .then((res) => {
         const data = res.data;
-     data.startTime = dayjs(data.startTime).format('YYYY-MM-DDTHH:mm');
-data.endTime = dayjs(data.endTime).format('YYYY-MM-DDTHH:mm');
+        data.startTime = dayjs(data.startTime).format('YYYY-MM-DDTHH:mm');
+        data.endTime = dayjs(data.endTime).format('YYYY-MM-DDTHH:mm');
 
         data.items = (data.flashSaleItems || []).map((item) => ({
           id: item.flashSaleSku?.id,
           skuId: item.flashSaleSku?.id,
           salePrice: item.salePrice != null ? Number(item.salePrice) : '',
           originalQuantity: item.originalQuantity ?? item.quantity,
-  soldCount: (item.originalQuantity ?? item.quantity) - item.quantity,
-
+          soldCount: (item.originalQuantity ?? item.quantity) - item.quantity,
           quantity: item.quantity,
           maxPerUser: item.maxPerUser,
           note: item.note,
-          label: `${item.flashSaleSku?.product?.name || 'Lỗi sản phẩm'} - ${item.flashSaleSku?.skuCode || 'Lỗi SKU'}`,
-          originalPrice: item.flashSaleSku?.originalPrice
+          productName: item.flashSaleSku?.product?.name,
+          skuCode: item.flashSaleSku?.skuCode,
+          originalPrice: item.flashSaleSku?.originalPrice,
+          stock: item.flashSaleSku?.stock
         }));
 
         data.categories = (data.categories || []).map((cat) => ({
@@ -175,8 +185,7 @@ data.endTime = dayjs(data.endTime).format('YYYY-MM-DDTHH:mm');
         skuId: item.id,
         salePrice: item.salePrice === '' ? null : Number(item.salePrice),
         quantity: item.quantity === '' || item.quantity == null ? 0 : Number(item.quantity),
-       originalQuantity: Math.max(item.originalQuantity ?? 0, Number(item.quantity)),
-
+        originalQuantity: Math.max(item.originalQuantity ?? 0, Number(item.quantity)),
         maxPerUser: item.maxPerUser === '' ? null : Number(item.maxPerUser),
         note: item.note || ''
       }));
@@ -187,7 +196,6 @@ data.endTime = dayjs(data.endTime).format('YYYY-MM-DDTHH:mm');
         discountValue: cat.discountValue === '' ? null : Number(cat.discountValue),
         maxPerUser:
           cat.maxPerUser === undefined || cat.maxPerUser === null || `${cat.maxPerUser}`.trim() === '' ? null : Number(cat.maxPerUser),
-
         priority: cat.priority === '' ? 0 : Number(cat.priority)
       }));
 
@@ -249,27 +257,26 @@ data.endTime = dayjs(data.endTime).format('YYYY-MM-DDTHH:mm');
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <Grid container spacing={3}>
-          <Grid item xs={12}>
-  <Controller
-    name="title"
-    control={control}
-    rules={{ required: 'Tên là bắt buộc' }}
-    render={({ field }) => (
-      <TextField
-        {...field}
-        fullWidth
-        label={
-          <span>
-           Tiêu đề <span style={{ color: 'red' }}>*</span>
-          </span>
-        }
-        error={!!errors.title}
-        helperText={errors.title?.message}
-      />
-    )}
-  />
-</Grid>
-
+            <Grid item xs={12}>
+              <Controller
+                name="title"
+                control={control}
+                rules={{ required: 'Tên là bắt buộc' }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    fullWidth
+                    label={
+                      <span>
+                        Tiêu đề <span style={{ color: 'red' }}>*</span>
+                      </span>
+                    }
+                    error={!!errors.title}
+                    helperText={errors.title?.message}
+                  />
+                )}
+              />
+            </Grid>
 
             <Grid item xs={12}>
               <Grid container spacing={2}>
@@ -309,12 +316,10 @@ data.endTime = dayjs(data.endTime).format('YYYY-MM-DDTHH:mm');
               </Grid>
             </Grid>
 
-
-
             <Grid item xs={12}>
-             <Typography variant="subtitle1" gutterBottom>
-  Ảnh banner <span style={{ color: 'red' }}>*</span>
-</Typography>
+              <Typography variant="subtitle1" gutterBottom>
+                Ảnh banner <span style={{ color: 'red' }}>*</span>
+              </Typography>
 
               {bannerPreview ? (
                 <Box sx={{ position: 'relative', border: '1px solid #ddd', borderRadius: 2, p: 1, overflow: 'hidden' }}>
@@ -384,55 +389,60 @@ data.endTime = dayjs(data.endTime).format('YYYY-MM-DDTHH:mm');
                 render={({ field }) => <TinyEditor value={field.value} onChange={field.onChange} />}
               />
             </Grid>
-           <Grid item xs={6}>
-  <Controller
-    name="startTime"
-    control={control}
-    rules={{ required: 'Thời gian bắt đầu là bắt buộc' }}
-    render={({ field }) => (
-      <TextField
-        {...field}
-        fullWidth
-        type="datetime-local"
-        label={
-          <span>
-            Bắt đầu <span style={{ color: 'red' }}>*</span>
-          </span>
-        }
-        InputLabelProps={{ shrink: true }}
-        inputProps={{
-      min: dayjs().format('YYYY-MM-DDTHH:mm')
+            <Grid item xs={6}>
+              <Controller
+                name="startTime"
+                control={control}
+                rules={{ required: 'Thời gian bắt đầu là bắt buộc' }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    fullWidth
+                    type="datetime-local"
+                    label={
+                      <span>
+                        Bắt đầu <span style={{ color: 'red' }}>*</span>
+                      </span>
+                    }
+                    InputLabelProps={{ shrink: true }}
+                    error={!!errors.startTime}
+                    helperText={errors.startTime?.message}
+                  />
+                )}
+              />
+            </Grid>
 
-        }}
-        error={!!errors.startTime}
-        helperText={errors.startTime?.message}
-      />
-    )}
-  />
-</Grid>
-
-<Grid item xs={6}>
-  <Controller
-    name="endTime"
-    control={control}
-    rules={{ required: 'Thời gian kết thúc là bắt buộc' }}
-    render={({ field }) => (
-      <TextField
-        {...field}
-        fullWidth
-        type="datetime-local"
-        label={
-          <span>
-            Kết thúc <span style={{ color: 'red' }}>*</span>
-          </span>
-        }
-        InputLabelProps={{ shrink: true }}
-        error={!!errors.endTime}
-        helperText={errors.endTime?.message}
-      />
-    )}
-  />
-</Grid>
+            <Grid item xs={6}>
+              <Controller
+                name="endTime"
+                control={control}
+                rules={{
+                  required: 'Thời gian kết thúc là bắt buộc',
+                  validate: (value) => {
+                    const startTime = watch('startTime');
+                    if (dayjs(value).isBefore(dayjs(startTime))) {
+                      return 'Thời gian kết thúc phải sau thời gian bắt đầu';
+                    }
+                    return true;
+                  }
+                }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    fullWidth
+                    type="datetime-local"
+                    label={
+                      <span>
+                        Kết thúc <span style={{ color: 'red' }}>*</span>
+                      </span>
+                    }
+                    InputLabelProps={{ shrink: true }}
+                    error={!!errors.endTime}
+                    helperText={errors.endTime?.message}
+                  />
+                )}
+              />
+            </Grid>
 
             <Grid item xs={12}>
               <Controller
@@ -447,50 +457,66 @@ data.endTime = dayjs(data.endTime).format('YYYY-MM-DDTHH:mm');
               />
             </Grid>
 
-
             <Grid item xs={12}>
-          <Typography variant="h6" gutterBottom>
-  Sản phẩm tham gia <Box component="span" sx={{ color: 'error.main' }}>*</Box>
-</Typography>
+              <Typography variant="h6" gutterBottom>
+                Sản phẩm tham gia{' '}
+                <Box component="span" sx={{ color: 'error.main' }}>
+                  *
+                </Box>
+              </Typography>
 
               <Controller
                 name="items"
                 control={control}
+                rules={{ validate: (value) => value.length > 0 || 'Vui lòng chọn ít nhất một sản phẩm' }}
                 render={({ field }) => (
                   <>
-                    <Autocomplete
-                      multiple
-                      options={skuOptions.filter((opt) => !field.value.some((selected) => selected.id === opt.id))}
-                      getOptionLabel={(option) => option.label || ''}
-                      value={[]}
-                      onChange={(_, newValue) => {
-                        const newItems = newValue
-                          .filter((newItem) => !field.value.some((existing) => existing.id === newItem.id))
-                          .map((newItem) => ({
-                            id: newItem.id,
-                            stock: newItem.stock,
-                            skuId: newItem.id,
-                            label: newItem.label,
-                            originalPrice: newItem.originalPrice,
-                            salePrice: '',
-                            originalQuantity: '', // ✅ THÊM DÒNG NÀY
-                            quantity: '',
-                            maxPerUser: '',
-                            note: ''
-                          }));
-                        field.onChange([...field.value, ...newItems]);
+                    <FormControl fullWidth error={Boolean(errors.items) && !Array.isArray(errors.items)} sx={{ mb: 1 }}>
+                      <Button
+                        fullWidth
+                        variant="outlined"
+                        onClick={() => setIsSkuDialogOpen(true)}
+                        sx={{
+                          justifyContent: 'flex-start',
+                          py: 1.25
+                        }}
+                      >
+                        Chọn sản phẩm (SKU)
+                      </Button>
+
+                      <FormHelperText>
+                        {errors.items && !Array.isArray(errors.items) ? errors.items.message : 'Chọn ít nhất một sản phẩm'}
+                      </FormHelperText>
+                    </FormControl>
+
+                    <SkuSelectionDialog
+                      open={isSkuDialogOpen}
+                      onClose={() => setIsSkuDialogOpen(false)}
+                      value={field.value.map((it) => it.id)}
+                      onChange={(selectedSkus) => {
+                        const updatedItems = selectedSkus.map((sku) => {
+                          const existingItem = field.value.find((item) => item.id === sku.id);
+                          return (
+                            existingItem || {
+                              id: sku.id,
+                              skuId: sku.id,
+                              productName: sku.productName,
+                              skuCode: sku.skuCode,
+                              originalPrice: sku.originalPrice,
+                              stock: sku.stock,
+                              salePrice: '',
+                              originalQuantity: '',
+                              quantity: '',
+                              maxPerUser: '',
+                              note: ''
+                            }
+                          );
+                        });
+                        field.onChange(updatedItems);
                       }}
-                      renderTags={() => null}
-                      isOptionEqualToValue={(option, value) => option.id === value.id}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label="Tìm và chọn sản phẩm SKU..."
-                          error={!!errors.items && !Array.isArray(errors.items)}
-                          helperText={errors.items && !Array.isArray(errors.items) ? errors.items.message : ''}
-                        />
-                      )}
+                      fetchSkus={flashSaleService.getSkus}
                     />
+
                     <Box mt={2} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                       {field.value.map((sku, index) => (
                         <Paper key={sku.id || sku.skuId} elevation={3} sx={{ p: 2 }}>
@@ -498,7 +524,7 @@ data.endTime = dayjs(data.endTime).format('YYYY-MM-DDTHH:mm');
                             <Grid item xs={12}>
                               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <Typography variant="subtitle1" fontWeight="bold">
-                                  {index + 1}. {sku.label}
+                                  {index + 1}. {sku.productName} - {sku.skuCode} - {formatCurrencyVND(sku.originalPrice)}
                                 </Typography>
                                 <Button
                                   size="small"
@@ -510,22 +536,19 @@ data.endTime = dayjs(data.endTime).format('YYYY-MM-DDTHH:mm');
                               </Box>
                             </Grid>
 
-                            {/* Hiển thị giá gốc và tồn kho */}
                             <Grid item xs={12}>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                                 {sku.originalPrice != null && (
                                   <Typography variant="body2" color="text.secondary">
-                                    Giá gốc:{' '}
-                                    <strong style={{ color: '#d32f2f' }}>{formatCurrencyVND(sku.originalPrice)}</strong>
+                                    Giá gốc: <strong style={{ color: '#d32f2f' }}>{formatCurrencyVND(sku.originalPrice)}</strong>
                                   </Typography>
                                 )}
                                 {sku.soldCount != null && sku.originalQuantity != null && (
-  <Typography variant="body2" color="text.secondary">
-    Đã bán: <strong>{sku.soldCount}</strong> / {sku.originalQuantity} &nbsp;
-    (Còn lại: <strong>{sku.originalQuantity - sku.soldCount}</strong>)
-  </Typography>
-)}
-
+                                  <Typography variant="body2" color="text.secondary">
+                                    Đã bán: <strong>{sku.soldCount}</strong> / {sku.originalQuantity} &nbsp; (Còn lại:{' '}
+                                    <strong>{sku.originalQuantity - sku.soldCount}</strong>)
+                                  </Typography>
+                                )}
                                 {sku.stock != null && (
                                   <Typography variant="body2" color="text.secondary">
                                     Tồn kho: <strong>{sku.stock}</strong>
@@ -534,18 +557,21 @@ data.endTime = dayjs(data.endTime).format('YYYY-MM-DDTHH:mm');
                               </Box>
                             </Grid>
 
-                            {/* Ô nhập giá sale và số lượng bán */}
                             <Grid item xs={12} sm={6}>
                               <Controller
                                 name={`items.${index}.salePrice`}
                                 control={control}
-                                rules={{ required: 'Vui lòng nhập giá', min: 1 }}
-                                render={({ field, fieldState }) => (
+                                rules={{
+                                  required: 'Vui lòng nhập giá',
+                                  min: { value: 1, message: 'Giá phải lớn hơn 0' },
+                                  validate: (value) => Number(value) < sku.originalPrice || 'Giá sale phải nhỏ hơn giá gốc'
+                                }}
+                                render={({ field: priceField, fieldState }) => (
                                   <FormattedNumberInput
-                                    value={field.value ?? ''}
-                                    onChange={field.onChange}
+                                    value={priceField.value ?? ''}
+                                    onChange={priceField.onChange}
                                     label="Giá sale"
-                                    size="medium" // 👉 tăng từ 'small' lên 'medium' cho dễ thao tác hơn
+                                    size="medium"
                                     error={!!fieldState.error}
                                     helperText={fieldState.error?.message}
                                   />
@@ -554,38 +580,57 @@ data.endTime = dayjs(data.endTime).format('YYYY-MM-DDTHH:mm');
                             </Grid>
 
                             <Grid item xs={12} sm={6}>
-                              <TextField
-                                fullWidth
-                                type="number"
-                                label="Số lượng bán"
-                                size="medium" // 👉 tăng lên 'medium' như ô bên trái
-                                value={sku.quantity ?? ''}
-                                onChange={(e) => handleItemChange(field, index, 'quantity', e.target.value)}
-                                InputProps={{ inputProps: { min: 0 } }}
-                                placeholder="Mặc định 0 nếu không nhập"
-                                error={!!errors.items?.[index]?.quantity}
-                                helperText={errors.items?.[index]?.quantity?.message}
+                              <Controller
+                                name={`items.${index}.quantity`}
+                                control={control}
+                                rules={{
+                                  required: 'Số lượng là bắt buộc',
+                                  validate: (value) => {
+                                    const stock = Number.isFinite(Number(sku.stock)) ? Number(sku.stock) : null;
+                                    if (stock !== null && Number(value) > stock) {
+                                      return `Không vượt quá tồn kho (${stock})`;
+                                    }
+                                    return true;
+                                  },
+                                  min: { value: 1, message: 'Số lượng phải lớn hơn 0' }
+                                }}
+                                render={({ field, fieldState }) => (
+                                  <TextField
+                                    {...field}
+                                    fullWidth
+                                    type="number"
+                                    label="Số lượng bán"
+                                    size="medium"
+                                    InputProps={{ inputProps: { min: 0 } }}
+                                    placeholder="Mặc định 0 nếu không nhập"
+                                    error={!!fieldState.error}
+                                    helperText={fieldState.error?.message}
+                                  />
+                                )}
                               />
                             </Grid>
 
-                            {/* Ô ghi chú */}
                             <Grid item xs={12}>
-                              <TextField
-                                fullWidth
-                                multiline
-                                minRows={2}
-                                maxRows={6}
-                                label="Ghi chú (tùy chọn)"
-                                size="small"
-                                value={sku.note || ''}
-                                onChange={(e) => handleItemChange(field, index, 'note', e.target.value)}
+                              <Controller
+                                name={`items.${index}.note`}
+                                control={control}
+                                render={({ field }) => (
+                                  <TextField
+                                    {...field}
+                                    fullWidth
+                                    multiline
+                                    minRows={2}
+                                    maxRows={6}
+                                    label="Ghi chú (tùy chọn)"
+                                    size="small"
+                                  />
+                                )}
                               />
                             </Grid>
                           </Grid>
                         </Paper>
                       ))}
                     </Box>
-
                   </>
                 )}
               />
@@ -606,7 +651,14 @@ data.endTime = dayjs(data.endTime).format('YYYY-MM-DDTHH:mm');
                       getOptionLabel={(option) => option.label}
                       value={[]}
                       onChange={(_, newValue) => {
-                        field.onChange([...field.value, ...newValue]);
+                        const newItems = newValue.map((item) => ({
+                          ...item,
+                          discountType: 'percent',
+                          discountValue: '',
+                          maxPerUser: '',
+                          priority: 0
+                        }));
+                        field.onChange([...field.value, ...newItems]);
                       }}
                       renderTags={() => null}
                       isOptionEqualToValue={(option, value) => option.id === value.id}
@@ -661,7 +713,6 @@ data.endTime = dayjs(data.endTime).format('YYYY-MM-DDTHH:mm');
                         </Paper>
                       ))}
                     </Box>
-
                   </>
                 )}
               />

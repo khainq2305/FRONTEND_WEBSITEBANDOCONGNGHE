@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useMemo } from 'react'; // Nếu chưa có
+import { useMemo } from 'react';
 
 import { FaPercentage, FaQuestionCircle } from 'react-icons/fa';
 import { FiChevronUp, FiInfo, FiChevronRight } from 'react-icons/fi';
@@ -10,8 +10,7 @@ import { toast } from 'react-toastify';
 import { Coins } from 'lucide-react';
 import defaultShippingIcon from '../../../../assets/Client/images/image 12.png';
 import { rewardPointService } from '../../../../services/client/rewardPointService';
-
-
+import Loader from '../../../../components/common/Loader';
 const CartSummary = ({
   hasSelectedItems,
   selectedItems,
@@ -22,10 +21,10 @@ const CartSummary = ({
   usePoints,
   setUsePoints
 }) => {
-
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
   const [showDiscountDetails, setShowDiscountDetails] = useState(false);
 
+const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   const {
     userPointBalance = 0,
@@ -33,7 +32,7 @@ const CartSummary = ({
     minPointRequired = 0,
     canUsePoints = false,
     maxUsablePoints = 0,
-    pointDiscountAmount = 0,
+    pointDiscountAmount = 0
   } = orderTotals || {};
 
   const openPromoModal = () => {
@@ -45,7 +44,7 @@ const CartSummary = ({
   };
   const closePromoModal = () => setIsPromoModalOpen(false);
   const stableSkuIds = useMemo(() => {
-    return selectedItems.map((i) => i.skuId).sort(); // sort để tránh thay đổi thứ tự gây re-render
+    return selectedItems.map((i) => i.skuId).sort();
   }, [selectedItems]);
 
   const stableOrderTotal = useMemo(() => {
@@ -71,7 +70,7 @@ const CartSummary = ({
       const res = await couponService.applyCoupon({
         code: code.trim(),
         skuIds: selectedItems.map((i) => i.skuId),
-        orderTotal: Number(orderTotals?.payablePrice || 0),
+        orderTotal: Number(orderTotals?.payablePrice || 0)
       });
 
       const applied = res.data?.coupon;
@@ -82,12 +81,10 @@ const CartSummary = ({
         localStorage.setItem('selectedCoupon', JSON.stringify(applied));
         toast.success(`Áp dụng mã ${code} thành công!`);
       } else {
-
         if (res.data?.isOutOfUsage) {
           toast.warn(res.data.message || 'Mã giảm giá đã hết lượt sử dụng');
           return;
         }
-
 
         throw new Error(res.data?.message || 'Không thể áp dụng mã');
       }
@@ -98,9 +95,6 @@ const CartSummary = ({
       localStorage.removeItem('selectedCoupon');
     }
   };
-
-
-
 
   const prevRef = useRef({ skuIds: [], orderTotal: null });
 
@@ -121,20 +115,17 @@ const CartSummary = ({
         const res = await couponService.applyCoupon({
           code: appliedCoupon.code,
           orderTotal,
-          skuIds,
+          skuIds
         });
 
         if (!res.data?.isValid) {
-          // Phân biệt lỗi
           const msg = res.data.message?.toLowerCase() || '';
 
           if (msg.includes('hết lượt') || msg.includes('hết hạn')) {
-
             toast.warn(res.data.message || 'Mã giảm giá không còn hiệu lực');
 
             return;
           }
-
 
           toast.warn(res.data.message || 'Mã giảm giá không còn hiệu lực');
           setAppliedCoupon(null);
@@ -149,7 +140,6 @@ const CartSummary = ({
           return;
         }
 
-
         const updatedCoupon = res.data.coupon;
         setAppliedCoupon(updatedCoupon);
         localStorage.setItem('appliedCoupon', JSON.stringify(updatedCoupon));
@@ -161,18 +151,13 @@ const CartSummary = ({
       }
     };
 
-
-
     refreshCoupon();
-
 
     prevRef.current = { skuIds, orderTotal };
   }, [selectedItems, orderTotals]);
 
   const discountAmount =
-    appliedCoupon?.discountType !== 'shipping' && appliedCoupon?.discountAmount
-      ? Number(appliedCoupon.discountAmount)
-      : 0;
+    appliedCoupon?.discountType !== 'shipping' && appliedCoupon?.discountAmount ? Number(appliedCoupon.discountAmount) : 0;
 
   const payableBeforeDiscount = Number(orderTotals?.payablePrice || 0);
 
@@ -187,46 +172,46 @@ const CartSummary = ({
     rewardPoints: '+0'
   };
 
-  const handleCheckout = async () => {
-    try {
-      if (appliedCoupon) {
-        const res = await couponService.applyCoupon({
-          code: appliedCoupon.code,
-          orderTotal: Number(orderTotals?.payablePrice || 0),
-          skuIds: selectedItems.map((i) => i.skuId),
-        });
+const handleCheckout = async () => {
+  try {
+    setIsCheckingOut(true);
 
-        if (!res.data?.isValid || !res.data?.coupon) {
-          const msg = (res.data?.message || '').toLowerCase();
+    if (appliedCoupon) {
+      const res = await couponService.applyCoupon({
+        code: appliedCoupon.code,
+        orderTotal: Number(orderTotals?.payablePrice || 0),
+        skuIds: selectedItems.map((i) => i.skuId),
+      });
 
-          if (msg.includes('hết lượt') || msg.includes('hết hạn')) {
-            toast.error(res.data.message || 'Mã giảm giá không còn hiệu lực');
-            return;
-          }
-
-          setAppliedCoupon(null);
-          localStorage.removeItem('appliedCoupon');
-          throw new Error(res.data?.message || 'Mã không còn hiệu lực');
+      if (!res.data?.isValid || !res.data?.coupon) {
+        const msg = (res.data?.message || '').toLowerCase();
+        if (msg.includes('hết lượt') || msg.includes('hết hạn')) {
+          toast.error(res.data.message || 'Mã giảm giá không còn hiệu lực');
+          return;
         }
-
-        const updatedCoupon = res.data?.coupon;
-        if (!updatedCoupon) throw new Error('Mã giảm giá không còn hiệu lực.');
-
-        setAppliedCoupon(updatedCoupon);
-        localStorage.setItem('appliedCoupon', JSON.stringify(updatedCoupon));
+        setAppliedCoupon(null);
+        localStorage.removeItem('appliedCoupon');
+        throw new Error(res.data?.message || 'Mã không còn hiệu lực');
       }
 
-      onCheckout();
-    } catch (err) {
-      toast.error(err?.response?.data?.message || err.message || 'Lỗi áp dụng mã giảm giá');
+      const updatedCoupon = res.data.coupon;
+      setAppliedCoupon(updatedCoupon);
+      localStorage.setItem('appliedCoupon', JSON.stringify(updatedCoupon));
     }
-  };
 
+    onCheckout();
+  } catch (err) {
+    toast.error(err?.response?.data?.message || err.message || 'Lỗi áp dụng mã giảm giá');
+  } finally {
+    setIsCheckingOut(false);
+  }
+};
 
 
   return (
     <>
       <aside className="bg-white rounded-xl p-3 sm:p-4 border border-gray-200 shadow-sm flex flex-col gap-4">
+         {isCheckingOut && <Loader fullscreen />}
         <div className="flex justify-between items-center">
           <h4 className="font-semibold text-sm text-gray-800">CYBERZONE khuyến mãi</h4>
           <div className="flex items-center text-xs text-gray-500">
@@ -257,10 +242,7 @@ const CartSummary = ({
                   onSelect={() => handleApplySuccess(null)}
                 />
 
-                <button
-                  onClick={openPromoModal}
-                  className="text-primary text-sm font-medium inline-flex items-center self-start"
-                >
+                <button onClick={openPromoModal} className="text-primary text-sm font-medium inline-flex items-center self-start">
                   <FaPercentage className="mr-1.5" />
                   Chọn hoặc nhập mã khác
                   <FiChevronRight className="ml-0.5" />
@@ -269,15 +251,8 @@ const CartSummary = ({
             ) : (
               <div className="relative group">
                 <div className="flex justify-between items-center w-full text-sm text-gray-800 disabled:text-gray-400">
-                  <button
-                    onClick={openPromoModal}
-                    disabled={!hasSelectedItems}
-                    className="flex items-center font-medium flex-1 text-left"
-                  >
-                    <FaPercentage
-                      className={`mr-2 text-lg ${hasSelectedItems ? 'text-red-500' : 'text-gray-400'
-                        }`}
-                    />
+                  <button onClick={openPromoModal} disabled={!hasSelectedItems} className="flex items-center font-medium flex-1 text-left">
+                    <FaPercentage className={`mr-2 text-lg ${hasSelectedItems ? 'text-red-500' : 'text-gray-400'}`} />
                     Chọn hoặc nhập ưu đãi
                   </button>
 
@@ -297,24 +272,16 @@ const CartSummary = ({
             )}
           </div>
 
-
           <div className="flex items-center justify-between h-11 px-3 border border-gray-200 rounded-md">
-        <div className="flex items-center gap-2 text-sm text-gray-700">
-  <img
-    src="src/assets/Client/images/xudiem.png"
-    alt="coin"
-    className="w-6 h-6 object-contain"
-  />
-  <div className="flex items-baseline gap-1">
-    <span>Đổi {maxUsablePoints.toLocaleString('vi-VN')} điểm</span>
-    <span className="text-gray-400 text-xs">
-      (~{formatCurrencyVND(pointDiscountAmount)})
-    </span>
-  </div>
-</div>
+            <div className="flex items-center gap-2 text-sm text-gray-700">
+              <img src="src/assets/Client/images/xudiem.png" alt="coin" className="w-6 h-6 object-contain" />
+              <div className="flex items-baseline gap-1">
+                <span>Đổi {maxUsablePoints.toLocaleString('vi-VN')} điểm</span>
+                <span className="text-gray-400 text-xs">(~{formatCurrencyVND(pointDiscountAmount)})</span>
+              </div>
+            </div>
 
             <div className="flex items-center gap-1 relative group">
-              {/* Toggle switch */}
               <label className="inline-flex items-center cursor-pointer">
                 <input
                   type="checkbox"
@@ -336,18 +303,13 @@ const CartSummary = ({
                 <>
                   <FaQuestionCircle className="text-gray-400 text-sm cursor-pointer" />
                   <div className="absolute z-10 top-full right-0 mt-1 w-max max-w-[220px] bg-black text-white border border-gray-700 shadow-md rounded-md px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none text-[12px]">
-                    {!hasSelectedItems
-                      ? 'Bạn cần chọn sản phẩm để sử dụng điểm'
-                      : `Cần ít nhất ${minPointRequired} điểm để sử dụng`}
+                    {!hasSelectedItems ? 'Bạn cần chọn sản phẩm để sử dụng điểm' : `Cần ít nhất ${minPointRequired} điểm để sử dụng`}
                   </div>
                 </>
               )}
             </div>
-
           </div>
-
         </div>
-
 
         <div className="text-sm text-gray-700 space-y-2">
           <h3 className="font-semibold text-base text-gray-800">Thông tin đơn hàng</h3>
@@ -359,18 +321,14 @@ const CartSummary = ({
             <>
               {Number(totals.totalDiscount) > 0 && (
                 <div className="flex justify-between text-xs text-gray-600 ml-2 relative">
-                  <span className="before:content-['•'] before:mr-1 before:text-gray-500">
-                    Giảm giá từ sản phẩm
-                  </span>
+                  <span className="before:content-['•'] before:mr-1 before:text-gray-500">Giảm giá từ sản phẩm</span>
                   <span>{formatCurrencyVND(Number(totals.totalDiscount))}</span>
                 </div>
               )}
 
               {appliedCoupon && discountAmount > 0 && (
                 <div className="flex justify-between text-xs text-green-600 ml-2 relative">
-                  <span className="before:content-['•'] before:mr-1 before:text-green-600">
-                    Giảm giá từ coupon
-                  </span>
+                  <span className="before:content-['•'] before:mr-1 before:text-green-600">Giảm giá từ coupon</span>
                   <span>- {formatCurrencyVND(discountAmount)}</span>
                 </div>
               )}
@@ -382,9 +340,6 @@ const CartSummary = ({
             <span className="font-medium text-gray-800">{formatCurrencyVND(totals.totalDiscount + discountAmount)}</span>
           </div>
 
-
-
-
           <hr className="border-dashed" />
           <div className="flex justify-between text-gray-800 font-semibold">
             <span>Cần thanh toán</span>
@@ -394,12 +349,7 @@ const CartSummary = ({
             <div className="flex justify-between text-xs text-yellow-600 font-medium items-center">
               <span>Điểm thưởng</span>
               <span className="flex items-center gap-1">
-               <img
-                      src="src/assets/Client/images/xudiem.png"
-                      alt="coin"
-                      className="w-4 h-4 object-contain"
-                    />
-
+                <img src="src/assets/Client/images/xudiem.png" alt="coin" className="w-4 h-4 object-contain" />
                 {'+' + Math.floor(payableAfterDiscount / 4000).toLocaleString('vi-VN')} điểm
               </span>
             </div>
@@ -410,41 +360,35 @@ const CartSummary = ({
               onClick={() => setShowDiscountDetails((prev) => !prev)}
             >
               {showDiscountDetails ? 'Thu gọn' : 'Xem chi tiết'}
-              {showDiscountDetails ? (
-                <FiChevronUp className="ml-1" />
-              ) : (
-                <FiChevronRight className="ml-1 transform rotate-90" />
-              )}
+              {showDiscountDetails ? <FiChevronUp className="ml-1" /> : <FiChevronRight className="ml-1 transform rotate-90" />}
             </button>
           )}
 
-          {(totals.totalDiscount + discountAmount) > 0 && (
+          {totals.totalDiscount + discountAmount > 0 && (
             <div className="text-sm text-green-600 mt-1 text-right">
               Tiết kiệm {formatCurrencyVND(totals.totalDiscount + discountAmount)}
             </div>
           )}
 
-
           <p className="text-[11px] text-gray-400 text-right">(Đã bao gồm VAT nếu có)</p>
-
         </div>
-
 
         <button
           onClick={handleCheckout}
           disabled={!hasSelectedItems}
-          className={`block text-center w-full font-semibold py-3 rounded-md transition-colors text-base ${hasSelectedItems ? 'bg-primary text-white hover:opacity-90' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
+          className={`block text-center w-full font-semibold py-3 rounded-md transition-colors text-base ${
+            hasSelectedItems ? 'bg-primary text-white hover:opacity-90' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+          }`}
         >
           Xác nhận đơn
         </button>
       </aside>
       <style jsx global>{`
-  /* Chỉ tác động tới thẻ div.mx-2 của CouponCard khi nằm trong .tight-title */
-  .tight-title .mx-2 {
-    margin-left: 0.25rem;   /* 4 px thay vì 0.5rem (8px) gốc */
-  }
-`}</style>
+        /* Chỉ tác động tới thẻ div.mx-2 của CouponCard khi nằm trong .tight-title */
+        .tight-title .mx-2 {
+          margin-left: 0.25rem; /* 4 px thay vì 0.5rem (8px) gốc */
+        }
+      `}</style>
       {isPromoModalOpen && (
         <PromoModal
           onClose={closePromoModal}
@@ -453,7 +397,6 @@ const CartSummary = ({
           orderTotal={stableOrderTotal}
           appliedCode={appliedCoupon?.code || ''}
         />
-
       )}
     </>
   );

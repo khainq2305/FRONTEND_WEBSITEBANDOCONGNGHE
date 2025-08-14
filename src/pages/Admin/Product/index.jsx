@@ -37,6 +37,10 @@ import ImportExportIcon from '@mui/icons-material/ImportExport';
 import HighlightText from '../../../components/Admin/HighlightText';
 import { useNavigate } from 'react-router-dom';
 import Breadcrumb from '../../../components/common/Breadcrumb';
+import dayjs from 'dayjs';
+import 'dayjs/locale/vi';
+dayjs.locale('vi');
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 export default function ProductListPage() {
   const [products, setProducts] = useState([]);
@@ -61,6 +65,10 @@ export default function ProductListPage() {
     setCurrentPage(newPage);
   };
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+
+  const [createdFrom, setCreatedFrom] = useState('');
+  const [createdTo, setCreatedTo] = useState('');
 
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
   const [menuProduct, setMenuProduct] = useState(null);
@@ -103,22 +111,30 @@ export default function ProductListPage() {
 
   useEffect(() => {
     fetchData();
-  }, [filter, searchText, selectedCategoryId, currentPage, itemsPerPage]);
+  }, [filter, searchText, selectedCategoryId, currentPage, itemsPerPage, createdFrom, createdTo]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [filter, searchText, selectedCategoryId]);
+  }, [filter, searchText, selectedCategoryId, createdFrom, createdTo]);
 
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const res = await productService.list({
+      console.log('createdFrom state:', createdFrom);
+      console.log('createdTo state:', createdTo);
+
+      const params = {
         filter,
         search: searchText,
         categoryId: selectedCategoryId || undefined,
         page: currentPage,
-        limit: itemsPerPage
-      });
+        limit: itemsPerPage,
+        startDate: createdFrom || undefined,
+        endDate: createdTo || undefined
+      };
+
+      console.log(params); // sẽ thấy ngày đã format
+      const res = await productService.list(params);
 
       if (res.data && res.data.data) {
         setProducts(res.data.data || []);
@@ -127,7 +143,6 @@ export default function ProductListPage() {
       } else {
         setProducts([]);
         setTotalItems(0);
-
         console.warn('API response missing data structure:', res);
       }
     } catch (error) {
@@ -138,76 +153,72 @@ export default function ProductListPage() {
     }
   };
 
-const handleDragEnd = async ({ active, over }) => {
-  if (!selectedCategoryId) {
-    toast.warning('Vui lòng lọc theo một danh mục cụ thể để sắp xếp.');
-    return;
-  }
 
-  if (!over || active.id === over.id) return;
-
-  const currentProductList = products.filter((p) => {
-    if (filter === 'active' && (!p.isActive || p.deletedAt)) return false;
-    if (filter === 'inactive' && (p.isActive || p.deletedAt)) return false;
-    if (filter === 'deleted' && !p.deletedAt) return false;
-    if (filter === 'all' && p.deletedAt) return false;
-    if (filter !== 'deleted' && p.deletedAt) return false;
-    if (selectedCategoryId && String(p.category?.id) !== String(selectedCategoryId)) return false;
-    const kw = searchText.toLowerCase().trim();
-    if (kw) {
-      return (
-        p.name?.toLowerCase().includes(kw) ||
-        p.slug?.toLowerCase().includes(kw) ||
-        p.category?.name?.toLowerCase().includes(kw)
-      );
+  const handleDragEnd = async ({ active, over }) => {
+    if (!selectedCategoryId) {
+      toast.warning('Vui lòng lọc theo một danh mục cụ thể để sắp xếp.');
+      return;
     }
-    return true;
-  });
 
-  const oldIndex = currentProductList.findIndex((p) => String(p.id) === String(active.id));
-  const newIndex = currentProductList.findIndex((p) => String(p.id) === String(over.id));
+    if (!over || active.id === over.id) return;
 
-  if (oldIndex < 0 || newIndex < 0) return;
+    const currentProductList = products.filter((p) => {
+      if (filter === 'active' && (!p.isActive || p.deletedAt)) return false;
+      if (filter === 'inactive' && (p.isActive || p.deletedAt)) return false;
+      if (filter === 'deleted' && !p.deletedAt) return false;
+      if (filter === 'all' && p.deletedAt) return false;
+      if (filter !== 'deleted' && p.deletedAt) return false;
+      if (selectedCategoryId && String(p.category?.id) !== String(selectedCategoryId)) return false;
+      const kw = searchText.toLowerCase().trim();
+      if (kw) {
+        return p.name?.toLowerCase().includes(kw) || p.slug?.toLowerCase().includes(kw) || p.category?.name?.toLowerCase().includes(kw);
+      }
+      return true;
+    });
 
-  const activeItem = currentProductList[oldIndex];
-  const overItem = currentProductList[newIndex];
+    const oldIndex = currentProductList.findIndex((p) => String(p.id) === String(active.id));
+    const newIndex = currentProductList.findIndex((p) => String(p.id) === String(over.id));
 
-  // ⚠️ Chỉ hoán đổi orderIndex giữa 2 item
-  const payload = [
-    {
-      id: activeItem.id,
-      orderIndex: overItem.orderIndex,
-      categoryId: overItem.category?.id || selectedCategoryId
-    },
-    {
-      id: overItem.id,
-      orderIndex: activeItem.orderIndex,
-      categoryId: activeItem.category?.id || selectedCategoryId
+    if (oldIndex < 0 || newIndex < 0) return;
+
+    const activeItem = currentProductList[oldIndex];
+    const overItem = currentProductList[newIndex];
+
+    // ⚠️ Chỉ hoán đổi orderIndex giữa 2 item
+    const payload = [
+      {
+        id: activeItem.id,
+        orderIndex: overItem.orderIndex,
+        categoryId: overItem.category?.id || selectedCategoryId
+      },
+      {
+        id: overItem.id,
+        orderIndex: activeItem.orderIndex,
+        categoryId: activeItem.category?.id || selectedCategoryId
+      }
+    ];
+
+    const uniqueCategoryIds = [...new Set(payload.map((i) => i.categoryId))];
+    if (uniqueCategoryIds.length !== 1) {
+      toast.warning('Chỉ được kéo sắp xếp sản phẩm trong cùng một danh mục.');
+      return;
     }
-  ];
 
-  const uniqueCategoryIds = [...new Set(payload.map((i) => i.categoryId))];
-  if (uniqueCategoryIds.length !== 1) {
-    toast.warning('Chỉ được kéo sắp xếp sản phẩm trong cùng một danh mục.');
-    return;
-  }
+    try {
+      setIsLoading(true);
+      console.log('Payload gửi lên:', payload);
+      await productService.updateOrderIndexBulk({ items: payload });
 
-  try {
-    setIsLoading(true);
-    console.log('Payload gửi lên:', payload);
-    await productService.updateOrderIndexBulk({ items: payload });
+      toast.success('Đã cập nhật thứ tự sản phẩm.');
 
-    toast.success('Đã cập nhật thứ tự sản phẩm.');
-
-    await fetchData(); // Load lại danh sách từ server
-  } catch (err) {
-    console.error('Lỗi cập nhật thứ tự:', err);
-    toast.error('Lỗi cập nhật thứ tự sản phẩm.');
-  } finally {
-    setIsLoading(false);
-  }
-};
-
+      await fetchData();
+    } catch (err) {
+      console.error('Lỗi cập nhật thứ tự:', err);
+      toast.error('Lỗi cập nhật thứ tự sản phẩm.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleMenuOpen = (e, product) => {
     e.stopPropagation();
@@ -289,7 +300,7 @@ const handleDragEnd = async ({ active, over }) => {
     try {
       await productService.restore(id);
       toast.success(`Đã khôi phục sản phẩm "${name}" thành công`);
-      // Gọi lại fetchData để cập nhật UI sau khi khôi phục
+
       await fetchData();
       setSelectedIds((prev) => prev.filter((pid) => pid !== id));
     } catch (err) {
@@ -368,15 +379,25 @@ const handleDragEnd = async ({ active, over }) => {
       </Box>
 
       <Box sx={{ p: 2, mb: 2, border: '1px solid #eee', borderRadius: 2, bgcolor: '#fafafa' }}>
-        <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
-          {[
-            { label: 'Tất Cả', value: 'all' },
-            { label: 'Hoạt Động', value: 'active' },
-            { label: 'Tạm Tắt', value: 'inactive' },
-            { label: 'Sắp hết hàng', value: 'lowStock' },
-            { label: 'Thùng Rác', value: 'deleted' }
-          ]
-            .map(({ label, value }) => {
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 2,
+            mb: 2,
+            flexWrap: 'wrap'
+          }}
+        >
+          {/* Bên trái: các tab filter */}
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            {[
+              { label: 'Tất Cả', value: 'all' },
+              { label: 'Hoạt Động', value: 'active' },
+              { label: 'Tạm Tắt', value: 'inactive' },
+              { label: 'Sắp hết hàng', value: 'lowStock' },
+              { label: 'Thùng Rác', value: 'deleted' }
+            ].map(({ label, value }) => {
               const isActiveFilter = filter === value;
               const count = tabCounts[value] || 0;
 
@@ -403,11 +424,43 @@ const handleDragEnd = async ({ active, over }) => {
                 </Box>
               );
             })}
+          </Box>
+
+          {/* Bên phải: ô tìm kiếm */}
+          <TextField
+            placeholder="Tìm kiếm..."
+            size="small"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            sx={{ width: { xs: '100%', sm: 260 }, minWidth: 220 }}
+          />
         </Box>
 
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 1, flexWrap: 'wrap' }}>
-            <FormControl size="small" sx={{ minWidth: 180 }}>
+
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 2,
+            mb: 2
+          }}
+        >
+          {/* Bên trái: Bulk Action, Category, Ngày lọc */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+            {/* Bulk Action */}
+            <FormControl
+              sx={{
+                minWidth: 180,
+                '& .MuiSelect-select': {
+                  padding: '8px 14px', // padding giống input date
+                },
+                '& .MuiInputBase-root': {
+                  height: '40px', // chiều cao đồng bộ
+                }
+              }}
+            >
               <InputLabel id="bulk-action-label">Áp dụng hàng loạt</InputLabel>
               <Select
                 labelId="bulk-action-label"
@@ -431,17 +484,29 @@ const handleDragEnd = async ({ active, over }) => {
               </Select>
             </FormControl>
 
+
             <Button
               variant="contained"
               size="small"
-              sx={{ minWidth: 100, mt: '6px', padding: '6px' }}
+              sx={{ minWidth: 100, padding: '9px' }}
               disabled={!bulkAction || !selectedIds.length}
               onClick={handleBulkAction}
             >
               Áp Dụng
             </Button>
 
-            <FormControl size="small" sx={{ minWidth: 280, mt: '-4px' }}>
+
+            <FormControl
+              sx={{
+                minWidth: 200,
+                '& .MuiSelect-select': {
+                  padding: '8px 14px',
+                },
+                '& .MuiInputBase-root': {
+                  height: '40px',
+                }
+              }}
+            >
               <InputLabel id="cat-filter">Danh mục</InputLabel>
               <Select
                 labelId="cat-filter"
@@ -449,11 +514,7 @@ const handleDragEnd = async ({ active, over }) => {
                 label="Danh mục"
                 onChange={(e) => setSelectedCategoryId(e.target.value)}
                 MenuProps={{
-                  PaperProps: {
-                    style: {
-                      minWidth: 300 // đặt chiều rộng tối thiểu cho dropdown
-                    }
-                  }
+                  PaperProps: { style: { minWidth: 250 } }
                 }}
               >
                 <MuiMenuItem value="">Tất cả</MuiMenuItem>
@@ -464,15 +525,57 @@ const handleDragEnd = async ({ active, over }) => {
                 ))}
               </Select>
             </FormControl>
+
+
+            <Box sx={{ width: '150px' }}>
+              <input
+                type="date"
+                value={createdFrom}
+                onChange={(e) => setCreatedFrom(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  borderRadius: '6px',
+                  border: '1px solid #ccc'
+                }}
+              />
+            </Box>
+
+
+            <Box sx={{ width: '150px' }}>
+              <input
+                type="date"
+                value={createdTo}
+                onChange={(e) => setCreatedTo(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  borderRadius: '6px',
+                  border: '1px solid #ccc'
+                }}
+              />
+            </Box>
+
+
+            <Button
+              variant="text"
+              size="small"
+              onClick={() => {
+                setCreatedFrom('');
+                setCreatedTo('');
+              }}
+              disabled={!createdFrom && !createdTo}
+            >
+              Xóa lọc ngày
+            </Button>
           </Box>
-          <TextField
-            placeholder="Tìm kiếm..."
-            size="small"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            sx={{ width: { xs: '100%', sm: 250 } }}
-          />
+
+
         </Box>
+
+
+
+
       </Box>
 
       <Paper elevation={1}>
@@ -489,14 +592,14 @@ const handleDragEnd = async ({ active, over }) => {
               </TableCell>
               <TableCell align="center">STT</TableCell>
 
-           
               <TableCell align="center">Ảnh</TableCell>
               <TableCell>Tên sản phẩm</TableCell>
 
               <TableCell>Danh mục</TableCell>
               <TableCell>Trạng thái</TableCell>
               <TableCell>Slug</TableCell>
-                 <TableCell align="center">Thứ tự</TableCell>
+              <TableCell>Ngày tạo</TableCell>
+              <TableCell align="center">Thứ tự</TableCell>
               <TableCell align="center">Hành động</TableCell>
             </TableRow>
           </TableHead>
@@ -510,9 +613,8 @@ const handleDragEnd = async ({ active, over }) => {
                         <TableCell padding="checkbox">
                           <Checkbox checked={selectedIds.includes(product.id)} onChange={() => toggleSelectOne(product.id)} />
                         </TableCell>
-                       <TableCell align="center">{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
+                        <TableCell align="center">{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
 
-                        
                         <TableCell sx={{ position: 'relative', width: 110, height: 110, p: 1 }}>
                           <Avatar
                             align="center"
@@ -564,7 +666,6 @@ const handleDragEnd = async ({ active, over }) => {
                           </Box>
                         </TableCell>
 
-
                         <TableCell>{product.category?.name || '-'}</TableCell>
                         <TableCell>
                           <Chip
@@ -574,6 +675,7 @@ const handleDragEnd = async ({ active, over }) => {
                           />
                         </TableCell>
                         <TableCell>{product.slug}</TableCell>
+                        <TableCell>{product.createdAt ? dayjs(product.createdAt).format('DD/MM/YYYY HH:mm') : '-'}</TableCell>
                         <TableCell align="center">{product.orderIndex}</TableCell>
                         <TableCell align="center">
                           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>

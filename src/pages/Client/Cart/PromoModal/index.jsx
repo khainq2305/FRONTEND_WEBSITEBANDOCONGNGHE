@@ -29,10 +29,10 @@ export const CouponCard = ({
                   .toLowerCase()
                   .includes('ship');
 
-  // Điều chỉnh màu nền của phần logo dựa trên isApplicable
+ 
   const primaryBg = promo.isApplicable
-    ? (isShip ? 'bg-green-600' : 'bg-primary') // Màu khi đủ điều kiện
-    : 'bg-gray-400'; // Màu khi không đủ điều kiện (disabled - xám)
+    ? (isShip ? 'bg-green-600' : 'bg-primary') 
+    : 'bg-gray-400'; 
 
   const cardBg = isSelected
     ? (isShip ? 'bg-green-50' : 'bg-blue-50')
@@ -41,7 +41,6 @@ export const CouponCard = ({
 
   const isUsageLimited = typeof promo.totalQuantity === 'number' && promo.totalQuantity > 0;
   const isOutOfUsage = promo.totalQuantity === 0 || (isUsageLimited && promo.usedCount >= promo.totalQuantity);
-  // Biến remainingUsage vẫn được tính nhưng sẽ không được dùng để hiển thị
   const remainingUsage = isUsageLimited ? promo.totalQuantity - promo.usedCount : null;
 
 
@@ -115,10 +114,9 @@ export const CouponCard = ({
       className={`mx-2 flex-1 font-semibold text-sm text-gray-900 ${titleClassName || ''} ${notAllowed ? 'text-gray-500' : ''}`}
     >
       {promo.title}
-      {/* Giữ lại dòng "Đã hết lượt sử dụng" */}
+   
       {isOutOfUsage && <span className="block text-red-500 text-xs font-normal">Đã hết lượt sử dụng</span>}
-      {/* Bỏ dòng "Còn: X lượt" */}
-      {/* {isUsageLimited && !isOutOfUsage && <span className="block text-gray-600 text-xs font-normal">Còn: {remainingUsage} lượt</span>} */}
+     
     </div>
 
 
@@ -150,7 +148,7 @@ export const CouponCard = ({
       `}
     >
       <div
-        className={`flex items-center justify-center rounded-lg ${primaryBg}`} // Sử dụng primaryBg đã điều chỉnh
+        className={`flex items-center justify-center rounded-lg ${primaryBg}`} 
         style={{ width: logoW }}
       >
         {promo.type === 'shipping'
@@ -252,9 +250,9 @@ const PromoModal = ({ modalTitle = 'Hồng Ân Khuyến Mãi', onClose, onApplyS
   }, [appliedCode]);
 
   useEffect(() => {
-  if (fetchedRef.current) return; // ✅ Chặn gọi lại nếu đã fetch
+  if (fetchedRef.current) return; 
 
-  fetchedRef.current = true;      // Đánh dấu đã gọi
+  fetchedRef.current = true;      
   document.body.style.overflow = 'hidden';
 
   const fetchCoupons = async () => {
@@ -287,7 +285,7 @@ const PromoModal = ({ modalTitle = 'Hồng Ân Khuyến Mãi', onClose, onApplyS
         }))
       );
     } catch (err) {
-      console.error('❌ Lỗi khi lấy coupons:', err);
+    
       toast.error('Không thể tải khuyến mãi, thử lại sau!');
     } finally {
       setIsLoading(false);
@@ -298,7 +296,7 @@ const PromoModal = ({ modalTitle = 'Hồng Ân Khuyến Mãi', onClose, onApplyS
 
   return () => {
     document.body.style.overflow = 'unset';
-    fetchedRef.current = false; // ✅ Cho phép fetch lại nếu modal mở lại lần sau
+    fetchedRef.current = false; 
   };
 }, []);
 

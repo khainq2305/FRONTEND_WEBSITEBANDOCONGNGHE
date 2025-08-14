@@ -442,7 +442,7 @@ const ProductForm = ({ onSubmit, initialData }) => {
         name: name || '',
         shortDescription: shortDescription || '',
         description: description || '',
-        badge: initialData.badge || '',  // ← QUAN TRỌNG
+        badge: initialData.badge || '',  
         thumbnail: thumbnail || '',
         orderIndex: orderIndex ?? 0,
         isActive: isActive !== false,
