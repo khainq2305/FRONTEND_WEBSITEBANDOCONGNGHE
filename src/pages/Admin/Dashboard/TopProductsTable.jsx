@@ -1,3 +1,4 @@
+// TopProductsTable.jsx
 "use client"
 
 import { useState, useEffect } from "react"
@@ -14,6 +15,7 @@ import {
   Typography,
   CircularProgress,
 } from "@mui/material"
+import { TrendingUp, Whatshot } from "@mui/icons-material"
 import { dashboardService } from "@/services/admin/dashboardService"
 
 export default function TopProductsTable({ dateRange }) {
@@ -26,11 +28,9 @@ export default function TopProductsTable({ dateRange }) {
       setLoading(true)
       setError(null)
       try {
-        const apiData = await dashboardService.getTopSellingProducts({
-          from: dateRange.from?.toISOString(),
-          to: dateRange.to?.toISOString(),
-        })
-        setProducts(apiData)
+        // Đã bỏ dateRange để lấy toàn bộ dữ liệu
+        const apiData = await dashboardService.getAllTopSellingProducts()
+        setProducts(apiData.data)
       } catch (e) {
         console.error("Lỗi khi lấy bảng sản phẩm bán chạy:", e)
         setError("Không thể tải bảng sản phẩm bán chạy. Vui lòng thử lại sau.")
@@ -39,13 +39,10 @@ export default function TopProductsTable({ dateRange }) {
       }
     }
     fetchData()
-  }, [dateRange])
+  }, []) // Dependency array rỗng để chỉ chạy một lần
 
   const formatCurrency = (amount) =>
-    new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(amount)
+    new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount ?? 0)
 
   if (loading)
     return (
@@ -80,66 +77,67 @@ export default function TopProductsTable({ dateRange }) {
     <TableContainer
       component={Paper}
       sx={{
-        borderRadius: 0,
-        boxShadow: "none",
+        borderRadius: 3,
+        overflow: "hidden",
+        boxShadow: "0 8px 24px rgba(0,0,0,0.06)",
         height: "100%",
-        "& .MuiTable-root": {
-          minWidth: "auto",
-        },
+        "& .MuiTable-root": { minWidth: "100%" },
       }}
     >
       <Table stickyHeader>
-        <TableHead>
+        <TableHead sx={{ "& .MuiTableCell-root": { borderBottom: "none" } }}>
+          {/* Column header */}
           <TableRow>
             <TableCell
               sx={{
-                fontWeight: 600,
-                backgroundColor: "#f8f9fa",
-                borderBottom: "2px solid #e0e0e0",
+                fontWeight: 700,
                 fontSize: "0.875rem",
+                backgroundColor: "#fffaf3",
+                borderTop: "1px solid rgba(0,0,0,0.06)",
               }}
             >
-              Sản phẩm
+              SẢN PHẨM
             </TableCell>
             <TableCell
               align="right"
               sx={{
-                fontWeight: 600,
-                backgroundColor: "#f8f9fa",
-                borderBottom: "2px solid #e0e0e0",
+                fontWeight: 700,
                 fontSize: "0.875rem",
+                backgroundColor: "#fffaf3",
+                borderTop: "1px solid rgba(0,0,0,0.06)",
               }}
             >
-              Số lượng bán
+              SỐ LƯỢNG BÁN
             </TableCell>
             <TableCell
               align="right"
               sx={{
-                fontWeight: 600,
-                backgroundColor: "#f8f9fa",
-                borderBottom: "2px solid #e0e0e0",
+                fontWeight: 700,
                 fontSize: "0.875rem",
+                backgroundColor: "#fffaf3",
+                borderTop: "1px solid rgba(0,0,0,0.06)",
               }}
             >
-              Doanh thu
+              DOANH THU
             </TableCell>
           </TableRow>
         </TableHead>
+
         <TableBody>
-          {products.map((product) => (
+          {products.map((product, index) => (
             <TableRow
-              key={product.id}
+              key={product.id ?? `${product.name}-${index}`}
               sx={{
                 "&:hover": {
-                  backgroundColor: "rgba(245, 124, 0, 0.04)",
+                  backgroundColor: "rgba(255, 152, 0, 0.08)",
+                  transform: "translateY(-1px)",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
                 },
-                "&:nth-of-type(even)": {
-                  backgroundColor: "rgba(0, 0, 0, 0.02)",
-                },
-                transition: "background-color 0.2s ease",
+                "&:nth-of-type(even)": { backgroundColor: "rgba(0, 0, 0, 0.02)" },
+                transition: "all 0.2s ease",
               }}
             >
-              <TableCell sx={{ py: 2 }}>
+              <TableCell sx={{ py: 1.5 }}>
                 <Box display="flex" alignItems="center" gap={2}>
                   <Avatar
                     src={product.image}
@@ -148,42 +146,52 @@ export default function TopProductsTable({ dateRange }) {
                     sx={{
                       width: 48,
                       height: 48,
-                      border: "2px solid #f0f0f0",
-                      boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                      border: "2px solid #fff",
+                      boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
                     }}
                   />
-                  <Typography
-                    variant="body2"
-                    fontWeight="medium"
-                    sx={{
-                      maxWidth: 150,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {product.name}
+                  <Box>
+                    <Typography
+                      variant="body2"
+                      fontWeight={600}
+                      sx={{
+                        maxWidth: 200,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                      title={product.name}
+                    >
+                      {product.name}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Thứ hạng: #{index + 1}
+                    </Typography>
+                  </Box>
+                </Box>
+              </TableCell>
+
+              <TableCell align="right">
+                <Box
+                  sx={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 0.75,
+                    px: 1.25,
+                    py: 0.5,
+                    borderRadius: 2,
+                    backgroundColor: "rgba(245, 124, 0, 0.1)",
+                  }}
+                >
+                  <Whatshot sx={{ fontSize: 16, color: "#f57c00" }} />
+                  <Typography variant="body2" fontWeight={700} color="#f57c00">
+                    {product.sold}
                   </Typography>
                 </Box>
               </TableCell>
+
               <TableCell align="right">
-                <Typography
-                  variant="body2"
-                  fontWeight="600"
-                  sx={{
-                    color: "#f57c00",
-                    backgroundColor: "rgba(245, 124, 0, 0.1)",
-                    px: 1.5,
-                    py: 0.5,
-                    borderRadius: 2,
-                    display: "inline-block",
-                  }}
-                >
-                  {product.sold}
-                </Typography>
-              </TableCell>
-              <TableCell align="right">
-                <Typography variant="body2" fontWeight="600" color="success.main">
+                <Typography variant="body2" fontWeight={700} color="success.main">
                   {formatCurrency(product.revenue)}
                 </Typography>
               </TableCell>

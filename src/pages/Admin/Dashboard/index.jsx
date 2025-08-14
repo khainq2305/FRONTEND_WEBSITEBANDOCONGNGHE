@@ -17,13 +17,13 @@ import {
   Container,
   Paper,
 } from "@mui/material"
-import { CalendarToday, Download, PictureAsPdf, TrendingUp } from "@mui/icons-material"
+import { CalendarToday, Download, PictureAsPdf, TrendingUp, Favorite  } from "@mui/icons-material"
 import DatePickerRange from "./DatePickerRange"
 import StatsCards from "./StatsCards"
 import RevenueChart from "./RevenueChart"
 import OrdersChart from "./OrdersChart"
-import TopProductsChart from "./TopProductsChart"
-import FavoriteProductsChart from "././FavoriteProductsChart"
+import TopProductsChart from "././TopProductsChart"
+import FavoriteProductsChart from "./FavoriteProductsChart"
 import TopProductsTable from "./TopProductsTable"
 import FavoriteProductsTable from "./FavoriteProductsTable"
 
@@ -35,7 +35,7 @@ import { dashboardService } from "@/services/admin/dashboardService"
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-// Hàm formatNumber tương tự như trong StatsCards.jsx
+// Hàm formatNumber được giữ lại ở đây để đảm bảo hoạt động độc lập
 const formatNumber = (num) => {
   if (num === null || num === undefined) {
     return 'N/A';
@@ -46,8 +46,6 @@ const formatNumber = (num) => {
       return 'N/A';
     }
   }
-  // Định dạng số tiền hoặc số lượng lớn
-  // Giữ nguyên logic ban đầu cho định dạng số
   if (Math.abs(num) >= 1000000000) {
     return (num / 1000000000).toFixed(1).replace(/\.0$/, '') + 'B';
   }
@@ -57,19 +55,29 @@ const formatNumber = (num) => {
   if (Math.abs(num) >= 1000) {
     return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
   }
-  return num.toLocaleString('vi-VN'); // Định dạng số thập phân, ví dụ: 19.383.000
+  return num.toLocaleString('vi-VN');
 };
 
-export default function Dashboard() {
-  const [dateRange, setDateRange] = useState({
-    from: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-    to: new Date(),
-  })
-  const [timeFilter, setTimeFilter] = useState("7days")
-  const dashboardContentRef = useRef(null)
 
-  // Centralized Card Styling
-  const commonCardSx = {
+// Centralized Theme/Style Object (Đề xuất thêm để đồng bộ)
+const THEME = {
+  colors: {
+    primary: '#667eea',
+    secondary: '#764ba2',
+    revenueGradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    pdfButtonColor: '#d32f2f',
+    excelButtonColor: '#2e7d32',
+    cardBackground: "rgba(255, 255, 255, 0.95)",
+    topProductsChart: {
+      gradientStart: '#f57c00', // Màu cam
+      gradientEnd: '#ffb74d',
+    },
+    favoriteProductsChart: {
+      gradientStart: '#e91e63', // Màu hồng
+      gradientEnd: '#f06292',
+    }
+  },
+  cardStyles: {
     borderRadius: 4,
     background: "rgba(255, 255, 255, 0.95)",
     backdropFilter: "blur(10px)",
@@ -82,7 +90,16 @@ export default function Dashboard() {
       transform: "translateY(-2px)",
       boxShadow: "0 12px 40px rgba(0, 0, 0, 0.15)",
     },
-  };
+  },
+};
+
+export default function Dashboard() {
+  const [dateRange, setDateRange] = useState({
+    from: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+    to: new Date(),
+  })
+  const [timeFilter, setTimeFilter] = useState("7days")
+  const dashboardContentRef = useRef(null)
 
   const handleTimeFilterChange = (event) => {
     const value = event.target.value
@@ -174,19 +191,16 @@ export default function Dashboard() {
         from: dateRange?.from?.toISOString().split("T")[0],
         to: dateRange?.to?.toISOString().split("T")[0],
       })
-      const topSellingProductsData = await dashboardService.getTopSellingProducts(params)
-      const favoriteProductsData = await dashboardService.getFavoriteProducts(params)
+      // Cập nhật API gọi để lấy toàn bộ danh sách sản phẩm
+      const topSellingProductsData = await dashboardService.getAllTopSellingProducts(params)
+      const favoriteProductsData = await dashboardService.getAllFavoriteProducts(params)
 
       const workbook = XLSX.utils.book_new()
 
-      // Helper function to format change values for Excel
       const formatChangeForExcel = (changeValue) => {
         if (typeof changeValue === 'number' && !isNaN(changeValue)) {
-          // Áp dụng định dạng tương tự như trên web UI
-          // Ví dụ: +38.6% so với kỳ trước
           return `${changeValue >= 0 ? '+' : ''}${changeValue.toFixed(1)}% so với kỳ trước`;
         } else {
-          // Mặc định khi không phải số hoặc không có thay đổi
           return '0% so với kỳ trước';
         }
       };
@@ -197,8 +211,7 @@ export default function Dashboard() {
         ["Tổng đơn hàng", formatNumber(statsData.totalOrders), formatChangeForExcel(statsData.ordersChange)],
         ["Đơn hàng bị hủy", formatNumber(statsData.cancelledOrders), formatChangeForExcel(statsData.cancelledChange)],
         ["Người dùng mới", formatNumber(statsData.newUsers), formatChangeForExcel(statsData.usersChange)],
-        // averageRating được gửi từ backend đã được định dạng toFixed(1)
-        ["Trung bình đánh giá", (typeof statsData.averageRating === 'number' || typeof statsData.averageRating === 'string' ? parseFloat(statsData.averageRating).toFixed(1) : 'N/A') + '/5', formatChangeForExcel(statsData.ratingChange)], // Cập nhật để phù hợp với output từ backend
+        ["Trung bình đánh giá", (typeof statsData.averageRating === 'number' || typeof statsData.averageRating === 'string' ? parseFloat(statsData.averageRating).toFixed(1) : 'N/A') + '/5', formatChangeForExcel(statsData.ratingChange)],
       ]
       const statsWorksheet = XLSX.utils.aoa_to_sheet(statsSheetData)
       XLSX.utils.book_append_sheet(workbook, statsWorksheet, "Tổng quan")
@@ -217,16 +230,18 @@ export default function Dashboard() {
       const ordersWorksheet = XLSX.utils.aoa_to_sheet(ordersSheetData)
       XLSX.utils.book_append_sheet(workbook, ordersWorksheet, "Đơn hàng theo ngày")
 
+      // Sử dụng `topSellingProductsData.data` vì API mới trả về cấu trúc phân trang
       const topSellingProductsSheetData = [
         ["Tên sản phẩm", "Biến thể", "Số lượng bán", "Doanh thu"],
-        ...topSellingProductsData.map((item) => [item.name, item.variant, formatNumber(item.sold), formatNumber(item.revenue)]),
+        ...topSellingProductsData.data.map((item) => [item.name, item.variant, formatNumber(item.sold), formatNumber(item.revenue)]),
       ]
       const topSellingWorksheet = XLSX.utils.aoa_to_sheet(topSellingProductsSheetData)
       XLSX.utils.book_append_sheet(workbook, topSellingWorksheet, "Sản phẩm bán chạy")
 
+      // Sử dụng `favoriteProductsData.data` vì API mới trả về cấu trúc phân trang
       const favoriteProductsSheetData = [
         ["Tên sản phẩm", "Lượt yêu thích"],
-        ...favoriteProductsData.map((item) => [item.name, formatNumber(item.wishlistCount)]),
+        ...favoriteProductsData.data.map((item) => [item.name, formatNumber(item.wishlistCount)]),
       ]
       const favoriteWorksheet = XLSX.utils.aoa_to_sheet(favoriteProductsSheetData)
       XLSX.utils.book_append_sheet(workbook, favoriteWorksheet, "Sản phẩm yêu thích")
@@ -257,7 +272,7 @@ export default function Dashboard() {
             p: 4,
             mb: 4,
             borderRadius: 4,
-            background: "rgba(255, 255, 255, 0.95)",
+            background: THEME.colors.cardBackground,
             backdropFilter: "blur(10px)",
             border: "1px solid rgba(255, 255, 255, 0.2)",
             boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
@@ -267,7 +282,7 @@ export default function Dashboard() {
             <Box display="flex" alignItems="center" gap={2}>
               <Box
                 sx={{
-                  background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                  background: THEME.colors.revenueGradient,
                   borderRadius: 3,
                   p: 2,
                   color: "white",
@@ -284,7 +299,7 @@ export default function Dashboard() {
                   component="h1"
                   fontWeight="bold"
                   sx={{
-                    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                    background: THEME.colors.revenueGradient,
                     backgroundClip: "text",
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
@@ -306,8 +321,8 @@ export default function Dashboard() {
                   borderRadius: 3,
                   textTransform: "none",
                   fontWeight: 500,
-                  borderColor: "#d32f2f",
-                  color: "#d32f2f",
+                  borderColor: THEME.colors.pdfButtonColor,
+                  color: THEME.colors.pdfButtonColor,
                   "&:hover": {
                     borderColor: "#b71c1c",
                     backgroundColor: "rgba(211, 47, 47, 0.04)",
@@ -327,8 +342,8 @@ export default function Dashboard() {
                   borderRadius: 3,
                   textTransform: "none",
                   fontWeight: 500,
-                  borderColor: "#2e7d32",
-                  color: "#2e7d32",
+                  borderColor: THEME.colors.excelButtonColor,
+                  color: THEME.colors.excelButtonColor,
                   "&:hover": {
                     borderColor: "#1b5e20",
                     backgroundColor: "rgba(46, 125, 50, 0.04)",
@@ -383,7 +398,7 @@ export default function Dashboard() {
 
           <Grid container spacing={4} mb={4}>
             <Grid item xs={12} lg={8}>
-              <Card sx={{ ...commonCardSx, height: 520 }}>
+              <Card sx={{ ...THEME.cardStyles, height: 520 }}>
                 <CardHeader
                   title={
                     <Typography variant="h6" component="h2" fontWeight="600" color="text.primary">
@@ -405,7 +420,7 @@ export default function Dashboard() {
               </Card>
             </Grid>
             <Grid item xs={12} lg={4}>
-              <Card sx={{ ...commonCardSx, height: 520 }}>
+              <Card sx={{ ...THEME.cardStyles, height: 520 }}>
                 <CardHeader
                   title={
                     <Typography variant="h6" component="h2" fontWeight="600" color="text.primary">
@@ -430,7 +445,7 @@ export default function Dashboard() {
 
           <Grid container spacing={4} mb={4}>
             <Grid item xs={12} md={6}>
-              <Card sx={{ ...commonCardSx, height: 500 }}>
+              <Card sx={{ ...THEME.cardStyles, height: 500 }}>
                 <CardHeader
                   title={
                     <Typography variant="h6" component="h2" fontWeight="600" color="text.primary">
@@ -452,7 +467,7 @@ export default function Dashboard() {
               </Card>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Card sx={{ ...commonCardSx, height: 500 }}>
+              <Card sx={{ ...THEME.cardStyles, height: 500 }}>
                 <CardHeader
                   title={
                     <Typography variant="h6" component="h2" fontWeight="600" color="text.primary">
@@ -477,20 +492,23 @@ export default function Dashboard() {
 
           <Grid container spacing={4}>
             <Grid item xs={12} md={6}>
-              <Card sx={{ ...commonCardSx, height: 500 }}>
-                <CardHeader
-                  title={
-                    <Typography variant="h6" component="h2" fontWeight="600" color="text.primary">
-                      📊 Bảng sản phẩm bán chạy
-                    </Typography>
-                  }
-                  subheader={
-                    <Typography variant="body2" color="text.secondary">
-                      Chi tiết sản phẩm có doanh số cao nhất
-                    </Typography>
-                  }
-                  sx={{ pb: 1, flexShrink: 0 }}
-                />
+              <Card sx={{ ...THEME.cardStyles, height: 500 }}>
+                <Box
+                  sx={{
+                    background: "#fffaf3",
+                    borderBottom: "1px solid #e0e0e0",
+                    p: 2,
+                    borderRadius: "12px 12px 0 0",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                  }}
+                >
+                  <TrendingUp sx={{ color: "#f57c00" }} />
+                  <Typography variant="h6" component="h2" fontWeight="600" color="text.primary">
+                    Bảng sản phẩm bán chạy
+                  </Typography>
+                </Box>
                 <CardContent
                   sx={{
                     p: 0,
@@ -507,20 +525,23 @@ export default function Dashboard() {
               </Card>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Card sx={{ ...commonCardSx, height: 500 }}>
-                <CardHeader
-                  title={
-                    <Typography variant="h6" component="h2" fontWeight="600" color="text.primary">
-                      💖 Bảng sản phẩm được yêu thích
-                    </Typography>
-                  }
-                  subheader={
-                    <Typography variant="body2" color="text.secondary">
-                      Chi tiết sản phẩm có nhiều lượt wishlist nhất
-                    </Typography>
-                  }
-                  sx={{ pb: 1, flexShrink: 0 }}
-                />
+              <Card sx={{ ...THEME.cardStyles, height: 500 }}>
+                <Box
+                  sx={{
+                    background: "#ffebee",
+                    borderBottom: "1px solid #e0e0e0",
+                    p: 2,
+                    borderRadius: "12px 12px 0 0",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                  }}
+                >
+                  <Favorite sx={{ color: "#e91e63" }} />
+                  <Typography variant="h6" component="h2" fontWeight="600" color="text.primary">
+                    Bảng sản phẩm được yêu thích
+                  </Typography>
+                </Box>
                 <CardContent
                   sx={{
                     p: 0,

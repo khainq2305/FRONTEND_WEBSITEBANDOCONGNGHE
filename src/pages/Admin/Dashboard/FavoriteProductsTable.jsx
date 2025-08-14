@@ -1,3 +1,4 @@
+// FavoriteProductsTable.jsx
 "use client"
 
 import { useState, useEffect } from "react"
@@ -27,11 +28,9 @@ export default function FavoriteProductsTable({ dateRange }) {
       setLoading(true)
       setError(null)
       try {
-        const apiData = await dashboardService.getFavoriteProducts({
-          from: dateRange.from?.toISOString(),
-          to: dateRange.to?.toISOString(),
-        })
-        setProducts(apiData)
+        // Đã bỏ dateRange để lấy toàn bộ dữ liệu
+        const apiData = await dashboardService.getAllFavoriteProducts()
+        setProducts(apiData.data)
       } catch (e) {
         console.error("Lỗi khi lấy bảng sản phẩm yêu thích:", e)
         setError("Không thể tải bảng sản phẩm yêu thích. Vui lòng thử lại sau.")
@@ -40,7 +39,7 @@ export default function FavoriteProductsTable({ dateRange }) {
       }
     }
     fetchData()
-  }, [dateRange])
+  }, []) // Dependency array rỗng để chỉ chạy một lần
 
   if (loading)
     return (
@@ -75,55 +74,56 @@ export default function FavoriteProductsTable({ dateRange }) {
     <TableContainer
       component={Paper}
       sx={{
-        borderRadius: 0,
-        boxShadow: "none",
+        borderRadius: 3,
+        overflow: "hidden",
+        boxShadow: "0 8px 24px rgba(0,0,0,0.06)",
         height: "100%",
-        "& .MuiTable-root": {
-          minWidth: "auto",
-        },
+        "& .MuiTable-root": { minWidth: "100%" },
       }}
     >
       <Table stickyHeader>
-        <TableHead>
+        <TableHead sx={{ "& .MuiTableCell-root": { borderBottom: "none" } }}>
+          {/* Column header */}
           <TableRow>
             <TableCell
               sx={{
-                fontWeight: 600,
-                backgroundColor: "#f8f9fa",
-                borderBottom: "2px solid #e0e0e0",
+                fontWeight: 700,
                 fontSize: "0.875rem",
+                backgroundColor: "#fff5f8",
+                borderTop: "1px solid rgba(0,0,0,0.06)",
               }}
             >
-              Sản phẩm
+              SẢN PHẨM
             </TableCell>
             <TableCell
               align="right"
               sx={{
-                fontWeight: 600,
-                backgroundColor: "#f8f9fa",
-                borderBottom: "2px solid #e0e0e0",
+                fontWeight: 700,
                 fontSize: "0.875rem",
+                backgroundColor: "#fff5f8",
+                borderTop: "1px solid rgba(0,0,0,0.06)",
               }}
             >
-              Lượt yêu thích
+              LƯỢT YÊU THÍCH
             </TableCell>
           </TableRow>
         </TableHead>
+
         <TableBody>
-          {products.map((product) => (
+          {products.map((product, index) => (
             <TableRow
-              key={product.id}
+              key={product.id ?? `${product.name}-${index}`}
               sx={{
                 "&:hover": {
-                  backgroundColor: "rgba(233, 30, 99, 0.04)",
+                  backgroundColor: "rgba(233, 30, 99, 0.08)",
+                  transform: "translateY(-1px)",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
                 },
-                "&:nth-of-type(even)": {
-                  backgroundColor: "rgba(0, 0, 0, 0.02)",
-                },
-                transition: "background-color 0.2s ease",
+                "&:nth-of-type(even)": { backgroundColor: "rgba(0, 0, 0, 0.02)" },
+                transition: "all 0.2s ease",
               }}
             >
-              <TableCell sx={{ py: 2 }}>
+              <TableCell sx={{ py: 1.5 }}>
                 <Box display="flex" alignItems="center" gap={2}>
                   <Avatar
                     src={product.image}
@@ -132,42 +132,47 @@ export default function FavoriteProductsTable({ dateRange }) {
                     sx={{
                       width: 48,
                       height: 48,
-                      border: "2px solid #f0f0f0",
-                      boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                      border: "2px solid #fff",
+                      boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
                     }}
                   />
-                  <Typography
-                    variant="body2"
-                    fontWeight="medium"
-                    sx={{
-                      maxWidth: 150,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {product.name}
-                  </Typography>
-                </Box>
-              </TableCell>
-              <TableCell align="right">
-                <Box display="flex" alignItems="center" justifyContent="flex-end" gap={1}>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      backgroundColor: "rgba(233, 30, 99, 0.1)",
-                      px: 1.5,
-                      py: 0.5,
-                      borderRadius: 2,
-                    }}
-                  >
-                    <Favorite sx={{ color: "#e91e63", fontSize: 16 }} />
-                    <Typography variant="body2" fontWeight="600" color="#e91e63">
-                      {product.wishlistCount}
+                  <Box>
+                    <Typography
+                      variant="body2"
+                      fontWeight={600}
+                      sx={{
+                        maxWidth: 200,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                      title={product.name}
+                    >
+                      {product.name}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Thứ hạng: #{index + 1}
                     </Typography>
                   </Box>
+                </Box>
+              </TableCell>
+
+              <TableCell align="right">
+                <Box
+                  sx={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 0.75,
+                    px: 1.25,
+                    py: 0.5,
+                    borderRadius: 2,
+                    backgroundColor: "rgba(233, 30, 99, 0.1)",
+                  }}
+                >
+                  <Favorite sx={{ fontSize: 16, color: "#e91e63" }} />
+                  <Typography variant="body2" fontWeight={700} color="#e91e63">
+                    {product.wishlistCount}
+                  </Typography>
                 </Box>
               </TableCell>
             </TableRow>

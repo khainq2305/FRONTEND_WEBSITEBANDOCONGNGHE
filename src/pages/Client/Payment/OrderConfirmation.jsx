@@ -7,7 +7,7 @@ import CustomerInfo from './OrderConfirmation/CustomerInfo';
 import DeliveryMethod from './OrderConfirmation/DeliveryMethod';
 import PaymentMethod from './OrderConfirmation/PaymentMethod';
 import { paymentService } from '../../../services/client/paymentService';
-
+import { API_BASE_URL } from '../../../constants/environment';
 import { orderService } from '../../../services/client/orderService';
 import { toast } from 'react-toastify';
 import Loader from '../../../components/common/Loader';
@@ -47,7 +47,7 @@ const OrderConfirmation = () => {
 
     if (momoOrderId && resultCode !== null && !isPaymentAttempted) {
       setIsPaymentAttempted(true); // Mark as attempted
-      fetch('http://localhost:5000/payment/momo-callback', {
+      fetch(`${API_BASE_URL}/payment/momo-callback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderId: momoOrderId, resultCode })
@@ -82,7 +82,7 @@ const OrderConfirmation = () => {
 
     const rawQuery = window.location.search.slice(1);
 
-    fetch('http://localhost:5000/payment/vnpay-callback', {
+    fetch(`${API_BASE_URL}/payment/momo-callback`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ rawQuery })

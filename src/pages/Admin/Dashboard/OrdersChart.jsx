@@ -5,6 +5,32 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Typography, Box, CircularProgress } from "@mui/material"
 import { dashboardService } from "@/services/admin/dashboardService"
 
+function ChartStatus({ loading, error, data }) {
+  if (loading)
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight={350}>
+        <CircularProgress sx={{ color: "#2e7d32" }} />
+        <Typography variant="body1" sx={{ ml: 2, color: "text.secondary" }}>Đang tải biểu đồ...</Typography>
+      </Box>
+    );
+
+  if (error)
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight={350}>
+        <Typography color="error" variant="body1">{error}</Typography>
+      </Box>
+    );
+
+  if (!Array.isArray(data) || data.length === 0)
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight={350}>
+        <Typography variant="body1" color="text.secondary">Không có dữ liệu để hiển thị.</Typography>
+      </Box>
+    );
+
+  return null;
+}
+
 export default function OrdersChart({ dateRange }) {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
@@ -41,32 +67,8 @@ export default function OrdersChart({ dateRange }) {
     fetchOrdersData()
   }, [dateRange])
 
-  if (loading)
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight={350}>
-        <CircularProgress sx={{ color: "#2e7d32" }} />
-        <Typography variant="body1" sx={{ ml: 2, color: "text.secondary" }}>
-          Đang tải biểu đồ...
-        </Typography>
-      </Box>
-    )
-  if (error)
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight={350}>
-        <Typography color="error" variant="body1">
-          {error}
-        </Typography>
-      </Box>
-    )
-  if (!Array.isArray(data) || data.length === 0) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight={350}>
-        <Typography variant="body1" color="text.secondary">
-          Không có dữ liệu để hiển thị.
-        </Typography>
-      </Box>
-    )
-  }
+  const status = ChartStatus({ loading, error, data });
+  if (status) return status;
 
   return (
     <Box sx={{ height: "100%", width: "100%", p: 1 }}>
