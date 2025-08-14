@@ -2,12 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="/favicon.svg" />
+    <link rel="icon" href="/favicon_io/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <meta name="description" content="Mantis is react free admin template build using Vite" />
-    <link rel="apple-touch-icon" href="/logo192.png" />
-    <title>Mantis React Free Admin Dashboard</title>
+
+    <meta name="description" content="Cyberzone - Mua sắm trực tuyến các sản phẩm điện tử, điện gia dụng, và công nghệ với giá tốt nhất" />
+    <link rel="apple-touch-icon" href="/z6905003705290_9b7e7a9c93e256de78103d286e45ec1e.jpg" />
+    <title>Cyberzone</title>
 
     <div id="modal-root"></div>
   </head>
@@ -17,31 +19,30 @@
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
 
- 
-<!-- index.html -->
-<script>
-  window.fbAsyncInit = function () {
-    FB.init({
-      appId: '4420136924885687',
-      cookie: true,
-      xfbml: true,
-      version: 'v18.0'
-    });
-    FB.AppEvents.logPageView();
-  };
+    <!-- index.html -->
+    <script>
+      window.fbAsyncInit = function () {
+        FB.init({
+          appId: '4420136924885687',
+          cookie: true,
+          xfbml: true,
+          version: 'v18.0'
+        });
+        FB.AppEvents.logPageView();
+      };
 
-  (function (d, s, id) {
-    var js,
-      fjs = d.getElementsByTagName(s)[0];
-    if (d.getElementById(id)) {
-      return;
-    }
-    js = d.createElement(s);
-    js.id = id;
-    js.src = 'https://connect.facebook.net/en_US/sdk.js';
-    fjs.parentNode.insertBefore(js, fjs);
-  })(document, 'script', 'facebook-jssdk');
-</script>
+      (function (d, s, id) {
+        var js,
+          fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) {
+          return;
+        }
+        js = d.createElement(s);
+        js.id = id;
+        js.src = 'https://connect.facebook.net/en_US/sdk.js';
+        fjs.parentNode.insertBefore(js, fjs);
+      })(document, 'script', 'facebook-jssdk');
+    </script>
 
     <script type="module" src="/src/index.jsx"></script>
   </body>
