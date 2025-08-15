@@ -10,7 +10,7 @@ import ViewedProductsSlider from './ViewedProductsSlider';
 import FreshProductSlider from './FreshProductSlider';
 import PromoGridSection from './PromoGridSection';
 import MainBannerSlider from './MainBannerSlider';
-import TwoRowMarketSlider from './TwoRowMarketSlider'; // Đảm bảo import đúng
+import HorizontalProductSlider from './TwoRowMarketSlider';
 import StickyBannerItem from './StickyBannerItem';
 import { formatCurrencyVND } from '../../../utils/formatCurrency';
 import { bannerService } from '../../../services/client/bannerService';
@@ -84,6 +84,10 @@ const HomePage = () => {
           bannerService.getByType('banner-left-right')
         ]);
 
+        console.log('Sections:', sectionsRes.data);
+        console.log('FlashSales:', flashSalesRes.data);
+        console.log('StickyBanners:', stickyBannersRes.data);
+
         setSections(sectionsRes.data?.data || []);
         setFlashSales(flashSalesRes.data.data || []);
         setStickyBanners(stickyBannersRes.data?.data || []);
@@ -98,222 +102,102 @@ const HomePage = () => {
   const rightBanner = stickyBanners[1];
 
   return (
-<div className="w-full bg-gray-100 overflow-x-hidden">
-  <div className="xl:grid xl:grid-cols-[1fr_auto_1fr] xl:gap-x-4">
-
-<div className="hidden xl:flex justify-end items-start">
-      <StickyBannerItem banner={leftBanner} />
-    </div>
-      <main className="w-full max-w-[1200px] mx-auto flex flex-col gap-4 py-4">
-
-        <section>
-          <SliderBanner />
-        </section>
-        <section>
-          <ProductCategorySection />
-        </section>
-
-        <section>
-          <ViewedProductsSlider />
-        </section>
-        <section>
-          <PromoGridSection />
-        </section>
-        {flashSales.map((saleEvent) => {
-          const currentTime = moment();
-          const startTime = moment(saleEvent.startTime);
-          const endTime = moment(saleEvent.endTime);
-
-          let saleStatus;
-          let targetCountdownTime;
-          let countdownMode;
-
-          if (currentTime.isBefore(startTime)) {
-            saleStatus = 'upcoming';
-            targetCountdownTime = startTime;
-            countdownMode = 'start';
-          } else if (currentTime.isBetween(startTime, endTime)) {
-            saleStatus = 'active';
-            targetCountdownTime = endTime;
-            countdownMode = 'end';
-          } else {
-            saleStatus = 'ended';
-            targetCountdownTime = null;
-            countdownMode = null;
-          }
-
-          const categories = saleEvent.categories || [];
-          const skuItems = saleEvent.flashSaleItems || [];
-
-          const skuFromCats = categories.flatMap((cat) => (cat.category?.products || []).flatMap((p) => p.skus || []));
-
-          const skuMap = new Map();
-          [...skuItems.map((i) => i.sku), ...skuFromCats].forEach((s) => {
-            if (s && !skuMap.has(s.id)) skuMap.set(s.id, s);
-          });
-          const allSkus = Array.from(skuMap.values());
-
-          const productsForSlider = allSkus.map((sku) => {
-            const product = sku.product || sku.Product || {};
-            const saleItem = skuItems.find((i) => i.skuId === sku.id);
-
-            const quantity = saleItem?.quantity ?? null;
-            
-            const limitPerUser = saleItem?.maxPerUser ?? 1;
-            const isSoldOut = quantity === 0;
-
-            const rawPrice = sku.price ?? 0;
-            const originalPrice = sku.originalPrice ?? 0;
-            const salePrice = saleItem?.salePrice ?? sku.salePrice ?? null;
-
-            let priceToDisplay = originalPrice;
-            let oldPrice = null;
-
-            if (isSoldOut) {
-              if (rawPrice && rawPrice > 0 && rawPrice !== originalPrice) {
-                priceToDisplay = rawPrice;
-                oldPrice = originalPrice;
-              } else {
-                priceToDisplay = originalPrice;
-                oldPrice = null;
-              }
-            } else if (salePrice && salePrice > 0) {
-              priceToDisplay = salePrice;
-              oldPrice = originalPrice;
-            } else if (rawPrice && rawPrice > 0 && rawPrice !== originalPrice) {
-              priceToDisplay = rawPrice;
-              oldPrice = originalPrice;
-            } else {
-              priceToDisplay = originalPrice;
-              oldPrice = null;
-            }
-
-            const imageUrl =
-              sku.ProductMedia?.find((m) => m.type === 'image')?.mediaUrl ||
-              product.thumbnail ||
-              sku.product?.thumbnail ||
-              sku.Product?.thumbnail;
-
-            return {
-              id: product.id,
-              productId: product.id,
-              name: product.name || 'N/A',
-              slug: product.slug,
-              price: formatCurrencyVND(priceToDisplay),
-              oldPrice: oldPrice ? formatCurrencyVND(oldPrice) : null,
-              discount: oldPrice ? Math.round(100 - (priceToDisplay * 100) / oldPrice) : 0,
-              image: constructImageUrl(imageUrl),
-              badge: product.badge || null,
-              badgeImage: product.badgeImage ? constructImageUrl(product.badgeImage) : null,
-              rating: parseFloat(sku.averageRating) || 0,
-              inStock: (sku.stock || 0) > 0,
-              originalQuantity: saleItem?.originalQuantity ?? quantity,
-flashSaleInfo: {
-  originalQuantity: saleItem?.originalQuantity ?? quantity,
-  soldQuantity: saleItem?.sku?.flashSaleInfo?.soldQuantity ?? 0,
-  salePrice: saleItem?.salePrice ?? sku.salePrice ?? 0,
-  originalPrice: originalPrice
-},
-
-
-     sold: saleItem?.sku?.flashSaleInfo?.soldQuantity ?? 0,
-
-
-
-
-              quantity: quantity,
-              limitPerUser,
-              saleStatus,
-              isSoldOut
-            };
-          });
-
-          if (!productsForSlider.length || saleStatus === 'ended') return null;
-
-          return (
-            <section key={saleEvent.id}>
-              <TwoRowMarketSlider
-                productsInput={productsForSlider}
-                imageBannerUrl={saleEvent.bannerUrl}
-                targetCountdownTime={targetCountdownTime}
-                countdownMode={countdownMode}
-                bgColor={saleEvent.bgColor}
-                saleStatus={saleStatus}
-              />
-            </section>
-          );
-        })}
-
-        {!authLoading && userId && (
+    <div className="w-full bg-gray-100 overflow-x-hidden">
+      <div className="xl:grid xl:grid-cols-[1fr_auto_1fr] xl:gap-x-4">
+        <div className="hidden xl:flex justify-end items-start">
+          <StickyBannerItem banner={leftBanner} />
+        </div>
+        <main className="w-full max-w-[1200px] mx-auto flex flex-col gap-4 py-4">
           <section>
-            <RecommendedProductsSection userId={userId} />
+            <SliderBanner />
           </section>
-        )}
-        {sections.map((section) => {
-          if (!section.products || section.products.length === 0) return null;
+          <section>
+            <ProductCategorySection />
+          </section>
 
-          const productsForSlider = section.products
-            .map((product) => {
-              // Lấy defaultSku đã được tính toán và gán ở backend
-              const displaySku = product.defaultSku;
+          <section>
+            <ViewedProductsSlider />
+          </section>
+          <section>
+            <PromoGridSection />
+          </section>
 
-              if (!displaySku) return null; // Nếu không có SKU nào để hiển thị, bỏ qua sản phẩm này
-
-              const isProductInStock = (displaySku.stock || 0) > 0;
-              const mediaImage = displaySku.ProductMedia?.find((m) => m.type === 'image')?.mediaUrl;
-
-              // Lấy giá đã được xử lý từ backend (price đã là giá cuối cùng)
-              const finalPriceNum = parseFloat(displaySku.price);
-              // originalPrice cũng được backend xử lý để thể hiện giá gốc hoặc giá trước khuyến mãi
-              const oldPriceNum = parseFloat(displaySku.originalPrice);
-
-              // Tính toán discount dựa trên originalPrice (giá ban đầu của SKU hoặc giá mặc định) và finalPriceNum
-              const discount = oldPriceNum > finalPriceNum && oldPriceNum > 0 ? Math.round(100 - (finalPriceNum * 100) / oldPriceNum) : 0;
-
-              return {
-                id: displaySku.id, // ID của SKU
-                productId: product.id,
-                name: product.name || 'N/A',
-                badgeImage: product.badgeImage ? constructImageUrl(product.badgeImage) : null,
-                slug: product.slug,
-                badge: product.badge || null,
-                price: formatCurrencyVND(finalPriceNum),
-                oldPrice: oldPriceNum > finalPriceNum ? formatCurrencyVND(oldPriceNum) : null, // Chỉ hiển thị oldPrice nếu có giảm giá
-                image: constructImageUrl(mediaImage || product.thumbnail),
-                discount: discount,
-                rating: parseFloat(product.rating) || 0,
-                soldCount: parseInt(product.soldCount) || 0,
-                inStock: isProductInStock,
-                sortOrder: product.ProductHomeSection?.sortOrder ?? 0,
-                flashSaleInfo: displaySku.flashSaleInfo || null, // Truyền thông tin flash sale
-                currentPrice: finalPriceNum // Truyền giá thực tế để so sánh
-              };
-            })
-            .filter((p) => p && p.id) // Lọc bỏ các sản phẩm không có displaySku
-            .sort((a, b) => a.sortOrder - b.sortOrder);
-
-          if (productsForSlider.length === 0 && (!section.banners || section.banners.length === 0)) return null;
-
-          return (
-            <section key={section.id}>
-              <FreshProductSlider
-                title={section.title}
-                bannersData={section.banners || []}
-                productsData={productsForSlider}
-                linkedCategories={section.linkedCategories || []}
-              />
+          {Array.isArray(flashSales) && flashSales.length > 0 && (
+            <section>
+              <HorizontalProductSlider flashSales={flashSales} bgColor="#007BFF" />
             </section>
-          );
-        })}
+          )}
 
-        <section>
-          <MainBannerSlider />
-        </section>
-      </main>
-      <div className="hidden xl:flex justify-start items-start">
-      <StickyBannerItem banner={rightBanner} />
-    </div>
-    </div>
+          {!authLoading && userId && (
+            <section>
+              <RecommendedProductsSection userId={userId} />
+            </section>
+          )}
+          {sections.map((section) => {
+            if (!section.products || section.products.length === 0) return null;
+
+            const productsForSlider = section.products
+              .map((product) => {
+                // Lấy defaultSku đã được tính toán và gán ở backend
+                const displaySku = product.defaultSku;
+
+                if (!displaySku) return null; // Nếu không có SKU nào để hiển thị, bỏ qua sản phẩm này
+
+                const isProductInStock = (displaySku.stock || 0) > 0;
+                const mediaImage = displaySku.ProductMedia?.find((m) => m.type === 'image')?.mediaUrl;
+
+                // Lấy giá đã được xử lý từ backend (price đã là giá cuối cùng)
+                const finalPriceNum = parseFloat(displaySku.price);
+                // originalPrice cũng được backend xử lý để thể hiện giá gốc hoặc giá trước khuyến mãi
+                const oldPriceNum = parseFloat(displaySku.originalPrice);
+
+                // Tính toán discount dựa trên originalPrice (giá ban đầu của SKU hoặc giá mặc định) và finalPriceNum
+                const discount = oldPriceNum > finalPriceNum && oldPriceNum > 0 ? Math.round(100 - (finalPriceNum * 100) / oldPriceNum) : 0;
+
+                return {
+                  id: displaySku.id, // ID của SKU
+                  productId: product.id,
+                  name: product.name || 'N/A',
+                  badgeImage: product.badgeImage ? constructImageUrl(product.badgeImage) : null,
+                  slug: product.slug,
+                  badge: product.badge || null,
+                  price: formatCurrencyVND(finalPriceNum),
+                  oldPrice: oldPriceNum > finalPriceNum ? formatCurrencyVND(oldPriceNum) : null, // Chỉ hiển thị oldPrice nếu có giảm giá
+                  image: constructImageUrl(mediaImage || product.thumbnail),
+                  discount: discount,
+                  rating: parseFloat(product.rating) || 0,
+                  soldCount: parseInt(product.soldCount) || 0,
+                  inStock: isProductInStock,
+                  sortOrder: product.ProductHomeSection?.sortOrder ?? 0,
+                  flashSaleInfo: displaySku.flashSaleInfo || null, // Truyền thông tin flash sale
+                  currentPrice: finalPriceNum // Truyền giá thực tế để so sánh
+                };
+              })
+              .filter((p) => p && p.id) // Lọc bỏ các sản phẩm không có displaySku
+              .sort((a, b) => a.sortOrder - b.sortOrder);
+
+            if (productsForSlider.length === 0 && (!section.banners || section.banners.length === 0)) return null;
+
+            return (
+              <section key={section.id}>
+                <FreshProductSlider
+                  title={section.title}
+                  bannersData={section.banners || []}
+                  productsData={productsForSlider}
+                  linkedCategories={section.linkedCategories || []}
+                />
+              </section>
+            );
+          })}
+
+          <section>
+            <MainBannerSlider />
+          </section>
+        </main>
+        <div className="hidden xl:flex justify-start items-start">
+          <StickyBannerItem banner={rightBanner} />
+        </div>
+      </div>
       <LuckyWheel />
     </div>
   );

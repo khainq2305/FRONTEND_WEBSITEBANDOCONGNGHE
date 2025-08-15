@@ -12,7 +12,6 @@ import Loader from '@/components/common/Loader';
 import { formatCurrencyVND } from '@/utils/formatCurrency';
 import { orderService } from '@/services/client/orderService';
 
-// Replace bằng publishableKey thật từ Stripe Dashboard
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 const StripeCheckoutForm = () => {

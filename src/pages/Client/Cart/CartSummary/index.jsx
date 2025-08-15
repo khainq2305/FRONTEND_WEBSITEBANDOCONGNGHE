@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useMemo } from 'react';
-
+import xudiem from '@/assets/Client/images/xudiem.png';
 import { FaPercentage, FaQuestionCircle } from 'react-icons/fa';
 import { FiChevronUp, FiInfo, FiChevronRight } from 'react-icons/fi';
 import PromoModal, { CouponCard } from '../PromoModal';
@@ -24,7 +24,7 @@ const CartSummary = ({
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
   const [showDiscountDetails, setShowDiscountDetails] = useState(false);
 
-const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   const {
     userPointBalance = 0,
@@ -172,46 +172,45 @@ const [isCheckingOut, setIsCheckingOut] = useState(false);
     rewardPoints: '+0'
   };
 
-const handleCheckout = async () => {
-  try {
-    setIsCheckingOut(true);
+  const handleCheckout = async () => {
+    try {
+      setIsCheckingOut(true);
 
-    if (appliedCoupon) {
-      const res = await couponService.applyCoupon({
-        code: appliedCoupon.code,
-        orderTotal: Number(orderTotals?.payablePrice || 0),
-        skuIds: selectedItems.map((i) => i.skuId),
-      });
+      if (appliedCoupon) {
+        const res = await couponService.applyCoupon({
+          code: appliedCoupon.code,
+          orderTotal: Number(orderTotals?.payablePrice || 0),
+          skuIds: selectedItems.map((i) => i.skuId)
+        });
 
-      if (!res.data?.isValid || !res.data?.coupon) {
-        const msg = (res.data?.message || '').toLowerCase();
-        if (msg.includes('hết lượt') || msg.includes('hết hạn')) {
-          toast.error(res.data.message || 'Mã giảm giá không còn hiệu lực');
-          return;
+        if (!res.data?.isValid || !res.data?.coupon) {
+          const msg = (res.data?.message || '').toLowerCase();
+          if (msg.includes('hết lượt') || msg.includes('hết hạn')) {
+            toast.error(res.data.message || 'Mã giảm giá không còn hiệu lực');
+            return;
+          }
+          setAppliedCoupon(null);
+          localStorage.removeItem('appliedCoupon');
+          throw new Error(res.data?.message || 'Mã không còn hiệu lực');
         }
-        setAppliedCoupon(null);
-        localStorage.removeItem('appliedCoupon');
-        throw new Error(res.data?.message || 'Mã không còn hiệu lực');
+
+        const updatedCoupon = res.data.coupon;
+        setAppliedCoupon(updatedCoupon);
+        localStorage.setItem('appliedCoupon', JSON.stringify(updatedCoupon));
       }
 
-      const updatedCoupon = res.data.coupon;
-      setAppliedCoupon(updatedCoupon);
-      localStorage.setItem('appliedCoupon', JSON.stringify(updatedCoupon));
+      onCheckout();
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err.message || 'Lỗi áp dụng mã giảm giá');
+    } finally {
+      setIsCheckingOut(false);
     }
-
-    onCheckout();
-  } catch (err) {
-    toast.error(err?.response?.data?.message || err.message || 'Lỗi áp dụng mã giảm giá');
-  } finally {
-    setIsCheckingOut(false);
-  }
-};
-
+  };
 
   return (
     <>
       <aside className="bg-white rounded-xl p-3 sm:p-4 border border-gray-200 shadow-sm flex flex-col gap-4">
-         {isCheckingOut && <Loader fullscreen />}
+        {isCheckingOut && <Loader fullscreen />}
         <div className="flex justify-between items-center">
           <h4 className="font-semibold text-sm text-gray-800">CYBERZONE khuyến mãi</h4>
           <div className="flex items-center text-xs text-gray-500">
@@ -274,7 +273,7 @@ const handleCheckout = async () => {
 
           <div className="flex items-center justify-between h-11 px-3 border border-gray-200 rounded-md">
             <div className="flex items-center gap-2 text-sm text-gray-700">
-              <img src="src/assets/Client/images/xudiem.png" alt="coin" className="w-6 h-6 object-contain" />
+              <img src={xudiem} alt="coin" className="w-6 h-6 object-contain" />
               <div className="flex items-baseline gap-1">
                 <span>Đổi {maxUsablePoints.toLocaleString('vi-VN')} điểm</span>
                 <span className="text-gray-400 text-xs">(~{formatCurrencyVND(pointDiscountAmount)})</span>
@@ -349,7 +348,7 @@ const handleCheckout = async () => {
             <div className="flex justify-between text-xs text-yellow-600 font-medium items-center">
               <span>Điểm thưởng</span>
               <span className="flex items-center gap-1">
-                <img src="src/assets/Client/images/xudiem.png" alt="coin" className="w-4 h-4 object-contain" />
+                  <img src={xudiem} alt="coin" className="w-4 h-4 object-contain" />
                 {'+' + Math.floor(payableAfterDiscount / 4000).toLocaleString('vi-VN')} điểm
               </span>
             </div>

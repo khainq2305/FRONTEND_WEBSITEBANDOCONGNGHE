@@ -11,7 +11,7 @@ import Breadcrumb from '../../../components/common/Breadcrumb';
 import ShippingMethodSelector from './ShippingMethodSelector';
 import GoogleAuthModal from '../Auth/GoogleAuthModal';
 
-import { walletService } from '../../../services/client/walletService'; // nếu chưa import
+import { walletService } from '../../../services/client/walletService';
 
 const CheckoutPage = () => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(1);
@@ -37,7 +37,7 @@ const openSetupGoogleAuth = async () => {
   try {
     setGaOpen(true);
     setGaLoading(true);
-    const res = await walletService.enableGoogleAuth(); // API trả QR code
+    const res = await walletService.enableGoogleAuth(); 
     setGaQr(res?.data?.qrCode || '');
   } catch (err) {
     toast.error(err?.response?.data?.message || 'Không thể bật Google Authenticator.');
@@ -53,7 +53,7 @@ const handleVerifyGaSetup = async (otp) => {
     toast.success('Thiết lập Google Auth thành công.');
     setGaOpen(false);
 
-    setGaVersion(v => v + 1); // ⬅️ báo cho con biết ví đã thay đổi
+    setGaVersion(v => v + 1); 
   } catch (err) {
     toast.error(err?.response?.data?.message || 'Mã OTP không hợp lệ hoặc đã hết hạn.');
   }

@@ -2,21 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { X as XIcon } from 'lucide-react';
-
-// Import các services cần thiết cho việc lấy dữ liệu (đã loại bỏ vì không sử dụng)
-// import { searchImageService } from '../../../services/client/searchImageService';
 import { brandService } from '../../../services/client/brandService';
+import giaoNhanh from '@/assets/Client/images/1717405144807-Left-Tag-Giao-Nhanh.webp';
+import thuCuDoiMoi from '@/assets/Client/images/1740550907303-Left-tag-TCDM (1).webp';
+import traGop0 from '@/assets/Client/images/1717405144808-Left-Tag-Tra-Gop-0.webp';
+import giaTot from '@/assets/Client/images/1732077440142-Left-tag-Bestprice-0.gif';
+import giaKho from '@/assets/Client/images/1739182448835-Left-tag-GK-Choice.gif';
 
-// Import các component con
 import Banner from '../ProductListByCategory/Banner';
 import Breadcrumb from '../ProductListByCategory/Breadcrumb';
 import SortBar from '../ProductListByCategory/SortBar';
 import ViewedProducts from '../ProductListByCategory/ViewedProducts';
 import FilterBar from '../ProductListByCategory/FilterBar';
 
-// =========================================================
-// HÀM TIỆN ÍCH CHUNG (Giữ nguyên)
-// =========================================================
 const formatCurrencyVND = (num) => {
   if (typeof num !== 'number' || isNaN(num) || num === 0) return '';
   return new Intl.NumberFormat('vi-VN', {
@@ -27,23 +25,52 @@ const formatCurrencyVND = (num) => {
   }).format(num);
 };
 
+const findBrandInName = (productName = '') => {
+  const knownBrands = ['Daikiosan', 'Mitsubishi Electric', 'HPW'];
+  const foundBrand = knownBrands.find((brand) => productName.toLowerCase().includes(brand.toLowerCase()));
+  return foundBrand || null;
+};
+
+const getDiscountInfo = (product = {}) => {
+  const current = Number(product?.price) || 0;
+  const old = Number(product?.oldPrice || product?.originalPrice) || 0;
+
+  let percent = Number(product?.discount) || 0;
+  let amount = Number(product?.discountAmount) || 0;
+
+  if ((!percent || percent <= 0) && old > 0 && current > 0 && current < old) {
+    percent = Math.round(((old - current) / old) * 100);
+  }
+  if ((!amount || amount <= 0) && old > 0 && current > 0 && current < old) {
+    amount = old - current;
+  }
+
+  if (percent < 0) percent = 0;
+  if (percent > 100) percent = 100;
+  if (amount < 0) amount = 0;
+
+  return { percent, amount };
+};
+
 const renderBadge = (badge) => {
   if (!badge) return <div className="mb-2 h-[28px]"></div>;
 
   const badgeImageMap = {
-    'GIAO NHANH': '/src/assets/Client/images/1717405144807-Left-Tag-Giao-Nhanh.webp',
-    'THU CŨ ĐỔI MỚI': '/src/assets/Client/images/1740550907303-Left-tag-TCDM (1).webp',
-    'TRẢ GÓP 0%': '/src/assets/Client/images/1717405144808-Left-Tag-Tra-Gop-0.webp',
-    'GIÁ TỐT': '/src/assets/Client/images/1732077440142-Left-tag-Bestprice-0.gif'
+    'GIAO NHANH': giaoNhanh,
+    'THU CŨ ĐỔI MỚI': thuCuDoiMoi,
+    'TRẢ GÓP 0%': traGop0,
+    'GIÁ TỐT': giaTot,
+    'GIÁ KHO': giaKho
   };
 
-  const upperCaseBadge = badge.toUpperCase();
+  const upperCaseBadge = (badge || '').toUpperCase();
   let imageUrl = null;
 
   if (upperCaseBadge.includes('GIAO NHANH')) imageUrl = badgeImageMap['GIAO NHANH'];
   else if (upperCaseBadge.includes('THU CŨ')) imageUrl = badgeImageMap['THU CŨ ĐỔI MỚI'];
   else if (upperCaseBadge.includes('TRẢ GÓP')) imageUrl = badgeImageMap['TRẢ GÓP 0%'];
   else if (upperCaseBadge.includes('GIÁ TỐT') || upperCaseBadge.includes('BEST PRICE')) imageUrl = badgeImageMap['GIÁ TỐT'];
+  else if (upperCaseBadge.includes('GIÁ KHO')) imageUrl = badgeImageMap['GIÁ KHO'];
 
   return imageUrl ? (
     <div className="flex justify-start items-center mb-2 h-[28px]">
@@ -54,19 +81,17 @@ const renderBadge = (badge) => {
   );
 };
 
-// =========================================================
-// COMPONENT ProductListItem
-// =========================================================
-
 function ProductListItem({ product }) {
   const isProductTotallyOutOfStock = !product.inStock;
-  const savings = product.discountAmount > 0 ? formatCurrencyVND(product.discountAmount) : null;
+  const { percent: discountPercent, amount: discountAmount } = getDiscountInfo(product);
+  const savings = discountAmount > 0 ? formatCurrencyVND(discountAmount) : null;
 
   return (
     <div className="w-full h-full flex flex-col border border-gray-200/70 rounded-lg overflow-hidden shadow-sm bg-white p-2.5 sm:p-3 relative transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1 group">
-      {product.discount > 0 && (
+      {/* Badge -xx% */}
+      {discountPercent > 0 && (
         <div className="absolute top-0 left-0 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-br-lg z-20">
-          -{product.discount}%
+          -{discountPercent}%
         </div>
       )}
 
@@ -109,6 +134,7 @@ function ProductListItem({ product }) {
       </Link>
 
       <div className="mt-auto flex flex-col flex-grow justify-end">
+        {/* Giá hiện tại + giá gạch */}
         <div className="product-card-price text-sm mb-1">
           {typeof product.price === 'number' && product.price > 0 ? (
             <>
@@ -122,10 +148,19 @@ function ProductListItem({ product }) {
           )}
         </div>
 
-        <div className="min-h-[20px] sm:min-h-[22px]">{savings && <div className="text-green-600 text-xs">Tiết kiệm {savings}</div>}</div>
+        {/* Tiết kiệm … (xx%) */}
+        <div className="min-h-[20px] sm:min-h-[22px]">
+          {savings && (
+            <div className="text-green-600 text-xs">
+              Tiết kiệm {savings}
+              {discountPercent > 0}
+            </div>
+          )}
+        </div>
 
         <div className="flex justify-between items-center text-[10px] sm:text-xs mb-1.5 sm:mb-2 min-h-[16px] sm:min-h-[18px]"></div>
 
+        {/* Trạng thái + so sánh */}
         <div className="product-card-actions flex items-center justify-between min-h-[26px] pt-1">
           <button
             aria-label="So sánh sản phẩm"
@@ -159,19 +194,14 @@ function ProductListItem({ product }) {
     </div>
   );
 }
-
-// =========================================================
-// COMPONENT SearchResult (Main Component)
-// =========================================================
 const SearchResult = () => {
   const location = useLocation();
-  // Lấy dữ liệu và loại tìm kiếm trực tiếp từ location.state
   const results = location.state?.results || [];
   const searchType = location.state?.searchType || 'image';
   const initialResults = location.state?.results || [];
   console.log('Dữ liệu sản phẩm ban đầu:', initialResults);
 
-  // Dùng state giả để tránh lỗi cho các component con
+  // State giả cho các component con
   const [filters, setFilters] = useState({ stock: true, price: null, brand: [] });
   const [sortOption, setSortOption] = useState('popular');
   const [brands, setBrands] = useState([]);
@@ -180,22 +210,16 @@ const SearchResult = () => {
   const [products, setProducts] = useState(initialResults);
   const [loading, setLoading] = useState(false);
 
-  const onApplyFilters = (newFilters) => {
-    setFilters((prevFilters) => ({ ...prevFilters, ...newFilters }));
-  };
+  const onApplyFilters = (newFilters) => setFilters((prev) => ({ ...prev, ...newFilters }));
+  const onApplySort = (opt) => setSortOption(opt);
 
-  const onApplySort = (newSortOption) => {
-    setSortOption(newSortOption);
-  };
-  
-  // Hàm này giờ đây đã bao gồm logic lọc, sắp xếp và lấy thương hiệu
   const fetchFilteredProducts = async () => {
     setLoading(true);
     try {
       let filteredAndSortedProducts = [...initialResults];
 
       if (filters.stock) {
-        filteredAndSortedProducts = filteredAndSortedProducts.filter(p => p.inStock);
+        filteredAndSortedProducts = filteredAndSortedProducts.filter((p) => p.inStock);
       }
 
       if (filters.price) {
@@ -206,46 +230,31 @@ const SearchResult = () => {
           if (priceString === 'Trên 22 Triệu') return { min: 22000000, max: Infinity };
           return null;
         };
-
         const priceRange = getPriceRange(filters.price);
         if (priceRange) {
-          filteredAndSortedProducts = filteredAndSortedProducts.filter(p => p.price >= priceRange.min && p.price <= priceRange.max);
+          filteredAndSortedProducts = filteredAndSortedProducts.filter((p) => p.price >= priceRange.min && p.price <= priceRange.max);
         }
       }
 
       if (filters.brand.length > 0) {
-        filteredAndSortedProducts = filteredAndSortedProducts.filter(p => {
+        filteredAndSortedProducts = filteredAndSortedProducts.filter((p) => {
           const productBrand = p.brand || findBrandInName(p.name);
           return productBrand && filters.brand.includes(productBrand);
         });
       }
-      
-      if (sortOption === 'asc') {
-        filteredAndSortedProducts.sort((a, b) => a.price - b.price);
-      } else if (sortOption === 'desc') {
-        filteredAndSortedProducts.sort((a, b) => b.price - a.price);
-      }
-      
-      const findBrandInName = (productName) => {
-        const knownBrands = ['Daikiosan', 'Mitsubishi Electric', 'HPW'];
-        const foundBrand = knownBrands.find(brand => productName.toLowerCase().includes(brand.toLowerCase()));
-        return foundBrand || null;
-      };
-      
-      const extractedBrands = filteredAndSortedProducts.map(p => {
-        return p.brand || findBrandInName(p.name);
-      });
 
+      if (sortOption === 'asc') filteredAndSortedProducts.sort((a, b) => a.price - b.price);
+      else if (sortOption === 'desc') filteredAndSortedProducts.sort((a, b) => b.price - a.price);
+
+      const extractedBrands = filteredAndSortedProducts.map((p) => p.brand || findBrandInName(p.name));
       const uniqueBrands = [...new Set(extractedBrands)].filter(Boolean);
-
       const brandListForFilter = uniqueBrands.map((brandName) => ({
-        id: brandName.toLowerCase().replace(/\s/g, '-'), 
+        id: brandName.toLowerCase().replace(/\s/g, '-'),
         name: brandName
       }));
 
       setProducts(filteredAndSortedProducts);
       setBrands(brandListForFilter);
-
     } catch (error) {
       console.error('Lỗi khi xử lý sản phẩm:', error);
     } finally {
@@ -264,11 +273,7 @@ const SearchResult = () => {
         categorySlug=""
       />
 
-      <FilterBar
-        filters={filters}
-        setFilters={setFilters}
-        brands={brands}
-      />
+      <FilterBar filters={filters} setFilters={setFilters} brands={brands} />
 
       <Banner banners={banners} />
 
