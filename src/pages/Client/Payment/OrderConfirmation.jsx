@@ -198,9 +198,7 @@ const OrderConfirmation = () => {
     if (!order) return;
     setLoading(true);
     try {
-      const res = await orderService.payAgain(order.id, {
-        bankCode: '', // ✅ thêm dòng này
-      });
+      const res = await paymentService.payAgain(order.id, { bankCode: '' });
       if (res.data?.payUrl) {
         window.location.href = res.data.payUrl; // Redirect to new payment link
       } else {
