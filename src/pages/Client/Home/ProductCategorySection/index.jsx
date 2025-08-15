@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import './ProductCategorySection.css'; // Đảm bảo CSS này được tải
+import './ProductCategorySection.css'; 
 import { highlightedCategoryService } from '../../../../services/client/highlightedCategoryService';
 
 const ProductCategorySection = () => {
@@ -54,17 +54,16 @@ const ProductCategorySection = () => {
 
 
   const CustomSliderArrow = ({ className, onClick, type }) => {
-    // Vô hiệu hóa click nếu mũi tên bị ẩn bởi CSS (đảm bảo không có pointer events)
-    // Thêm kiểm tra className để xem liệu mũi tên có lớp "slick-hidden" hoặc lớp ẩn tùy chỉnh nào không
-    const isHidden = className.includes('slick-disabled') || className.includes('slick-hidden'); // 'slick-disabled' is often added when infinite is false and there are no more slides
+    
+    const isHidden = className.includes('slick-disabled') || className.includes('slick-hidden'); 
 
     return (
       <button 
         type="button" 
         className={`${className} custom-arrow`} 
-        onClick={isHidden ? null : onClick} // Ngăn chặn onClick nếu mũi tên bị ẩn
+        onClick={isHidden ? null : onClick} 
         aria-label={type === 'prev' ? 'Previous' : 'Next'}
-        style={{ display: isHidden ? 'none' : 'block' }} // Đảm bảo display: none khi ẩn
+        style={{ display: isHidden ? 'none' : 'block' }} 
       >
         {type === 'prev' ? <ChevronLeft size={24} /> : <ChevronRight size={24} />}
       </button>
@@ -78,8 +77,7 @@ const ProductCategorySection = () => {
     speed: 500,
     rows: NUM_ROWS,
     slidesPerRow: 1,
-    arrows: true, // Mặc định là true, sau đó điều khiển bằng responsive settings và logic 'shouldUseSlider'
-    prevArrow: <CustomSliderArrow type="prev" />,
+    arrows: true, 
     nextArrow: <CustomSliderArrow type="next" />,
     slidesToShow: currentItemsPerRow,
     slidesToScroll: currentItemsPerRow,
