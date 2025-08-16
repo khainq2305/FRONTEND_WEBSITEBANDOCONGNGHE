@@ -21,7 +21,7 @@ const OrderItem = ({ order, searchTerm, refetchOrders }) => {
     const [showAllProducts, setShowAllProducts] = useState(false);
     const [showMoreDropdown, setShowMoreDropdown] = useState(false);
     const moreButtonRef = useRef(null);
-
+    const [loadingReorder, setLoadingReorder] = useState(false);
     const productsToShowInitially = 2;
     const getOrderStatusDisplay = (order) => {
         const rr = order.returnRequest;
@@ -96,12 +96,15 @@ const OrderItem = ({ order, searchTerm, refetchOrders }) => {
 
     const handleReorder = async () => {
         try {
+            setLoadingReorder(true); 
             await orderService.reorder(order.id);
             toast.success('Đã thêm sản phẩm vào giỏ hàng!');
             navigate('/cart');
         } catch (err) {
             console.error('Lỗi khi mua lại:', err);
             toast.error('Không thể mua lại đơn hàng!');
+        } finally {
+            setLoadingReorder(false); 
         }
     };
 
@@ -159,6 +162,7 @@ const OrderItem = ({ order, searchTerm, refetchOrders }) => {
     return (
 
         <div className="bg-white dark:bg-gray-800 mb-3 sm:mb-4 border border-gray-200 dark:border-gray-700 rounded-sm">
+             {loadingReorder && <Loader fullscreen />}
             <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
                 <div className="flex flex-col">
                     <div className="text-sm text-gray-800 font-medium">
@@ -191,6 +195,8 @@ const OrderItem = ({ order, searchTerm, refetchOrders }) => {
             <div className="">
 
                 {order.products.slice(0, showAllProducts ? order.products.length : productsToShowInitially).map((product, index) => {
+                    const isOutOfStock = Boolean(product?.isOutOfStock);
+
                     const isReturning = order.returnRequest?.status !== 'cancelled' &&
                         order.returnRequest?.items?.some(item => item.skuId === product.skuId);
 
@@ -201,7 +207,7 @@ const OrderItem = ({ order, searchTerm, refetchOrders }) => {
                     return (
                         <div
                             key={`${order.id}-${product.skuId}-${index}`}
-                            className="relative px-4 sm:px-6 py-3 sm:py-4 dark:border-gray-700 flex hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer"
+                            className={`relative px-4 sm:px-6 py-3 sm:py-4 dark:border-gray-700 flex hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer ${isOutOfStock ? 'opacity-50' : ''}`}
                             onClick={() => navigate(`/user-profile/orders/${order.orderCode}`)}
                         >
 
@@ -211,7 +217,19 @@ const OrderItem = ({ order, searchTerm, refetchOrders }) => {
 
 
 
-                            <img src={product.imageUrl} alt={product.name} className="w-20 h-20 object-cover rounded-sm border border-gray-200 dark:border-gray-600 mr-3 sm:mr-4 flex-shrink-0" />
+                           <div className="relative mr-3 sm:mr-4 flex-shrink-0">
+  <img
+    src={product.imageUrl}
+    alt={product.name}
+    className="w-20 h-20 object-cover rounded-sm border border-gray-200 dark:border-gray-600"
+  />
+  {isOutOfStock && (
+    <span className="absolute bottom-1 left-1 text-[10px] px-1.5 py-0.5 rounded bg-black/60 text-white">
+      Hết hàng
+    </span>
+  )}
+</div>
+
                             <div className="flex-1 min-w-0">
                                 <p className="font-semibold text-sm text-gray-900">
                                     {product.name}
@@ -587,6 +605,7 @@ const RenderDonMuaContent = () => {
                     quantity: p.quantity,
                     price: p.price,
                     originalPrice: p.originalPrice,
+                     isOutOfStock: Boolean(p.isOutOfStock),
                 })),
                 buttons,
             };

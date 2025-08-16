@@ -11,6 +11,8 @@ import { toast } from 'react-toastify';
 import { confirmDelete } from '../../../components/common/ConfirmDeleteDialog';
 import Breadcrumb from '../../../components/common/Breadcrumb';
 import { couponService } from '../../../services/client/couponService';
+import OrderLoader from '@/components/common/OrderLoader'; 
+
 
 const CartPage = () => {
   const [cartItems, setCartItems] = useState([]);
@@ -25,6 +27,7 @@ const CartPage = () => {
   const selectedItems = cartItems.filter((_, index) => checkedItems[index]);
   const [usePoints, setUsePoints] = useState(false);
   const [pointInfo, setPointInfo] = useState({});
+const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('usePoints', JSON.stringify(usePoints));
@@ -74,33 +77,37 @@ const CartPage = () => {
 
 
   const fetchCart = async () => {
-    try {
-      const response = await cartService.getCart();
-      setPointInfo(response.data?.pointInfo || {});
+  setLoading(true);
+  try {
+    const response = await cartService.getCart();
+    setPointInfo(response.data?.pointInfo || {});
 
-      const items = response.data?.cartItems || [];
-      const formattedItems = items.map((item) => ({
-        ...item,
-        name: item.productName,
-        skuId: Number(item.skuId),
-        originalPrice: Number(item.originalPrice),
-        price: Number(item.price),
-        finalPrice: Number(item.finalPrice),
-        flashSaleId: item.flashSaleId || null,
-      }));
+    const items = response.data?.cartItems || [];
+    const formattedItems = items.map((item) => ({
+      ...item,
+      name: item.productName,
+      skuId: Number(item.skuId),
+      originalPrice: Number(item.originalPrice),
+      price: Number(item.price),
+      finalPrice: Number(item.finalPrice),
+      flashSaleId: item.flashSaleId || null,
+    }));
 
-      const newChecked = formattedItems.map((item) => !!item.isSelected && item.stock > 0);
+    const newChecked = formattedItems.map((item) => !!item.isSelected && item.stock > 0);
 
-      setCartItems(formattedItems);
-      setCheckedItems(newChecked);
-      setIsCartLoaded(true);
-    } catch (error) {
-      console.error('Lỗi khi tải giỏ hàng:', error);
-      toast.error('Không thể tải giỏ hàng. Vui lòng thử lại.', {
-        position: 'top-right',
-      });
-    }
-  };
+    setCartItems(formattedItems);
+    setCheckedItems(newChecked);
+    setIsCartLoaded(true);
+  } catch (error) {
+    console.error('Lỗi khi tải giỏ hàng:', error);
+    toast.error('Không thể tải giỏ hàng. Vui lòng thử lại.', {
+      position: 'top-right',
+    });
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     fetchCart();
@@ -252,6 +259,9 @@ const CartPage = () => {
 
   return (
     <main className="max-w-[1200px] mx-auto pb-20">
+   {loading && <OrderLoader fullscreen />}
+
+
       <div className="py-3">
         <Breadcrumb items={[{ label: 'Trang chủ', href: '/' }, { label: 'Giỏ hàng' }]} />
       </div>
@@ -282,7 +292,7 @@ const CartPage = () => {
             </div>
           </section>
           
-          <aside className="w-full xl:w-[30%] xl:sticky xl:top-35 self-start h-fit mt-6 xl:mt-0">
+          <aside className="w-full xl:w-[30%] xl:sticky xl:top-30 self-start h-fit mt-6 xl:mt-0">
             <CartSummary
               hasSelectedItems={hasSelectedItems}
               selectedItems={selectedItems}

@@ -4,10 +4,10 @@ import { orderService } from '../../../../services/client/orderService';
 import { paymentService } from '../../../../services/client/paymentService';
 import { toast } from 'react-toastify';
 import { FiInfo, FiChevronRight, FiChevronUp } from 'react-icons/fi';
-// import PinModal from '../PinModal';
+import OrderLoader from '@/components/common/OrderLoader'
 import TotpModal from '../TotpModal';
 import GoogleAuthModal from '../../Auth/GoogleAuthModal';
-import { walletService } from '../../../../services/client/walletService'; // đã có
+import { walletService } from '../../../../services/client/walletService'; 
 import xudiem from '@/assets/Client/images/xudiem.png';
 import { useCartStore } from '@/stores/useCartStore';
 import { formatCurrencyVND } from '../../../../utils/formatCurrency';
@@ -21,7 +21,7 @@ const OrderSummary = ({
   totalAmount,
   discount,
   shippingFee,
-  pointInfo, // ✅ TRUYỀN VÀO
+  pointInfo, 
   selectedShipMethod,
   selectedPaymentMethod,
   selectedCoupon: propCoupon,
@@ -32,8 +32,7 @@ const OrderSummary = ({
   onPlaceOrder
 }) => {
   const navigate = useNavigate();
-  // const [isPinModalOpen, setIsPinModalOpen] = useState(false);
-  // const [pendingPin, setPendingPin] = useState(null);
+  
   const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
 
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
@@ -418,6 +417,7 @@ const OrderSummary = ({
 
   return (
     <div className="relative">
+     {isPlacing && <OrderLoader fullscreen />}
       <aside className="bg-white rounded-xl p-3 sm:p-4 border border-gray-200 shadow-sm sticky top-6 h-fit">
         {/* Promotion section */}
         <div className="flex justify-between items-center">

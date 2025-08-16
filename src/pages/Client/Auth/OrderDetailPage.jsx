@@ -8,20 +8,31 @@ import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import CancelOrderDialog from './CancelOrderDialog'; // hoặc đúng path nếu khác
 
-// --- Khai báo các URL icon bạn đã cung cấp (giữ nguyên) ---
+// --- Icons ---
 const creditIcons = 'https://salt.tikicdn.com/ts/upload/16/f8/f3/0c02ea827b71cd89ffadb7a22babbdd6.png';
-const vietqrIcon = 'https://salt.tikicdn.com/ts/upload/7e/48/50/7fb406156d0827b736cf0fe66c90ed78.png';
+const vietqrIcon  = 'https://salt.tikicdn.com/ts/upload/7e/48/50/7fb406156d0827b736cf0fe66c90ed78.png';
+const walletIcon  = 'https://cdn-icons-png.flaticon.com/512/1041/1041876.png';
+const defaultPaymentIcon = '/images/default-icon.png';
 
+// --- Map code -> icon ---
 const paymentIconMap = {
   cod: 'https://salt.tikicdn.com/ts/upload/92/b2/78/1b3b9cda5208b323eb9ec56b84c7eb87.png',
-  atm: vietqrIcon,
+  atm: vietqrIcon,                       // Chuyển khoản qua VietQR
+  payos: vietqrIcon,                     // PayOS = VietQR
   vnpay: 'https://salt.tikicdn.com/ts/upload/77/6a/df/a35cb9c62b9215dbc6d334a77cda4327.png',
   momo: 'https://s3-sgn09.fptcloud.com/ict-payment-icon/payment/momo.png',
   zalopay: 'https://s3-sgn09.fptcloud.com/ict-payment-icon/payment/zalopay.png',
   viettel_money: 'https://i.imgur.com/ttZPvTx.png',
   stripe: 'https://salt.tikicdn.com/ts/upload/7e/48/50/7fb406156d0827b736cf0fe66c90ed78.png',
-  credit: creditIcons
+
+  // Wallet & credit aliases
+  internalWallet: walletIcon,
+  credit: creditIcons,
+  credit_card: creditIcons,
+  card: creditIcons,
 };
+
+// Helper (nếu cần)
 
 // --- Các hàm tiện ích để lấy Icon (Đã cập nhật) ---
 const getShippingProviderLogo = (providerCode) => {

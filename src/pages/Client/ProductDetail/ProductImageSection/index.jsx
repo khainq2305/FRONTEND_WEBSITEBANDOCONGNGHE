@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import FeatureSlider from '../FeatureSlider'; // Đảm bảo đường dẫn này đúng
+import FeatureSlider from '../FeatureSlider'; 
 import { wishlistService } from '@/services/client/wishlistService';
 import { toast } from 'react-toastify';
-import PopupModal from '@/layout/Client/Header/PopupModal'; // Đảm bảo đường dẫn này đúng
+import PopupModal from '@/layout/Client/Header/PopupModal'; 
+import FavoriteLoader from "@/components/common/FavoriteLoader"; 
+
 
 const AnimationStyles = () => (
     <style>
@@ -131,7 +133,7 @@ export default function ProductImageSection({
     setMainImage,
     allImages = [],
     productName,
-    stickyTopOffset = 'xl:top-6', // Giữ giá trị mặc định là xl:top-6
+    stickyTopOffset = 'xl:top-6', 
     infoBoxContent,
     productId,
     skuId
@@ -230,51 +232,62 @@ export default function ProductImageSection({
     const arrowButtonClasses = 'absolute top-1/2 transform -translate-y-1/2 p-2.5 rounded-full shadow-lg z-10 transition-opacity duration-200 opacity-60 group-hover:opacity-100 bg-white/70 backdrop-blur-sm hover:bg-white';
 
     return (
-        <>
-            <AnimationStyles />
-            <div className={`relative xl:sticky ${stickyTopOffset} xl:z-10 min-w-0`}> 
-                <div className="bg-white md:shadow-xl md:rounded-lg md:p-4 space-y-4">
-                    <div className="group w-full aspect-[4/3]  overflow-hidden relative  p-4">
-                        <img src={mainImage} alt={productName || 'Product image'} className="w-full h-full object-contain" />
+  <>
+    <AnimationStyles />
 
-                        <button
-                            onClick={handleFavoriteToggle}
-                            className="absolute top-3 left-3 sm:top-5 sm:left-5 p-1 text-red-600 z-20 hover:scale-110 active:scale-95 transition-transform"
-                            aria-label={isFavorited ? 'Xóa khỏi Yêu thích' : 'Thêm vào Yêu thích'}
-                            disabled={loading}
-                            title={isFavorited ? 'Đã yêu thích' : 'Thêm vào yêu thích'}
-                        >
-                            <AnimatedHeartIcon isFavorited={isFavorited} isLiking={isLiking} isUnliking={isUnliking} />
-                        </button>
+    {loading && <FavoriteLoader fullscreen />}
 
-                        {showArrows && (
-                            <>
-                                <button onClick={handlePreviousImage} className={`${arrowButtonClasses} left-3 sm:left-5`} aria-label="Ảnh trước">
-                                    <ChevronLeftIcon className="w-5 h-5" />
-                                </button>
-                                <button onClick={handleNextImage} className={`${arrowButtonClasses} right-3 sm:right-5`} aria-label="Ảnh kế tiếp">
-                                    <ChevronRightIcon className="w-5 h-5" />
-                                </button>
-                            </>
-                        )}
-                    </div>
+    <div className={`relative xl:sticky ${stickyTopOffset} xl:z-10 min-w-0`}>
+      <div className="bg-white md:shadow-xl md:rounded-lg md:p-4 space-y-4">
+        <div className="group w-full aspect-[4/3] overflow-hidden relative p-4">
+          <img
+            src={mainImage}
+            alt={productName || 'Product image'}
+            className="w-full h-full object-contain"
+          />
 
-                    {FeatureSlider && (
-                        // THÊM LỚP PX-4 VÀO ĐÂY ĐỂ CÓ KHOẢNG CÁCH NGANG TRÊN MOBILE/TABLET
-                        <div className="px-4 py-2 md:px-0"> 
-                            <FeatureSlider
-                                images={allImages}
-                                currentImage={mainImage}
-                                onSelect={(imgFullUrl) => setMainImage(imgFullUrl)}
-                            />
-                        </div>
-                    )}
+          <button
+            onClick={handleFavoriteToggle}
+            className="absolute top-3 left-3 sm:top-5 sm:left-5 p-1 text-red-600 z-20 hover:scale-110 active:scale-95 transition-transform"
+            aria-label={isFavorited ? 'Xóa khỏi Yêu thích' : 'Thêm vào Yêu thích'}
+            disabled={loading}
+            title={isFavorited ? 'Đã yêu thích' : 'Thêm vào yêu thích'}
+          >
+            <AnimatedHeartIcon
+              isFavorited={isFavorited}
+              isLiking={isLiking}
+              isUnliking={isUnliking}
+            />
+          </button>
 
-                    {infoBoxContent && <div className="mt-4">{infoBoxContent}</div>}
-                </div>
+          {showArrows && (
+            <>
+              <button onClick={handlePreviousImage} className={`${arrowButtonClasses} left-3 sm:left-5`} aria-label="Ảnh trước">
+                <ChevronLeftIcon className="w-5 h-5" />
+              </button>
+              <button onClick={handleNextImage} className={`${arrowButtonClasses} right-3 sm:right-5`} aria-label="Ảnh kế tiếp">
+                <ChevronRightIcon className="w-5 h-5" />
+              </button>
+            </>
+          )}
+        </div>
 
-                <PopupModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
-            </div>
-        </>
-    );
+        {FeatureSlider && (
+          <div className="px-4 py-2 md:px-0">
+            <FeatureSlider
+              images={allImages}
+              currentImage={mainImage}
+              onSelect={(imgFullUrl) => setMainImage(imgFullUrl)}
+            />
+          </div>
+        )}
+
+        {infoBoxContent && <div className="mt-4">{infoBoxContent}</div>}
+      </div>
+
+      <PopupModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
+    </div>
+  </>
+);
+
 }

@@ -20,6 +20,44 @@ const VariantValueForm = () => {
 
 
   const [isLoading, setIsLoading] = useState(false);
+// Bật/tắt chế độ bắt buộc tên màu khớp mã màu
+const STRICT_COLOR_NAME = true;
+
+// Bảng tên màu tiếng Việt đơn giản
+const VN_COLOR_NAMES = [
+  { name: 'đỏ', hex: '#FF0000' },
+  { name: 'xanh lá', hex: '#00FF00' },
+  { name: 'xanh dương', hex: '#0000FF' },
+  { name: 'vàng', hex: '#FFFF00' },
+  { name: 'cam', hex: '#FFA500' },
+  { name: 'tím', hex: '#800080' },
+  { name: 'hồng', hex: '#FFC0CB' },
+  { name: 'nâu', hex: '#8B4513' },
+  { name: 'đen', hex: '#000000' },
+  { name: 'trắng', hex: '#FFFFFF' },
+  { name: 'xám', hex: '#808080' },
+];
+
+const hexToRgb = (hex) => {
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || '');
+  if (!m) return { r: 0, g: 0, b: 0 };
+  return { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) };
+};
+const dist2 = (a, b) =>
+  (a.r - b.r) * (a.r - b.r) + (a.g - b.g) * (a.g - b.g) + (a.b - b.b) * (a.b - b.b);
+
+const nearestColorName = (hex) => {
+  const c = hexToRgb(hex);
+  let best = VN_COLOR_NAMES[0], bestD = Infinity;
+  for (const item of VN_COLOR_NAMES) {
+    const d = dist2(c, hexToRgb(item.hex));
+    if (d < bestD) { bestD = d; best = item; }
+  }
+  return best.name;
+};
+
+const norm = (s = '') =>
+  s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
 
   const {
     control,
@@ -41,7 +79,9 @@ const VariantValueForm = () => {
     }
   });
 
-  
+  const watchColor = watch('colorCode');
+const watchValue = watch('value');
+
   const loadInitialData = async () => {
     setIsLoading(true);
     try {
@@ -188,27 +228,33 @@ const VariantValueForm = () => {
      <form onSubmit={handleSubmit(onSubmit)}>
   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
     <Controller
-      name="value"
-      control={control}
-      rules={{
-        required: 'Giá trị không được để trống',
-        maxLength: { value: 255, message: 'Giá trị không được vượt quá 255 ký tự' }
-      }}
-      render={({ field, fieldState }) => (
-        <TextField
-          label={
-            <span>
-              Giá trị <span style={{ color: 'red' }}>*</span>
-            </span>
-          }
-          fullWidth
-          {...field}
-          error={!!fieldState.error}
-          helperText={fieldState.error?.message}
-          disabled={isLoading}
-        />
-      )}
+  name="value"
+  control={control}
+  rules={{
+    required: 'Giá trị không được để trống',
+    maxLength: { value: 255, message: 'Giá trị không được vượt quá 255 ký tự' },
+    validate: (val) => {
+      if (STRICT_COLOR_NAME && variantType === 'color') {
+        const expected = nearestColorName(watchColor);
+        if (norm(val) !== norm(expected)) {
+          return `Tên màu phải khớp với màu đã chọn: "${expected}".`;
+        }
+      }
+      return true;
+    }
+  }}
+  render={({ field, fieldState }) => (
+    <TextField
+      label={<span>Giá trị <span style={{ color: 'red' }}>*</span></span>}
+      fullWidth
+      {...field}
+      error={!!fieldState.error}
+      helperText={fieldState.error?.message}
+      disabled={isLoading}
     />
+  )}
+/>
+
 
     <Controller
       name="sortOrder"
@@ -243,10 +289,18 @@ const VariantValueForm = () => {
               Chọn màu <span style={{ color: 'red' }}>*</span>
             </Typography>
             <ChromePicker
-              color={field.value || '#000000'}
-              onChangeComplete={(color) => field.onChange(color.hex)}
-              disableAlpha
-            />
+  color={field.value || '#000000'}
+  onChangeComplete={(color) => {
+    field.onChange(color.hex);
+    // auto-fill tên màu nếu để trống hoặc nhập sai
+    const expected = nearestColorName(color.hex);
+    if (!watchValue || norm(watchValue) !== norm(expected)) {
+      setValue('value', expected, { shouldValidate: true });
+    }
+  }}
+  disableAlpha
+/>
+
             {errors.colorCode && (
               <Typography color="error" fontSize="0.75rem" sx={{ mt: 0.5 }}>
                 {errors.colorCode.message}

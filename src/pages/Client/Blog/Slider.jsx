@@ -9,10 +9,9 @@ const fakeData = Array.from({ length: 10 }, (_, i) => ({
 const VISIBLE_COUNT = 5;
 
 export default function Slider() {
-  const [index, setIndex] = useState(VISIBLE_COUNT); // Start from first real item
+  const [index, setIndex] = useState(VISIBLE_COUNT); 
   const [transition, setTransition] = useState(true);
 
-  // Clone đầu và cuối VISIBLE_COUNT item để tạo loop
   const extendedData = [
     ...fakeData.slice(-VISIBLE_COUNT),
     ...fakeData,
@@ -32,14 +31,12 @@ export default function Slider() {
   };
 
   useEffect(() => {
-    // Auto scroll nếu muốn
+    
     const timer = setInterval(() => {
       next();
     }, 4000);
     return () => clearInterval(timer);
   }, []);
-
-  // Reset position nếu đi vào phần clone
   useEffect(() => {
     if (index === total - VISIBLE_COUNT) {
       setTimeout(() => {

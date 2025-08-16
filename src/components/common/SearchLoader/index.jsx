@@ -1,15 +1,12 @@
-// src/components/common/Loader/index.jsx
 import React, { useEffect } from "react";
 import Lottie from "lottie-react";
-import loadingAnimation from "../../../assets/Client/animations/loader.json";
+import loadingAnimation from "../../../assets/Client/animations/search-loader.json";
 
-const Loader = ({ fullscreen }) => {
+const SearchLoader = ({ fullscreen }) => {
   useEffect(() => {
-    if (fullscreen) {
-      document.body.style.overflow = "hidden"; 
-    }
+    if (fullscreen) document.body.style.overflow = "hidden";
     return () => {
-      document.body.style.overflow = "auto"; 
+      document.body.style.overflow = "auto";
     };
   }, [fullscreen]);
 
@@ -35,8 +32,8 @@ const Loader = ({ fullscreen }) => {
       <Lottie
         animationData={loadingAnimation}
         style={{
-          width: fullscreen ? 250 : 200, 
-          height: fullscreen ? 250 : 200,
+          height: fullscreen ? 200 : 100, 
+          width: fullscreen ? 200 : 100,
         }}
         loop
         autoplay
@@ -45,4 +42,4 @@ const Loader = ({ fullscreen }) => {
   );
 };
 
-export default Loader;
+export default SearchLoader;

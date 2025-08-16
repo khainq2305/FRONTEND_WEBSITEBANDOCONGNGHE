@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import { confirmDelete as showConfirmDeleteDialog } from '../../../../components/common/ConfirmDeleteDialog';
 import { Tooltip } from 'react-tooltip';
 import { Gift } from 'lucide-react';
-import Loader from '../../../../components/common/Loader';
+import OrderLoader from '../../../../components/common/OrderLoader';
 const CartItem = ({ item, isChecked, onToggleChecked, onQuantityChange, isLastItem }) => {
   const [quantity, setQuantity] = useState(item.quantity);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -117,8 +117,7 @@ const handleQuantityChange = async (delta) => {
 
   return (
     <div className={`bg-white ${!isLastItem ? 'border-b border-gray-200' : ''} ${isOutOfStock ? 'bg-gray-50' : ''}`}>
-  {isDeleting && <Loader fullscreen />}
-{isUpdating && <Loader fullscreen />}
+{(isDeleting || isUpdating) && <OrderLoader fullscreen />}
 
       <div className="flex flex-col p-3 sm:hidden">
         <div className="flex items-start w-full">

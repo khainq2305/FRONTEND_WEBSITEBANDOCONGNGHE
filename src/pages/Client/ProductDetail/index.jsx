@@ -16,7 +16,8 @@ import { cartService } from '../../../services/client/cartService';
 import { bannerService } from '../../../services/client/bannerService';
 import { productViewService } from '../../../services/client/productViewService';
 import { productQuestionService } from '@/services/client/productQuestionService';
-import Loader from '../../../components/common/Loader';
+import OrderLoader from "@/components/common/OrderLoader";
+
 import ProductHighlights from './ProductHighlights';
 
 import PopupModal from '@/layout/Client/Header/PopupModal';
@@ -351,11 +352,9 @@ export default function ProductDetail() {
     setIsBuyingNow(false); 
   }
 };
-
-
-  if (!product) {
-    return <Loader fullscreen />;
-  }
+if (!product) {
+  return <OrderLoader fullscreen />;
+}
 
   const productName = product.name;
   const productRating = product.averageRating || 0;
@@ -365,7 +364,7 @@ export default function ProductDetail() {
 
   return (
     <div className="bg-gray-100">
-      {(isAddingToCart || isBuyingNow) && <Loader fullscreen />}
+     {(isAddingToCart || isBuyingNow) && <OrderLoader fullscreen />}
 
       <Breadcrumb productName={productName} productCategory={product.category} />
 

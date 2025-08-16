@@ -29,7 +29,7 @@ const News = () => {
   useEffect(() => {
     const fetchFeature = async () => {
       try {
-        const res = await newsSevice.getFeature(); // gọi API thật
+        const res = await newsSevice.getFeature(); 
         setfeaturedNews(res.data.data);
       } catch (error) {
         console.error('Lỗi lấy tin tức:', error);
@@ -101,11 +101,11 @@ const News = () => {
 
   return (
     <NewsContext.Provider value={{ stripHTML, featuredNews, setfeaturedNews }}>
-      <div className="max-w-[1200px] mx-auto w-full px-4">
+      <div className="max-w-[1200px] mx-auto w-full">
         <div className="text-left px-4 py-4">
           <h1>Trang chủ / Tin tức nổi bật </h1>
         </div>
-        {/* <Slider /> */}
+       
         <div className="flex flex-col lg:flex-row justify-between px-0 md:px-4">
           <div className="w-full py-4 md:py-0">
             <TopNews getAllTitle={getAllTitle} />
@@ -116,7 +116,7 @@ const News = () => {
         </div>
 
         <div className="my-5">
-          {/* <Carousel title="Tin Tức sam sum" items={newsPosts} visibleCount={5} /> */}
+         
           <Carousel title="Tin Tức sam sum" items={newsBySlug['tin-tuc-sam-sum'] || []} visibleCount={5} autoautoScroll={true} />
         </div>
         <div className="flex flex-col lg:flex-row justify-between gap-4 px-0 md:px-4">

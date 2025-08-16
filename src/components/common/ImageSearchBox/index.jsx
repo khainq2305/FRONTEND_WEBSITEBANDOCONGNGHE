@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Search, ImageIcon, Mic, Loader2, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { searchImageService } from '@/services/client/searchImageService';
+import SearchLoader from '../SearchLoader';
 
 const ImageSearchBox = () => {
   const [searching, setSearching] = useState(false);
@@ -12,31 +13,27 @@ const ImageSearchBox = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
 
-  // --- States cho gợi ý tìm kiếm ---
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const debounceTimeoutRef = useRef(null);
 
-  // --- States cho lịch sử tìm kiếm ---
   const [searchHistory, setSearchHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
   const searchBoxRef = useRef(null);
 
-  // --- Hàm format tiền tệ ---
   const formatCurrencyVND = (num) => {
     if (typeof num !== 'number' || isNaN(num) || num === 0) return '';
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
       currency: 'VND',
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
+      maximumFractionDigits: 0
     }).format(num);
   };
 
-  // --- Hàm tính số tiền tiết kiệm ---
   const calculateSavings = (price, originalPrice) => {
     if (typeof price === 'number' && !isNaN(price) && typeof originalPrice === 'number' && !isNaN(originalPrice) && originalPrice > price) {
       const diff = originalPrice - price;
@@ -45,7 +42,6 @@ const ImageSearchBox = () => {
     return null;
   };
 
-  // Effect để đóng gợi ý/lịch sử khi click ra ngoài
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (searchBoxRef.current && !searchBoxRef.current.contains(event.target)) {
@@ -59,7 +55,6 @@ const ImageSearchBox = () => {
     };
   }, []);
 
-  // Hàm lấy lịch sử tìm kiếm từ API
   const fetchSearchHistory = useCallback(async () => {
     setLoadingHistory(true);
     try {
@@ -179,7 +174,7 @@ const ImageSearchBox = () => {
       const response = await searchImageService.searchByName({ q: query });
       const similarProducts = response.similarProducts || [];
       navigate('/search-result', {
-        state: { results: similarProducts, searchType: 'text', q: query },
+        state: { results: similarProducts, searchType: 'text', q: query }
       });
       searchImageService
         .addSearchHistory(query)
@@ -263,7 +258,6 @@ const ImageSearchBox = () => {
     recognition.start();
   };
 
-  // Hàm xử lý khi click vào một từ khóa trong lịch sử
   const handleHistoryClick = (keyword) => {
     setSearchTerm(keyword);
     setShowHistory(false);
@@ -271,7 +265,6 @@ const ImageSearchBox = () => {
     handleTextSearchSubmit(null, keyword);
   };
 
-  // Hàm xóa một mục khỏi lịch sử
   const handleDeleteHistoryItem = async (e, id) => {
     e.stopPropagation();
     try {
@@ -285,8 +278,8 @@ const ImageSearchBox = () => {
 
   return (
     <div className="flex-1 mx-4 relative" ref={searchBoxRef}>
+      {searching && <SearchLoader fullscreen={true} />}
       <div className="relative flex items-center bg-white text-gray-600 px-2 h-[36px] rounded-full w-full max-w-[600px] mx-auto shadow-sm">
-        {/* Input tìm kiếm văn bản */}
         <input
           type="text"
           placeholder="Tìm kiếm sản phẩm..."
@@ -323,15 +316,20 @@ const ImageSearchBox = () => {
           {searching ? (
             <Loader2 className="animate-spin w-4 h-4" />
           ) : (
-            <ImageIcon className="w-4 h-4" />
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z"
+              />
+            </svg>
           )}
-          <input
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleImageFileChange}
-            disabled={isListening || searching}
-          />
+          <input type="file" accept="image/*" className="hidden" onChange={handleImageFileChange} disabled={isListening || searching} />
         </label>
 
         <button
@@ -342,7 +340,13 @@ const ImageSearchBox = () => {
           } transition hover:bg-gray-200`}
           title={isListening ? 'Đang lắng nghe...' : 'Tìm kiếm bằng giọng nói'}
         >
-          <Mic className={`w-4 h-4`} />
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z"
+            />
+          </svg>
         </button>
 
         <button
@@ -366,9 +370,7 @@ const ImageSearchBox = () => {
             </div>
           )}
           {!loadingSuggestions && suggestions.length === 0 && searchTerm.length >= 2 && (
-            <div className="p-2 text-gray-500 text-sm">
-              Không có gợi ý nào cho "{searchTerm}".
-            </div>
+            <div className="p-2 text-gray-500 text-sm">Không có gợi ý nào cho "{searchTerm}".</div>
           )}
           {!loadingSuggestions && suggestions.length > 0 && (
             <ul className="py-1">
@@ -386,17 +388,11 @@ const ImageSearchBox = () => {
                         className="w-8 h-8 object-contain rounded-md flex-shrink-0"
                       />
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-medium text-gray-800 line-clamp-1">
-                          {suggestion.name}
-                        </h4>
+                        <h4 className="text-sm font-medium text-gray-800 line-clamp-1">{suggestion.name}</h4>
                         <div className="flex items-center text-xs">
-                          <span className="text-red-600 font-bold mr-1">
-                            {formatCurrencyVND(suggestion.price)}
-                          </span>
+                          <span className="text-red-600 font-bold mr-1">{formatCurrencyVND(suggestion.price)}</span>
                           {suggestion.oldPrice && suggestion.oldPrice > suggestion.price && (
-                            <span className="text-gray-400 line-through mr-1">
-                              {formatCurrencyVND(suggestion.oldPrice)}
-                            </span>
+                            <span className="text-gray-400 line-through mr-1">{formatCurrencyVND(suggestion.oldPrice)}</span>
                           )}
                           {suggestion.discount > 0 && (
                             <span className="bg-red-500 text-white px-0.5 py-0.25 rounded text-[9px] font-bold">
@@ -436,11 +432,7 @@ const ImageSearchBox = () => {
               <Loader2 className="animate-spin mr-2" size={14} /> Đang tải lịch sử...
             </div>
           )}
-          {!loadingHistory && searchHistory.length === 0 && (
-            <div className="p-2 text-gray-500 text-sm">
-              Chưa có lịch sử tìm kiếm nào.
-            </div>
-          )}
+          {!loadingHistory && searchHistory.length === 0 && <div className="p-2 text-gray-500 text-sm">Chưa có lịch sử tìm kiếm nào.</div>}
           {!loadingHistory && searchHistory.length > 0 && (
             <ul className="py-1">
               {searchHistory.map((item) => (

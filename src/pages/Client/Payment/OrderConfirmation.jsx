@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import CopyableRow from './CopyableRow';
 
 import ProductList from './OrderConfirmation/ProductList';
@@ -10,14 +10,13 @@ import { paymentService } from '../../../services/client/paymentService';
 
 import { orderService } from '../../../services/client/orderService';
 import { toast } from 'react-toastify';
-import Loader from '../../../components/common/Loader';
+import OrderLoader from '../../../components/common/OrderLoader';
 import { formatCurrencyVND } from '../../../utils/formatCurrency';
 
 import bgPc from '../../../assets/Client/images/bg-pc.png';
 import successIcon from '../../../assets/Client/images/Logo/snapedit_1749613755235 1.png';
-import waitingIcon from '../../../assets/Client/images/Logo/snapedit_1749613755235 1.png'; // Add a suitable icon for waiting status
+import waitingIcon from '../../../assets/Client/images/Logo/snapedit_1749613755235 1.png';
 
-/* ---------- helper row ---------- */
 const Row = ({ label, value, bold, color }) => (
   <div className={`flex justify-between ${color ?? 'text-gray-800'}`}>
     <span>{label}</span>
@@ -26,29 +25,21 @@ const Row = ({ label, value, bold, color }) => (
 );
 
 const OrderConfirmation = () => {
-  /* ------------------- state ------------------- */
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const vnpTxnRef = searchParams.get('vnp_TxnRef');
-  const resultCode = searchParams.get('resultCode'); // 0 = success, other = error/cancel (from MoMo)
-  const momoOrderId = searchParams.get('orderId'); // MoMo's order ID
+  const resultCode = searchParams.get('resultCode');
+  const momoOrderId = searchParams.get('orderId');
 
   const orderCodeFromUrl = searchParams.get('orderCode') || momoOrderId || vnpTxnRef;
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isPaymentAttempted, setIsPaymentAttempted] = useState(false); // To prevent multiple callbacks
+  const [isPaymentAttempted, setIsPaymentAttempted] = useState(false);
 
-  // 👉 THÊM STATE MỚI ĐỂ LƯU URL CỦA QR CODE
-  const [vietQrImageUrl, setVietQrImageUrl] = useState(null);
-  const [vietQrInfo, setVietQrInfo] = useState(null);
-
-  /* ------------------- side-effect: Handle MoMo callback ------------------- */
   useEffect(() => {
-    // Only send callback if MoMo params are present and not already attempted
     if (momoOrderId && resultCode !== null && !isPaymentAttempted) {
-      setIsPaymentAttempted(true); // Mark as attempted
+      setIsPaymentAttempted(true);
       fetch('https://backend-websitebandocongnghe-1.onrender.com/payment/momo-callback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -61,28 +52,23 @@ const OrderConfirmation = () => {
           }
           return res.text();
         })
-        .then((txt) => {
-          console.log('Momo callback ->', txt);
-          // Re-fetch order after callback to get updated status
+        .then(() => {
           fetchOrderDetails(orderCodeFromUrl);
         })
         .catch((err) => {
           console.error('Callback lỗi:', err);
           toast.error('Có lỗi xảy ra khi xử lý thanh toán MoMo.');
-          // Even on error, try to fetch order details to reflect the current state
           fetchOrderDetails(orderCodeFromUrl);
         });
     }
-  }, [momoOrderId, resultCode, isPaymentAttempted, orderCodeFromUrl]); // Depend on orderCodeFromUrl for re-fetch
+  }, [momoOrderId, resultCode, isPaymentAttempted, orderCodeFromUrl]);
 
-  /* ------------------- side-effect: handle VNPay callback ------------------- */
   useEffect(() => {
-    // Gửi callback đúng 1 lần
     if (!vnpTxnRef || isPaymentAttempted) return;
 
     setIsPaymentAttempted(true);
 
-    const rawQuery = window.location.search.slice(1); // bỏ dấu '?'
+    const rawQuery = window.location.search.slice(1);
 
     fetch('https://backend-websitebandocongnghe-1.onrender.com/payment/vnpay-callback', {
       method: 'POST',
@@ -91,7 +77,6 @@ const OrderConfirmation = () => {
     })
       .then((res) => res.text().then((txt) => ({ ok: res.ok, txt })))
       .then(({ ok, txt }) => {
-        console.log('VNPay callback →', txt);
         if (!ok || txt.trim().toUpperCase() !== 'OK') {
           throw new Error(txt);
         }
@@ -104,76 +89,22 @@ const OrderConfirmation = () => {
       });
   }, [vnpTxnRef, isPaymentAttempted, orderCodeFromUrl]);
 
-  /* ------------------- side-effect: fetch order details ------------------- */
   const fetchOrderDetails = async (code) => {
     setLoading(true);
     try {
       const res = await orderService.getOrderById(code);
       if (res.data?.data) {
-        const orderData = res.data.data;
-        setOrder(orderData);
-
-        const paymentCode = orderData?.paymentMethod?.code?.toLowerCase();
-
-        // Kiểm tra nếu là phương thức 'atm' và đang chờ thanh toán
-        const isPaymentPending = orderData.paymentStatus === 'waiting' || orderData.paymentStatus === 'unpaid';
-        if (paymentCode === 'atm' && isPaymentPending) {
-          try {
-            const qrRes = await paymentService.generateVietQR({
-              accountNumber: '2222555552005', // CÓ THỂ THAY BẰNG CONFIG TỪ ENV
-              accountName: 'NGUYEN QUOC KHAI',
-              bankCode: 'MB',
-              amount: orderData.finalPrice,
-              message: `Thanh toan ${orderData.orderCode}`,
-            });
-
-            console.log("📦 Response generateVietQR:", qrRes);
-
-            if (qrRes?.data?.qrImage) {
-              setVietQrImageUrl(qrRes.data.qrImage);
-              setVietQrInfo({
-                accountNumber: qrRes.data.accountNumber,
-                accountName: qrRes.data.accountName,
-                bankCode: qrRes.data.bankCode,
-                message: qrRes.data.message,
-              });
-
-              // Cập nhật lại URL để giữ QR
-              const encoded = encodeURIComponent(qrRes.data.qrImage);
-              const currentUrl = new URL(window.location.href);
-              currentUrl.searchParams.set('qr', encoded);
-              window.history.replaceState({}, '', currentUrl);
-            } else {
-              console.warn("❌ Backend không trả về qrImage.");
-              setVietQrImageUrl(null);
-              setVietQrInfo(null);
-            }
-          } catch (qrError) {
-            console.error('❌ Lỗi khi sinh QR VietQR:', qrError);
-            toast.error('Không thể tạo mã QR thanh toán.');
-            setVietQrImageUrl(null);
-            setVietQrInfo(null);
-          }
-        } else {
-          console.log("⚠️ Không phải phương thức thanh toán ATM hoặc không chờ thanh toán.");
-          setVietQrImageUrl(null);
-          setVietQrInfo(null);
-        }
+        setOrder(res.data.data);
       } else {
         toast.error('Không tìm thấy dữ liệu cho đơn hàng này.');
-        setVietQrImageUrl(null);
-        setVietQrInfo(null);
       }
     } catch (err) {
       console.error('❌ Lỗi lấy đơn hàng:', err);
       toast.error(err.response?.data?.message || 'Không thể tải thông tin đơn hàng.');
-      setVietQrImageUrl(null);
-      setVietQrInfo(null);
     } finally {
       setLoading(false);
     }
   };
-
 
   useEffect(() => {
     if (orderCodeFromUrl) {
@@ -182,25 +113,15 @@ const OrderConfirmation = () => {
       toast.error('Không tìm thấy mã đơn hàng trên URL.');
       setLoading(false);
     }
-  }, [orderCodeFromUrl]); // Loại bỏ location.search khỏi dependency chính để tránh chạy lại fetchOrderDetails không cần thiết
+  }, [orderCodeFromUrl]);
 
-  useEffect(() => {
-    // Đây là useEffect riêng để chỉ lắng nghe thay đổi của URL query param 'qr'
-    // và cập nhật state vietQrImageUrl nếu có
-    const qr = new URLSearchParams(location.search).get('qr');
-    if (qr) {
-      setVietQrImageUrl(decodeURIComponent(qr));
-    }
-  }, [location.search]); // Chạy khi location.search thay đổi
-
-  /* ------------------- handle pay again ------------------- */
   const handlePayAgain = async () => {
     if (!order) return;
     setLoading(true);
     try {
       const res = await paymentService.payAgain(order.id, { bankCode: '' });
       if (res.data?.payUrl) {
-        window.location.href = res.data.payUrl; // Redirect to new payment link
+        window.location.href = res.data.payUrl;
       } else {
         toast.error('Không thể tạo link thanh toán lại.');
       }
@@ -212,14 +133,7 @@ const OrderConfirmation = () => {
     }
   };
 
-  /* ------------------- loading / error ------------------- */
-  if (loading)
-    return (
-      <div className="flex justify-center items-center h-[60vh] bg-gray-50">
-        <Loader fullscreen={false} />
-      </div>
-    );
-
+  if (loading) return <OrderLoader fullscreen />;
   if (!order)
     return (
       <div className="flex justify-center items-center h-[60vh] bg-gray-50">
@@ -233,7 +147,6 @@ const OrderConfirmation = () => {
       </div>
     );
 
-  /* ------------------- destructuring data ------------------- */
   const {
     products = [],
     userAddress,
@@ -247,7 +160,7 @@ const OrderConfirmation = () => {
     orderCode: code,
     paymentStatus,
     status: orderStatus,
-    rewardPoints = 0 // 👈 THÊM DÒNG NÀY
+    rewardPoints = 0
   } = order;
 
   const shippingDiscount = Math.min(rawShipDiscount, shippingFee);
@@ -262,19 +175,15 @@ const OrderConfirmation = () => {
     time: order?.deliveryTime || 'Thời gian sẽ được nhân viên xác nhận khi gọi điện'
   };
 
-  // Sửa định nghĩa isCOD để dùng paymentMethod?.code từ backend
   const isCOD = paymentMethod?.code?.toLowerCase() === 'cod' || paymentStatus === 'unpaid';
 
   const isOrderProcessing = orderStatus === 'processing';
-  // 👉 Sửa isPaymentPending để bao gồm cả 'unpaid'
   const isPaymentPending = paymentStatus === 'waiting' || paymentStatus === 'unpaid';
   const isPaymentSuccessful = paymentStatus === 'paid' || isCOD;
 
-  /* ------------------- render ------------------- */
   return (
     <div className="bg-gray-100 py-8">
       <div className="max-w-[1200px] mx-auto">
-        {/* ---------- header ---------- */}
         <div className="bg-no-repeat bg-center bg-contain" style={{ backgroundImage: `url(${bgPc})` }}>
           <div className="px-4 pt-12 pb-8">
             <div className="text-center">
@@ -307,16 +216,12 @@ const OrderConfirmation = () => {
                   </p>
                 </>
               )}
-
-
             </div>
           </div>
         </div>
 
-
         <div className="pb-4">
           <div className="grid md:grid-cols-3 gap-4">
-
             <div className="md:col-span-2 space-y-4">
               <ProductList products={products} />
               <CustomerInfo {...customer} />
@@ -328,30 +233,19 @@ const OrderConfirmation = () => {
               />
             </div>
 
-
             <div className="bg-white p-4 rounded-xl shadow h-fit">
               <h2 className="text-base font-semibold mb-4 text-gray-800">Thông tin đơn hàng</h2>
 
               <div className="text-sm space-y-2">
-
                 <CopyableRow label="Mã đơn hàng" value={code} />
-
                 <Row label="Tổng tiền hàng" value={formatCurrencyVND(totalPrice)} bold />
-
-
-
                 <Row
                   label="Phí vận chuyển"
                   value={shippingFee === 0 ? 'Miễn phí' : formatCurrencyVND(shippingFee)}
                 />
-
-
-
-
                 <div className="pt-2">
                   <div className="border-t border-dashed border-gray-300 mb-2" />
                   <Row label="Cần thanh toán" value={formatCurrencyVND(finalPrice)} bold color="text-red-600" />
-
                   <div className="flex justify-between text-amber-600 text-[13px] mt-2 items-center">
                     <span>Điểm tích lũy</span>
                     <span className="flex items-center gap-1 font-semibold">
@@ -361,11 +255,8 @@ const OrderConfirmation = () => {
                       +{rewardPoints} điểm
                     </span>
                   </div>
-
-
                 </div>
               </div>
-
 
               <div className="mt-6 space-y-3">
                 {isPaymentPending &&
@@ -382,8 +273,9 @@ const OrderConfirmation = () => {
 
                 <Link
                   to="/"
-                  className={`text-white w-full py-2.5 rounded-md font-semibold inline-block text-center hover:opacity-85 transition-colors ${isPaymentPending && isOrderProcessing ? 'bg-gray-500' : 'bg-primary'
-                    }`}
+                  className={`text-white w-full py-2.5 rounded-md font-semibold inline-block text-center hover:opacity-85 transition-colors ${
+                    isPaymentPending && isOrderProcessing ? 'bg-gray-500' : 'bg-primary'
+                  }`}
                 >
                   Về trang chủ
                 </Link>
@@ -392,7 +284,6 @@ const OrderConfirmation = () => {
                 </Link>
               </div>
             </div>
-
           </div>
         </div>
       </div>

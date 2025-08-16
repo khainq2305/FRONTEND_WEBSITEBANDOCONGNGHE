@@ -26,7 +26,7 @@ const paymentIconMap = {
   stripe: ICON_STRIPE,
   credit: ICON_CREDIT,
   internalWallet: ICON_WALLET,
-  payos: ICON_PAYOS,
+  payos: ICON_ATM,
   credit_card: ICON_CREDIT,
   card: ICON_CREDIT,
 };
