@@ -25,6 +25,7 @@ import MessageOutlined from '@ant-design/icons/MessageOutlined';
 import SettingOutlined from '@ant-design/icons/SettingOutlined';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import { useNavigate } from 'react-router-dom';
 dayjs.extend(relativeTime);
 
 const avatarSX = { width: 36, height: 36, fontSize: '1rem' };
@@ -43,6 +44,7 @@ export default function Notification() {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const navigate = useNavigate();
 
   const handleMarkAsRead = async (id) => {
     try {
@@ -97,7 +99,6 @@ export default function Notification() {
   const renderNotificationContent = (item) => {
     const isSystem = item.type === 'system';
     const title = item.title;
-    const createdBy = item.createdBy ? `Admin ${item.createdBy}` : 'Hệ thống';
     return {
       avatar: (
         <Avatar
@@ -129,7 +130,6 @@ export default function Notification() {
           )}
         </Avatar>
       ),
-      
       secondaryText: (
         <>
           <Typography variant="h6" fontStyle="italic" sx={{ mb: 0.25 }}>
@@ -231,38 +231,40 @@ export default function Notification() {
                       </ListItem>
                     ) : (
                       notifications.map((item) => {
-                        const { avatar, primaryText, secondaryText } = renderNotificationContent(item);
+                        const { avatar, secondaryText } = renderNotificationContent(item);
                         return (
-                        <ListItem
-  key={item.id}
-  component={ListItemButton}
-  divider
-  selected={!item.isRead}
-  onClick={() => handleMarkAsRead(item.id)}
-  secondaryAction={
-    <Typography variant="caption" noWrap sx={{ pr: 2 }}>
-      {dayjs(item.createdAt).fromNow()}
-    </Typography>
-  }
->
-  <ListItemAvatar>{avatar}</ListItemAvatar>
-  <ListItemText primary={primaryText} secondary={secondaryText} />
-  {!item.isRead && (
-    <Box
-      sx={{
-        width: 9,
-        height: 9,
-        bgcolor: 'primary.main',
-        borderRadius: '50%',
-        position: 'absolute',
-        top: 17,
-        right: 7
-      }}
-      title="Chưa đọc"
-    />
-  )}
-</ListItem>
-
+                          <ListItem
+                            key={item.id}
+                            component={ListItemButton}
+                            divider
+                            selected={!item.isRead}
+                            onClick={() => {
+                              handleMarkAsRead(item.id);
+                              if (item.link) navigate(item.link);
+                            }}
+                            secondaryAction={
+                              <Typography variant="caption" noWrap sx={{ pr: 2 }}>
+                                {dayjs(item.createdAt).fromNow()}
+                              </Typography>
+                            }
+                          >
+                            <ListItemAvatar>{avatar}</ListItemAvatar>
+                            <ListItemText secondary={secondaryText} />
+                            {!item.isRead && (
+                              <Box
+                                sx={{
+                                  width: 9,
+                                  height: 9,
+                                  bgcolor: 'primary.main',
+                                  borderRadius: '50%',
+                                  position: 'absolute',
+                                  top: 17,
+                                  right: 7
+                                }}
+                                title="Chưa đọc"
+                              />
+                            )}
+                          </ListItem>
                         );
                       })
                     )}

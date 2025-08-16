@@ -31,8 +31,11 @@ const OrderConfirmation = () => {
   const vnpTxnRef = searchParams.get('vnp_TxnRef');
   const resultCode = searchParams.get('resultCode');
   const momoOrderId = searchParams.get('orderId');
+  const payosOrderCode = searchParams.get('orderCode'); // PayOS
+  const payosStatus = searchParams.get('status'); // PayOS
 
-  const orderCodeFromUrl = searchParams.get('orderCode') || momoOrderId || vnpTxnRef;
+  const orderCodeFromUrl = payosOrderCode || momoOrderId || vnpTxnRef || searchParams.get('orderCode');
+
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isPaymentAttempted, setIsPaymentAttempted] = useState(false);
@@ -62,7 +65,43 @@ const OrderConfirmation = () => {
         });
     }
   }, [momoOrderId, resultCode, isPaymentAttempted, orderCodeFromUrl]);
+ useEffect(() => {
+    // Chỉ chạy nếu có các tham số cần thiết
+    if (!payosOrderCode || !payosStatus || isPaymentAttempted) return;
 
+    // Ngăn việc chạy lại
+    setIsPaymentAttempted(true);
+    
+    // ✅ Trích xuất orderCode và status từ URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderCode = urlParams.get('orderCode');
+    const status = urlParams.get('status');
+
+    // Chỉ gửi request nếu có orderCode
+    if (orderCode) {
+        fetch(`http://localhost:5000/payment/payos-callback`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            // ✅ Gửi dữ liệu đúng định dạng
+            body: JSON.stringify({ orderCode, status })
+        })
+        .then((res) => res.text().then((txt) => ({ ok: res.ok, txt })))
+        .then(({ ok, txt }) => {
+            if (!ok || txt.trim().toUpperCase() !== 'CẬP NHẬT TRẠNG THÁI PAYOS THÀNH CÔNG') {
+                throw new Error(txt || 'PAYOS_CALLBACK_FAILED');
+            }
+            // Gọi hàm để tải lại đơn hàng sau khi cập nhật
+            fetchOrderDetails(orderCode);
+        })
+        .catch((err) => {
+            console.error('PayOS callback error:', err);
+            // Dù lỗi callback vẫn thử tải đơn để không chặn UI
+            fetchOrderDetails(orderCode);
+        });
+    } else {
+        console.error("Không tìm thấy orderCode trong URL.");
+    }
+}, [payosOrderCode, payosStatus, isPaymentAttempted]);
   useEffect(() => {
     if (!vnpTxnRef || isPaymentAttempted) return;
 
@@ -227,10 +266,7 @@ const OrderConfirmation = () => {
               <CustomerInfo {...customer} />
               <DeliveryMethod address={deliveryInfo.address} time={deliveryInfo.time} />
 
-              <PaymentMethod
-                method={paymentMethod?.name || 'Thanh toán khi nhận hàng (COD)'}
-                status={paymentStatus}
-              />
+              <PaymentMethod method={paymentMethod?.name || 'Thanh toán khi nhận hàng (COD)'} status={paymentStatus} />
             </div>
 
             <div className="bg-white p-4 rounded-xl shadow h-fit">
@@ -239,10 +275,7 @@ const OrderConfirmation = () => {
               <div className="text-sm space-y-2">
                 <CopyableRow label="Mã đơn hàng" value={code} />
                 <Row label="Tổng tiền hàng" value={formatCurrencyVND(totalPrice)} bold />
-                <Row
-                  label="Phí vận chuyển"
-                  value={shippingFee === 0 ? 'Miễn phí' : formatCurrencyVND(shippingFee)}
-                />
+                <Row label="Phí vận chuyển" value={shippingFee === 0 ? 'Miễn phí' : formatCurrencyVND(shippingFee)} />
                 <div className="pt-2">
                   <div className="border-t border-dashed border-gray-300 mb-2" />
                   <Row label="Cần thanh toán" value={formatCurrencyVND(finalPrice)} bold color="text-red-600" />

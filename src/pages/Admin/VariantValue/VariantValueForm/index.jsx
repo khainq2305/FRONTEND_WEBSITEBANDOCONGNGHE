@@ -46,15 +46,68 @@ const hexToRgb = (hex) => {
 const dist2 = (a, b) =>
   (a.r - b.r) * (a.r - b.r) + (a.g - b.g) * (a.g - b.g) + (a.b - b.b) * (a.b - b.b);
 
-const nearestColorName = (hex) => {
-  const c = hexToRgb(hex);
-  let best = VN_COLOR_NAMES[0], bestD = Infinity;
-  for (const item of VN_COLOR_NAMES) {
-    const d = dist2(c, hexToRgb(item.hex));
-    if (d < bestD) { bestD = d; best = item; }
+// ---- Hue-based color naming (VN) ----
+const hexToHsl = (hex) => {
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || "");
+  let r = 0, g = 0, b = 0;
+  if (m) {
+    r = parseInt(m[1], 16) / 255;
+    g = parseInt(m[2], 16) / 255;
+    b = parseInt(m[3], 16) / 255;
   }
-  return best.name;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const d = max - min;
+  let h = 0;
+  const l = (max + min) / 2;
+  const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+
+  if (d !== 0) {
+    switch (max) {
+      case r: h = ((g - b) / d) % 6; break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+    }
+    h = Math.round(h * 60);
+    if (h < 0) h += 360;
+  }
+  return { h, s, l }; // s,l in [0..1]
 };
+
+const nearestColorName = (hex) => {
+  const { h, s, l } = hexToHsl(hex);
+
+  // Achromatic first
+  if (s <= 0.10) {
+    if (l >= 0.88) return "trắng";
+    if (l <= 0.12) return "đen";
+    return "xám";
+  }
+
+  // Brown vs Orange split (orange band with lower lightness -> brown)
+  if (h >= 15 && h < 45) {
+    if (l < 0.45 && s >= 0.35) return "nâu";
+    return "cam";
+  }
+
+  // Yellow
+  if (h >= 45 && h < 70) return "vàng";
+
+  // Green
+  if (h >= 70 && h < 165) return "xanh lá";
+
+  // Cyan/Blue → gộp về "xanh dương"
+  if (h >= 165 && h < 270) return "xanh dương";
+
+  // Purple/Magenta
+  if (h >= 270 && h < 315) return "tím";
+
+  // Pink vs Red (đỏ nhạt/đỏ sáng → hồng)
+  if ((h >= 315 && h < 345) || ((h >= 345 || h < 15) && l >= 0.70)) return "hồng";
+
+  // Red (mặc định còn lại)
+  return "đỏ";
+};
+
 
 const norm = (s = '') =>
   s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();

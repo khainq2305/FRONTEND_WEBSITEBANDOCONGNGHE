@@ -8,6 +8,10 @@ export const orderService = {
     return post(`${base}${API_ENDPOINT.client.order.create}`, data);
   },
 getUserOrders: (params = {}) => get(`${base}/user-orders`, params),
+getOrderPublic: (orderCode) => {
+  return get(`${base}/orders/public/${orderCode}`);
+},
+
   lookupOrder: (code, phone) => {
     return get(`${base}${API_ENDPOINT.client.order.lookup(code, phone)}`);
   },

@@ -134,10 +134,7 @@ toast.success('Xác nhận đã nhận hàng thành công!');
     };
 
     const handleConfirmRefunded = async () => {
-        if (!refundedNote.trim()) {
-            alert('Vui lòng nhập ghi chú hoàn tiền (mã giao dịch, số tiền...).');
-            return;
-        }
+       
        
        await returnRefundService.updateReturnStatus(id, {
   status: 'refunded',
@@ -280,29 +277,30 @@ const handleConfirmReceivedSwal = async () => {
       
 
     
-<Dialog open={openRefundedDialog} onClose={handleCloseRefundedDialog}>
+<Dialog
+  open={openRefundedDialog}
+  onClose={handleCloseRefundedDialog}
+  maxWidth="xs"
+  fullWidth
+>
   <DialogTitle>Xác nhận hoàn tiền</DialogTitle>
   <DialogContent>
     <DialogContentText>
-      Bạn xác nhận đã hoàn tiền cho khách? Vui lòng nhập mã giao dịch hoặc ghi chú.
+      Bạn xác nhận đã hoàn tiền cho khách?
     </DialogContentText>
-    <TextField
-      fullWidth
-      multiline
-      rows={3}
-      value={refundedNote}
-      onChange={(e) => setRefundedNote(e.target.value)}
-      margin="dense"
-      placeholder="Ghi chú hoàn tiền (mã giao dịch, số tiền...)"
-    />
   </DialogContent>
   <DialogActions>
     <Button onClick={handleCloseRefundedDialog}>Huỷ</Button>
-    <Button onClick={handleConfirmRefunded} variant="contained" color="secondary">
+    <Button
+      onClick={handleConfirmRefunded}
+      variant="contained"
+      color="secondary"
+    >
       Xác nhận hoàn tiền
     </Button>
   </DialogActions>
 </Dialog>
+
 
       <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Thông tin chung</Typography>
       <Divider sx={{ mb: 2 }} />
