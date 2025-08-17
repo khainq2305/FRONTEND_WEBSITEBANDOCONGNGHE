@@ -43,7 +43,7 @@ const PopupModal = ({ isOpen, onClose }) => {
 
   return (
     <div
-      className={`fixed inset-0 flex items-center justify-center z-50
+      className={`fixed inset-0 flex items-center justify-center z-[9999]
                   transition-opacity bg-black/50  ${''}
                   ${isAnimatingIn && isOpen ? 'opacity-100 ease-out' : 'opacity-0 ease-in'}
                   duration-300`}

@@ -83,6 +83,7 @@ function CompareProducts() {
                             reviewsCount: p.soldCount ? p.soldCount.toLocaleString('vi-VN') + 'k' : '0',
                             features: p.features || {},
                             category: p.category || {},
+                            skus: p.skus || [],   
                         };
                     });
 
@@ -106,50 +107,44 @@ function CompareProducts() {
     const handleToggleDifferences = () => {
         setShowOnlyDifferences(!showOnlyDifferences);
     };
-
-    // Hàm này lọc các thông số dựa trên chế độ "chỉ hiển thị khác biệt"
-    // HÀM NÀY ĐÃ ĐƯỢC CHỈNH SỬA ĐỂ TỐI ƯU HƠN VÀ XỬ LÝ CÁC TRƯỜNG HỢP NULL/UNDEFINED
     const getFilteredFeatures = (featureKey) => {
         if (!showOnlyDifferences) {
-            return true; // Nếu không bật chế độ, hiển thị tất cả
+            return true; 
         }
 
-        // Lọc bỏ các sản phẩm null/undefined trước khi so sánh
+   
         const validProducts = products.filter(Boolean);
 
-        // Nếu có ít hơn 2 sản phẩm hợp lệ, không có gì để so sánh sự khác biệt
+        
         if (validProducts.length < 2) {
             return true;
         }
 
-        // Lấy giá trị của tính năng từ sản phẩm đầu tiên
-        // Đảm bảo truy cập an toàn để tránh lỗi nếu features hoặc featureKey không tồn tại
+     
         const firstProductFeatureValue = validProducts[0]?.features?.[featureKey];
 
-        // Duyệt qua các sản phẩm còn lại để tìm sự khác biệt
+      
         for (let i = 1; i < validProducts.length; i++) {
             const currentProductFeatureValue = validProducts[i]?.features?.[featureKey];
 
-            // So sánh các giá trị:
-            // 1. Nếu một trong hai là mảng và độ dài khác nhau, coi là khác biệt.
+         
             if (Array.isArray(firstProductFeatureValue) && Array.isArray(currentProductFeatureValue)) {
                 if (firstProductFeatureValue.length !== currentProductFeatureValue.length) {
                     return true;
                 }
-                // Nếu cùng là mảng và cùng độ dài, so sánh từng phần tử
+            
                 for (let j = 0; j < firstProductFeatureValue.length; j++) {
                     if (firstProductFeatureValue[j] !== currentProductFeatureValue[j]) {
                         return true;
                     }
                 }
             }
-            // 2. Nếu không phải mảng, hoặc một là mảng một không phải, so sánh trực tiếp
-            // Coi undefined/null là một giá trị để so sánh khác biệt
+            
             else if (firstProductFeatureValue !== currentProductFeatureValue) {
                 return true;
             }
         }
-        // Nếu duyệt hết mà không tìm thấy sự khác biệt nào
+     
         return false;
     };
 

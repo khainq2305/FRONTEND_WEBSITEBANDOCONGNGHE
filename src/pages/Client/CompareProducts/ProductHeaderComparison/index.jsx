@@ -141,7 +141,7 @@ const ProductHeaderComparison = ({
               ${productIndex < columnsToRender.length - 1 ? 'border-r border-gray-300' : ''} {/* Removed sm:border-r */}
               ${productIndex > 0 ? 'border-t border-gray-300 sm:border-t-0' : ''}
               min-w-[180px] lg:min-w-0
-            `} // Added min-w for smaller screens
+            `}
           >
             {product ? (
               <ProductCard product={product} onRemoveProduct={onRemoveProduct} />

@@ -180,12 +180,12 @@ export const API_ENDPOINT = {
     },
     userPoint: {
       base: `${API_BASE_URL}/points`,
-      total: '', // GET /points
-      history: '/history' // GET /points/history
+      total: '', 
+      history: '/history' 
     },
     membership: {
       base: `${API_BASE_URL}/membership`,
-      info: '/me' // GET /membership/me
+      info: '/me' 
     },
 
     news: {

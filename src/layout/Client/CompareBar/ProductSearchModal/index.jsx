@@ -8,7 +8,7 @@ const ProductSearchModal = ({
   onClose,
   targetCategoryId,
   onProductChange,
-  showToast, // ✅ THÊM DÒNG NÀY
+  showToast, 
 }) => {
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -63,14 +63,14 @@ const ProductSearchModal = ({
     useEffect(() => {
         if (isOpen && targetCategoryId) {
             setIsRecentlyViewedLoading(true);
-            console.log("Modal useEffect: Fetching recently viewed product for categoryId:", targetCategoryId); // DEBUG
+            console.log("Modal useEffect: Fetching recently viewed product for categoryId:", targetCategoryId); 
             productViewService.getRecentlyViewedByCategoryLevel1(targetCategoryId)
                 .then((response) => {
-                    console.log("Modal useEffect: Raw response for recently viewed:", response); // DEBUG
+                    console.log("Modal useEffect: Raw response for recently viewed:", response); 
                     const product = response?.data?.product;
-                    const normalizedProduct = normalizeProductData(product); // Chuẩn hóa dữ liệu
+                    const normalizedProduct = normalizeProductData(product);
                     setRecentlyViewedProduct(normalizedProduct);
-                    console.log("Modal useEffect: recentlyViewedProduct state set to:", normalizedProduct); // DEBUG
+                    console.log("Modal useEffect: recentlyViewedProduct state set to:", normalizedProduct); 
                 })
                 .catch((error) => {
                     console.error('❌ Lỗi khi lấy sản phẩm đã xem gần nhất:', error);
@@ -98,14 +98,14 @@ const ProductSearchModal = ({
         if (searchTerm.length > 1) {
             const delay = setTimeout(() => {
                 setIsLoadingSearch(true);
-                console.log("Modal useEffect: Searching for keyword:", searchTerm, "categoryId:", targetCategoryId); // DEBUG
+                console.log("Modal useEffect: Searching for keyword:", searchTerm, "categoryId:", targetCategoryId); 
                 productViewService
                     .searchForCompare({ keyword: searchTerm, page: 1, limit: 10, categoryId: targetCategoryId })
                     .then((res) => {
-                        console.log("Modal useEffect: Raw search response:", res); // DEBUG
-                        const productsWithFullCategory = (res.data.products || []).map(p => normalizeProductData(p)); // Chuẩn hóa từng sản phẩm
+                        console.log("Modal useEffect: Raw search response:", res); 
+                        const productsWithFullCategory = (res.data.products || []).map(p => normalizeProductData(p));
                         setSearchResults(productsWithFullCategory);
-                        console.log("Modal useEffect: Search results after processing:", productsWithFullCategory); // DEBUG
+                        console.log("Modal useEffect: Search results after processing:", productsWithFullCategory); 
                     })
                     .catch((err) => {
                         console.error('❌ Lỗi tìm kiếm:', err);

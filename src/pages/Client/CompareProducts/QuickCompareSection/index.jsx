@@ -7,7 +7,7 @@ const ChevronDownIcon = () => (
 );
 
 const QuickCompareSection = ({ products, specs = [], sidebarWidthClass, productColumnMinWidthClass }) => {
-  const CELL_PADDING = 'py-2 px-2.5 md:py-3 md:px-4'; // Tăng padding trên md
+  const CELL_PADDING = 'py-2 px-2.5 md:py-3 md:px-4'; 
 
   const quickSpecs = [...specs].slice(0, 5);
 
@@ -18,7 +18,7 @@ const QuickCompareSection = ({ products, specs = [], sidebarWidthClass, productC
 
   return (
     <div className="mb-2">
-      {/* Header của Quick Compare Section */}
+      
       <div className={`flex items-center p-3 h-[41px] md:h-[50px] ${sidebarWidthClass} border-r border-gray-300`}>
         <ChevronDownIcon />
         <h2 className="text-[13px] md:text-base font-semibold text-gray-800 ml-1.5 uppercase">
@@ -26,17 +26,17 @@ const QuickCompareSection = ({ products, specs = [], sidebarWidthClass, productC
         </h2>
       </div>
 
-      {/* Container cho các dòng thông số, thêm overflow-x-auto */}
+      
       <div className="overflow-x-auto">
-        <div className="min-w-[540px]"> {/* Adjusted min-w */}
+        <div className="min-w-[540px]">
           {quickSpecs.map((spec) => (
             <div key={spec.specKey} className="flex border-t border-gray-300 bg-white">
-              {/* Sidebar cho tên thông số */}
+             
               <div className={`${sidebarWidthClass} flex-shrink-0 ${CELL_PADDING} text-left font-medium whitespace-nowrap border-r border-gray-300 flex items-center text-xs md:text-sm`}>
                 {spec.displayName || spec.specKey}
               </div>
-              {/* Các cột giá trị thông số */}
-              <div className="flex-grow grid grid-cols-3"> {/* Changed to grid-cols-3 */}
+            
+              <div className="flex-grow grid grid-cols-3">
                 {columnsToRender.map((product, idx) => {
                   const value = product?.id !== undefined
                                 ? spec.values?.[String(product.id)]

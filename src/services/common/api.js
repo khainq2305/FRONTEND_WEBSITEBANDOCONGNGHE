@@ -47,7 +47,7 @@ API.interceptors.response.use(
     if (err.response?.status === 500) {
       toast.error('Lỗi máy chủ. Vui lòng thử lại sau.');
       if (navigateTo) {
-        navigateTo('/');
+        navigateTo('/500');
       } else {
         window.location.href = '/500';
       }

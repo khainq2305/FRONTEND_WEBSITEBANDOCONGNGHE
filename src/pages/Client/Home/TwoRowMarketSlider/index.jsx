@@ -31,8 +31,8 @@ const InlinedProductCard = ({
   inStock,
   badge,
   quantity,
-  isCategoryDeal = false, 
-  saleStatus 
+  isCategoryDeal = false,
+  saleStatus
 }) => {
   const parsePrice = (val) => {
     if (typeof val === 'number' && Number.isFinite(val)) return val;
@@ -123,8 +123,6 @@ const InlinedProductCard = ({
       {rating > 0 && <span className="text-gray-500">({parseFloat(rating).toFixed(1)})</span>}
     </>
   );
-
-  // ===== tồn kho & đã bán cho progressbar
   const originalQuantity = Number(typeof flashSaleInfo?.originalQuantity === 'number' ? flashSaleInfo.originalQuantity : (quantity ?? 0));
   const sold = Number(flashSaleInfo?.soldQuantity ?? flashSaleInfo?.sold ?? soldCount ?? 0);
   const soldCountSafe = Math.min(originalQuantity, Math.max(0, sold));
@@ -191,13 +189,14 @@ const InlinedProductCard = ({
       <div className="product-card-info px-1 xs:px-1.5 sm:px-2 pt-1 pb-2 sm:pb-2.5 flex flex-col flex-grow overflow-hidden">
         {renderBadge()}
         <h3
-          className="product-card-name font-semibold text-xs sm:text-[13px] text-gray-800 mb-1 group-hover/productCard:text-blue-600 transition-colors duration-200 h-[38px] line-clamp-2"
+          className="product-card-name font-semibold text-xs sm:text-[13px] text-gray-800 mb-1 group-hover/productCard:text-blue-600 transition-colors duration-200 h-[38px] overflow-x-auto whitespace-nowrap scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100"
           title={name}
         >
-          <Link to={`/product/${slug}`} className="hover:underline">
+          <Link to={`/product/${slug}`} className="hover:underline inline-block min-w-max">
             {name}
           </Link>
         </h3>
+
 
         <div className="mt-auto">
           <div className="product-card-price text-[13px] sm:text-sm mb-1.5">
@@ -381,12 +380,12 @@ const HorizontalProductSlider = ({ flashSales = [], bgColor = '#007BFF' }) => {
             quantity: Number(sku?.stock || 0),
             flashSaleInfo: isLive
               ? {
-                  originalQuantity: Number(sku?.stock || 0),
-                  soldQuantity: Number(sku?.totalSoldCount || 0),
-                  salePrice: Number(price || 0),
-                  originalPrice,
-                  limitPerUser: maxPerUser
-                }
+                originalQuantity: Number(sku?.stock || 0),
+                soldQuantity: Number(sku?.totalSoldCount || 0),
+                salePrice: Number(price || 0),
+                originalPrice,
+                limitPerUser: maxPerUser
+              }
               : null,
             isCategoryDeal: true,
             saleStatus
@@ -415,28 +414,28 @@ const HorizontalProductSlider = ({ flashSales = [], bgColor = '#007BFF' }) => {
     return 1;
   };
 
-const sliderSettings = {
-  dots: false,
-  speed: 600,
-  slidesToScroll: 1,
-  slidesToShow: 5,
-  infinite: totalProducts > 5,
-  arrows: totalProducts > 5,
-  autoplay: true,
-  autoplaySpeed: 7000,
-  pauseOnHover: true,
-  prevArrow: <CustomSlickArrow type="prev" />,
-  nextArrow: <CustomSlickArrow type="next" />,
-  swipeToSlide: true,
-  responsive: [
-    { breakpoint: 1279, settings: { slidesToShow: 4, arrows: totalProducts > 4, infinite: totalProducts > 4 } },
-    { breakpoint: 1024, settings: { slidesToShow: 3, arrows: totalProducts > 3, infinite: totalProducts > 3 } },
-    // iPad Mini 768px => vẫn 3 sp
-    { breakpoint: 768, settings: { slidesToShow: 3, arrows: false, infinite: totalProducts > 3, centerMode: false } },
-    { breakpoint: 640,  settings: { slidesToShow: 2, arrows: false, infinite: totalProducts > 2 } },
-    { breakpoint: 360,  settings: { slidesToShow: 1, arrows: false, infinite: totalProducts > 1 } },
-  ],
-};
+  const sliderSettings = {
+    dots: false,
+    speed: 600,
+    slidesToScroll: 1,
+    slidesToShow: 5,
+    infinite: totalProducts > 5,
+    arrows: totalProducts > 5,
+    autoplay: true,
+    autoplaySpeed: 7000,
+    pauseOnHover: true,
+    prevArrow: <CustomSlickArrow type="prev" />,
+    nextArrow: <CustomSlickArrow type="next" />,
+    swipeToSlide: true,
+    responsive: [
+      { breakpoint: 1279, settings: { slidesToShow: 4, arrows: totalProducts > 4, infinite: totalProducts > 4 } },
+      { breakpoint: 1024, settings: { slidesToShow: 3, arrows: totalProducts > 3, infinite: totalProducts > 3 } },
+      // iPad Mini 768px => vẫn 3 sp
+      { breakpoint: 768, settings: { slidesToShow: 3, arrows: false, infinite: totalProducts > 3, centerMode: false } },
+      { breakpoint: 640, settings: { slidesToShow: 2, arrows: false, infinite: totalProducts > 2 } },
+      { breakpoint: 360, settings: { slidesToShow: 1, arrows: false, infinite: totalProducts > 1 } },
+    ],
+  };
 
 
   if (events.length === 0) {
@@ -494,12 +493,12 @@ const sliderSettings = {
             </div>
           ) : (
             <Slider {...sliderSettings} ref={sliderRef} className="two-row-slick-slider">
-  {productsInput.map((p) => (
-    <div key={p.id}>
-      <InlinedProductCard {...p} saleStatus={saleStatus} />
-    </div>
-  ))}
-</Slider>
+              {productsInput.map((p) => (
+                <div key={p.id}>
+                  <InlinedProductCard {...p} saleStatus={saleStatus} />
+                </div>
+              ))}
+            </Slider>
 
           )}
         </div>

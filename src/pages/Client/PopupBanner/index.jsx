@@ -66,7 +66,8 @@ const PopupBanner = () => {
         <div className="relative inline-block align-middle">
           <button
             onClick={handleClose}
-            className="absolute top-[-3px] right-[-14px] bg-black/40 hover:bg-black/60 text-white w-10 h-10 rounded-full flex items-center justify-center text-3xl z-20"
+            className="absolute top-15 -right-3 bg-black/40 hover:bg-black/60 text-white w-12 h-12 rounded-full flex items-center justify-center text-2xl z-20"
+
             aria-label="Đóng popup"
           >
             &times;

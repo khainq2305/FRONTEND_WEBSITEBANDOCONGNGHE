@@ -56,19 +56,32 @@ const ProductFeaturesSection = ({
                 </div>
             </div>
 
-            {/* Hàng nút MUA NGAY */}
-            <div className="flex border-t border-gray-300">
-                <div className={`${SIDEBAR_WIDTH_CLASS} flex-shrink-0 ${CELL_PADDING} border-r border-gray-300 bg-white`}></div>
-                <div className="flex-grow grid grid-cols-3"> {/* Changed to grid-cols-3 */}
-                    {products.map((product, productIndex) => (
-                        <div key={`buy-${product?.id || productIndex}`} className={`${CELL_PADDING} text-center ${productIndex < products.length - 1 ? 'border-r border-gray-300' : ''} bg-white py-[9px] md:py-3 min-w-[180px] lg:min-w-0`}> {/* Added min-w */}
-                            <button className="bg-primary hover:bg-primary-dark text-white font-medium py-2 px-4 rounded-sm text-sm w-full max-w-[140px] mx-auto transition duration-150 ease-in-out focus:outline-none focus:ring-1 focus:ring-blue-300 tracking-tight">
-                                MUA NGAY
-                            </button>
-                        </div>
-                    ))}
-                </div>
+           {/* Hàng nút CHI TIẾT */}
+<div className="flex border-t border-gray-300">
+    <div className={`${SIDEBAR_WIDTH_CLASS} flex-shrink-0 ${CELL_PADDING} border-r border-gray-300 bg-white`}></div>
+    <div className="flex-grow grid grid-cols-3">
+        {products.map((product, productIndex) => (
+            <div
+                key={`detail-${product?.id || productIndex}`}
+                className={`${CELL_PADDING} text-center ${
+                    productIndex < products.length - 1 ? 'border-r border-gray-300' : ''
+                } bg-white py-[9px] md:py-3 min-w-[180px] lg:min-w-0`}
+            >
+                {product ? (
+                    <a
+                        href={`/product/${product.slug}`}
+                        className="bg-primary hover:bg-primary-dark text-white font-medium py-2 px-4 rounded-sm text-sm w-full max-w-[140px] mx-auto transition duration-150 ease-in-out focus:outline-none focus:ring-1 focus:ring-blue-300 tracking-tight block"
+                    >
+                        CHI TIẾT
+                    </a>
+                ) : (
+                    <div className="text-gray-400 text-sm">-</div>
+                )}
             </div>
+        ))}
+    </div>
+</div>
+
         </div>
     );
 };
