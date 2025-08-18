@@ -34,8 +34,8 @@ const OrderLoader = ({ fullscreen }) => {
       <Lottie
         animationData={loadingAnimation}
         style={{
-          width: fullscreen ? 250 : 200, 
-          height: fullscreen ? 250 : 200,
+          width: fullscreen ? 150 : 100,
+          height: fullscreen ? 150 : 100,
         }}
         loop
         autoplay

@@ -1,10 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
 
 import ReactDOM from 'react-dom';
-import { FiX, FiInfo, FiLoader, FiChevronRight, FiChevronUp } from 'react-icons/fi';
+import { FiX, FiInfo,FiHelpCircle, FiLoader, FiChevronRight, FiChevronUp } from 'react-icons/fi';
 import { FaGift, FaTicketAlt } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-
 import { couponService } from '../../../../services/client/couponService';
 import defaultShippingIcon from '../../../../assets/Client/images/image 12.png';
 import notQualifiedStamp from '../../../../assets/Client/images/image 13.png';
@@ -139,95 +138,103 @@ export const CouponCard = ({
   const GAP = 10;
   const LEFT_POS = PAD + logoW + GAP;
 
-  return (
+ 
+
+return (
+  <div
+    onClick={() => !notAllowed && onSelect(promo)}
+    className={`relative flex h-24 w-full ${cardBg} rounded-lg p-2 shadow-sm border border-gray-200
+      ${notAllowed ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}
+      ${isSelected ? 'ring-2 ring-[#1CA7EC]' : ''}
+    `}
+  >
     <div
-      onClick={() => !notAllowed && onSelect(promo)}
-      className={`relative flex h-24 w-full ${cardBg} rounded-lg p-2 shadow-sm border border-gray-200
-        ${notAllowed ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}
-        ${isSelected ? 'ring-2 ring-[#1CA7EC]' : ''}
-      `}
+      className={`flex items-center justify-center rounded-lg ${primaryBg}`} 
+      style={{ width: logoW }}
     >
+      {promo.type === 'shipping'
+        ? <img src={defaultShippingIcon} alt="" className="w-full h-full object-contain" />
+        : <FaGift className="text-white text-4xl" />}
+    </div>
+
+    <div className="absolute" style={{ top: 0, bottom: 0, left: LEFT_POS, width: 1 }}>
+      <span
+        style={{
+          position: 'absolute',
+          inset: 0,
+          left: '50%',
+          width: 1,
+          transform: 'translateX(-0.5px)',
+          background: `repeating-linear-gradient(${BLUE} 0 3px, transparent 3px 6px)`
+        }}
+      />
+    </div>
+
+    {['top', 'bottom'].map(pos => (
       <div
-        className={`flex items-center justify-center rounded-lg ${primaryBg}`} 
-        style={{ width: logoW }}
-      >
-        {promo.type === 'shipping'
-          ? <img src={defaultShippingIcon} alt="" className="w-full h-full object-contain" />
-          : <FaGift className="text-white text-4xl" />}
-      </div>
+        key={pos}
+        className="absolute"
+        style={{
+          [pos]: -HOLE / 2,
+          left: LEFT_POS,
+          width: HOLE,
+          height: HOLE,
+          borderRadius: '50%',
+          transform: 'translateX(-50%)',
+          backgroundColor: CONTAINER_BG,
+          ...(isSelected && {
+            [pos === 'top' ? 'borderBottom' : 'borderTop']: `2px solid ${BLUE}`
+          })
+        }}
+      />
+    ))}
 
-      <div className="absolute" style={{ top: 0, bottom: 0, left: LEFT_POS, width: 1 }}>
-        <span
-          style={{
-            position: 'absolute',
-            inset: 0,
-            left: '50%',
-            width: 1,
-            transform: 'translateX(-0.5px)',
-            background: `repeating-linear-gradient(${BLUE} 0 3px, transparent 3px 6px)`
-          }}
-        />
-      </div>
-
-      {['top', 'bottom'].map(pos => (
-        <div
-          key={pos}
-          className="absolute"
-          style={{
-            [pos]: -HOLE / 2,
-            left: LEFT_POS,
-            width: HOLE,
-            height: HOLE,
-            borderRadius: '50%',
-            transform: 'translateX(-50%)',
-            backgroundColor: CONTAINER_BG,
-            ...(isSelected && {
-              [pos === 'top' ? 'borderBottom' : 'borderTop']: `2px solid ${BLUE}`
-            })
-          }}
-        />
-      ))}
-
-      <div className="flex-1 flex flex-col justify-between pl-6">
-        <div className="flex items-start justify-between">
+    <div className="flex-1 flex flex-col justify-between pl-6">
+      <div className="flex items-start justify-between">
         <p
           className={`font-semibold text-sm text-gray-900 truncate
             ${titleClassName}
-            ${notAllowed ? 'text-gray-500' : ''} {/* Thêm dòng này để text mờ đi khi không đủ điều kiện */}
-          `}        >
-            {promo.title}
-          </p>
-          <FiInfo size={16} className="text-gray-400 flex-shrink-0 ml-1" />
-        </div>
-        <p className="text-xs text-gray-600">
-          {promo.description}
-          {/* Giữ lại dòng "Đã hết lượt sử dụng" */}
-          {isOutOfUsage && <span className="block text-red-500 font-normal">Đã hết lượt sử dụng</span>}
-          {/* Bỏ dòng "Còn: X lượt" */}
-          {/* {isUsageLimited && !isOutOfUsage && <span className="block text-gray-600 font-normal">Còn: {remainingUsage} lượt</span>} */}
+            ${notAllowed ? 'text-gray-500' : ''}
+          `}
+        >
+          {promo.title}
         </p>
-        <div className="flex items-center justify-between">
-          {promo.expiryDate && <p className="text-xs text-gray-500">HSD: {promo.expiryDate}</p>}
-          {promo.isApplicable && (
-            <button
-              onClick={e => { e.stopPropagation(); onSelect(promo); }}
-              className="text-xs font-semibold px-4 py-1.5 rounded bg-primary text-white hover:opacity-90"
-            >
-              {isSelected ? 'Bỏ chọn' : 'Áp dụng'}
-            </button>
-          )}
-        </div>
+        <FiInfo size={16} className="text-gray-400 flex-shrink-0 ml-1" />
       </div>
-
-      {!promo.isApplicable && (
-        <img
-          src={notQualifiedStamp}
-          alt="not-qualified"
-          className="absolute right-4 bottom-3 w-[72px] select-none pointer-events-none"
-        />
-      )}
+      <p className="text-xs text-gray-600">
+        {promo.description}
+        {isOutOfUsage && <span className="block text-red-500 font-normal">Đã hết lượt sử dụng</span>}
+      </p>
+      <div className="flex items-center justify-between">
+        {promo.expiryDate && <p className="text-xs text-gray-500">HSD: {promo.expiryDate}</p>}
+        {promo.isApplicable ? (
+          <button
+            onClick={e => { e.stopPropagation(); onSelect(promo); }}
+            className="text-xs font-semibold px-4 py-1.5 rounded bg-primary text-white hover:opacity-90"
+          >
+            {isSelected ? 'Bỏ chọn' : 'Áp dụng'}
+          </button>
+        ) : (
+          <FiHelpCircle
+            size={16}
+            className="text-gray-400 z-40 cursor-help"
+            title={promo.notApplicableReason || "Không đủ điều kiện áp dụng"}
+          />
+        )}
+      </div>
     </div>
-  );
+
+    {!promo.isApplicable && (
+      <img
+        src={notQualifiedStamp}
+        alt="not-qualified"
+        className="absolute right-4 bottom-3 w-[72px] select-none pointer-events-none"
+      />
+    )}
+  </div>
+)
+
+
 };
 
 const PromoModal = ({ modalTitle = 'Hồng Ân Khuyến Mãi', onClose, onApplySuccess, skuIds = [], orderTotal, appliedCode = '' }) => {
@@ -280,6 +287,7 @@ const PromoModal = ({ modalTitle = 'Hồng Ân Khuyến Mãi', onClose, onApplyS
               })
             : null,
           isApplicable: c.isApplicable,
+          notApplicableReason: c.notApplicableReason || null,
           totalQuantity: c.totalQuantity,
           usedCount: c.usedCount
         }))

@@ -366,7 +366,24 @@ export default function ProductDetail() {
   const productReviewCount = product.reviews?.length || 0;
   const selectedSku = product?.skus?.find((sku) => sku.id === skuId);
   const isFavorited = selectedSku?.isFavorited ?? false;
+  const optionBySku = productOptionsData.find((o) => o.skuId === skuId);
 
+  const compareData =
+    product && skuId
+      ? {
+          id: product.id,
+          name: product.name,
+          image: (optionBySku?.variantImage || mainImage || product.thumbnail) ?? '',
+          price: optionBySku?.numericPrice,
+          originalPrice: optionBySku?.numericOriginalPrice,
+          category: {
+            id: product.category?.id ?? product.categoryId ?? null,
+            name: product.category?.name ?? null,
+            topLevelId: product.category?.topLevelId ?? null,
+            topLevelName: product.category?.topLevelName ?? null
+          }
+        }
+      : null;
   return (
     <div className="bg-gray-100">
       {(isAddingToCart || isBuyingNow) && <OrderLoader fullscreen />}
@@ -383,6 +400,7 @@ export default function ProductDetail() {
             productName={productName}
             productId={product?.id}
             skuId={skuId}
+            compareData={compareData}
           />
 
           <ProductOptions

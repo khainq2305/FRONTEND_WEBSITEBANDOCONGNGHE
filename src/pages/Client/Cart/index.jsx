@@ -76,13 +76,14 @@ const [loading, setLoading] = useState(false);
 
 
 
-  const fetchCart = async () => {
+ const fetchCart = async () => {
   setLoading(true);
   try {
     const response = await cartService.getCart();
-    setPointInfo(response.data?.pointInfo || {});
 
+    setPointInfo(response.data?.pointInfo || {});
     const items = response.data?.cartItems || [];
+
     const formattedItems = items.map((item) => ({
       ...item,
       name: item.productName,
@@ -99,14 +100,22 @@ const [loading, setLoading] = useState(false);
     setCheckedItems(newChecked);
     setIsCartLoaded(true);
   } catch (error) {
-    console.error('Lỗi khi tải giỏ hàng:', error);
-    toast.error('Không thể tải giỏ hàng. Vui lòng thử lại.', {
-      position: 'top-right',
-    });
+    const status = error?.response?.status;
+    if (status === 401) {
+      
+      setCartItems([]);
+      setCheckedItems([]);
+      setIsCartLoaded(true);
+      return;
+    }
+
+    console.error("Lỗi khi tải giỏ hàng:", error);
+    toast.error("Không thể tải giỏ hàng. Vui lòng thử lại.", { position: "top-right" });
   } finally {
     setLoading(false);
   }
 };
+
 
 
   useEffect(() => {

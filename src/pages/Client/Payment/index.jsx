@@ -170,7 +170,7 @@ const finalAmount = totals.totalAmount - totals.discount - (usePoints ? pointInf
       </div>
 
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6 lg:items-start">
-        <div className="w-full lg:w-[70%] space-y-3 sm:space-y-4">
+        <div className={`w-full lg:w-[70%] space-y-3 sm:space-y-4 ${isLoadingAddress ? 'opacity-50 pointer-events-none' : ''}`}>
           <div className="bg-white rounded-lg p-4 shadow-md border border-gray-200 text-xs sm:text-sm">
             <h2 className="font-semibold text-sm sm:text-base mb-3 sm:mb-4">Sản phẩm trong đơn ({productsInOrder.length})</h2>
             <div className="product-list-inner-box bg-gray-50 p-3 rounded-md space-y-3 sm:space-y-4">
@@ -227,7 +227,7 @@ const finalAmount = totals.totalAmount - totals.discount - (usePoints ? pointInf
               )}
             </div>
           </div>
-          <ShippingMethodSelector selectedAddress={selectedAddress} cartItems={cartPayload} onSelect={setSelectedShipMethod} />
+          <ShippingMethodSelector isLoadingParent={isLoadingAddress} selectedAddress={selectedAddress} cartItems={cartPayload} onSelect={setSelectedShipMethod} />
           <CheckoutForm
             isLoading={isLoadingAddress}
             addressList={addressList}

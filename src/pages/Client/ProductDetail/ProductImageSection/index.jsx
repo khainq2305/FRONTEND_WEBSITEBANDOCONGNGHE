@@ -1,72 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import FeatureSlider from '../FeatureSlider'; 
+import FeatureSlider from '../FeatureSlider';
 import { wishlistService } from '@/services/client/wishlistService';
 import { toast } from 'react-toastify';
-import PopupModal from '@/layout/Client/Header/PopupModal'; 
-import FavoriteLoader from "@/components/common/FavoriteLoader"; 
-
+import PopupModal from '@/layout/Client/Header/PopupModal';
+import FavoriteLoader from '@/components/common/FavoriteLoader';
+import { useCompareStore } from '@/stores/useCompareStore';
+import compareIcon from '@/assets/Client/images/swap.png';
 
 const AnimationStyles = () => (
     <style>
         {`
-            @keyframes animate-pop {
-                0% { transform: scale(1); }
-                50% { transform: scale(1.3); }
-                100% { transform: scale(1); }
-            }
-            .animate-pop {
-                animation: animate-pop 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
-            }
+      @keyframes animate-pop {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.3); }
+        100% { transform: scale(1); }
+      }
+      .animate-pop { animation: animate-pop 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
 
-            .particle {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                width: 6px;
-                height: 6px;
-                border-radius: 50%;
-                background-color: #ef4444;
-                transform-origin: center center;
-                animation: particle-burst var(--duration) ease-out forwards;
-            }
-            @keyframes particle-burst {
-                0% {
-                    transform: translate(-50%, -50%) rotate(var(--angle)) translateY(0) scale(1);
-                    opacity: 1;
-                }
-                100% {
-                    transform: translate(-50%, -50%) rotate(var(--angle)) translateY(var(--distance)) scale(0);
-                    opacity: 0;
-                }
-            }
+      .particle {
+        position: absolute; top: 50%; left: 50%;
+        width: 6px; height: 6px; border-radius: 50%; background-color: #ef4444;
+        transform-origin: center center; animation: particle-burst var(--duration) ease-out forwards;
+      }
+      @keyframes particle-burst {
+        0% { transform: translate(-50%, -50%) rotate(var(--angle)) translateY(0) scale(1); opacity: 1; }
+        100% { transform: translate(-50%, -50%) rotate(var(--angle)) translateY(var(--distance)) scale(0); opacity: 0; }
+      }
 
-            @keyframes heart-break-left {
-                0% {
-                    transform: translateX(0) translateY(0) rotate(0deg) scale(1);
-                    opacity: 1;
-                }
-                100% {
-                    transform: translateX(-15px) translateY(-10px) rotate(-25deg) scale(0.8);
-                    opacity: 0;
-                }
-            }
-            @keyframes heart-break-right {
-                0% {
-                    transform: translateX(0) translateY(0) rotate(0deg) scale(1);
-                    opacity: 1;
-                }
-                100% {
-                    transform: translateX(15px) translateY(-10px) rotate(25deg) scale(0.8);
-                    opacity: 0;
-                }
-            }
-            .animate-heart-break-left {
-                animation: heart-break-left 0.6s ease-out forwards;
-            }
-            .animate-heart-break-right {
-                animation: heart-break-right 0.6s ease-out forwards;
-            }
-        `}
+      @keyframes heart-break-left {
+        0% { transform: translateX(0) translateY(0) rotate(0deg) scale(1); opacity: 1; }
+        100% { transform: translateX(-15px) translateY(-10px) rotate(-25deg) scale(0.8); opacity: 0; }
+      }
+      @keyframes heart-break-right {
+        0% { transform: translateX(0) translateY(0) rotate(0deg) scale(1); opacity: 1; }
+        100% { transform: translateX(15px) translateY(-10px) rotate(25deg) scale(0.8); opacity: 0; }
+      }
+      .animate-heart-break-left { animation: heart-break-left 0.6s ease-out forwards; }
+      .animate-heart-break-right { animation: heart-break-right 0.6s ease-out forwards; }
+    `}
     </style>
 );
 
@@ -79,7 +50,7 @@ const ParticleBurst = () => (
                 style={{
                     '--angle': `${i * 45}deg`,
                     '--distance': `${Math.random() * 20 + 40}px`,
-                    '--duration': `${Math.random() * 0.4 + 0.4}s`
+                    '--duration': `${Math.random() * 0.4 + 0.4}s`,
                 }}
             />
         ))}
@@ -95,10 +66,18 @@ const AnimatedHeartIcon = ({ isFavorited, isLiking, isUnliking, ...props }) => {
             {isLiking && <ParticleBurst />}
             {isUnliking ? (
                 <>
-                    <svg viewBox="0 0 24 24" className="absolute w-full h-full animate-heart-break-left" style={{ clipPath: 'polygon(0% 0%, 50% 0%, 50% 100%, 0% 100%)' }}>
+                    <svg
+                        viewBox="0 0 24 24"
+                        className="absolute w-full h-full animate-heart-break-left"
+                        style={{ clipPath: 'polygon(0% 0%, 50% 0%, 50% 100%, 0% 100%)' }}
+                    >
                         <path d={heartPath} fill="currentColor" />
                     </svg>
-                    <svg viewBox="0 0 24 24" className="absolute w-full h-full animate-heart-break-right" style={{ clipPath: 'polygon(50% 0%, 100% 0%, 100% 100%, 50% 100%)' }}>
+                    <svg
+                        viewBox="0 0 24 24"
+                        className="absolute w-full h-full animate-heart-break-right"
+                        style={{ clipPath: 'polygon(50% 0%, 100% 0%, 100% 100%, 50% 100%)' }}
+                    >
                         <path d={heartPath} fill="currentColor" />
                     </svg>
                 </>
@@ -133,27 +112,37 @@ export default function ProductImageSection({
     setMainImage,
     allImages = [],
     productName,
-    stickyTopOffset = 'xl:top-6', 
+    stickyTopOffset = 'xl:top-6',
     infoBoxContent,
     productId,
-    skuId
+    skuId,
+
+    compareData,
 }) {
     const [isFavorited, setIsFavorited] = useState(false);
     const [loading, setLoading] = useState(false);
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [isLiking, setIsLiking] = useState(false);
     const [isUnliking, setIsUnliking] = useState(false);
+    const setOpenCompareBar = useCompareStore((s) => s.setOpenCompareBar);
+
+    // Compare store
+    const compareItems = useCompareStore((s) => s.compareItems);
+    const addToCompare = useCompareStore((s) => s.addToCompare);
+    const removeFromCompare = useCompareStore((s) => s.removeFromCompare);
+    const clearCompare = useCompareStore((s) => s.clearCompare);
+    const setIsCompareBarCollapsed = useCompareStore((s) => s.setIsCompareBarCollapsed);
+
+    const inCompare = !!compareItems.find((it) => it && compareData && it.id === compareData.id);
 
     const getToken = () => localStorage.getItem('token') || sessionStorage.getItem('token');
     const [isLoggedIn, setIsLoggedIn] = useState(!!getToken());
 
     useEffect(() => {
         const checkLogin = () => setIsLoggedIn(!!getToken());
-
         window.addEventListener('storage', checkLogin);
         window.addEventListener('focus', checkLogin);
         checkLogin();
-
         return () => {
             window.removeEventListener('storage', checkLogin);
             window.removeEventListener('focus', checkLogin);
@@ -175,14 +164,11 @@ export default function ProductImageSection({
 
     const handleFavoriteToggle = async () => {
         if (!productId || !skuId || loading || isLiking || isUnliking) return;
-
         if (!isLoggedIn) {
             setShowLoginModal(true);
             return;
         }
-
         setLoading(true);
-
         if (isFavorited) {
             setIsUnliking(true);
             setTimeout(async () => {
@@ -214,6 +200,50 @@ export default function ProductImageSection({
         }
     };
 
+
+    const handleCompareToggle = () => {
+        if (!compareData) {
+            toast.info('Không đủ dữ liệu để so sánh.');
+            return;
+        }
+
+
+        if (inCompare) {
+            removeFromCompare(compareData.id);
+            toast.success('Đã bỏ khỏi danh sách so sánh.');
+            return;
+        }
+
+        const items = compareItems.filter(Boolean);
+        const first = items[0];
+
+
+        const prodTop =
+            compareData?.category?.topLevelId ?? compareData?.category?.id ?? null;
+        const firstTop =
+            first?.category?.topLevelId ?? first?.category?.id ?? null;
+
+        if (items.length > 0 && prodTop && firstTop && prodTop !== firstTop) {
+            clearCompare();
+            addToCompare(compareData);
+            setOpenCompareBar(true);
+
+            toast.success(`Đã xóa sản phẩm cũ và thêm "${compareData.name}" vào so sánh (khác danh mục cấp 1).`);
+            return;
+        }
+
+        if (items.length >= 3) {
+            toast.warn('Bạn chỉ có thể so sánh tối đa 3 sản phẩm.');
+            return;
+        }
+
+        addToCompare(compareData);
+        setOpenCompareBar(true);
+
+        toast.success('Đã thêm vào danh sách so sánh.');
+    };
+    // ===================================
+
     const currentIndex = allImages.findIndex((imgObj) => imgObj.imageFull === mainImage);
 
     const handlePreviousImage = () => {
@@ -229,65 +259,95 @@ export default function ProductImageSection({
     };
 
     const showArrows = allImages.length > 1;
-    const arrowButtonClasses = 'absolute top-1/2 transform -translate-y-1/2 p-2.5 rounded-full shadow-lg z-10 transition-opacity duration-200 opacity-60 group-hover:opacity-100 bg-white/70 backdrop-blur-sm hover:bg-white';
+    const arrowButtonClasses =
+        'absolute top-1/2 transform -translate-y-1/2 p-2.5 rounded-full shadow-lg z-10 transition-opacity duration-200 opacity-60 group-hover:opacity-100 bg-white/70 backdrop-blur-sm hover:bg-white';
+
+
+    const compareCount = compareItems.filter(Boolean).length;
 
     return (
-  <>
-    <AnimationStyles />
+        <>
+            <AnimationStyles />
 
-    {loading && <FavoriteLoader fullscreen />}
+            {loading && <FavoriteLoader fullscreen />}
 
-    <div className={`relative xl:sticky ${stickyTopOffset} xl:z-10 min-w-0`}>
-      <div className="bg-white md:shadow-xl md:rounded-lg md:p-4 space-y-4">
-        <div className="group w-full aspect-[4/3] overflow-hidden relative p-4">
-          <img
-            src={mainImage}
-            alt={productName || 'Product image'}
-            className="w-full h-full object-contain"
-          />
+            <div className={`relative xl:sticky ${stickyTopOffset} xl:z-10 min-w-0`}>
+                <div className="bg-white md:shadow-xl md:rounded-lg md:p-4 space-y-4">
+                    <div className="group w-full aspect-[4/3] overflow-hidden relative p-4">
+                        <img
+                            src={mainImage}
+                            alt={productName || 'Product image'}
+                            className="w-full h-full object-contain"
+                        />
 
-          <button
-            onClick={handleFavoriteToggle}
-            className="absolute top-3 left-3 sm:top-5 sm:left-5 p-1 text-red-600 z-20 hover:scale-110 active:scale-95 transition-transform"
-            aria-label={isFavorited ? 'Xóa khỏi Yêu thích' : 'Thêm vào Yêu thích'}
-            disabled={loading}
-            title={isFavorited ? 'Đã yêu thích' : 'Thêm vào yêu thích'}
-          >
-            <AnimatedHeartIcon
-              isFavorited={isFavorited}
-              isLiking={isLiking}
-              isUnliking={isUnliking}
-            />
-          </button>
 
-          {showArrows && (
-            <>
-              <button onClick={handlePreviousImage} className={`${arrowButtonClasses} left-3 sm:left-5`} aria-label="Ảnh trước">
-                <ChevronLeftIcon className="w-5 h-5" />
-              </button>
-              <button onClick={handleNextImage} className={`${arrowButtonClasses} right-3 sm:right-5`} aria-label="Ảnh kế tiếp">
-                <ChevronRightIcon className="w-5 h-5" />
-              </button>
-            </>
-          )}
-        </div>
+                        <button
+                            onClick={handleFavoriteToggle}
+                            className="absolute top-3 left-3 sm:top-5 sm:left-5 p-1 text-red-600 z-20 hover:scale-110 active:scale-95 transition-transform"
+                            aria-label={isFavorited ? 'Xóa khỏi Yêu thích' : 'Thêm vào Yêu thích'}
+                            disabled={loading}
+                            title={isFavorited ? 'Đã yêu thích' : 'Thêm vào yêu thích'}
+                        >
+                            <AnimatedHeartIcon
+                                isFavorited={isFavorited}
+                                isLiking={isLiking}
+                                isUnliking={isUnliking}
+                            />
+                        </button>
 
-        {FeatureSlider && (
-          <div className="px-4 py-2 md:px-0">
-            <FeatureSlider
-              images={allImages}
-              currentImage={mainImage}
-              onSelect={(imgFullUrl) => setMainImage(imgFullUrl)}
-            />
-          </div>
-        )}
 
-        {infoBoxContent && <div className="mt-4">{infoBoxContent}</div>}
-      </div>
+                        <div className="absolute top-3 left-3 sm:top-5 sm:left-5 z-20 flex items-center gap-2">
 
-      <PopupModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
-    </div>
-  </>
-);
+                            <button
+                                onClick={handleFavoriteToggle}
+                                className="p-1 text-red-600 hover:scale-110 active:scale-95 transition-transform"
+                                aria-label={isFavorited ? 'Xóa khỏi Yêu thích' : 'Thêm vào Yêu thích'}
+                                disabled={loading}
+                                title={isFavorited ? 'Đã yêu thích' : 'Thêm vào yêu thích'}
+                            >
+                                <AnimatedHeartIcon
+                                    isFavorited={isFavorited}
+                                    isLiking={isLiking}
+                                    isUnliking={isUnliking}
+                                />
+                            </button>
 
+
+                            <button
+                                onClick={handleCompareToggle}
+                                className={`w-8 h-8 rounded-full flex items-center justify-center shadow-md transition
+      ${inCompare
+                                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                        : 'bg-white text-blue-600 border border-blue-600 hover:bg-blue-50'}`}
+                                aria-label={inCompare ? 'Bỏ khỏi so sánh' : 'Thêm vào so sánh'}
+                                title={inCompare ? 'Bỏ khỏi so sánh' : 'Thêm vào so sánh'}
+                            >
+
+                                <img
+                                    src={compareIcon}
+                                    alt="So sánh"
+                                    className="w-7 h-7"
+                                />
+                            </button>
+                        </div>
+
+                    </div>
+
+                    {FeatureSlider && (
+                        <div className="px-4 py-2 md:px-0">
+                            <FeatureSlider
+                                images={allImages}
+                                currentImage={mainImage}
+                                onSelect={(imgFullUrl) => setMainImage(imgFullUrl)}
+                            />
+                        </div>
+                    )}
+
+                    {infoBoxContent && <div className="mt-4">{infoBoxContent}</div>}
+                </div>
+
+                <PopupModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
+            </div>
+        </>
+    );
 }
