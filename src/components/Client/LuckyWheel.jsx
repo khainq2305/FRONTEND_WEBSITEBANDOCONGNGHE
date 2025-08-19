@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Gift } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import PopupModal from "@/layout/Client/Header/PopupModal";
+import PopupModal from "../../layout/Client/Header/PopupModal";
+import WheelIcon from "@/assets/Client/images/99ef2555-2aca-4640-9cbb-6cf0a731f641.png";
 
 const LuckyWheel = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -22,25 +22,24 @@ const LuckyWheel = () => {
   const isLoggedIn = !!getUser();
 
   return (
-    <>
-      {/* Nút Gift */}
-      <button
-        onClick={() => {
-          if (!isLoggedIn) {
-            setShowLoginModal(true);
-          } else {
-            navigate("/mini-game");
-          }
-        }}
-        className="fixed bottom-24 left-6 z-50 w-16 h-16 rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-500 text-white shadow-lg border-4 border-white flex items-center justify-center animate-bounce"
-      >
-        <Gift className="w-7 h-7" />
-      </button>
+  <>
+    <img
+      src={WheelIcon}
+      alt="Lucky Wheel"
+      onClick={() => {
+        if (!isLoggedIn) {
+          setShowLoginModal(true);
+        } else {
+          navigate("/mini-game");
+        }
+      }}
+      className="fixed bottom-10 left-6 z-50 w-25 h-25 cursor-pointer animate-bounce object-contain"
+    />
 
-      {/* Popup yêu cầu đăng nhập */}
-      <PopupModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
-    </>
-  );
+    <PopupModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
+  </>
+);
+
 };
 
 export default LuckyWheel;

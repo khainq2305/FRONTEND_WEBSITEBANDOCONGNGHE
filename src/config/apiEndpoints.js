@@ -180,12 +180,12 @@ export const API_ENDPOINT = {
     },
     userPoint: {
       base: `${API_BASE_URL}/points`,
-      total: '', 
-      history: '/history' 
+      total: '',
+      history: '/history'
     },
     membership: {
       base: `${API_BASE_URL}/membership`,
-      info: '/me' 
+      info: '/me'
     },
 
     news: {
@@ -228,19 +228,19 @@ export const API_ENDPOINT = {
       history: '/history',
       claimTask: '/task'
     },
-wallet: {
-  base: `${API_BASE_URL}/wallet`,
-  balance: '', // GET /
-  transactions: '/transactions',
+    wallet: {
+      base: `${API_BASE_URL}/wallet`,
+      balance: '',
+      transactions: '/transactions',
 
-  enableGoogleAuth: '/google-auth/enable', // POST - tạo secret + QR code
-  verifyGoogleAuth: '/google-auth/verify', // POST - xác minh mã 6 số
-  disableGa: '/google-auth/disable',       // Tắt GA bằng mã GA
-
-  verifyPayment: '/auth/verify-payment'
-}
-
-},
+      enableGoogleAuth: '/google-auth/enable',
+      verifyGoogleAuth: '/google-auth/verify',
+      disableGa: '/google-auth/disable',
+      withdrawals: '/withdrawals',
+      withdrawalList: '/withdrawals',
+      verifyPayment: '/auth/verify-payment'
+    }
+  },
   admin: {
     permissions: {
       base: `${API_BASE_URL}/admin/permissions`,
@@ -264,7 +264,7 @@ wallet: {
       getUserInfo: '/account-info',
       logout: '/dang-xuat'
     },
-   dashboard: {
+    dashboard: {
       base: `${API_BASE_URL}/admin/dashboard`,
       getStats: '/stats',
       getRevenueByDate: '/revenue-by-date',
@@ -272,7 +272,7 @@ wallet: {
       getTopSellingProducts: '/top-selling-products',
       getFavoriteProducts: '/favorite-products',
       getAllTopSellingProducts: '/all-top-selling-products',
-      getAllFavoriteProducts: '/all-favorite-products',
+      getAllFavoriteProducts: '/all-favorite-products'
     },
     sku: {
       base: `${API_BASE_URL}/admin/sku`,
@@ -362,8 +362,7 @@ wallet: {
       updateStatus: (id) => `/update-status/${id}`,
       cancel: (id) => `/cancel/${id}`,
       updatePaymentStatus: (id) => `/update-payment-status/${id}`
-    }
-    ,
+    },
     returnRefund: {
       base: `${API_BASE_URL}/admin`,
       getReturnsByOrder: (orderId) => `/order/${orderId}/returns`,
@@ -530,7 +529,7 @@ wallet: {
       create: '/create',
       update: (id) => `/${id}`,
       delete: (id) => `/${id}`,
-      getById: (id) => get(`${base}/${id}`),
+      getById: (id) => get(`${base}/${id}`)
     },
     spinHistory: {
       base: `${API_BASE_URL}/admin/spin-history`,

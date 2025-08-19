@@ -11,6 +11,9 @@ import DisableGaModal from '../DisableGaModal';
 import GoogleAuthModal from '../GoogleAuthModal';
 import SuccessModal from '../SuccessModal';
 import GoogleAuthActiveImg from '@/assets/Client/images/Google_Authenticator_(April_2023).png';
+// các import khác…
+import TotpModal from '../../Payment/TotpModal'; // <-- thêm dòng này
+
 const TABS = [
   { key: 'all', label: 'Tất cả' },
   { key: 'refund', label: 'Hoàn tiền' },
@@ -34,6 +37,16 @@ export default function InternalWalletPage() {
   const [total, setTotal] = useState(0);
   const limit = 10;
   const [showDisableModal, setShowDisableModal] = useState(false);
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [withdrawLoading, setWithdrawLoading] = useState(false);
+  // ...
+  const [totpOpen, setTotpOpen] = useState(false);
+  const [totpLoading, setTotpLoading] = useState(false);
+  const [pendingWithdraw, setPendingWithdraw] = useState(null); // { amount, method }
+  // ...
+  const [accountName, setAccountName] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
 
   const openDisableGa = () => setShowDisableModal(true);
   const closeDisableGa = () => setShowDisableModal(false);
@@ -70,6 +83,62 @@ export default function InternalWalletPage() {
 
     fetchWalletData();
   }, [navigate, page]);
+  const startWithdraw = async () => {
+    if (!withdrawAmount || Number(withdrawAmount) <= 0) return alert('Vui lòng nhập số tiền hợp lệ');
+    if (Number(withdrawAmount) > balance) return alert('Số dư không đủ');
+
+    const payload = {
+      amount: Number(withdrawAmount),
+      method: 'payos',
+      accountName,
+      accountNumber
+    };
+
+    if (googleAuthEnabled) {
+      // Lưu yêu cầu, bật modal OTP
+      setPendingWithdraw(payload);
+      setTotpOpen(true);
+      return;
+    }
+
+    // Không bật 2FA thì xử lý như cũ
+    try {
+      setWithdrawLoading(true);
+      await walletService.requestWithdrawal(payload);
+      setSuccessMessage('Yêu cầu rút tiền thành công!');
+      setWithdrawOpen(false);
+      setWithdrawAmount('');
+      await refreshWallet();
+    } catch (err) {
+      alert(err?.response?.data?.message || 'Rút tiền thất bại.');
+    } finally {
+      setWithdrawLoading(false);
+    }
+  };
+  const handleSubmitTotp = async (token) => {
+    if (!pendingWithdraw) return;
+    try {
+      setTotpLoading(true);
+      await walletService.requestWithdrawal({
+        ...pendingWithdraw,
+        accountName,
+        accountNumber,
+        token
+      });
+
+      setSuccessMessage('Yêu cầu rút tiền thành công!');
+      setTotpOpen(false);
+      setWithdrawOpen(false);
+      setWithdrawAmount('');
+      setPendingWithdraw(null);
+      await refreshWallet();
+    } catch (err) {
+      // ném lỗi để TotpModal hiển thị “Mã OTP không hợp lệ”
+      throw err;
+    } finally {
+      setTotpLoading(false);
+    }
+  };
 
   const filtered = transactions.filter((tx) => (active === 'all' ? true : String(tx.type).toLowerCase() === active));
 
@@ -112,6 +181,7 @@ export default function InternalWalletPage() {
 
             <div>
               <div className="text-gray-700 text-sm font-medium">Số dư ví hiện tại</div>
+
               <div className="text-2xl font-bold text-yellow-500 -ml-1 mt-1 leading-tight tabular-nums">{formatCurrencyVND(balance)}</div>
               <p className="text-xs text-gray-500 mt-1 leading-tight">
                 {googleAuthEnabled ? (
@@ -231,6 +301,63 @@ export default function InternalWalletPage() {
           }}
         />
       )}
+      {withdrawOpen && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white w-[400px] rounded-lg shadow-lg p-6">
+            <h3 className="text-lg font-semibold mb-4">Yêu cầu rút tiền</h3>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Tên chủ tài khoản</label>
+            <input
+              type="text"
+              value={accountName}
+              onChange={(e) => setAccountName(e.target.value)}
+              placeholder="Nhập tên chủ tài khoản"
+              className="w-full border rounded-md px-3 py-2 mb-4 focus:ring-2 focus:ring-blue-400 outline-none"
+            />
+
+            <label className="block text-sm font-medium text-gray-700 mb-1">Số tài khoản</label>
+            <input
+              type="text"
+              value={accountNumber}
+              onChange={(e) => setAccountNumber(e.target.value)}
+              placeholder="Nhập số tài khoản"
+              className="w-full border rounded-md px-3 py-2 mb-4 focus:ring-2 focus:ring-blue-400 outline-none"
+            />
+
+            <label className="block text-sm font-medium text-gray-700 mb-1">Số tiền muốn rút</label>
+            <input
+              type="number"
+              value={withdrawAmount}
+              onChange={(e) => setWithdrawAmount(e.target.value)}
+              placeholder="Nhập số tiền"
+              className="w-full border rounded-md px-3 py-2 mb-4 focus:ring-2 focus:ring-blue-400 outline-none"
+            />
+
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setWithdrawOpen(false)} className="px-4 py-2 text-sm border rounded-md hover:bg-gray-50">
+                Hủy
+              </button>
+              <button
+                onClick={startWithdraw}
+                disabled={withdrawLoading}
+                className="px-4 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                {withdrawLoading ? 'Đang xử lý...' : 'Xác nhận'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      <TotpModal
+        open={totpOpen}
+        onClose={() => {
+          setTotpOpen(false);
+          setPendingWithdraw(null);
+        }}
+        onSubmit={handleSubmitTotp}
+        loading={totpLoading}
+        title="Xác thực rút tiền"
+        helper="Nhập mã 6 số từ Google Authenticator để xác nhận rút tiền."
+      />
     </section>
   );
 }

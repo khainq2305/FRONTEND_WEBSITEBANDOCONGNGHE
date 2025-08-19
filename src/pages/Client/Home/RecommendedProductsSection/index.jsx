@@ -149,7 +149,7 @@ const RecommendedProductsSection = ({ userId, currentProductId = null }) => {
               )}
 
               {product.discount > 0 && (
-                <div className="absolute top-2 left-2 bg-red-500 text-white text-[9px] sm:text-xs font-bold px-1.5 py-0.5 rounded z-30">
+                <div className="absolute top-2 left-2 bg-red-500 text-white text-[9px] sm:text-xs font-bold px-1.5 py-0.5 rounded z-25">
                   -{product.discount}%
                 </div>
               )}
