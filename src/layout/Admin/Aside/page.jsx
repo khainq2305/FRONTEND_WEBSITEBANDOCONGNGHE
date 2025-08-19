@@ -90,6 +90,16 @@ const pages = [
     type: 'group',
     children: [
       {
+        url: '/admin/products/create',
+        action: 'create',
+        subject: 'Product'
+      },
+      {
+        url: '/admin/products/edit/:slug',
+        action: 'update',
+        subject: 'Product'
+      },
+      {
         id: 'product-list',
         title: 'Sản phẩm',
         type: 'item',
@@ -110,6 +120,16 @@ const pages = [
         subject: 'Section'
       },
       {
+        url: '/admin/home-sections/edit/:slug',
+        action: 'update',
+        subject: 'Section'
+      },
+      {
+        url: '/admin/home-sections/create',
+        action: 'create',
+        subject: 'Section'
+      },
+      {
         id: 'highlighted-category',
         title: 'Danh mục nổi bật',
         type: 'item',
@@ -117,7 +137,17 @@ const pages = [
         icon: icons.ClusterOutlined,
         breadcrumbs: false,
         action: 'read',
-        subject: 'ProductCategory'
+        subject: 'Product'
+      },
+      {
+        url: '/admin/highlighted-category-items/create',
+        action: 'create',
+        subject: 'Product'
+      },
+      {
+        url: '/admin/highlighted-category-items/edit/:slug',
+        action: 'update',
+        subject: 'Product'
       },
       {
         id: 'product-category',
@@ -130,6 +160,16 @@ const pages = [
         subject: 'ProductCategory'
       },
       {
+        url: '/admin/categories/addd',
+        action: 'create',
+        subject: 'Product'
+      },
+      {
+        url: '/admin/categories/edit/:slug',
+        action: 'create',
+        subject: 'Product'
+      },
+      {
         id: 'product-attribute',
         title: 'Thuộc tính sản phẩm',
         type: 'item',
@@ -137,6 +177,16 @@ const pages = [
         icon: icons.SlidersOutlined,
         breadcrumbs: false,
         action: 'read',
+        subject: 'Product'
+      },
+      {
+        url: '/admin/product-variants/create',
+        action: 'create',
+        subject: 'Product'
+      },
+      {
+        url: '/admin/product-variants/edit/:slug',
+        action: 'update',
         subject: 'Product'
       },
       {
@@ -148,7 +198,18 @@ const pages = [
         breadcrumbs: false,
         action: 'read',
         subject: 'Brand'
-      }
+      },
+      {
+        url: '/admin/brands/create',
+        action: 'create',
+        subject: 'Brand'
+      },
+      {
+        url: '/admin/brands/edit/:slug',
+        action: 'edit',
+        subject: 'Brand'
+      },
+      
     ]
   },
 
@@ -204,7 +265,17 @@ const pages = [
             breadcrumbs: false,
             action: 'read',
             subject: 'Banner'
-          }
+          },
+          {
+            url: '/admin/banners/create',
+            action: 'create',
+            subject: 'Banner'
+          },
+          {
+            url: '/admin/banners/edit/:slug',
+            action: 'update',
+            subject: 'Banner'
+          },
         ]
       },
       {
@@ -234,6 +305,11 @@ const pages = [
             breadcrumbs: false,
             action: 'create',
             subject: 'coupon'
+          },
+          {
+            url: '/admin/coupons/edit/:id',
+            action: 'update',
+            subject: 'coupon'
           }
         ]
       },
@@ -253,6 +329,16 @@ const pages = [
             icon: icons.TableOutlined,
             breadcrumbs: false,
             action: 'read',
+            subject: 'SpinReward'
+          },
+          {
+            url: '/admin/spin-rewards/edit/:id',
+            action: 'update',
+            subject: 'SpinReward'
+          },
+          {
+            url: '/admin/spin-rewards/create',
+            action: 'create',
             subject: 'SpinReward'
           },
           {
@@ -336,6 +422,11 @@ const pages = [
         subject: 'Order'
       },
       {
+        url: '/admin/orders',
+        action: 'update',
+        subject: 'Order'
+      },
+      {
         id: 'return-requests',
         title: 'Yêu cầu đổi/trả',
         type: 'item',
@@ -361,7 +452,7 @@ const pages = [
         icon: icons.CommentOutlined,
         breadcrumbs: false,
         action: 'read',
-        subject: 'comment'
+        subject: 'Comment'
       },
       {
         id: 'productqna',
@@ -399,7 +490,7 @@ const pages = [
             exact: false,
             activeMenu: '/admin/users',
             action: 'read',
-            subject: 'user'
+            subject: 'User'
           },
           {
             id: 'user-add',
@@ -409,7 +500,7 @@ const pages = [
             icon: icons.UserAddOutlined,
             exact: true,
             action: 'create',
-            subject: 'user'
+            subject: 'User'
           }
         ]
       },

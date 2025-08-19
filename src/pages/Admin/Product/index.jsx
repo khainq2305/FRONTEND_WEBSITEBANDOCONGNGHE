@@ -37,6 +37,7 @@ import ImportExportIcon from '@mui/icons-material/ImportExport';
 import HighlightText from '../../../components/Admin/HighlightText';
 import { useNavigate } from 'react-router-dom';
 import Breadcrumb from '../../../components/common/Breadcrumb';
+import ButtonCustom from '@/components/Admin/Button';
 
 export default function ProductListPage() {
   const [products, setProducts] = useState([]);
@@ -362,9 +363,10 @@ const handleDragEnd = async ({ active, over }) => {
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, mt: 2 }}>
         <Typography variant="h4">Danh sách sản phẩm</Typography>
-        <Button variant="contained" onClick={() => navigate('/admin/products/create')}>
+        {/* <Button variant="contained" onClick={() => navigate('/admin/products/create')}>
           + Thêm sản phẩm
-        </Button>
+        </Button> */}
+        <ButtonCustom label={'Thêm sản phẩm'} onClick={() => navigate('/admin/products/create')} action={'create'} />
       </Box>
 
       <Box sx={{ p: 2, mb: 2, border: '1px solid #eee', borderRadius: 2, bgcolor: '#fafafa' }}>

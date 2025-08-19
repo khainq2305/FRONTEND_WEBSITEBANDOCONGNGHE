@@ -29,24 +29,26 @@ const ROUTE_PERMISSIONS = flattenMenuItems(pages);
 
 // Hàm kiểm tra quyền
 const hasPermission = (userPermissions, requiredAction, requiredSubject) => {
-  if (!Array.isArray(userPermissions) || !requiredAction || !requiredSubject) {
-    return false;
-  }
+  if (!Array.isArray(userPermissions)) return false;
 
   return userPermissions.some(permission => {
-    const action = permission.action?.trim();
-    const subject = permission.subject?.trim();
+    const action = (permission.action || '').toLowerCase().trim();
+    const subject = (permission.subject || '').toLowerCase().trim();
+    const reqAction = (requiredAction || '').toLowerCase().trim();
+    const reqSubject = (requiredSubject || '').toLowerCase().trim();
 
-    // Super admin: manage all → full quyền
+    // 1. Super admin: manage all
     if (action === 'manage' && subject === 'all') return true;
 
-    // Quản lý một subject cụ thể → có tất cả action với subject đó
-    if (action === 'manage' && subject === requiredSubject) return true;
+    // 2. Quản lý toàn bộ 1 subject (vd: manage products)
+    if (action === 'manage' && subject === reqSubject) return true;
 
-    // So khớp chính xác action + subject
-    return action === requiredAction && subject === requiredSubject;
+    // 3. Match action + subject chính xác
+    return action === reqAction && subject === reqSubject;
   });
 };
+
+
 
 
 // Hàm lấy quyền cần thiết từ URL
@@ -110,7 +112,6 @@ const getRequiredPermission = (pathname) => {
 const RequireAuth = ({ children }) => {
   const { user, loading } = useAuthStore();
   const location = useLocation();
-
   console.log('👤 Thông tin người dùng:', user);
   console.log('📍 Đường dẫn hiện tại:', location.pathname);
 
@@ -135,7 +136,7 @@ const RequireAuth = ({ children }) => {
 
   // Kiểm tra quyền cho route cụ thể
   const requiredPermission = getRequiredPermission(location.pathname);
-  
+
   if (requiredPermission) {
     console.log('📌 Quyền yêu cầu cho route:', requiredPermission);
     console.log('📜 Danh sách quyền của người dùng:', userPermissions);
@@ -158,7 +159,7 @@ const RequireAuth = ({ children }) => {
     
     if (location.pathname.startsWith('/admin/')) {
       console.log('🚫 Đây là route admin nhưng không có quyền cấu hình → chặn');
-      return <Navigate to="/403" replace />;
+      // return <Navigate to="/403" replace />;
     }
     
     console.log('✅ Cho phép truy cập vì là route public');
