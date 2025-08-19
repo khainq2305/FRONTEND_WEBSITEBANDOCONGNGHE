@@ -463,6 +463,11 @@ const pages = [
         breadcrumbs: false,
         action: 'read',
         subject: 'ProductQA'
+      }, 
+      {
+        url: '/admin/product-question/:id',
+        action: 'read',
+        subject: 'ProductQA'
       }
     ]
   },

@@ -159,7 +159,7 @@ const RequireAuth = ({ children }) => {
     
     if (location.pathname.startsWith('/admin/')) {
       console.log('🚫 Đây là route admin nhưng không có quyền cấu hình → chặn');
-      // return <Navigate to="/403" replace />;
+      return <Navigate to="/403" replace />;
     }
     
     console.log('✅ Cho phép truy cập vì là route public');
