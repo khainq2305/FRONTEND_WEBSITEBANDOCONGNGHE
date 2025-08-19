@@ -158,8 +158,9 @@ const News = () => {
         counts={counts}
         to="/admin/them-bai-viet-moi" 
         label="Thêm bài viết"
+        action={'create'}
+
       />
-      <ButtonCustom label="Thêm bài viết" to="/admin/them-bai-viet-moi" action={'create'} />
       <div className="p-4">
         <ArticleFilters
   filters={filters}

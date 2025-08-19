@@ -3,7 +3,7 @@ import useAuthStore from '@/stores/AuthStore';
 import LoaderAdmin from './LoaderVip';
 import pages from '@/layout/Admin/Aside/page';
 
-// Utility để flatten nested menu items
+// Utility để flatten menu items lồng nhau
 const flattenMenuItems = (items) => {
   const result = [];
   
@@ -24,31 +24,86 @@ const flattenMenuItems = (items) => {
   return result;
 };
 
-// Cache flattened items để tối ưu performance
+// Danh sách route + quyền được flatten sẵn để tối ưu hiệu suất
 const ROUTE_PERMISSIONS = flattenMenuItems(pages);
 
-// Utility để check permission
+// Hàm kiểm tra quyền
 const hasPermission = (userPermissions, requiredAction, requiredSubject) => {
-  return userPermissions.some(
-    permission => permission.action === requiredAction && permission.subject === requiredSubject
-  );
+  if (!Array.isArray(userPermissions) || !requiredAction || !requiredSubject) {
+    return false;
+  }
+
+  return userPermissions.some(permission => {
+    const action = permission.action?.trim();
+    const subject = permission.subject?.trim();
+
+    // Super admin: manage all → full quyền
+    if (action === 'manage' && subject === 'all') return true;
+
+    // Quản lý một subject cụ thể → có tất cả action với subject đó
+    if (action === 'manage' && subject === requiredSubject) return true;
+
+    // So khớp chính xác action + subject
+    return action === requiredAction && subject === requiredSubject;
+  });
 };
 
-// Utility để tìm permission yêu cầu từ URL
+
+// Hàm lấy quyền cần thiết từ URL
 const getRequiredPermission = (pathname) => {
-  // Exact match trước
-  const exactMatch = ROUTE_PERMISSIONS.find(route => route.url === pathname);
-  if (exactMatch) return exactMatch;
+  console.log('🔍 Kiểm tra đường dẫn:', pathname);
+  console.log('📜 Danh sách route có quyền:', ROUTE_PERMISSIONS);
   
-  // Dynamic route matching (ví dụ: /admin/posts/123/edit)
+  // Ưu tiên match chính xác trước
+  const exactMatch = ROUTE_PERMISSIONS.find(route => route.url === pathname);
+  if (exactMatch) {
+    console.log('✅ Tìm thấy route khớp chính xác:', exactMatch);
+    return exactMatch;
+  }
+  
+  // Match route động (có :param)
   const dynamicMatch = ROUTE_PERMISSIONS.find(route => {
     if (!route.url.includes(':')) return false;
-    
-    const routePattern = route.url.replace(/:\w+/g, '[^/]+');
+
+    const routePattern = route.url.replace(/:[^/]+/g, '[^/]+');
     const regex = new RegExp(`^${routePattern}$`);
-    return regex.test(pathname);
+    const matches = regex.test(pathname);
+
+    console.log(`🛠 Kiểm tra route động: ${route.url}`);
+    console.log(`   📌 Pattern: ${routePattern}`);
+    console.log(`   📌 Pathname: ${pathname}`);
+    console.log(`   📌 Kết quả khớp: ${matches}`);
+
+    return matches;
   });
+
+  // Nếu không thấy thì thử match partial path
+  if (!dynamicMatch) {
+    console.log('🔄 Thử match một phần đường dẫn...');
+    const partialMatch = ROUTE_PERMISSIONS.find(route => {
+      if (!route.url.includes(':')) return false;
+      
+      const routeSegments = route.url.split('/').filter(Boolean);
+      const pathSegments = pathname.split('/').filter(Boolean);
+      
+      if (routeSegments.length !== pathSegments.length) return false;
+      
+      const matches = routeSegments.every((routeSegment, index) => {
+        if (routeSegment.startsWith(':')) return true;
+        return routeSegment === pathSegments[index];
+      });
+      
+      if (matches) {
+        console.log('✅ Tìm thấy match một phần:', route);
+      }
+      
+      return matches;
+    });
+    
+    return partialMatch;
+  }
   
+  console.log('📌 Kết quả cuối cùng:', dynamicMatch || null);
   return dynamicMatch;
 };
 
@@ -56,34 +111,59 @@ const RequireAuth = ({ children }) => {
   const { user, loading } = useAuthStore();
   const location = useLocation();
 
+  console.log('👤 Thông tin người dùng:', user);
+  console.log('📍 Đường dẫn hiện tại:', location.pathname);
+
   if (loading) return <LoaderAdmin />;
 
-  // Check authentication
+  // Nếu chưa đăng nhập → điều hướng sang trang đăng nhập
   if (!user) {
+    console.log('🚫 Chưa đăng nhập, chuyển hướng sang /dang-nhap');
     return <Navigate to="/dang-nhap" replace />;
   }
-  
-  // Check role access
-  const hasAccess = (user.roles || []).some(role => role.canAccess === true);
-  if (!hasAccess) {
+
+  // Kiểm tra xem user có bất kỳ quyền hợp lệ nào không
+  const userPermissions = user.permissions || [];
+  const hasAnyValidPermission = userPermissions.some(
+    (perm) => perm.action?.trim() && perm.subject?.trim()
+  );
+
+  if (!hasAnyValidPermission) {
+    console.log('🚫 Người dùng không có bất kỳ quyền hợp lệ nào');
     return <Navigate to="/403" replace />;
   }
 
-  // Check route-specific permissions
+  // Kiểm tra quyền cho route cụ thể
   const requiredPermission = getRequiredPermission(location.pathname);
   
   if (requiredPermission) {
+    console.log('📌 Quyền yêu cầu cho route:', requiredPermission);
+    console.log('📜 Danh sách quyền của người dùng:', userPermissions);
+    
     const hasRoutePermission = hasPermission(
-      user.permissions || [], 
-      requiredPermission.action, 
+      userPermissions,
+      requiredPermission.action,
       requiredPermission.subject
     );
     
+    console.log(`✅ Có quyền truy cập route này: ${hasRoutePermission}`);
+    
     if (!hasRoutePermission) {
+      console.log('🚫 Không đủ quyền, chuyển hướng sang /403');
       return <Navigate to="/403" replace />;
     }
+  } else {
+    // Nếu route không có trong cấu hình quyền
+    console.log('ℹ️ Route này không có cấu hình quyền:', location.pathname);
+    
+    if (location.pathname.startsWith('/admin/')) {
+      console.log('🚫 Đây là route admin nhưng không có quyền cấu hình → chặn');
+      return <Navigate to="/403" replace />;
+    }
+    
+    console.log('✅ Cho phép truy cập vì là route public');
   }
-  
+
   return children;
 };
 

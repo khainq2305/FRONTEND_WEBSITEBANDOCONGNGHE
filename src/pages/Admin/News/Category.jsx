@@ -171,6 +171,7 @@ console.log('🔍 sending filters:', filters);
           counts={counts}
           to="/admin/them-danh-muc-bai-viet"
           label="Thêm danh mục mới"
+          action={'create'}
         />
       </div>
 

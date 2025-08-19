@@ -28,7 +28,7 @@ import SearchInput from 'components/common/SearchInput';
 import MoreActionsMenu from '../MoreActionsMenu';
 import MUIPagination from 'components/common/Pagination';
 import Loader from 'components/common/Loader';
-import { getAllUsers, updateUserStatus, resetUserPassword, getDeletedUsers, forceDeleteManyUsers } from 'services/admin/userService';
+import { getAllUsers, updateUserStatus, resetUserPassword, getDeletedUsers, forceDeleteManyUsers, updateRoles } from 'services/admin/userService';
 import { toast } from 'react-toastify';
 import RoleSelectDialog from '../UserDetailDialog/PromotionDialog';
 import UserDetailDialog from '../UserDetailDialog';
@@ -200,17 +200,18 @@ const UserList = () => {
   };
 
   const handleApplyRoles = async (roles) => {
-    console.log('📤 Vai trò được chọn:', roles);
     setSelectedRoles(roles);
     try {
-      const response = await axios.put(
-        `http://localhost:5000/admin/users/${selectedUser.id}/roles`,
-        { roleIds: roles },
-        { withCredentials: true }
-      );
-      toast.success(response.data.message || 'Ok');
+      const data = await updateRoles(selectedUser.id, roles);
+      toast.success(data.message || 'Cập nhật vai trò thành công');
     } catch (error) {
-      console.error('❌ Lỗi khi cập nhật vai trò:', error.response?.data || error.message);
+      const errorMessage =
+        error.response?.data?.message ||
+        (typeof error.response?.data === 'string' ? error.response.data : null) ||
+        error.message;
+  
+      toast.error(errorMessage);
+      console.error('❌ Lỗi khi cập nhật vai trò:', errorMessage);
     }
   };
   // --- Kết thúc phần hàm xử lý logic ---

@@ -63,6 +63,13 @@ export const forceDeleteManyUsers = async (ids) => {
   const res = await API.post('/users/force-delete-many', { ids });
   return res.data;
 };
+export const updateRoles = async (userId, roles) => {
+  const res = await API.put(
+    `${API_ENDPOINT.admin.user.users}/${userId}/roles`,
+    { roleIds: roles }
+  );
+  return res.data;
+};
 
 
 

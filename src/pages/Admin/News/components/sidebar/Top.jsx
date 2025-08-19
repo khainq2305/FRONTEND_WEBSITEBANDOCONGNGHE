@@ -9,24 +9,22 @@ import {
   Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   TextField, Select, FormControl, Checkbox, Avatar, Typography
 } from '@mui/material';
+import ButtonCustom from '@/components/Admin/Button';
 const Top = ({
   title = 'Tiêu đề',
   tabs = [],
   activeTab,
   onTabChange,
   to, label,
-  counts
+  counts,
+  action = null
 }) => {
-  console.log('Go to:', counts);
   const navigate = useNavigate();
   return (
     <div className="space-y-2">
       {/* Tiêu đề + nút thêm */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h6" fontWeight={600}>{title}</Typography>
-        <Button variant="contained" onClick={() => navigate(to)}>
-      + {label}
-    </Button>
+      {to && <ButtonCustom label={label} to={to} action={action} />}
       </Box>
 
       {/* Tabs */}
