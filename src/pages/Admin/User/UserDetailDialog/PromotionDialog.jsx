@@ -17,7 +17,8 @@ import Typography from '@mui/material/Typography';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import CloseIcon from '@mui/icons-material/Close';
 import Avatar from '@mui/material/Avatar'; // ✅ Import Avatar
-import { rolesService } from '@/services/admin/rolesService';
+import { getAllRolesApi } from '@/services/admin/userService';
+// import { fetchAllRoles } from '@/services/admin/userService';
 // --- Component Dialog có thể tái sử dụng ---
 // Bạn có thể lưu component này vào một file riêng, ví dụ: 'components/RoleSelectDialog.js'
 
@@ -31,7 +32,7 @@ import { rolesService } from '@/services/admin/rolesService';
  * @param {Function} props.onClose - Hàm được gọi khi đóng Dialog.
  * @param {Function} props.onApply - Hàm được gọi khi nhấn "Áp dụng", trả về mảng ID đã chọn.
  */
-export default function RoleSelectDialog({ open, onClose, onApply, defaultSelected = [], user = [] }) {
+export default function RoleSelectDialog({ open, onClose, onApply, defaultSelected = [], user = [], fetchUsers }) {
   // State để lưu các ID của vai trò đang được chọn
   const [selectedIds, setSelectedIds] = useState([]);
   const [roles, setRoles] = useState([])
@@ -40,11 +41,11 @@ export default function RoleSelectDialog({ open, onClose, onApply, defaultSelect
 
   const getAllRoles = async () => {
     try {
-      const res = await rolesService.getAll()
-      setRoles(res.data.data)
-      console.log('roles',res.data.data)
+      const res = await getAllRolesApi()
+      setRoles(res.data)
+      console.log('roles',res.data)
     } catch (error) {
-      
+      console.log('không lấy đc role', error.response)
     }
   }
   // Cập nhật state mỗi khi dialog mở
@@ -80,11 +81,15 @@ export default function RoleSelectDialog({ open, onClose, onApply, defaultSelect
   };
 
   // Xử lý khi nhấn nút "Áp dụng"
-  const handleApply = () => {
-    onApply(selectedIds);
-    onClose();
+  const handleApply = async () => {
+    try {
+      await onApply(selectedIds);  // chạy API update/lock/assign role
+      await fetchUsers();          // gọi lại API lấy danh sách mới
+      onClose();                   // đóng modal
+    } catch (err) {
+      console.error("Lỗi khi apply:", err);
+    }
   };
-  console.log(user)
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 4 } }}>
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

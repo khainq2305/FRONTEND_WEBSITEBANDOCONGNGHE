@@ -23,72 +23,93 @@ const OrderItem = ({ order, searchTerm, refetchOrders }) => {
     const moreButtonRef = useRef(null);
     const [loadingReorder, setLoadingReorder] = useState(false);
     const productsToShowInitially = 2;
-    const getOrderStatusDisplay = (order) => {
-        const rr = order.returnRequest;
+   const getOrderStatusDisplay = (order) => {
+  const rr = order.returnRequest;
 
-        if (rr) {
-            if (rr.status === 'refunded') {
-                return {
-                    text: 'Đã hoàn tiền',
-                    dotColor: 'bg-green-500',
-                    bgColor: 'bg-green-100',
-                    textColor: 'text-green-600',
-                };
-            }
-
-            const highlightReturnRequest = [
-                'pending',
-                'approved',
-                'awaiting_pickup',
-                'pickup_booked',
-                'returning',
-                'received',
-                'cancelled',
-            ].includes(rr.status);
-
-            if (highlightReturnRequest) {
-                let text = 'Yêu cầu trả hàng/hoàn tiền';
-
-                if (rr.status === 'pending') {
-                    text = 'CYBERZONE ĐANG XEM XÉT';
-                } else if (rr.status === 'cancelled') {
-                    text = 'YÊU CẦU ĐÃ BỊ HỦY';
-                }
-
-                return {
-                    text,
-                    dotColor: 'bg-yellow-500',
-                    bgColor: 'bg-yellow-100',
-                    textColor: 'text-gray-800 dark:text-gray-200',
-                };
-            }
-        }
-
-
-        switch (order.status) {
-            case 'cancelled':
-                return {
-                    text: order.statusText,
-                    dotColor: 'bg-red-500',
-                    bgColor: 'bg-red-100',
-                    textColor: 'text-red-600',
-                };
-            case 'pending_payment':
-                return {
-                    text: order.statusText,
-                    dotColor: 'bg-yellow-500',
-                    bgColor: 'bg-yellow-100',
-                    textColor: 'text-yellow-600',
-                };
-            default:
-                return {
-                    text: order.statusText,
-                    dotColor: 'bg-green-500',
-                    bgColor: 'bg-green-100',
-                    textColor: 'text-gray-800 dark:text-gray-200',
-                };
-        }
+  if (rr?.status === 'rejected') {
+    return {
+      text: 'YÊU CẦU BỊ TỪ CHỐI',
+      dotColor: 'bg-red-500',
+      bgColor: 'bg-red-100',
+      textColor: 'text-red-600',
     };
+  }
+const allowChooseReturnMethodStatuses = [
+    'approved',
+    'awaiting_pickup',
+    'pickup_booked',
+    'received',
+    'refunded'
+  ];
+  if (
+    rr &&
+    rr.status &&
+    allowChooseReturnMethodStatuses.includes(rr.status) &&
+    !rr.returnMethod
+  ) {
+    return {
+      text: 'CHỌN CÁCH HOÀN HÀNG', // bạn có thể để rỗng và hiển thị nút riêng
+      dotColor: 'bg-blue-500',
+      bgColor: 'bg-blue-100',
+      textColor: 'text-blue-600',
+      isChooseReturnMethod: true, // flag để render nút thay text
+    };
+  }
+  if (rr?.status === 'refunded') {
+    return {
+      text: 'Đã hoàn tiền',
+      dotColor: 'bg-green-500',
+      bgColor: 'bg-green-100',
+      textColor: 'text-green-600',
+    };
+  }
+
+  if (
+    rr &&
+    ['pending', 'approved', 'awaiting_pickup', 'pickup_booked', 'returning', 'received', 'cancelled'].includes(rr.status)
+  ) {
+    let text = 'Yêu cầu trả hàng/hoàn tiền';
+
+    if (rr.status === 'pending') {
+      text = 'CYBERZONE ĐANG XEM XÉT';
+    } else if (rr.status === 'cancelled') {
+      text = 'YÊU CẦU ĐÃ BỊ HỦY';
+    }
+
+    return {
+      text,
+      dotColor: 'bg-yellow-500',
+      bgColor: 'bg-yellow-100',
+      textColor: 'text-gray-800 dark:text-gray-200',
+    };
+  }
+
+  // fallback theo order.status
+  switch (order.status) {
+    case 'cancelled':
+      return {
+        text: order.statusText,
+        dotColor: 'bg-red-500',
+        bgColor: 'bg-red-100',
+        textColor: 'text-red-600',
+      };
+    case 'pending_payment':
+      return {
+        text: order.statusText,
+        dotColor: 'bg-yellow-500',
+        bgColor: 'bg-yellow-100',
+        textColor: 'text-yellow-600',
+      };
+    default:
+      return {
+        text: order.statusText,
+        dotColor: 'bg-green-500',
+        bgColor: 'bg-green-100',
+        textColor: 'text-gray-800 dark:text-gray-200',
+      };
+  }
+};
+
 
 
     const statusDisplay = getOrderStatusDisplay(order);
@@ -197,8 +218,9 @@ const OrderItem = ({ order, searchTerm, refetchOrders }) => {
                 {order.products.slice(0, showAllProducts ? order.products.length : productsToShowInitially).map((product, index) => {
                     const isOutOfStock = Boolean(product?.isOutOfStock);
 
-                    const isReturning = order.returnRequest?.status !== 'cancelled' &&
-                        order.returnRequest?.items?.some(item => item.skuId === product.skuId);
+                const isReturning = order.returnRequest?.status !== 'cancelled'
+  && order.returnRequest?.status !== 'rejected' 
+  && order.returnRequest?.items?.some(item => item.skuId === product.skuId);
 
 
                     const isProductInReturnRequest = order.returnRequest &&
@@ -294,15 +316,19 @@ const OrderItem = ({ order, searchTerm, refetchOrders }) => {
                 <div className="px-4 py-3 sm:py-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
 
                     {order.returnRequest ? (
-                        order.returnRequest.status === 'cancelled' ? (
-                            <p className="text-xs text-gray-500 italic dark:text-gray-400 max-w-[360px] leading-snug">
-                                Yêu cầu <strong>đã bị hủy</strong>
-                            </p>
-                        ) : (
-                            <p className="text-xs text-gray-600 dark:text-gray-400 max-w-[360px] leading-snug">
-                                Yêu cầu <strong>trả hàng / hoàn tiền</strong>
-                            </p>
-                        )
+                     order.returnRequest.status === 'cancelled' ? (
+    <p className="text-xs text-gray-500 italic dark:text-gray-400 max-w-[360px] leading-snug">
+      Yêu cầu <strong>đã bị hủy</strong>
+    </p>
+  ) : order.returnRequest.status === 'rejected' ? ( 
+    <p className="text-xs text-red-600 italic dark:text-red-400 max-w-[360px] leading-snug">
+      Yêu cầu <strong>bị từ chối</strong>
+    </p>
+  ) : (
+    <p className="text-xs text-gray-600 dark:text-gray-400 max-w-[360px] leading-snug">
+      Yêu cầu <strong>trả hàng / hoàn tiền</strong>
+    </p>
+  )
                     ) : order.buttons.includes('Đã nhận hàng') ? (
                         <p className="text-xs text-gray-600 dark:text-gray-400 max-w-[360px] leading-snug">
                             Vui lòng chỉ nhấn <strong>"Đã nhận được hàng"</strong> khi đơn hàng đã được giao đến bạn và sản phẩm nhận được không có vấn đề nào.
@@ -487,129 +513,122 @@ const RenderDonMuaContent = () => {
     const [totalItems, setTotalItems] = useState(0);
     const itemsPerPage = 10;
 
-    const mapApiDataToView = (apiOrders = []) =>
-        apiOrders.map(order => {
+const mapApiDataToView = (apiOrders = []) =>
+  apiOrders.map(order => {
+    const tabId = order.status || 'unknown';
 
-            const tabId = order.status || 'unknown';
+    let statusText = '';
+    let statusColor = 'text-gray-800';
 
+    switch (order.status) {
+      case 'processing':
+        statusText = 'ĐANG XỬ LÝ';
+        break;
+      case 'shipping':
+        statusText = 'ĐANG GIAO';
+        break;
+      case 'delivered':
+        statusText = 'ĐÃ GIAO';
+        break;
+      case 'completed':
+        statusText = 'HOÀN THÀNH';
+        break;
+      case 'cancelled':
+        statusText = 'ĐÃ HỦY';
+        break;
+      default:
+        statusText = 'KHÔNG RÕ';
+    }
 
-            let statusText = '';
-            let statusColor = 'text-gray-800';
+    const rr = order.returnRequest;
+    const hasRR = !!rr;
 
-            switch (order.status) {
-                case 'processing':
-                    statusText = 'ĐANG XỬ LÝ';
-                    break;
-                case 'shipping':
-                    statusText = 'ĐANG GIAO';
-                    break;
-                case 'delivered':
-                    statusText = 'ĐÃ GIAO';
-                    break;
-                case 'completed':
-                    statusText = 'HOÀN THÀNH';
-                    break;
-                case 'cancelled':
-                    statusText = 'ĐÃ HỦY';
-                    break;
-                default:
-                    statusText = 'KHÔNG RÕ';
-            }
+    const buttons = [];
 
-            const rr = order.returnRequest;
-            const hasRR = !!rr;
-       
-            const buttons = [];
+    if (order.status === 'processing') {
+      const manualTransferCodes = ['atm', 'vietqr', 'manual_transfer'];
+      const isManualTransfer = manualTransferCodes.includes(order.paymentMethod?.code);
+      if (order.paymentStatus === 'waiting' && !isManualTransfer) {
+        buttons.push('Thanh toán lại');
+      }
+      buttons.push('Hủy đơn');
+    }
 
-         
-            if (order.status === 'processing') {
-                const manualTransferCodes = ['atm', 'vietqr', 'manual_transfer'];
-                const isManualTransfer = manualTransferCodes.includes(order.paymentMethod?.code);
+    if (order.status === 'shipping' && !hasRR) {
+      buttons.push('Đã nhận hàng');
+    }
 
-                if (order.paymentStatus === 'waiting' && !isManualTransfer) {
-                    buttons.push('Thanh toán lại');
-                }
-                buttons.push('Hủy đơn'); 
-            }
+    if (order.status === 'delivered') {
+      if (!hasRR || (rr?.status === 'cancelled' && rr?.cancelledBy === 'user')) {
+        buttons.push('Trả hàng/Hoàn tiền');
+      }
+      if (!hasRR) {
+        buttons.push('Đã nhận hàng');
+      }
+    }
 
-            // ——— SHIPPING
-            if (order.status === 'shipping' && !hasRR) {
-                buttons.push('Đã nhận hàng');
-            }
+    const allowChooseReturnMethodStatuses = ['approved', 'awaiting_pickup', 'pickup_booked', 'received', 'refunded'];
+    if (
+      hasRR &&
+      rr.status &&
+      allowChooseReturnMethodStatuses.includes(rr.status) &&
+      !rr.returnMethod
+    ) {
+      buttons.push('Chọn cách hoàn hàng');
+    }
 
-          
-            if (order.status === 'delivered') {
-                if (!hasRR || (rr?.status === 'cancelled' && rr?.cancelledBy === 'user')) {
-                    buttons.push('Trả hàng/Hoàn tiền');
-                }
-            }
+    if (order.status === 'completed') {
+      buttons.push('Mua Lại');
+      if (!hasRR || (rr?.status === 'cancelled' && rr?.cancelledBy === 'user')) {
+        buttons.push('Trả hàng/Hoàn tiền');
+      }
+    }
 
+    if (hasRR) {
+      buttons.push('Xem chi tiết trả hàng');
+    }
 
-       
-            const allowChooseReturnMethodStatuses = ['approved', 'awaiting_pickup', 'pickup_booked', 'received', 'refunded'];
-            if (
-                hasRR &&
-                rr.status && 
-                allowChooseReturnMethodStatuses.includes(rr.status) &&
-                !rr.returnMethod
-            ) {
-                buttons.push('Chọn cách hoàn hàng');
-            }
+    if (order.status === 'cancelled') {
+      buttons.push('Mua Lại');
+    }
 
-            if (order.status === 'completed') {
-                buttons.push('Mua Lại');
-                if (!hasRR || (rr?.status === 'cancelled' && rr?.cancelledBy === 'user')) {
-                    buttons.push('Trả hàng/Hoàn tiền');
-                }
-            }
-
-
-        
-            if (hasRR) {
-                buttons.push('Xem chi tiết trả hàng');
-            }
-
-          
-            if (order.status === 'cancelled') buttons.push('Mua Lại');
-
-            return {
-                id: order.id,
-                tabId,
-                statusText,
-                status: order.status,
-                statusColor, 
-                orderCode: order.orderCode,
-                createdAt: order.createdAt,
-                totalAmount: order.finalPrice,
-                shippingAddress: order.shippingAddress || null,
-                paymentMethod: order.paymentMethod || null,
-                paymentMethodCode: order.paymentMethod?.code || null,
-                returnRequest: order.returnRequest
-                    ? {
-                        id: order.returnRequest.id,
-                        returnCode: order.returnRequest.returnCode,
-                        deadlineChooseReturnMethod: order.returnRequest.deadlineChooseReturnMethod,
-                        status: order.returnRequest.status,
-                        cancelledBy: order.returnRequest.cancelledBy || null, 
-                        returnMethod: order.returnRequest.returnMethod,
-                       
-                        items: order.returnRequest.items || [] 
-                    }
-                    : null,
-                paymentStatus: order.paymentStatus,
-                products: order.products.map(p => ({
-                    skuId: p.skuId,
-                    imageUrl: p.imageUrl,
-                    name: p.name,
-                    variation: p.variation,
-                    quantity: p.quantity,
-                    price: p.price,
-                    originalPrice: p.originalPrice,
-                     isOutOfStock: Boolean(p.isOutOfStock),
-                })),
-                buttons,
-            };
-        });
+    return {
+      id: order.id,
+      tabId,
+      statusText,
+      status: order.status,
+      statusColor,
+      orderCode: order.orderCode,
+      createdAt: order.createdAt,
+      totalAmount: order.finalPrice,
+      shippingAddress: order.shippingAddress || null,
+      paymentMethod: order.paymentMethod || null,
+      paymentMethodCode: order.paymentMethod?.code || null,
+      returnRequest: order.returnRequest
+        ? {
+            id: order.returnRequest.id,
+            returnCode: order.returnRequest.returnCode,
+            deadlineChooseReturnMethod: order.returnRequest.deadlineChooseReturnMethod,
+            status: order.returnRequest.status,
+            cancelledBy: order.returnRequest.cancelledBy || null,
+            returnMethod: order.returnRequest.returnMethod,
+            items: order.returnRequest.items || []
+          }
+        : null,
+      paymentStatus: order.paymentStatus,
+      products: order.products.map(p => ({
+        skuId: p.skuId,
+        imageUrl: p.imageUrl,
+        name: p.name,
+        variation: p.variation,
+        quantity: p.quantity,
+        price: p.price,
+        originalPrice: p.originalPrice,
+        isOutOfStock: Boolean(p.isOutOfStock)
+      })),
+      buttons
+    };
+  });
 
 
     const fetchOrders = async (page = 1) => {

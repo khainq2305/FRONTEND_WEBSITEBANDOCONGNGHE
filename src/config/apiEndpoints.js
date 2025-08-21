@@ -135,9 +135,11 @@ export const API_ENDPOINT = {
       getDetail: (id) => `/${id}/detail`,
       cancel: (id) => `/${id}/cancel`,
       getByReturnCode: (code) => `/by-code/${code}`,
-
+      dropoffServices: (id) => `/${id}/dropoff-services`,
+      createDropoff: (id) => `/${id}/create-dropoff`,
       chooseMethod: (id) => `/${id}/choose-method`,
-      bookPickup: (id) => `/${id}/book-pickup`
+      bookPickup: (id) => `/${id}/book-pickup`,
+      pickupFee: (id) => `/${id}/pickup-fee`
     },
     news: {
       base: `${API_BASE_URL}/tin-noi-bat`,
@@ -364,7 +366,7 @@ export const API_ENDPOINT = {
       updatePaymentStatus: (id) => `/update-payment-status/${id}`
     },
     returnRefund: {
-      base: `${API_BASE_URL}/admin`,
+        base: `${API_BASE_URL}/admin/returnRequest`,
       getReturnsByOrder: (orderId) => `/order/${orderId}/returns`,
       updateReturnStatus: (id) => `/returns/${id}/status`,
       getReturnDetail: (id) => `/returns/${id}`,

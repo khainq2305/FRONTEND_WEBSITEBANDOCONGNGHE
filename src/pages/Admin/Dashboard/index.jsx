@@ -27,8 +27,6 @@ import FavoriteProductsChart from "./FavoriteProductsChart"
 import TopProductsTable from "./TopProductsTable"
 import FavoriteProductsTable from "./FavoriteProductsTable"
 
-import domtoimage from 'dom-to-image';
-import jsPDF from "jspdf"
 import * as XLSX from "xlsx"
 import { saveAs } from "file-saver"
 import { dashboardService } from "@/services/admin/dashboardService"
@@ -125,55 +123,6 @@ export default function Dashboard() {
         break
     }
   }
-
-  const handleExportPDF = async () => {
-    if (!dashboardContentRef.current) {
-      toast.error("Không tìm thấy nội dung để xuất PDF.", { position: "top-right" });
-      return;
-    }
-
-    const content = dashboardContentRef.current;
-    const originalBodyOverflow = document.body.style.overflow;
-
-    try {
-      window.scrollTo(0, 0);
-      document.body.style.overflow = "hidden";
-
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
-      const imgData = await domtoimage.toPng(content, {
-        quality: 0.98,
-        bgcolor: "#ffffff",
-      });
-
-      const pdf = new jsPDF("p", "mm", "a4");
-      const imgWidth = 210;
-      const pageHeight = 297;
-      const imgHeight = (content.offsetHeight * imgWidth) / content.offsetWidth;
-
-      let heightLeft = imgHeight;
-      let position = 0;
-
-      pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-      position += pageHeight;
-
-      while (heightLeft > 0) {
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, -position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-        position += pageHeight;
-      }
-
-      pdf.save("dashboard_report.pdf");
-      toast.success("Xuất PDF thành công!", { position: "top-right" });
-    } catch (error) {
-      console.error("❌ Lỗi khi xuất PDF (dom-to-image):", error);
-      toast.error("Đã xảy ra lỗi khi xuất PDF. Vui lòng thử lại.", { position: "top-right" });
-    } finally {
-      document.body.style.overflow = originalBodyOverflow;
-    }
-  };
 
   const handleExportExcel = async () => {
     try {
@@ -313,27 +262,6 @@ export default function Dashboard() {
               </Box>
             </Box>
             <Box display="flex" gap={2}>
-              <Button
-                variant="outlined"
-                startIcon={<PictureAsPdf />}
-                onClick={handleExportPDF}
-                sx={{
-                  borderRadius: 3,
-                  textTransform: "none",
-                  fontWeight: 500,
-                  borderColor: THEME.colors.pdfButtonColor,
-                  color: THEME.colors.pdfButtonColor,
-                  "&:hover": {
-                    borderColor: "#b71c1c",
-                    backgroundColor: "rgba(211, 47, 47, 0.04)",
-                    transform: "translateY(-1px)",
-                    boxShadow: "0 4px 12px rgba(211, 47, 47, 0.2)",
-                  },
-                  transition: "all 0.3s ease",
-                }}
-              >
-                Xuất PDF
-              </Button>
               <Button
                 variant="outlined"
                 startIcon={<Download />}

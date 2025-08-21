@@ -48,10 +48,7 @@ const SpinHistoryAdminPage = () => {
                 params.rewardId = statusFilter;
             }
 
-            console.log("Sending params (SpinHistory index.jsx):", params);
             const res = await spinHistoryService.getAll(params);
-            console.log("API Response Data (SpinHistory index.jsx):", res);
-
             const resultData = res || {};
 
             setHistoryRecords(Array.isArray(resultData.data) ? resultData.data : []);
@@ -59,7 +56,6 @@ const SpinHistoryAdminPage = () => {
             setCounts(resultData.counts || { all: resultData.total || 0 });
 
         } catch (error) {
-            console.error('Lỗi khi tải lịch sử quay:', error);
             toast.error('Không thể tải lịch sử quay');
             setHistoryRecords([]);
             setTotal(0);
@@ -72,7 +68,11 @@ const SpinHistoryAdminPage = () => {
     useEffect(() => {
         setPage(1);
         fetchData();
-    }, [page, limit, statusFilter, debouncedSearch]);
+    }, [limit, statusFilter, debouncedSearch]);
+
+    useEffect(() => {
+        fetchData();
+    }, [page]);
 
     const getCountForTab = (tabValue) => {
         switch (tabValue) {
@@ -86,7 +86,7 @@ const SpinHistoryAdminPage = () => {
     return (
         <Box sx={{ p: 2 }}>
             {loading && <LoaderAdmin fullscreen />}
-        
+            <Toastify />
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h6" fontWeight={600}>

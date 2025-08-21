@@ -31,4 +31,20 @@ getReturnDetail: (id) => {
   bookReturnPickup: (id) => {
     return post(`${base}${API_ENDPOINT.client.returnRefund.bookPickup(id)}`);
   },
+   getDropoffServices: (id) => {
+    const url = `${base}${API_ENDPOINT.client.returnRefund.dropoffServices(id)}`;
+    console.log("🔥 Lấy danh sách dịch vụ drop-off:", url);
+    return get(url);
+  },
+
+  createDropoffReturnOrder: (id, data) => {
+    const url = `${base}${API_ENDPOINT.client.returnRefund.createDropoff(id)}`;
+    console.log("🔥 Tạo đơn trả hàng tại bưu cục:", url, data);
+    return post(url, data);
+  },
+  getPickupFee: (id) => {
+    const url = `${base}${API_ENDPOINT.client.returnRefund.pickupFee(id)}`;
+    console.log("🚚 Lấy phí GHN pickup:", url);
+    return get(url);
+  },
 };

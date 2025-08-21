@@ -31,6 +31,10 @@ export default function ReturnMethodPage() {
     // Lấy returnCode từ URL params
     const { returnCode } = useParams();
     const navigate = useNavigate();
+const [dropoffServices, setDropoffServices] = useState([]);
+const [selectedDropoffService, setSelectedDropoffService] = useState(null);
+const [pickupFee, setPickupFee] = useState(null);
+const [loadingPickupFee, setLoadingPickupFee] = useState(false);
 
     const [returnMethod, setReturnMethod] = useState('ghn_pickup');
     const [trackingCode, setTrackingCode] = useState('');
@@ -99,7 +103,37 @@ export default function ReturnMethodPage() {
 
         fetchData();
     }, [returnCode, navigate]); // returnCode là dependency chính, selectedPickupAddress không cần ở đây nếu nó được set nội bộ
-
+useEffect(() => {
+  const fetchDropoffServices = async () => {
+    if (returnMethod === 'self_send' && returnRequestIdFromDetails) {
+      try {
+        const res = await returnRefundService.getDropoffServices(returnRequestIdFromDetails);
+        setDropoffServices(res?.data?.data || []);
+      } catch (err) {
+        console.error('Lỗi khi lấy dịch vụ bưu cục:', err);
+        toast.error('Không thể tải danh sách dịch vụ bưu cục');
+      }
+    }
+  };
+  fetchDropoffServices();
+}, [returnMethod, returnRequestIdFromDetails]);
+useEffect(() => {
+  const fetchPickupFee = async () => {
+    if (returnMethod !== 'ghn_pickup' || !returnRequestIdFromDetails) return;
+    try {
+      setLoadingPickupFee(true);
+      const res = await returnRefundService.getPickupFee(returnRequestIdFromDetails);
+      const fee = res?.data?.data?.fee ?? null;
+      setPickupFee(typeof fee === 'number' ? fee : null);
+    } catch (e) {
+      console.error('[pickup-fee] error:', e);
+      setPickupFee(null);
+    } finally {
+      setLoadingPickupFee(false);
+    }
+  };
+  fetchPickupFee();
+}, [returnMethod, returnRequestIdFromDetails]);
     useEffect(() => {
         if (pickupAddressBoxRef.current) {
             setPickupAddressBoxWidth(pickupAddressBoxRef.current.clientWidth);
@@ -148,47 +182,63 @@ export default function ReturnMethodPage() {
   ? format(parseISO(returnRequestDetails.deadlineChooseReturnMethod), 'dd-MM-yyyy HH:mm', { locale: vi })
   : 'Không xác định';
 
-    const handleSubmit = async () => {
-        // SỬ DỤNG returnRequestIdFromDetails ở đây
-        if (!returnRequestIdFromDetails) {
-            toast.error('Không tìm thấy ID yêu cầu trả hàng để xử lý.');
-            return;
-        }
+   const handleSubmit = async () => {
+  if (!returnRequestIdFromDetails) {
+    toast.error('Không tìm thấy ID yêu cầu trả hàng để xử lý.');
+    return;
+  }
 
-        if (returnMethod === 'ghn_pickup' && !selectedPickupAddress) {
-            toast.error('Vui lòng chọn địa chỉ lấy hàng.');
-            return;
-        }
+  if (returnMethod === 'ghn_pickup' && !selectedPickupAddress) {
+    toast.error('Vui lòng chọn địa chỉ lấy hàng.');
+    return;
+  }
 
-        setLoading(true);
-        try {
-            const payload = { returnMethod };
-            if (returnMethod === 'self_send' && trackingCode.trim()) {
-                payload.trackingCode = trackingCode.trim();
-            }
+  setLoading(true);
+  try {
+    const payload = { returnMethod };
 
-            // Gọi API bằng returnRequestIdFromDetails
-            await returnRefundService.chooseReturnMethod(returnRequestIdFromDetails, {
-                ...payload,
-                pickupAddressId: returnMethod === 'ghn_pickup' ? selectedPickupAddress?.id : undefined,
-            });
+    // Luôn update phương thức trả hàng trước
+    await returnRefundService.chooseReturnMethod(returnRequestIdFromDetails, {
+      ...payload,
+      pickupAddressId:
+        returnMethod === 'ghn_pickup' ? selectedPickupAddress?.id : undefined,
+    });
 
-            if (returnMethod === 'ghn_pickup') {
-                // Gọi API bằng returnRequestIdFromDetails
-                await returnRefundService.bookReturnPickup(returnRequestIdFromDetails);
-                toast.success('Đã đặt GHN đến lấy hàng!');
-            } else {
-                toast.success('Đã lưu phương thức hoàn hàng!');
-            }
-            // Điều hướng về trang chi tiết yêu cầu trả hàng bằng ID
-            navigate(`/user-profile/return-order/${returnRequestIdFromDetails}`);
-        } catch (err) {
-            console.error('[ReturnMethodPage] Lỗi cập nhật phương thức hoàn hàng:', err);
-            toast.error(err?.response?.data?.message || 'Không thể cập nhật phương thức hoàn hàng');
-        } finally {
-            setLoading(false);
-        }
-    };
+    if (returnMethod === 'ghn_pickup') {
+      // Pickup tận nơi
+      await returnRefundService.bookReturnPickup(returnRequestIdFromDetails);
+      toast.success('Đã đặt GHN đến lấy hàng!');
+    } else if (returnMethod === 'self_send') {
+      // ✅ Drop-off: bắt buộc chọn service
+      if (!selectedDropoffService) {
+        toast.error('Vui lòng chọn dịch vụ bưu cục');
+        return;
+      }
+      await returnRefundService.createDropoffReturnOrder(
+    returnRequestIdFromDetails,
+    {
+      provider: selectedDropoffService.provider,       // ví dụ: 'ghn' | 'ghtk' | 'vtp'
+      serviceCode: selectedDropoffService.service_id,  // mã dịch vụ từ API getDropoffServices
+      serviceName: selectedDropoffService.short_name,  // tên hiển thị
+    }
+  );
+
+  toast.success('Đã tạo đơn trả hàng tại bưu cục!');
+}
+     
+
+    // Điều hướng về trang chi tiết
+    navigate(`/user-profile/return-order/${returnRequestIdFromDetails}`);
+  } catch (err) {
+    console.error('[ReturnMethodPage] Lỗi cập nhật phương thức hoàn hàng:', err);
+    toast.error(
+      err?.response?.data?.message || 'Không thể cập nhật phương thức hoàn hàng'
+    );
+  } finally {
+    setLoading(false);
+  }
+};
+
 
     const handleCancelRequest = async () => {
         const confirmed = await confirmDelete('huỷ', 'yêu cầu trả hàng này');
@@ -343,9 +393,32 @@ export default function ReturnMethodPage() {
                                     }}
                                 />
                                 <Box sx={{ flexGrow: 1, pt: '16px', pb: '16px', pr: '16px' }}>
-                                    <Typography variant="body1" fontWeight="bold" className="flex items-center">
-                                        Đơn vị vận chuyển đến lấy hàng
-                                    </Typography>
+                                    {/* Tiêu đề + Chip Miễn ship hoàn về */}
+<Box
+  sx={{
+    display: 'flex',
+    alignItems: 'center',
+    gap: 1, // khoảng cách nhỏ giữa text và chip
+  }}
+>
+  <Typography variant="body1" fontWeight="bold">
+    Đơn vị vận chuyển đến lấy hàng
+  </Typography>
+
+<Chip
+  label="Vui lòng thanh toán phí vận chuyển"
+  size="small"
+  variant="outlined"
+  sx={{
+    borderColor: '#1AA2E9',
+    color: '#1AA2E9',
+    fontWeight: 600,
+    ml: 1,
+  }}
+/>
+
+</Box>
+
                                     <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 1 }}>
                                         Vui lòng kiểm tra thông tin lấy hàng của bạn.
                                     </Typography>
@@ -495,20 +568,49 @@ export default function ReturnMethodPage() {
                                     </Box>
 
                                     {/* PHẦN ĐƠN VẬN CHUYỂN */}
-                                    <Box className="relative mb-4" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
-                                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                            <Typography variant="body2" fontWeight="medium" sx={{ color: 'text.secondary', mr: 1 }}>
-                                                Đơn Vị Vận Chuyển*
-                                            </Typography>
-                                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTqXEiDG1aMi9XngtOpoS_XZqRhBJg7Y5PthtiCNuCW8umOPj0AONJVEN3u8pNdyl7p_Fs&usqp=CAU" alt="GHN Logo" style={{ width: 24, height: 24, marginRight: 8 }} />
-                                            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                                                {returnRequestDetails?.shippingMethodName || 'GHN'}
-                                            </Typography>
-                                        </Box>
-                                        <Link href="#" variant="body2" sx={{ color: 'blue.600', textDecoration: 'none', whiteSpace: 'nowrap' }}>
-                                            Xem hướng dẫn
-                                        </Link>
-                                    </Box>
+<Box
+  className="relative mb-4"
+  sx={{ display: 'flex', alignItems: 'center', mt: 2 }}
+>
+  {/* Bên trái */}
+  <Box sx={{ display: 'flex', alignItems: 'center', mr: 2 }}>
+    <Typography variant="body2" fontWeight="medium" sx={{ color: 'text.secondary', mr: 1 }}>
+      Đơn Vị Vận Chuyển*
+    </Typography>
+    <img
+      src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTqXEiDG1aMi9XngtOpoS_XZqRhBJg7Y5PthtiCNuCW8umOPj0AONJVEN3u8pNdyl7p_Fs&usqp=CAU"
+      alt="GHN Logo"
+      style={{ width: 24, height: 24, marginRight: 8 }}
+    />
+    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+      {returnRequestDetails?.shippingMethodName || 'GHN'}
+    </Typography>
+  </Box>
+
+  {/* Phí + Link khít nhau */}
+  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+  {!loadingPickupFee && typeof pickupFee === 'number' && pickupFee > 0 && (
+    <Typography
+      variant="body2"
+      sx={{
+        border: '1px solid red',
+        borderRadius: '4px',
+        px: 1,
+        py: '2px',
+        color: 'red',
+        fontWeight: 600,
+      }}
+    >
+      Phí vận chuyển: {pickupFee.toLocaleString('vi-VN')} đ
+    </Typography>
+  )}
+
+  
+</Box>
+
+</Box>
+
+
                                 </Box>
                             </Box>
                         </Box>
@@ -543,12 +645,111 @@ export default function ReturnMethodPage() {
                                     }}
                                 />
                                 <Box sx={{ flexGrow: 1 }}>
-                                    <Typography variant="body1" fontWeight="bold" className="flex items-center">
-                                        Trả hàng tại bưu cục
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                                        Bạn có thể chủ động thời gian trả hàng tại các bưu cục đối tác. Bấm để xem địa chỉ gần nhất.
-                                    </Typography>
+                             <Box
+  sx={{
+    display: 'flex',
+    alignItems: 'center',
+    gap: 1,
+    flexWrap: 'wrap', // để xuống dòng khi hết chỗ
+  }}
+>
+  <Typography variant="body1" fontWeight="bold">
+    Trả hàng tại bưu cục
+  </Typography>
+
+  <Chip
+    label="Vui lòng thanh toán phí vận chuyển"
+    size="small"
+    variant="outlined"
+    sx={{
+      borderColor: '#1AA2E9',
+      color: '#1AA2E9',
+      fontWeight: 600,
+      ml: 1,
+    }}
+  />
+
+  {/* Dòng mô tả thêm */}
+  <Typography
+    variant="body2"
+    color="text.secondary"
+    sx={{ width: '100%', mt: 0.5, ml: 0.5 }}
+  >
+    Bạn có thể chủ động thời gian trả hàng tại các bưu cục đối tác. 
+    <span style={{ color: '#1AA2E9', cursor: 'pointer' }}>
+      {' '}Bấm để xem địa chỉ gần nhất.
+    </span>
+  </Typography>
+</Box>
+
+
+ {returnMethod === 'self_send' && (
+  <Box sx={{ mt: 2 }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      <Typography variant="body2" fontWeight="bold">
+        Chọn dịch vụ vận chuyển:
+      </Typography>
+
+      {dropoffServices.length === 0 ? (
+        <Typography variant="body2" color="text.secondary">
+          {loading ? 'Đang tải dịch vụ...' : 'Không có dịch vụ khả dụng'}
+        </Typography>
+      ) : (
+        <Box sx={{ flex: 1 }}>
+  {dropoffServices.map((svc) => (
+    <Box
+  key={`${svc.provider}-${svc.serviceCode}`}
+  onClick={() => setSelectedDropoffService(svc)}
+  sx={{
+    border: '1px solid',
+    borderColor:
+      selectedDropoffService?.provider === svc.provider &&
+      selectedDropoffService?.serviceCode === svc.serviceCode
+        ? 'primary.main'
+        : '#e0e0e0',
+    borderRadius: '8px',
+    p: 1.5,
+    mb: 1,
+    cursor: 'pointer',
+    '&:hover': { borderColor: 'primary.main' },
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  }}
+>
+  <Box>
+    <Typography variant="body2" fontWeight={600}>
+      {svc.serviceName}
+    </Typography>
+  </Box>
+
+ {svc.fee > 0 && (
+  <Typography
+    variant="body2"
+    sx={{
+      border: '1px solid red',
+      borderRadius: '4px',
+      px: 1.5,
+      py: '2px',
+      color: 'red',
+      fontWeight: 600,
+      whiteSpace: 'nowrap',
+    }}
+  >
+    Phí vận chuyển: {Number(svc.fee).toLocaleString('vi-VN')} đ
+  </Typography>
+)}
+
+</Box>
+
+  ))}
+</Box>
+
+      )}
+    </Box>
+  </Box>
+)}
+
                                     
                                 </Box>
                             </Box>

@@ -9,8 +9,11 @@ export default function QuayButton({ text = "Quay", className = "", style = {}, 
       {...props}
     >
       {text}
-      {/* Mũi tên chỉ lên */}
-      <div className="absolute -top-4 left-1/2 h-0 w-0 -translate-x-1/2 transform border-l-[12px] border-r-[12px] border-b-[14px] border-l-transparent border-r-transparent border-b-orange-600 shadow-md" />
+      {/* Mũi tên chỉ sang phải */}
+      <div className="absolute top-1/2 -right-4 h-0 w-0 -translate-y-1/2 transform 
+  border-t-[12px] border-b-[12px] border-l-[14px] 
+  border-t-transparent border-b-transparent border-l-orange-600 shadow-md" />
+
     </button>
   );
 }

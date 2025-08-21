@@ -48,7 +48,7 @@ const RenderSubject = (props) => {
                 />
                 {actionObj.icon && React.createElement(actionObj.icon, { style: { marginRight: 4 } })}
                 <Typography variant="body2" sx={{ flex: 1, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                  {actionObj.description || actionObj.action}
+                  {actionObj.label || actionObj.action}
                 </Typography>
               </Box>
             ))}

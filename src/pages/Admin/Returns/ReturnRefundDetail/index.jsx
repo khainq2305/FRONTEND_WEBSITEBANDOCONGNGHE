@@ -438,33 +438,34 @@ const handleConfirmReceivedSwal = async () => {
   }}
 >
   {detail.proofs.map((proof, idx) => (
-    <Box
-      key={idx}
-      sx={{
-        minWidth: '16.66%', // 100% / 6 = 16.66%
-        aspectRatio: '16 / 9',
-        borderRadius: 2,
-        overflow: 'hidden',
-        backgroundColor: '#f5f5f5',
-        flex: '0 0 auto',
-      }}
+   <Box
+  key={idx}
+  sx={{
+    width: 100,
+    height: 100,
+    borderRadius: 1,
+    overflow: 'hidden',
+    backgroundColor: '#f5f5f5',
+    flex: '0 0 auto',
+  }}
+>
+  {proof.type.startsWith('image') ? (
+    <img
+      src={proof.url}
+      alt={`proof-${idx}`}
+      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+    />
+  ) : (
+    <video
+      controls
+      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
     >
-      {proof.type.startsWith('image') ? (
-        <img
-          src={proof.url}
-          alt={`proof-${idx}`}
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-        />
-      ) : (
-        <video
-          controls
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-        >
-          <source src={proof.url} type={proof.type} />
-          Trình duyệt không hỗ trợ video.
-        </video>
-      )}
-    </Box>
+      <source src={proof.url} type={proof.type} />
+      Trình duyệt không hỗ trợ video.
+    </video>
+  )}
+</Box>
+
   ))}
 </Box>
 

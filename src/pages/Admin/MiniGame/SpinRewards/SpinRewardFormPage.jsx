@@ -33,12 +33,24 @@ const SpinRewardFormPage = () => {
     const [couponList, setCouponList] = useState([]);
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
+    const [totalProbability, setTotalProbability] = useState(0);
 
+    // 🔹 Lấy danh sách coupon (lọc trên FE để bỏ hết hạn / hết lượt)
     useEffect(() => {
         const fetchCoupons = async () => {
             try {
                 const res = await couponService.list({ limit: 1000 });
-                setCouponList(Array.isArray(res.data?.data) ? res.data.data : []);
+                let list = Array.isArray(res.data?.data) ? res.data.data : [];
+                const now = new Date();
+
+                // chỉ giữ coupon còn hạn và còn lượt
+                list = list.filter(c =>
+                    (!c.startTime || new Date(c.startTime) <= now) &&
+                    (!c.endTime || new Date(c.endTime) > now) &&
+                    (c.totalQuantity > c.usedCount)
+                );
+
+                setCouponList(list);
             } catch (err) {
                 toast.error('Không thể tải danh sách mã giảm giá');
             }
@@ -46,29 +58,38 @@ const SpinRewardFormPage = () => {
         fetchCoupons();
     }, []);
 
+    // 🔹 Nếu edit thì load reward + tổng probability
     useEffect(() => {
-        if (isEditing) {
-            setLoading(true);
-            const fetchReward = async () => {
-                try {
-                    const res = await spinRewardService.getById(id);
+        const fetchData = async () => {
+            try {
+                const res = await spinRewardService.getAll({ limit: 1000 });
+                const rewards = Array.isArray(res.data) ? res.data : [];
+                let sum = rewards.reduce((acc, r) => acc + (r.probability || 0), 0);
+
+                if (isEditing) {
+                    setLoading(true);
+                    const resReward = await spinRewardService.getById(id);
                     setFormData({
-                        name: res.data?.name || '',
-                        couponId: res.data?.couponId || '',
-                        probability: (res.data?.probability || 0) * 100,
-                        isActive: res.data?.isActive ?? true
+                        name: resReward.data?.name || '',
+                        couponId: resReward.data?.couponId || '',
+                        probability: (resReward.data?.probability || 0) * 100,
+                        isActive: resReward.data?.isActive ?? true
                     });
-                } catch (err) {
-                    toast.error('Không thể tải phần thưởng');
-                    navigate('/admin/spin-rewards');
-                } finally {
+                    // trừ probability cũ để còn chỗ nhập mới
+                    sum -= resReward.data?.probability || 0;
                     setLoading(false);
                 }
-            };
-            fetchReward();
-        }
+
+                setTotalProbability(sum * 100); // convert sang %
+            } catch (err) {
+                toast.error('Không thể tải phần thưởng');
+                if (isEditing) navigate('/admin/spin-rewards');
+            }
+        };
+        fetchData();
     }, [id, isEditing, navigate]);
 
+    // 🔹 handle change input
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
         setFormData((prev) => ({
@@ -78,21 +99,24 @@ const SpinRewardFormPage = () => {
         setErrors((prev) => ({ ...prev, [name]: undefined }));
     };
 
+    // 🔹 validate form
     const validate = () => {
         const temp = {};
         if (!formData.name?.trim()) temp.name = 'Nhập tên phần thưởng';
-        if (!formData.couponId) temp.couponId = 'Chọn mã giảm giá';
-        if (
-            isNaN(parseFloat(formData.probability)) ||
-            formData.probability < 0 ||
-            formData.probability > 100
-        ) {
+        if (!formData.couponId && !isEditing) temp.couponId = 'Chọn mã giảm giá';
+
+        const prob = parseFloat(formData.probability);
+        if (isNaN(prob) || prob < 0 || prob > 100) {
             temp.probability = 'Tỷ lệ phải từ 0 đến 100';
+        } else if (totalProbability + prob > 100) {
+            temp.probability = `Tổng tỉ lệ hiện tại là ${totalProbability}%. Thêm ${prob}% sẽ vượt quá 100%.`;
         }
+
         setErrors(temp);
         return Object.keys(temp).length === 0;
     };
 
+    // 🔹 submit
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!validate()) return;
@@ -116,7 +140,7 @@ const SpinRewardFormPage = () => {
 
             navigate('/admin/spin-rewards');
         } catch (err) {
-            toast.error('Lỗi xử lý phần thưởng');
+            toast.error(err?.response?.data?.message || 'Lỗi xử lý phần thưởng');
         } finally {
             setLoading(false);
         }
@@ -177,6 +201,10 @@ const SpinRewardFormPage = () => {
                         helperText={errors.probability}
                         inputProps={{ min: 0, max: 100, step: 1 }}
                     />
+
+                    <Typography variant="body2" sx={{ mt: 1 }}>
+                        Tổng hiện tại (không tính reward này): <b>{totalProbability}%</b>
+                    </Typography>
 
                     <FormControlLabel
                         control={

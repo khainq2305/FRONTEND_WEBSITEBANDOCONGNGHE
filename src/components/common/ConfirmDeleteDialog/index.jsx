@@ -22,3 +22,23 @@ export const confirmDelete = async (actionLabel = 'xoá', itemLabel = 'mục nà
 
   return result.isConfirmed;
 };
+export const confirmReturn = async (refundTargetText = 'Ví CyBerZone của bạn') => {
+  const result = await Swal.fire({
+    title: 'Xác nhận gửi yêu cầu trả hàng',
+    html: `
+      <div style="text-align:left">
+        <p><strong>Nơi hoàn tiền:</strong> ${refundTargetText}</p>
+        <p style="margin-top:8px">• Yêu cầu trả hàng sẽ được gửi đến bộ phận xử lý.</p>
+        <p>• <strong style="color:#d33">Lưu ý:</strong> Sau khi trả hàng, <strong>mã giảm giá (voucher)</strong> đã dùng <strong>không được hoàn lại</strong>.</p>
+      </div>
+    `,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Đồng ý gửi',
+    cancelButtonText: 'Hủy',
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    reverseButtons: true,
+  });
+  return result.isConfirmed;
+};

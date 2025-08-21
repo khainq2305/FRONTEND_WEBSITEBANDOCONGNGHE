@@ -46,7 +46,7 @@ export const getDeletedUsers = async ({ page = 1, limit = 10, search = '' }) => 
   });
   return res.data;
 };
-export const getAllRoles = async () => {
+export const getAllRolesApi = async () => {
   const res = await API.get('/roles');
   return res.data;
 };
@@ -61,6 +61,13 @@ export const getUserById = async (id) => {
 };
 export const forceDeleteManyUsers = async (ids) => {
   const res = await API.post('/users/force-delete-many', { ids });
+  return res.data;
+};
+export const updateRoles = async (userId, roles) => {
+  const res = await API.put(
+    `${API_ENDPOINT.admin.user.users}/${userId}/roles`,
+    { roleIds: roles }
+  );
   return res.data;
 };
 
