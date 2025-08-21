@@ -29,6 +29,7 @@ import LogoutOutlined from '@ant-design/icons/LogoutOutlined';
 import SettingOutlined from '@ant-design/icons/SettingOutlined';
 import UserOutlined from '@ant-design/icons/UserOutlined';
 import avatar1 from 'assets/Admin/images/users/avatar-1.png';
+import useAuthStore from '@/stores/AuthStore';
 
 // tab panel wrapper
 function TabPanel({ children, value, index, ...other }) {
@@ -49,8 +50,9 @@ function a11yProps(index) {
 // ==============================|| HEADER CONTENT - PROFILE ||============================== //
 
 export default function Profile() {
+  const { user } = useAuthStore();
   const theme = useTheme();
-
+  console.log('user la',user)
   const anchorRef = useRef(null);
   const [open, setOpen] = useState(false);
   const handleToggle = () => {
@@ -90,7 +92,7 @@ export default function Profile() {
         <Stack direction="row" sx={{ gap: 1.25, alignItems: 'center', p: 0.5 }}>
           <Avatar alt="profile user" src={avatar1} size="sm" />
           <Typography variant="subtitle1" sx={{ textTransform: 'capitalize' }}>
-            John Doe
+            Xin chào {user.fullName}
           </Typography>
         </Stack>
       </ButtonBase>
@@ -123,19 +125,20 @@ export default function Profile() {
                         <Stack direction="row" sx={{ gap: 1.25, alignItems: 'center' }}>
                           <Avatar alt="profile user" src={avatar1} sx={{ width: 32, height: 32 }} />
                           <Stack>
-                            <Typography variant="h6">John Doe</Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              UI/UX Designer
-                            </Typography>
+                            <Typography variant="h6">{user?.fullName}</Typography>
+                            {user?.roles?.some((r) => r.name === 'Admin') ? (
+                              <Typography variant="body2" color="text.secondary">
+                                Admin
+                              </Typography>
+                            ) : (
+                              user?.roles?.map((r) => (
+                                <Typography key={r.id} variant="body2" color="text.secondary">
+                                  {r.name}
+                                </Typography>
+                              ))
+                            )}
                           </Stack>
                         </Stack>
-                      </Grid>
-                      <Grid>
-                        <Tooltip title="Logout">
-                          <IconButton size="large" sx={{ color: 'text.primary' }}>
-                            <LogoutOutlined />
-                          </IconButton>
-                        </Tooltip>
                       </Grid>
                     </Grid>
                   </CardContent>

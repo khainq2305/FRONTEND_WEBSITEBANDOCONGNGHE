@@ -2,9 +2,7 @@ import PropTypes from 'prop-types';
 
 // project imports
 import DrawerHeaderStyled from './DrawerHeaderStyled';
-import Logo from 'components/Admin/logo';
-
-// ==============================|| DRAWER HEADER ||============================== //
+import logo from '../../../../assets/Client/images/Logo/logo2.png'; 
 
 export default function DrawerHeader({ open }) {
   return (
@@ -18,9 +16,19 @@ export default function DrawerHeader({ open }) {
         paddingLeft: open ? '24px' : 0
       }}
     >
-      <Logo isIcon={!open} sx={{ width: open ? 'auto' : 35, height: 35 }} />
+      <img
+        src={logo}
+        alt="Cyberzone Admin Logo"
+        style={{
+          width: open ? 'auto' : 145,
+          height: 75,
+          objectFit: 'cover'
+        }}
+      />
     </DrawerHeaderStyled>
   );
 }
 
-DrawerHeader.propTypes = { open: PropTypes.bool };
+DrawerHeader.propTypes = {
+  open: PropTypes.bool
+};

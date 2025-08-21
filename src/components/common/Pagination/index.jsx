@@ -1,11 +1,12 @@
-import React from 'react';
 import Pagination from '@mui/material/Pagination';
 import Stack from '@mui/material/Stack';
 
-const MUIPagination = ({ currentPage, totalPages, onPageChange }) => {
+const MUIPagination = ({ currentPage, totalItems, itemsPerPage, onPageChange }) => {
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
   const handleChange = (event, page) => {
-    if (page === currentPage) return;           // Không làm gì nếu chọn lại trang hiện tại
-    if (page < 1 || page > totalPages) return;  // Không cho vượt giới hạn
+    if (page === currentPage) return;
+    if (page < 1 || page > totalPages) return;
     onPageChange(page);
   };
 

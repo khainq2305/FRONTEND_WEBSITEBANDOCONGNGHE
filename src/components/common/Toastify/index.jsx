@@ -1,4 +1,4 @@
-// src/components/common/Toastify.jsx
+import React from 'react';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -7,9 +7,16 @@ const Toastify = () => {
     <ToastContainer
       position="top-right"
       autoClose={3000}
+      hideProgressBar={false}
+      newestOnTop={false}
+      closeOnClick
+      rtl={false}
       pauseOnFocusLoss
-      pauseOnHover
       draggable
+      
+      pauseOnHover
+      // Thêm style để đẩy container xuống dưới header
+      style={{ top: "130px" }} 
     />
   );
 };

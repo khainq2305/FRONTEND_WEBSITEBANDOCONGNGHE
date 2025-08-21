@@ -1,0 +1,9 @@
+version: "2"
+authtoken: 2zVQlzDIe6qlTQMlCn4ANwkqC9S_4zCgsdYGECG5jUAoWkFae  # Lấy tại: https://dashboard.ngrok.com/get-started/your-authtoken
+tunnels:
+  backend:
+    addr: 5000
+    proto: http
+  frontend:
+    addr: 9999
+    proto: http
