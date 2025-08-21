@@ -69,13 +69,18 @@ export default function PermissionManagementPage() {
   // Cập nhật quyền
   const handleUpdatePermission = async (roleId, subject, action, checked) => {
     try {
-      await permissionsService.updatePermission({ 
+      const payload = { 
         roleId, 
         subject, 
         action, 
         hasPermission: checked 
-      });
+      };
   
+      console.log("📤 Dữ liệu gửi lên API:", payload);
+  
+      await permissionsService.updatePermission(payload);
+  
+      
       setMatrixBySubject(prev => {
         const newMatrix = { ...prev };
         newMatrix[subject] = { ...newMatrix[subject] };
@@ -84,11 +89,33 @@ export default function PermissionManagementPage() {
         return newMatrix;
       });
   
-      toast.success(`Quyền "${action}" đã được ${checked ? "bật" : "tắt"}`);
+      toast.success('Cập nhật thành công');
     } catch (error) {
       console.error("Update permission error:", error);
+    
+      // In ra chi tiết cơ bản
+      console.error("Message:", error.message);
+      console.error("Name:", error.name);
+      console.error("Stack:", error.stack);
+    
+      // Nếu là Axios error
+      if (error.response) {
+        console.error("Axios Response Data:", error.response.data);
+        console.error("Axios Response Status:", error.response.status);
+        console.error("Axios Response Headers:", error.response.headers);
+      }
+    
+      // Nếu là Sequelize error
+      if (error.errors) {
+        console.error("Sequelize Errors:", error.errors.map(e => e.message));
+      }
+    
+      // In ra tất cả properties (trong trường hợp có field ẩn)
+      console.error("Full error object:", JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
       toast.error("Có lỗi khi cập nhật quyền");
     }
+    
+      
   };
   
 
