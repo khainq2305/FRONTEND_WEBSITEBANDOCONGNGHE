@@ -263,13 +263,13 @@ export default function ProductOptions({
             })}
           </div>
         </div>
-        {banners.length > 0 && (
+        {/* {banners.length > 0 && (
           <div className="w-full mb-3">
             {banners?.map((banner) => (
               <img key={banner.id} src={banner.imageUrl} alt={banner.title || 'Banner'} className="w-full rounded-sm " loading="lazy" />
             ))}
           </div>
-        )}
+        )} */}
         <div className="space-y-2 pt-2">
           {areAllOptionsOutOfStock ? (
             <button

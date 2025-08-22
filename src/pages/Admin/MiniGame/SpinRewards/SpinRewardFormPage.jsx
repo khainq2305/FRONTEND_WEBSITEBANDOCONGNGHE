@@ -43,8 +43,9 @@ const SpinRewardFormPage = () => {
                 let list = Array.isArray(res.data?.data) ? res.data.data : [];
                 const now = new Date();
 
-                // chỉ giữ coupon còn hạn và còn lượt
+                // chỉ giữ coupon còn hạn, còn lượt và đang hoạt động
                 list = list.filter(c =>
+                    c.isActive &&
                     (!c.startTime || new Date(c.startTime) <= now) &&
                     (!c.endTime || new Date(c.endTime) > now) &&
                     (c.totalQuantity > c.usedCount)
@@ -57,6 +58,7 @@ const SpinRewardFormPage = () => {
         };
         fetchCoupons();
     }, []);
+
 
     // 🔹 Nếu edit thì load reward + tổng probability
     useEffect(() => {
@@ -80,7 +82,8 @@ const SpinRewardFormPage = () => {
                     setLoading(false);
                 }
 
-                setTotalProbability(sum * 100); // convert sang %
+                setTotalProbability(Math.round(sum * 100));
+
             } catch (err) {
                 toast.error('Không thể tải phần thưởng');
                 if (isEditing) navigate('/admin/spin-rewards');

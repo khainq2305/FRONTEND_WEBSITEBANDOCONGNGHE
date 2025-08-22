@@ -110,6 +110,26 @@ const pages = [
         subject: 'Product'
       },
       {
+                id: 'combo-list',
+                title: 'Combo sản phẩm',
+                type: 'item',
+                url: '/admin/combos',
+                icon: icons.ShoppingOutlined , // Đã thêm lại icon bị thiếu
+                breadcrumbs: false,
+                action: 'read',
+                subject: 'Combo'
+            },
+            {
+                url: '/admin/combos/create',
+                action: 'create',
+                subject: 'Combo'
+            },
+            {
+                url: '/admin/combos/edit/:slug',
+                action: 'update',
+                subject: 'Combo'
+            },
+      {
         id: 'featured-products',
         title: 'Sản phẩm nổi bật',
         type: 'item',
@@ -234,6 +254,12 @@ const pages = [
             icon: icons.DollarOutlined,
             breadcrumbs: false,
             action: 'read',
+            subject: 'flashSale'
+          },
+          {
+            url: '/admin/flash-sale/edit/:id',
+            icon: icons.PercentageOutlined,
+            action: 'update',
             subject: 'flashSale'
           },
           {
@@ -422,7 +448,7 @@ const pages = [
         subject: 'Order'
       },
       {
-        url: '/admin/orders',
+        url: '/admin/orders/:id',
         action: 'update',
         subject: 'Order'
       },

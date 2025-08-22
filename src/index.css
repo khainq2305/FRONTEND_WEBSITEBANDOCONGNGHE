@@ -14,10 +14,6 @@ body {
   font-family: 'Roboto', sans-serif !important;
 }
 
-li {
-  position: relative;
-  z-index: 10 !important;
-}
 .swal2-container {
   z-index: 1401 !important;
 }

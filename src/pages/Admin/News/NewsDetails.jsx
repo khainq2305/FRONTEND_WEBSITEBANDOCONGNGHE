@@ -6,7 +6,6 @@ import { Button } from '@mui/material';
 import { MoveLeft } from 'lucide-react';
 import formatDateFlexible from '@/utils/formatCurrentDateTime';
 import {CLOUDINARY_BASE_URL} from '@/config/apiEndpoints'
-const img = 'https://cdn2.fptshop.com.vn/unsafe/1920x0/filters:format(webp):quality(75)/2024_4_28_638499448585792760_rsz_bia-5.jpg';
 const NewsDetails = () => {
   const { slug } = useParams();
   const [post, setPost] = useState({});
@@ -23,7 +22,7 @@ const NewsDetails = () => {
   useEffect(() => {
     fechPost();
   }, []);
-
+console.log('post la', post)
   return (
     <div className="flex gap-6">
       <div className="flex-1 overflow-y-auto max-h-screen pb-8 pr-4 scrollbar-hide">
@@ -58,7 +57,7 @@ const NewsDetails = () => {
         <div>
           <div className="mb-3 NewDetails">Ảnh đại diện</div>
           <div className="mb-3 w-full">
-            <img src={`${CLOUDINARY_BASE_URL}/${post.thumbnail}`} alt="" className="rounded border-1 border-gray-200" />
+            <img src={post.thumbnail} alt="" className="rounded border-1 border-gray-200" />
           </div>
         </div>
         <div className="sticky top-6 bg-white p-4 shadow rounded border border-gray-300 text-sx">

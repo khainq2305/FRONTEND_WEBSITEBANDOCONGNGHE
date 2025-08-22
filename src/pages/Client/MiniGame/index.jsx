@@ -310,7 +310,7 @@ export default function LuckyWheelPage() {
       <AnimatePresence>
         {showGuide && (
           <motion.div
-            className="fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -327,8 +327,7 @@ export default function LuckyWheelPage() {
               <ul className="list-disc list-inside text-gray-700 space-y-2 text-sm md:text-base">
                 <li>Nhấn nút "QUAY" để thử vận may.</li>
                 <li>
-                  Bạn có một số lượt quay miễn phí nhất định mỗi ngày và số lượt
-                  này sẽ được làm mới hàng ngày.
+                  Bạn có 3 lượt quay miễn phí nhất định mỗi ngày và sẽ được làm mới hàng ngày.
                 </li>
                 <li>
                   Nếu bạn quay trúng thưởng, phần quà sẽ được tự động cộng vào
@@ -350,7 +349,7 @@ export default function LuckyWheelPage() {
       <AnimatePresence>
         {showHistory && (
           <motion.div
-            className="fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -375,7 +374,14 @@ export default function LuckyWheelPage() {
                       key={index}
                       className="flex justify-between items-center border-b pb-1"
                     >
-                      <span>🎁 {item.rewardName}</span>
+                      <div>
+                        🎁 {item.rewardName}
+                        {item.couponCode && (
+                          <span className="ml-2 text-pink-600 font-semibold">
+                            ({item.couponCode})
+                          </span>
+                        )}
+                      </div>
                       <span className="text-xs text-gray-500">
                         {new Date(item.createdAt).toLocaleString("vi-VN")}
                       </span>
@@ -393,6 +399,7 @@ export default function LuckyWheelPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
     </div>
   );
 }

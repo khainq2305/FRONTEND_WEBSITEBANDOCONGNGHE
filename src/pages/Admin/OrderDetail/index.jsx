@@ -281,11 +281,17 @@ const OrderDetail = () => {
         </Table>
 
         <Divider sx={{ my: 2 }} />
+<Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+  <Typography variant="body1" fontWeight={500}>
+    Phí vận chuyển: {Number(order.shippingFee || 0).toLocaleString()} ₫
+  </Typography>
+</Box>
 
         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
           <Typography variant="h6" fontWeight={600}>
-            Tổng tiền: {Number(order.totalPrice || 0).toLocaleString()} ₫
-          </Typography>
+  Tổng tiền: {Number(order.finalPrice || (order.totalPrice + (order.shippingFee || 0))).toLocaleString()} ₫
+</Typography>
+
         </Box>
       </Paper>
       

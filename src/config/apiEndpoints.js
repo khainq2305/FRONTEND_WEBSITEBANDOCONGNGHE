@@ -189,7 +189,11 @@ export const API_ENDPOINT = {
       base: `${API_BASE_URL}/membership`,
       info: '/me'
     },
-
+combo: {
+      base: `${API_BASE_URL}/combo`,
+      getBySlug: (slug) => `/${slug}`,
+      list: '/list'
+    },
     news: {
       base: `${API_BASE_URL}/tin-noi-bat`,
       featurePost: '',
@@ -275,6 +279,18 @@ export const API_ENDPOINT = {
       getFavoriteProducts: '/favorite-products',
       getAllTopSellingProducts: '/all-top-selling-products',
       getAllFavoriteProducts: '/all-favorite-products'
+    },
+    combo: {
+      base: `${API_BASE_URL}/admin/combos`,
+      getAll: '/',
+      getBySlug: (slug) => `/${slug}`,
+      create: '/',
+      update: (slug) => `/${slug}`,
+      softDelete: (id) => `/${id}`,
+      forceDelete: (id) => `/force/${id}`,
+      restore: (id) => `/restore/${id}`, 
+      softDeleteMany: '/soft-delete-many',
+      skus: '/skus'
     },
     sku: {
       base: `${API_BASE_URL}/admin/sku`,

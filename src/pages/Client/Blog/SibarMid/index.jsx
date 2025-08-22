@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
  */
 const SibarMid = ({ items = [], title}) => {
   return (
-    <div className="space-y-4 md:space-y-6 px-0 md:px-4">
+    <div className="space-y-4 md:space-y-6 px-0 md:px-4 lg:px-0 ">
       {/* Khối TIN KHUYẾN MÃI */}
       <div className="bg-primary text-white px-3 sm:px-4 py-2 font-bold text-sm sm:text-base text-center sm:text-left rounded-md shadow">
         TIN KHUYẾN MÃI

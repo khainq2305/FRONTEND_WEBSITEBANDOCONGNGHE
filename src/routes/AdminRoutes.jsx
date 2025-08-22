@@ -54,6 +54,9 @@ const SystemSettings = Loadable(lazy(() => import('pages/Admin/SystemSettings/in
 const SpinRewardAdminPage = Loadable(lazy(() => import('pages/Admin/MiniGame/SpinRewards')));
 const SpinRewardFormPage = Loadable(lazy(() => import('pages/Admin/MiniGame/SpinRewards/SpinRewardFormPage')));
 const SpinHistoryAdminPage = Loadable(lazy(() => import('pages/Admin/MiniGame/SpinHistory')));
+const ComboListPage = Loadable(lazy(() => import('pages/Admin/Combo')));
+const ComboAddPage = Loadable(lazy(() => import('pages/Admin/Combo/ComboAdd')));
+const ComboEditPage = Loadable(lazy(() => import('pages/Admin/Combo/ComboEdit')));
 
 import RequireAuth from '@/components/Admin/RequireAuth';
 const ReturnRefundDetail = Loadable(lazy(() => import('pages/Admin/Returns/ReturnRefundDetail'))); // <-- Thêm dòng này
@@ -297,7 +300,15 @@ const AdminRoutes = {
       path: 'spin-history',
       element: <SpinHistoryAdminPage />
     },
-    
+    {
+      path: 'combos',
+      children: [
+        { index: true, element: <ComboListPage /> },
+        { path: 'create', element: <ComboAddPage /> },
+        { path: 'edit/:slug', element: <ComboEditPage /> }
+      ]
+    }
+
   ]
 };
 

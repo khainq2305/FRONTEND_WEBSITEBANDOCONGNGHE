@@ -21,7 +21,7 @@ const Sibar3 = ({title}) => {
 
 
   return (
-    <div className="space-y-4 px-0 md:px-4">
+    <div className="space-y-4 px-0 md:px-4 lg:px-0">
   <div className="border-2 border-gray-300 rounded-md py-2 px-4">
     <div className="pb-1 relative">
       <div className="font-bold text-justify uppercase">{title}</div>

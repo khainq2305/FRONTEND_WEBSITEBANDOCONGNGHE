@@ -508,11 +508,16 @@ const handleConfirmReceivedSwal = async () => {
       <Button variant="outlined" color="error" onClick={handleOpenRejectDialog}>Từ chối yêu cầu</Button>
     </>
   )}
-  {['awaiting_pickup', 'pickup_booked'].includes(detail.status) && (
-    <Button variant="contained" color="primary" onClick={handleConfirmReceivedSwal}>
-      Đã nhận hàng hoàn
-    </Button>
-  )}
+  {['awaiting_pickup', 'pickup_booked', 'awaiting_dropoff'].includes(detail.status) && (
+  <Button
+    variant="contained"
+    color="primary"
+    onClick={handleConfirmReceivedSwal}
+  >
+    Đã nhận hàng hoàn
+  </Button>
+)}
+
   {detail.status === 'received' && (
     <Button variant="contained" color="secondary" onClick={handleOpenRefundedDialog}>
       Hoàn tiền xong

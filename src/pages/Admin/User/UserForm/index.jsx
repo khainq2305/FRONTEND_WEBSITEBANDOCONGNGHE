@@ -1,308 +1,257 @@
-import React, { useState } from "react";
+import { useState, useCallback, useEffect } from 'react';
 import {
-  Box,
-  Button,
   TextField,
-  Typography,
-  Avatar,
-  Stack,
-  FormControl,
-  InputLabel,
   Select,
   MenuItem,
-  Checkbox,
-  ListItemText,
-  InputAdornment, // Để thêm icon vào TextField
-} from "@mui/material";
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday'; // Icon cho Date Picker
+  InputLabel,
+  FormControl,
+  Button,
+  Box,
+  Typography,
+  FormHelperText,
+  Avatar,
+  Grid,
+} from '@mui/material';
+import { Trash2, PlusCircle } from 'lucide-react';
+import { useTheme } from '@mui/material/styles';
 
-const UserForm = ({ onSubmit, initialData = {}, errors = {} }) => {
-  // Trạng thái cho các trường của biểu mẫu
-  const [formData, setFormData] = useState({
-    fullName: initialData.fullName || "",
-    email: initialData.email || "",
-    password: initialData.password || "",
-    phone: initialData.phone || "",
-    dateOfBirth: initialData.dateOfBirth || "",
-    roleIds: initialData.roleIds || [],
-    status: initialData.status || "active",
+const UserForm = ({ initialData = null, onSubmit, externalErrors = {} }) => {
+  const theme = useTheme();
+  const [user, setUser] = useState({
+    fullName: initialData?.fullName || '',
+    email: initialData?.email || '',
+    password: '',
+    phone: initialData?.phone || '',
+    dateOfBirth: initialData?.dateOfBirth || '',
+    status: initialData?.status ?? 'active',
+    avatarFile: null,
   });
 
-  // Trạng thái cho tệp ảnh đại diện và xem trước
-  const [avatarFile, setAvatarFile] = useState(null);
-  const [avatarPreview, setAvatarPreview] = useState(initialData.avatar || null);
+  const [preview, setPreview] = useState(initialData?.avatar || null);
+  const [errors, setErrors] = useState({});
 
-  // Dữ liệu giả cho vai trò (thay thế bằng dữ liệu thực từ backend của bạn)
-  const availableRoles = [
-    { id: 1, name: "Quản trị viên" },
-    { id: 2, name: "Biên tập viên" },
-    { id: 3, name: "Người xem" },
-    { id: 4, name: "Khách hàng" },
-  ];
+  useEffect(() => {
+    setErrors(externalErrors);
+  }, [externalErrors]);
 
-  // Xử lý thay đổi đầu vào cho các trường văn bản và lựa chọn
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+  const handleChange = (field, value) => {
+    setUser((prev) => ({ ...prev, [field]: value }));
+    setErrors((prev) => {
+      const updated = { ...prev };
+      if (value?.toString().trim() && updated[field]) delete updated[field];
+      return updated;
+    });
+  };
 
-    if (name === "roleIds") {
-      const selectedValue = typeof value === 'string' ? value.split(',').map(Number) : value;
-      setFormData((prevData) => ({
-        ...prevData,
-        [name]: selectedValue,
-      }));
-    } else {
-      setFormData((prevData) => ({
-        ...prevData,
-        [name]: type === "checkbox" ? checked : value,
-      }));
+const validateAllFields = () => {
+  const newErrors = { ...externalErrors };
+  if (!user.email.trim()) newErrors.email = 'Email không được để trống!';
+  if (!initialData && !user.password.trim()) {
+    newErrors.password = 'Mật khẩu không được để trống!';
+  }
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
+
+
+  const handleFileChange = (e) => {
+    const file = e.dataTransfer?.files?.[0] || e.target.files?.[0];
+    if (file) {
+      setUser((prev) => ({ ...prev, avatarFile: file }));
+      setPreview(URL.createObjectURL(file));
+      setErrors((prev) => ({ ...prev, avatar: '' }));
     }
   };
 
-  // Xử lý chọn tệp ảnh
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setAvatarFile(file);
-      setAvatarPreview(URL.createObjectURL(file));
-    }
+  const handleRemoveImage = () => {
+    setPreview(null);
+    setUser((prev) => ({ ...prev, avatarFile: null }));
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    handleFileChange(e);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit({ ...formData, avatarFile });
+    if (validateAllFields()) {
+      onSubmit(user);
+    }
   };
 
   return (
-    <Box
-      component="form"
-      onSubmit={handleSubmit}
-      sx={{
-        p: 0, // Giữ nguyên p:0 để CardContent bên ngoài kiểm soát padding
-        display: "flex",
-        flexDirection: "column",
-        gap: 2.5, // Tăng khoảng cách giữa các phần tử để trông thoáng hơn
-      }}
-    >
-      {/* Tên người dùng */}
-      <TextField
-        fullWidth
-        label="Họ và tên"
-        name="fullName"
-        value={formData.fullName}
-        onChange={handleChange}
-        required
-        error={!!errors.fullName}
-        helperText={errors.fullName}
-        variant="outlined"
-        InputLabelProps={{ shrink: true }} // Luôn thu nhỏ label
-        sx={{
-          '& .MuiOutlinedInput-root': {
-            borderRadius: '8px', // Bo góc nhẹ cho input
-          },
-        }}
-      />
+    <Box>
+      <form onSubmit={handleSubmit}>
+        <Box sx={{ p: 4, border: '1px solid #e0e0e0' }}>
+          <Grid container spacing={4} sx={{ mb: 4 }}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Họ và tên *"
+                value={user.fullName}
+                onChange={(e) => handleChange('fullName', e.target.value)}
+                fullWidth
+                error={!!errors.fullName}
+                helperText={errors.fullName}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Email *"
+                type="email"
+                value={user.email}
+                onChange={(e) => handleChange('email', e.target.value)}
+                fullWidth
+                error={!!errors.email}
+                helperText={errors.email}
+              />
+            </Grid>
+          </Grid>
 
-      {/* Email */}
-      <TextField
-        fullWidth
-        label="Email"
-        name="email"
-        type="email"
-        value={formData.email}
-        onChange={handleChange}
-        required
-        error={!!errors.email}
-        helperText={errors.email}
-        variant="outlined"
-        InputLabelProps={{ shrink: true }}
-        sx={{
-          '& .MuiOutlinedInput-root': {
-            borderRadius: '8px',
-          },
-        }}
-      />
+          <Grid container spacing={4} sx={{ mb: 4 }}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Mật khẩu *"
+                type="password"
+                value={user.password}
+                onChange={(e) => handleChange('password', e.target.value)}
+                fullWidth
+                error={!!errors.password}
+                helperText={errors.password}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Số điện thoại"
+                value={user.phone}
+                onChange={(e) => handleChange('phone', e.target.value)}
+                fullWidth
+                error={!!errors.phone}
+                helperText={errors.phone}
+              />
+            </Grid>
+          </Grid>
 
-      {/* Mật khẩu */}
-      <TextField
-        fullWidth
-        label="Mật khẩu"
-        name="password"
-        type="password"
-        value={formData.password}
-        onChange={handleChange}
-        required
-        error={!!errors.password}
-        helperText={errors.password}
-        variant="outlined"
-        InputLabelProps={{ shrink: true }}
-        sx={{
-          '& .MuiOutlinedInput-root': {
-            borderRadius: '8px',
-          },
-        }}
-      />
+          <Grid container spacing={4} sx={{ mb: 4 }}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Ngày sinh"
+                type="date"
+                value={user.dateOfBirth}
+                onChange={(e) => handleChange('dateOfBirth', e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                fullWidth
+                error={!!errors.dateOfBirth}
+                helperText={errors.dateOfBirth}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <InputLabel>Trạng thái</InputLabel>
+                <Select
+                  value={user.status}
+                  onChange={(e) => handleChange('status', e.target.value)}
+                >
+                  <MenuItem value="active">Hoạt động</MenuItem>
+                  <MenuItem value="inactive">Không hoạt động</MenuItem>
+                  <MenuItem value="pending">Đang chờ</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
 
-      {/* Số điện thoại */}
-      <TextField
-        fullWidth
-        label="Số điện thoại"
-        name="phone"
-        type="tel"
-        value={formData.phone}
-        onChange={handleChange}
-        error={!!errors.phone}
-        helperText={errors.phone}
-        variant="outlined"
-        InputLabelProps={{ shrink: true }}
-        sx={{
-          '& .MuiOutlinedInput-root': {
-            borderRadius: '8px',
-          },
-        }}
-      />
-
-      {/* Ngày sinh */}
-      <TextField
-        fullWidth
-        label="Ngày sinh"
-        name="dateOfBirth"
-        type="date"
-        value={formData.dateOfBirth}
-        onChange={handleChange}
-        InputLabelProps={{ shrink: true }}
-        error={!!errors.dateOfBirth}
-        helperText={errors.dateOfBirth}
-        variant="outlined"
-        sx={{
-          '& .MuiOutlinedInput-root': {
-            borderRadius: '8px',
-          },
-        }}
-        // Thêm icon lịch vào cuối input
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">
-              <CalendarTodayIcon color="action" />
-            </InputAdornment>
-          ),
-        }}
-      />
-
-      {/* Chọn Vai trò (Roles) */}
-      <FormControl fullWidth error={!!errors.roleIds} variant="outlined"
-        sx={{
-          '& .MuiOutlinedInput-root': {
-            borderRadius: '8px',
-          },
-        }}
-      >
-        <InputLabel id="role-select-label">Vai trò</InputLabel>
-        <Select
-          labelId="role-select-label"
-          id="role-select"
-          multiple
-          name="roleIds"
-          value={formData.roleIds}
-          onChange={handleChange}
-          renderValue={(selected) =>
-            selected
-              .map((id) => availableRoles.find((role) => role.id === id)?.name)
-              .join(", ")
-          }
-          label="Vai trò"
-        >
-          {availableRoles.map((role) => (
-            <MenuItem key={role.id} value={role.id}>
-              <Checkbox checked={formData.roleIds.indexOf(role.id) > -1} />
-              <ListItemText primary={role.name} />
-            </MenuItem>
-          ))}
-        </Select>
-        {errors.roleIds && <Typography color="error" variant="caption">{errors.roleIds}</Typography>}
-      </FormControl>
-
-      {/* Chọn Trạng thái (Status) */}
-      <FormControl fullWidth error={!!errors.status} variant="outlined"
-        sx={{
-          '& .MuiOutlinedInput-root': {
-            borderRadius: '8px',
-          },
-        }}
-      >
-        <InputLabel id="status-select-label">Trạng thái</InputLabel>
-        <Select
-          labelId="status-select-label"
-          id="status-select"
-          name="status"
-          value={formData.status}
-          onChange={handleChange}
-          label="Trạng thái"
-        >
-          <MenuItem value="active">Hoạt động</MenuItem>
-          <MenuItem value="inactive">Không hoạt động</MenuItem>
-          <MenuItem value="pending">Đang chờ</MenuItem>
-        </Select>
-        {errors.status && <Typography color="error" variant="caption">{errors.status}</Typography>}
-      </FormControl>
-
-      {/* Chọn ảnh đại diện */}
-      <Stack spacing={1} mt={1}>
-        <Typography variant="subtitle2" color="text.secondary">Ảnh đại diện</Typography>
-        <Button
-          variant="outlined"
-          component="label"
-          fullWidth // Nút full width
-          sx={{
-            borderRadius: '8px', // Bo góc cho nút
-            py: 1.5, // Tăng padding để nút lớn hơn
-            borderColor: 'primary.main', // Viền màu xanh
-            color: 'primary.main', // Chữ màu xanh
-            '&:hover': {
-              backgroundColor: 'primary.light', // Hiệu ứng hover nhẹ
-              borderColor: 'primary.main',
-            },
-          }}
-        >
-          Chọn Ảnh Đại Diện
-          <input
-            type="file"
-            accept="image/*"
-            hidden
-            onChange={handleImageChange}
-          />
-        </Button>
-
-        {avatarPreview && (
-          <Box mt={1} textAlign="center">
-            <Avatar
-              src={avatarPreview}
-              alt="Ảnh đại diện"
-              sx={{ width: 100, height: 100, mx: "auto", border: '2px solid #e0e0e0' }} // Thêm viền nhẹ cho avatar
-            />
+          {/* Avatar */}
+          <Box mt={2}>
+            <Typography variant="body1" fontWeight={500} mb={1}>
+              Ảnh đại diện <span style={{ color: theme.palette.error.main }}>*</span>
+            </Typography>
+            <label
+              htmlFor="avatar-upload"
+              onDrop={handleDrop}
+              onDragOver={(e) => e.preventDefault()}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '100%',
+                height: '150px',
+                border: `2px dashed ${
+                  errors.avatar ? theme.palette.error.main : theme.palette.divider
+                }`,
+                borderRadius: theme.shape.borderRadius,
+                cursor: 'pointer',
+                transition: 'border-color 0.3s, background-color 0.3s',
+                backgroundColor: theme.palette.background.default,
+                position: 'relative',
+              }}
+            >
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                style={{ display: 'none' }}
+                id="avatar-upload"
+              />
+              <Box display="flex" flexDirection="column" alignItems="center">
+                <PlusCircle size={40} color={theme.palette.text.secondary} />
+                <Typography variant="body2" color="text.secondary" mt={1}>
+                  Kéo thả hoặc bấm để chọn ảnh
+                </Typography>
+              </Box>
+            </label>
+            {errors.avatar && (
+              <FormHelperText error sx={{ mt: 1 }}>
+                {errors.avatar}
+              </FormHelperText>
+            )}
+            {preview && (
+              <Box position="relative" mt={3} width={150} height={150}>
+                <Avatar
+                  src={preview}
+                  alt="Avatar Preview"
+                  sx={{
+                    width: '100%',
+                    height: '100%',
+                    borderRadius: theme.shape.borderRadius,
+                  }}
+                  variant="rounded"
+                />
+                <Button
+                  variant="text"
+                  color="error"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleRemoveImage();
+                  }}
+                  sx={{
+                    position: 'absolute',
+                    top: 4,
+                    right: 4,
+                    minWidth: 0,
+                    width: 32,
+                    height: 32,
+                    borderRadius: '50%',
+                    p: 0,
+                    backgroundColor: 'white',
+                    '&:hover': { backgroundColor: '#f0f0f0' },
+                  }}
+                >
+                  <Trash2 size={16} />
+                </Button>
+              </Box>
+            )}
           </Box>
-        )}
-      </Stack>
+        </Box>
 
-      {/* Nút gửi */}
-      <Button
-        type="submit"
-        variant="contained"
-        color="primary"
-        fullWidth
-        sx={{
-          mt: 2,
-          py: 1.5, // Tăng padding để nút lớn hơn
-          borderRadius: '8px', // Bo góc cho nút
-          fontSize: '1rem', // Tăng kích thước chữ
-          fontWeight: 'bold',
-          boxShadow: '0 4px 10px rgba(0, 123, 255, 0.2)', // Đổ bóng nhẹ
-          '&:hover': {
-            boxShadow: '0 6px 15px rgba(0, 123, 255, 0.3)', // Đổ bóng mạnh hơn khi hover
-          },
-        }}
-      >
-        Thêm Người Dùng
-      </Button>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, pt: 3 }}>
+          <Button variant="outlined" onClick={() => window.history.back()}>
+            Hủy
+          </Button>
+          <Button type="submit" variant="contained">
+            {initialData ? 'Cập nhật' : 'Thêm mới'}
+          </Button>
+        </Box>
+      </form>
     </Box>
   );
 };

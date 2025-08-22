@@ -79,19 +79,18 @@ const UploadImage = ({ thumbnail, setThumbnail }) => {
       </Box>
 
       {thumbnail && (
-        <Box mt={2}>
-          {thumbnail instanceof File && (
-            <img
-              src={URL.createObjectURL(thumbnail)}
-              alt="Preview"
-              style={{ width: 100, height: 100, borderRadius: 8, objectFit: 'cover' }}
-            />
-          )}
-          <Button onClick={handleRemove} color="error" size="small" sx={{ mt: 1 }}>
-            Xóa ảnh
-          </Button>
-        </Box>
-      )}
+  <Box mt={2}>
+    <img
+      src={thumbnail instanceof File ? URL.createObjectURL(thumbnail) : thumbnail}
+      alt="Preview"
+      style={{ width: 100, height: 100, borderRadius: 8, objectFit: 'cover' }}
+    />
+    <Button onClick={handleRemove} color="error" size="small" sx={{ mt: 1 }}>
+      Xóa ảnh
+    </Button>
+  </Box>
+)}
+
 
       <Dialog open={openCrop} maxWidth="sm" fullWidth>
         <DialogTitle>Cắt ảnh</DialogTitle>

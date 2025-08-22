@@ -1,4 +1,3 @@
-// TopProductsTable.jsx
 "use client"
 
 import { useState, useEffect } from "react"
@@ -15,7 +14,7 @@ import {
   Typography,
   CircularProgress,
 } from "@mui/material"
-import { TrendingUp, Whatshot } from "@mui/icons-material"
+import { Whatshot } from "@mui/icons-material"
 import { dashboardService } from "@/services/admin/dashboardService"
 
 export default function TopProductsTable({ dateRange }) {
@@ -28,7 +27,6 @@ export default function TopProductsTable({ dateRange }) {
       setLoading(true)
       setError(null)
       try {
-        // Đã bỏ dateRange để lấy toàn bộ dữ liệu
         const apiData = await dashboardService.getAllTopSellingProducts()
         setProducts(apiData.data)
       } catch (e) {
@@ -39,7 +37,7 @@ export default function TopProductsTable({ dateRange }) {
       }
     }
     fetchData()
-  }, []) // Dependency array rỗng để chỉ chạy một lần
+  }, [])
 
   const formatCurrency = (amount) =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount ?? 0)
@@ -77,23 +75,20 @@ export default function TopProductsTable({ dateRange }) {
     <TableContainer
       component={Paper}
       sx={{
-        borderRadius: 3,
-        overflow: "hidden",
-        boxShadow: "0 8px 24px rgba(0,0,0,0.06)",
-        height: "100%",
+        borderRadius: 2, // Giảm bo tròn góc
+        boxShadow: "0 4px 12px rgba(0,0,0,0.05)", // Giảm độ đổ bóng
         "& .MuiTable-root": { minWidth: "100%" },
       }}
     >
-      <Table stickyHeader>
-        <TableHead sx={{ "& .MuiTableCell-root": { borderBottom: "none" } }}>
-          {/* Column header */}
+      <Table stickyHeader size="small"> {/* Sử dụng size="small" */}
+        <TableHead>
           <TableRow>
             <TableCell
               sx={{
-                fontWeight: 700,
-                fontSize: "0.875rem",
+                fontWeight: 600,
+                fontSize: "0.8rem", // Giảm kích thước font
                 backgroundColor: "#fffaf3",
-                borderTop: "1px solid rgba(0,0,0,0.06)",
+                borderBottom: "none",
               }}
             >
               SẢN PHẨM
@@ -101,10 +96,10 @@ export default function TopProductsTable({ dateRange }) {
             <TableCell
               align="right"
               sx={{
-                fontWeight: 700,
-                fontSize: "0.875rem",
+                fontWeight: 600,
+                fontSize: "0.8rem", // Giảm kích thước font
                 backgroundColor: "#fffaf3",
-                borderTop: "1px solid rgba(0,0,0,0.06)",
+                borderBottom: "none",
               }}
             >
               SỐ LƯỢNG BÁN
@@ -112,10 +107,10 @@ export default function TopProductsTable({ dateRange }) {
             <TableCell
               align="right"
               sx={{
-                fontWeight: 700,
-                fontSize: "0.875rem",
+                fontWeight: 600,
+                fontSize: "0.8rem", // Giảm kích thước font
                 backgroundColor: "#fffaf3",
-                borderTop: "1px solid rgba(0,0,0,0.06)",
+                borderBottom: "none",
               }}
             >
               DOANH THU
@@ -129,25 +124,21 @@ export default function TopProductsTable({ dateRange }) {
               key={product.id ?? `${product.name}-${index}`}
               sx={{
                 "&:hover": {
-                  backgroundColor: "rgba(255, 152, 0, 0.08)",
-                  transform: "translateY(-1px)",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+                  backgroundColor: "rgba(255, 152, 0, 0.05)",
                 },
-                "&:nth-of-type(even)": { backgroundColor: "rgba(0, 0, 0, 0.02)" },
+                "&:nth-of-type(even)": { backgroundColor: "rgba(0, 0, 0, 0.01)" },
                 transition: "all 0.2s ease",
               }}
             >
-              <TableCell sx={{ py: 1.5 }}>
-                <Box display="flex" alignItems="center" gap={2}>
+              <TableCell sx={{ py: 0.5 }}> {/* Giảm padding */}
+                <Box display="flex" alignItems="center" gap={1}> {/* Giảm khoảng cách */}
                   <Avatar
                     src={product.image}
                     alt={product.name}
                     variant="rounded"
                     sx={{
-                      width: 48,
-                      height: 48,
-                      border: "2px solid #fff",
-                      boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+                      width: 40, // Giảm kích thước avatar
+                      height: 40, // Giảm kích thước avatar
                     }}
                   />
                   <Box>
@@ -155,7 +146,8 @@ export default function TopProductsTable({ dateRange }) {
                       variant="body2"
                       fontWeight={600}
                       sx={{
-                        maxWidth: 200,
+                        maxWidth: 200, // Giảm max width
+                        fontSize: "0.875rem",
                         whiteSpace: "nowrap",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
@@ -164,7 +156,7 @@ export default function TopProductsTable({ dateRange }) {
                     >
                       {product.name}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: "0.75rem" }}>
                       Thứ hạng: #{index + 1}
                     </Typography>
                   </Box>
@@ -176,22 +168,22 @@ export default function TopProductsTable({ dateRange }) {
                   sx={{
                     display: "inline-flex",
                     alignItems: "center",
-                    gap: 0.75,
-                    px: 1.25,
-                    py: 0.5,
-                    borderRadius: 2,
+                    gap: 0.5, // Giảm khoảng cách
+                    px: 1, // Giảm padding
+                    py: 0.25, // Giảm padding
+                    borderRadius: 1.5,
                     backgroundColor: "rgba(245, 124, 0, 0.1)",
                   }}
                 >
-                  <Whatshot sx={{ fontSize: 16, color: "#f57c00" }} />
-                  <Typography variant="body2" fontWeight={700} color="#f57c00">
+                  <Whatshot sx={{ fontSize: 14, color: "#f57c00" }} /> {/* Giảm kích thước icon */}
+                  <Typography variant="body2" fontWeight={700} color="#f57c00" sx={{ fontSize: "0.8rem" }}>
                     {product.sold}
                   </Typography>
                 </Box>
               </TableCell>
 
               <TableCell align="right">
-                <Typography variant="body2" fontWeight={700} color="success.main">
+                <Typography variant="body2" fontWeight={700} color="success.main" sx={{ fontSize: "0.8rem" }}>
                   {formatCurrency(product.revenue)}
                 </Typography>
               </TableCell>

@@ -3,7 +3,8 @@ import moment from 'moment';
 import { useShallow } from 'zustand/react/shallow';
 import io from 'socket.io-client';
 import LuckyWheel from '@/components/Client/LuckyWheel';
-
+import ComboList from './ComboList';
+          
 import SliderBanner from './SliderBanner';
 import ProductCategorySection from './ProductCategorySection';
 import ViewedProductsSlider from './ViewedProductsSlider';
@@ -127,7 +128,9 @@ const HomePage = () => {
               <HorizontalProductSlider flashSales={flashSales} bgColor="#007BFF" />
             </section>
           )}
-
+<section>
+            <ComboList />
+          </section>
           {!authLoading && userId && (
             <section>
               <RecommendedProductsSection userId={userId} />

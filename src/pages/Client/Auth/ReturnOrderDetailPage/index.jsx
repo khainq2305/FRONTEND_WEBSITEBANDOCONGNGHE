@@ -211,13 +211,27 @@ const MAP = {
   cod: 'Tài khoản CYBERZONE',
   payos: 'Tài khoản CYBERZONE',
 };
+const refundTextMap = {
+  momo: (name) => `ví ${name || 'MoMo'} của bạn`,
+  vnpay: (name) => `ví ${name || 'VNPay'} của bạn`,
+  cod: () => 'Số dư TK (Cyberzone) của bạn',
+  zalopay: () => 'Số dư TK (Cyberzone) của bạn',
+  payos: () => 'Số dư TK (Cyberzone) của bạn',
+};
 
+const refundText = refundTextMap[paymentMethodCode]
+  ? refundTextMap[paymentMethodCode](bankName)
+  : refundDest;
 // hỗ trợ biến thể vnpay_qr, vnpay_atm...
 const refundDest =
   MAP[paymentMethodCode] ??
   (paymentMethodCode.startsWith('vnpay') ? 'Ví VNPay' : 'Không rõ');
 
 console.log('pmRaw:', pmRaw, '=> paymentMethodCode:', paymentMethodCode);
+
+const totalSegments = progressSteps.length - 1;
+const startOffset = 100 / (progressSteps.length * 2); // ví dụ 4 bước => 12.5
+const progressPercent = (currentStepIndex / totalSegments) * (100 - 2 * startOffset);
 
 
 return (
@@ -271,13 +285,17 @@ return (
             style={{ left: '12.5%', right: '12.5%' }}
           />
           {currentStepIndex > -1 && (
-            <Box
-              className="absolute top-1/2 h-0.5 bg-green-500 transform -translate-y-1/2 z-10 transition-all duration-500 ease-in-out"
-              style={{
-                left: '12.5%',
-                right: `calc(${100 - stepPercent * currentStepIndex - 12.5}% + ${extraOffsetPercent}%)`,
-              }}
-            />
+
+<Box
+  className="absolute top-1/2 h-0.5 bg-green-500 transform -translate-y-1/2 z-10 transition-all duration-500 ease-in-out"
+  style={{
+    left: `${startOffset}%`,
+    width: `${progressPercent}%`
+  }}
+/>
+
+
+
           )}
           <Box className="relative flex justify-between items-center w-full z-20">
             {progressSteps.map((step, index) => {
@@ -325,15 +343,17 @@ return (
     {status === 'refunded' && (
       <Box className="bg-orange-50 border border-orange-200 rounded-md px-4 py-3 mb-6">
         <Typography className="text-orange-600 font-semibold mb-1">Đã hoàn tiền</Typography>
-        <Typography className="text-sm text-gray-800">
-          Số tiền {formatCurrencyVND(refundAmount)} sẽ được hoàn vào{' '}
-          {bankName ? `tài khoản ${bankName} của bạn` : 'Số dư TK của bạn'} trong vòng 24 giờ.
-        </Typography>
+
+
+<Typography className="text-sm text-gray-800">
+  Số tiền {formatCurrencyVND(refundAmount)} sẽ được hoàn vào {refundText} trong vòng 24 giờ.
+</Typography>
+
+
       </Box>
     )}
-{/* CHỜ TRẢ HÀNG / HƯỚNG DẪN & NHÃN */}
-{/* ================== DROP-OFF: KH tự mang ra bưu cục ================== */}
-{isDropoff && (
+
+{shipment?.returnMethod === 'self_send' && isDropoff && status !== 'refunded' && (
   <Box className="mb-8 rounded-lg border border-orange-200 bg-orange-50 p-4">
     <Box className="flex items-start justify-between gap-3">
       <Box className="flex-1">
@@ -416,7 +436,7 @@ return (
 )}
 
 {/* ================== PICKUP: GHN đến lấy tại nhà ================== */}
-{isPickup && (
+{shipment?.returnMethod === 'ghn_pickup' && isPickup && status !== 'refunded' && (
   <Box className="mb-8 rounded-lg border border-blue-200 bg-blue-50 p-4">
     <Box className="flex items-start justify-between gap-3">
       <Box className="flex-1">

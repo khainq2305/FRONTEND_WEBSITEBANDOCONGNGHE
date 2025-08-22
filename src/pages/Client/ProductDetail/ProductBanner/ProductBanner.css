@@ -1,0 +1,26 @@
+.product-banner-container .slick-prev,
+.product-banner-container .slick-next {
+  z-index: 10; 
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.product-banner-container .slick-prev {
+  left: 20px;
+}
+
+.product-banner-container .slick-next {
+  right: 40px;
+}
+
+.product-banner-container .slick-disabled {
+  display: none !important;
+}
+
+.product-banner-container .slick-prev:before,
+.product-banner-container .slick-next:before {
+  color: #fff;
+  font-size: 40px;
+  opacity: 1;
+  text-shadow: 0 0 5px rgba(0,0,0,0.5);
+}

@@ -16,7 +16,7 @@ const Carousel = ({ title, items, visibleCount, autoScroll }) => {
   const itemWidthPercent = 100 / visibleCount;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 lg:px-0 py-8">
       <div className="mb-4 text-left">
         <h2 className="inline-block text-xl sm:text-2xl font-bold text-gray-800 uppercase tracking-wider pb-2 border-b-4 border-primary rounded-sm">
           {title}

@@ -1,9 +1,15 @@
 import React, { useState } from 'react';
-import UserForm from '../UserForm'; // Đảm bảo đường dẫn đúng
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, Typography, Container } from '@mui/material';
+import UserForm from '../UserForm';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import {
+  Box,
+  Breadcrumbs,
+  Link,
+  Typography,
+  Divider
+} from '@mui/material';
 import { toast } from 'react-toastify';
-// import { createUser } from '../../../../services/admin/userService'; // Giữ nguyên import này nếu bạn có service
+import { createUser } from '../../../../services/admin/userService';
 
 const UserAddPage = () => {
   const navigate = useNavigate();
@@ -11,25 +17,19 @@ const UserAddPage = () => {
 
   const handleSubmit = async (data) => {
     const formDataToSend = new FormData();
-    formDataToSend.append('fullName', data.fullName);
+    formDataToSend.append('fullName', data.fullName || '');
     formDataToSend.append('email', data.email);
     formDataToSend.append('password', data.password);
     formDataToSend.append('phone', data.phone || '');
-    formDataToSend.append('dateOfBirth', data.dateOfBirth || ''); // Thêm ngày sinh
-    if (data.avatarFile) {
-      formDataToSend.append('avatar', data.avatarFile);
-    }
-    // Chuyển đổi mảng roleIds thành chuỗi JSON để gửi đi
-    formDataToSend.append('roleIds', JSON.stringify(data.roleIds));
-    formDataToSend.append('status', data.status);
+    formDataToSend.append('dateOfBirth', data.dateOfBirth || '');
+    formDataToSend.append('status', data.status || 'active'); // optional
+    if (data.avatarFile) formDataToSend.append('avatar', data.avatarFile); // optional
 
     try {
       setFieldErrors({});
-      // await createUser(formDataToSend); // Bỏ comment dòng này khi bạn có service thực tế
-      console.log('Dữ liệu gửi đi:', Object.fromEntries(formDataToSend.entries()));
-      console.log('File ảnh:', data.avatarFile);
+      await createUser(formDataToSend); // gọi API thật
       toast.success('Tạo tài khoản thành công!');
-      navigate('/admin/users'); // Chuyển hướng sau khi thành công
+      navigate('/admin/users');
     } catch (err) {
       const backendErrors = err?.errors || err?.response?.data?.errors;
       if (Array.isArray(backendErrors)) {
@@ -37,28 +37,30 @@ const UserAddPage = () => {
         backendErrors.forEach((e) => {
           errors[e.field] = e.message;
         });
-        setFieldErrors(errors);
+        setFieldErrors(errors); // hiển thị lỗi ngay dưới input
       } else {
-        toast.error('❌ Tạo tài khoản thất bại!');
+        console.error("❌ Lỗi không xác định khi tạo user:", err);
       }
     }
   };
 
   return (
-    <Container maxWidth="lg" sx={{ pt: 3, width: '100%' }}>
-      <Typography variant="h5" fontWeight="bold" mb={2}>
-        Thêm tài khoản
+    <Box sx={{ p: { xs: 2, sm: 4 } }}>
+      <Typography variant="h5" fontWeight={600} gutterBottom>
+        Thêm tài khoản mới
       </Typography>
-
-      <Card sx={{ width: '100%', borderRadius: 2, boxShadow: 3 }}> {/* Thêm style cho Card */}
-        <CardContent>
-          <UserForm
-            onSubmit={handleSubmit}
-            errors={fieldErrors}
-          />
-        </CardContent>
-      </Card>
-    </Container>
+      <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
+        <Link component={RouterLink} to="/admin" underline="hover" color="inherit">
+          Trang chủ
+        </Link>
+        <Link component={RouterLink} to="/admin/users" underline="hover" color="inherit">
+          Quản lý người dùng
+        </Link>
+        <Typography color="text.primary">Thêm tài khoản</Typography>
+      </Breadcrumbs>
+      <Divider sx={{ my: 3 }} />
+      <UserForm onSubmit={handleSubmit} externalErrors={fieldErrors} />
+    </Box>
   );
 };
 

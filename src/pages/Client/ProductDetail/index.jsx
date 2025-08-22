@@ -17,7 +17,7 @@ import { bannerService } from '../../../services/client/bannerService';
 import { productViewService } from '../../../services/client/productViewService';
 import { productQuestionService } from '@/services/client/productQuestionService';
 import OrderLoader from '@/components/common/OrderLoader';
-
+import ProductBanner from './ProductBanner';
 import ProductHighlights from './ProductHighlights';
 
 import PopupModal from '@/layout/Client/Header/PopupModal';
@@ -425,7 +425,9 @@ export default function ProductDetail() {
 
           <div className="xl:sticky xl:top-16 xl:h-fit">{product.specs && <TechnicalSpec specs={product.specs} />}</div>
         </div>
-
+        <div className="mt-5">
+          <ProductBanner productId={product?.id} />
+        </div>
         <div className="mt-4 md:mt-6">
           <RelatedProductsSlider categoryId={product.categoryId} currentProductId={product.id} />
         </div>

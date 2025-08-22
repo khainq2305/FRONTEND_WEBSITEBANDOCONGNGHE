@@ -21,6 +21,7 @@ const statusColors = {
     awaiting_pickup: 'warning',
     pickup_booked: 'info',
     received: 'success',
+    awaiting_dropoff: 'warning',   // thêm cái này
     refunded: 'default',
     cancelled: 'default',
     '': 'gray'
@@ -33,6 +34,7 @@ const labelMap = {
     awaiting_pickup: 'Chờ gửi hàng',
     pickup_booked: 'Đang hoàn hàng',
     received: 'Đã nhận hàng',
+      awaiting_dropoff: 'Chờ gửi hàng',  // thêm cái này
     refunded: 'Đã hoàn tiền',
     cancelled: 'Đã hủy',
     '': 'Tất cả'

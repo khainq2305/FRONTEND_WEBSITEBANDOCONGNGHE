@@ -1,150 +1,243 @@
-import { useState, useEffect } from "react";
-import { Grid, FormControlLabel, Switch } from "@mui/material";
+import { useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { Grid } from "@mui/material";
 import Content from "@/pages/Admin/News/components/form/Content";
 import Sidebar from "@/pages/Admin/News/components/sidebar/Sidebar";
 import { newsCategoryService } from "@/services/admin/newCategoryService";
 import { normalizeCategoryList } from "@/utils";
 import { tagService } from "@/services/admin/tagService";
-import useAuthStore  from "@/stores/AuthStore";
+import useAuthStore from "@/stores/AuthStore";
 
 const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
-  const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("");
-  const [categories, setCategories] = useState([]);
-  const [status, setStatus] = useState(1);
-  const [content, setContent] = useState("");
-  const [thumbnail, setThumbnail] = useState(null);
-  const [tags, setTags] = useState([]);
-  const [allTags, setAllTags] = useState([])
-  const [isScheduled, setIsScheduled] = useState(false);
-  const [publishAt, setPublishAt] = useState("");
-  const [isFeature, setIsFeature] = useState(false);
-  const [errors, setErrors] = useState({});
-  const [newCategory, setNewCategory] = useState('');
-  const { user } = useAuthStore()
+  const { user } = useAuthStore();
+  
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    watch,
+    setError,
+    clearErrors,
+    formState: { errors, isSubmitting },
+    reset
+  } = useForm({
+    defaultValues: {
+      title: "",
+      category: "",
+      status: 1,
+      content: "",
+      thumbnail: null,
+      tags: [],
+      isScheduled: false,
+      publishAt: "",
+      isFeature: false,
+      categories: [],
+      allTags: [],
+      newCategory: ""
+    },
+    mode: "onChange" // Validate on change for better UX
+  });
+
+  // Watch values for dependent logic
+  const watchedValues = watch();
+  const { isScheduled, categories, allTags, newCategory } = watchedValues;
+
+  // Load initial data
   useEffect(() => {
     if (initialData) {
-      setTitle(initialData.title || "");
-      setCategory(initialData.categoryId || "");
-      setStatus(initialData.status || 1);
-      setContent(initialData.content || "");
-      setThumbnail(initialData.thumbnail || null);
-      setTags(initialData.tags || []);
-      setIsFeature(initialData.isFeature || false);
-      setIsScheduled(Boolean(initialData.publishAt));
-      setPublishAt(initialData.publishAt || "");
+      reset({
+        title: initialData.title || "",
+        categoryId: initialData?.category?.id || "",  // 👈 fix chỗ này
+        status: initialData.status || 1,
+        content: initialData.content || "",
+        thumbnail: initialData.thumbnail || null,
+        tags: initialData.tags || [],
+        isFeature: initialData.isFeature || false,
+        isScheduled: Boolean(initialData.publishAt),
+        publishAt: initialData.publishAt || "",
+        categories: categories,
+        allTags: allTags,
+        newCategory: ""
+      });
     }
-  }, [initialData]);
+  }, [initialData, reset]);
 
+  console.log('initialData', initialData)
+  // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const res = await newsCategoryService.getAll();
         const activeCategories = res.data.data.filter((c) => c.deletedAt === null);
-        setCategories(normalizeCategoryList(activeCategories));
-        console.log(normalizeCategoryList(activeCategories))
+        const normalizedCategories = normalizeCategoryList(activeCategories);
+        setValue("categories", normalizedCategories);
+        console.log(normalizedCategories);
       } catch (error) {
         console.error("Lỗi lấy danh mục:", error);
+        setError("categories", {
+          type: "manual",
+          message: "Không thể tải danh mục. Vui lòng thử lại."
+        });
       }
     };
     fetchCategories();
-  }, []);
-  const fetchTags = async () => {
-  try {
-    const res = await tagService.getAll();
-    console.log('Dữ liệu tag là', res.data.data);
-    setAllTags(res.data.data); // ✅ Gán vào danh sách gợi ý
-  } catch (error) {
-    console.error('lỗi lấy tag', error);
-  }
-};
+  }, [setValue, setError]);
+
+  // Fetch tags
   useEffect(() => {
-    fetchTags()
-  },[])
-  const handleSubmit = async () => {
-  const formData = new FormData();
-  formData.append("title", title);
-  formData.append("authorId", user.id);
-  formData.append("content", content);
-  formData.append("category", category);
-  formData.append("status", isScheduled ? 2 : status); // 2: hẹn giờ
-  formData.append("publishAt", isScheduled ? publishAt : "");
-  formData.append("isFeature", isFeature);
-  formData.append("thumbnail", thumbnail);
-  formData.append('tags', JSON.stringify(tags));
+    const fetchTags = async () => {
+      try {
+        const res = await tagService.getAll();
+        console.log('Dữ liệu tag là', res.data.data);
+        setValue("allTags", res.data.data);
+      } catch (error) {
+        console.error('Lỗi lấy tag', error);
+        setError("allTags", {
+          type: "manual",
+          message: "Không thể tải tags. Vui lòng thử lại."
+        });
+      }
+    };
+    fetchTags();
+  }, [setValue, setError]);
 
-  try {
-    await onSubmit?.(formData);
-    console.log('form data',formData);
-    setErrors({}); // Reset lỗi nếu thành công
-} catch (err) {
-  const res = err.response;
-  if (res?.status === 400 && typeof res.data?.errors === "object") {
-    setErrors(res.data.errors);
-  } else {
-    console.error("Lỗi không xác định:", err);
-  }
-}
-};
+  // Form submission handler
+  const onFormSubmit = async (data) => {
+    try {
+      const formData = new FormData();
+      formData.append("title", data.title);
+      formData.append("authorId", user.id);
+      formData.append("content", data.content);
+      formData.append("categoryId", data.categoryId); // 🟢 đúng key backend chờ
+      formData.append("status", data.isScheduled ? 2 : data.status);
+      formData.append("publishAt", data.isScheduled ? data.publishAt : "");
+      formData.append("isFeature", data.isFeature);
+  
+      // Thumbnail: nếu là file mới thì append file, nếu là string thì append thumbnailUrl
+      if (data.thumbnail instanceof File) {
+        formData.append("thumbnail", data.thumbnail); 
+      } else if (typeof data.thumbnail === "string") {
+        formData.append("thumbnailUrl", data.thumbnail); 
+      }
+  
+      formData.append("tags", JSON.stringify(data.tags || []));
+  
+      // Log dữ liệu trong FormData để chắc chắn
+      for (let [key, value] of formData.entries()) {
+        console.log("📦", key, value);
+      }
+  
+      await onSubmit?.(formData);
+      console.log("Form data submitted successfully");
+  
+      if (mode === "add") reset();
+    } catch (err) {
+      const res = err.response;
+      if (res?.status === 400 && typeof res.data?.errors === "object") {
+        Object.keys(res.data.errors).forEach((key) => {
+          setError(key, { type: "server", message: res.data.errors[key] });
+        });
+      } else {
+        console.error("Lỗi không xác định:", err);
+        setError("root", {
+          type: "server",
+          message: "Có lỗi xảy ra. Vui lòng thử lại.",
+        });
+      }
+    }
+  };
 
+  
 const onAddCategory = async () => {
-  try {
-    const res = await newsCategoryService.create({ name: newCategory });
-    const newCat = res.data.data;
-    // Thêm danh mục mới vào state
-    setCategories(prev => [...prev, newCat]);
-    // Reset input nếu muốn
-    setNewCategory('');
-  } catch (error) {
-    console.error('Lỗi tạo danh mục mới', error.response ? error.response.data : error);
+  if (!newCategory.trim()) {
+    setError("newCategory", {
+      type: "manual",
+      message: "Tên danh mục không được để trống"
+    });
+    return;
   }
-}
 
+  if (!watchedValues.thumbnail) {
+    setError("thumbnail", {
+      type: "manual",
+      message: "Vui lòng chọn ảnh thumbnail"
+    });
+    return;
+  }
 
+  try {
+    const res = await newsCategoryService.create({
+      name: newCategory,
+      thumbnail: watchedValues.thumbnail
+    });
+    const newCat = res.data.data;
 
+    const updatedCategories = [...categories, newCat];
+    setValue("categories", updatedCategories);
+    setValue("newCategory", "");
+    clearErrors(["newCategory", "thumbnail"]);
+
+    console.log("Danh mục mới đã được thêm:", newCat);
+  } catch (error) {
+    console.error(
+      "Lỗi tạo danh mục mới",
+      error.response ? error.response.data : error
+    );
+    setError("newCategory", {
+      type: "server",
+      message:
+        error.response?.data?.message || "Không thể tạo danh mục mới"
+    });
+  }
+};
 
 
   return (
     <div title="Thêm bài viết mới">
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={9}>
-          <Content
-            title={title}
-            setTitle={setTitle}
-            content={content}
-            setContent={setContent}
-            errors={errors}
-            setErrors={setErrors}
-          />
+      <form onSubmit={handleSubmit(onFormSubmit)}>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={9}>
+            <Controller
+              name="title"
+              control={control}
+              rules={{
+                required: "Tiêu đề không được để trống",
+                minLength: {
+                  value: 5,
+                  message: "Tiêu đề phải có ít nhất 5 ký tự"
+                },
+                maxLength: {
+                  value: 200,
+                  message: "Tiêu đề không được vượt quá 200 ký tự"
+                }
+              }}
+              render={({ field }) => (
+                <Content
+                  {...field}
+                  contentValue={watch("content")}
+                  onContentChange={(value) => setValue("content", value)}
+                  errors={errors}
+                  clearErrors={clearErrors}
+                  control={control}
+                />
+              )}
+            />
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <Sidebar
+              control={control}
+              errors={errors}
+              setError={setError}
+              clearErrors={clearErrors}
+              setValue={setValue}
+              watch={watch}
+              isSubmitting={isSubmitting}
+              mode={mode}
+              onAddCategory={onAddCategory}
+            />
+          </Grid>
         </Grid>
-        <Grid item xs={12} md={3}>
-          <Sidebar
-            category={category}
-            setCategory={setCategory}
-            categories={categories}
-            status={status}
-            setStatus={setStatus}
-            isScheduled={isScheduled}
-            setIsScheduled={setIsScheduled}
-            publishAt={publishAt}
-            setPublishAt={setPublishAt}
-            errors={errors}
-            setErrors={setErrors}
-            handleSubmit={handleSubmit}
-            setThumbnail={setThumbnail}
-            thumbnail={thumbnail}
-            tags={tags}
-            setTags={setTags}
-            allTags={allTags} 
-            isFeature={isFeature}
-            setIsFeature={setIsFeature}
-            mode={mode}
-            newCategory={newCategory}
-            setNewCategory={setNewCategory}
-            onAddCategory={onAddCategory}
-          />
-        </Grid>
-      </Grid>
+      </form>
     </div>
   );
 };

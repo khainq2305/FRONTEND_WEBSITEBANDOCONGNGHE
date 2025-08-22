@@ -6,10 +6,10 @@ import BasicModal from '@/pages/Admin/News/components/modal/Modal';
 import { newsService } from '@/services/admin/postService';
 import { toast } from 'react-toastify';
 import MUIPagination from '@/components/common/Pagination';
-import { confirmDelete } from '@/components/common/ConfirmDeleteDialog'; 
+import { confirmDelete } from '@/components/common/ConfirmDeleteDialog';
 import { useParams } from 'react-router';
 const News = () => {
-  const { slug } = useParams()
+  const { slug } = useParams();
   const [filters, setFilters] = useState({
     search: '',
     status: '',
@@ -52,7 +52,7 @@ const News = () => {
   }, [filters, currentPage]);
 
   const handleTabClick = (statusValue) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
       status: statusValue === 'all' ? '' : statusValue.toString()
     }));
@@ -61,15 +61,11 @@ const News = () => {
   };
 
   const handleSelectRow = (slug) => {
-    setSelectedRows(prev =>
-      prev.includes(slug) ? prev.filter(x => x !== slug) : [...prev, slug]
-    );
+    setSelectedRows((prev) => (prev.includes(slug) ? prev.filter((x) => x !== slug) : [...prev, slug]));
   };
 
   const handleSelectAll = () => {
-    setSelectedRows(
-      selectedRows.length === articles.length ? [] : articles.map(item => item.slug)
-    );
+    setSelectedRows(selectedRows.length === articles.length ? [] : articles.map((item) => item.slug));
   };
 
   const handleAction = async () => {
@@ -117,17 +113,17 @@ const News = () => {
   };
 
   const handleForceDelete = async (slug) => {
-  const confirmed = await confirmDelete('bài viết này');
-  if (!confirmed) return;
+    const confirmed = await confirmDelete('bài viết này');
+    if (!confirmed) return;
 
-  try {
-    const res = await newsService.forceDelete([slug]);
-    toast.success(res.data.message || 'Đã xoá vĩnh viễn');
-    await loadArticles();
-  } catch (err) {
-    toast.error(err?.response?.data?.message || 'Xóa thất bại');
-  }
-};
+    try {
+      const res = await newsService.forceDelete([slug]);
+      toast.success(res.data.message || 'Đã xoá vĩnh viễn');
+      await loadArticles();
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Xóa thất bại');
+    }
+  };
 
   const getActionOptions = () => {
     if (filters.status === 'trash') {
@@ -136,9 +132,7 @@ const News = () => {
         { value: 'forceDelete', label: 'Xoá vĩnh viễn' }
       ];
     } else {
-      return [
-        { value: 'trash', label: 'Xoá đã chọn' }
-      ];
+      return [{ value: 'trash', label: 'Xoá đã chọn' }];
     }
   };
 
@@ -155,47 +149,45 @@ const News = () => {
         activeTab={activeTab}
         onTabChange={handleTabClick}
         counts={counts}
-        to="/admin/them-bai-viet-moi" 
+        to="/admin/them-bai-viet-moi"
         label="Thêm bài viết"
       />
 
       <div className="p-4">
         <ArticleFilters
-  filters={filters}
-  setFilters={setFilters}
-  selectedRows={selectedRows}
-  handleAction={handleAction}
-  getActionOptions={getActionOptions}
-/>
+          filters={filters}
+          setFilters={setFilters}
+          selectedRows={selectedRows}
+          handleAction={handleAction}
+          getActionOptions={getActionOptions}
+        />
 
         <ArticleTable
-  articles={articles}
-  selectedRows={selectedRows}
-  handleSelectRow={handleSelectRow}
-  handleSelectAll={handleSelectAll}
-  setModalItem={setModalItem}
-  handleSoftDelete={handleSoftDelete}
-  filters={filters}
-  handleRestore={handleRestore}
-  handleForceDelete={handleForceDelete}
-  setArticles={setArticles}
-  currentPage={currentPage}       // ✅ thêm dòng này
-  pageSize={pageSize}
-  slug={slug} 
-/>
+          articles={articles}
+          selectedRows={selectedRows}
+          handleSelectRow={handleSelectRow}
+          handleSelectAll={handleSelectAll}
+          setModalItem={setModalItem}
+          handleSoftDelete={handleSoftDelete}
+          filters={filters}
+          handleRestore={handleRestore}
+          handleForceDelete={handleForceDelete}
+          setArticles={setArticles}
+          currentPage={currentPage} // ✅ thêm dòng này
+          pageSize={pageSize}
+          slug={slug}
+        />
         {total > pageSize && (
-  <MUIPagination
-    currentPage={currentPage}
-    totalItems={total}
-    itemsPerPage={pageSize}
-    onPageChange={setCurrentPage}
-    onPageSizeChange={setPageSize}
-  />
-)}
-
+          <MUIPagination
+            currentPage={currentPage}
+            totalItems={total}
+            itemsPerPage={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={setPageSize}
+          />
+        )}
 
         <BasicModal modalItem={modalItem} onClose={() => setModalItem(null)} />
-
       </div>
     </div>
   );

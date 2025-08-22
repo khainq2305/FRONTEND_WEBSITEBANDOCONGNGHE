@@ -186,77 +186,103 @@ const InlinedProductCard = ({
         )}
       </Link>
 
-      <div className="product-card-info px-1 xs:px-1.5 sm:px-2 pt-1 pb-2 sm:pb-2.5 flex flex-col flex-grow overflow-hidden">
-        {renderBadge()}
-        <h3
-          className="product-card-name font-semibold text-xs sm:text-[13px] text-gray-800 mb-1 group-hover/productCard:text-blue-600 transition-colors duration-200 h-[38px] overflow-x-auto whitespace-nowrap scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100"
-          title={name}
-        >
-          <Link to={`/product/${slug}`} className="hover:underline inline-block min-w-max">
-            {name}
-          </Link>
-        </h3>
+     <div className="product-card-info px-1 xs:px-1.5 sm:px-2 pt-1 pb-2 sm:pb-2.5 flex flex-col flex-grow overflow-hidden">
+  {/* Badge luôn giữ chỗ cao 28px */}
+  <div className="h-[28px] flex items-center">
+    {renderBadge()}
+  </div>
 
+  {/* Tên sản phẩm luôn fix 2 dòng, cao 38px */}
+  <h3
+    className="product-card-name font-semibold text-xs sm:text-[13px] text-gray-800 mb-1 
+               group-hover/productCard:text-blue-600 transition-colors duration-200 
+               line-clamp-2 h-[38px]"
+    title={name}
+  >
+    <Link to={`/product/${slug}`} className="hover:underline">
+      {name}
+    </Link>
+  </h3>
 
-        <div className="mt-auto">
-          <div className="product-card-price text-[13px] sm:text-sm mb-1.5">
-            <span className="text-red-600 font-bold">{displayPrice}</span>
-            {displayOldPrice && (
-              <span className="text-gray-400 text-[10px] sm:text-[11px] line-through ml-1.5 sm:ml-2">{displayOldPrice}</span>
-            )}
-          </div>
+  <div className="mt-auto">
+    {/* Giá */}
+    <div className="product-card-price text-[13px] sm:text-sm mb-1.5">
+      <span className="text-red-600 font-bold">{displayPrice}</span>
+      {displayOldPrice && (
+        <span className="text-gray-400 text-[10px] sm:text-[11px] line-through ml-1.5 sm:ml-2">
+          {displayOldPrice}
+        </span>
+      )}
+    </div>
 
-          <div
-            className="product-card-saving text-[10px] sm:text-[10.5px] font-medium mb-1 sm:mb-1.5 min-h-[16px]"
-            style={{ color: 'rgb(80, 171, 95)' }}
-          >
-            {saleStatus === 'upcoming'
-              ? ''
-              : price && currentPriceNum > 0 && oldPriceNum > currentPriceNum
-                ? `Tiết kiệm ${(oldPriceNum - currentPriceNum).toLocaleString('vi-VN')}₫`
-                : ''}
-          </div>
+    {/* Tiết kiệm luôn giữ chiều cao 16px */}
+    <div
+      className="product-card-saving text-[10px] sm:text-[10.5px] font-medium mb-1 sm:mb-1.5 min-h-[16px]"
+      style={{ color: 'rgb(80, 171, 95)' }}
+    >
+      {saleStatus === 'upcoming'
+        ? ''
+        : price && currentPriceNum > 0 && oldPriceNum > currentPriceNum
+          ? `Tiết kiệm ${(oldPriceNum - currentPriceNum).toLocaleString('vi-VN')}₫`
+          : ''}
+    </div>
 
-          <div className="pt-2">
-            <div className="product-card-meta flex items-center justify-between min-h-[18px]">
-              <div className="flex items-center gap-x-1 sm:gap-x-1.5 text-[10px] sm:text-[10.5px] text-gray-600">{ratingDisplay}</div>
-              {soldCountDisplay}
-            </div>
-          </div>
-
-          <div className="mt-2 mb-1 text-center h-[28px] relative">
-            {!isCategoryDeal && (
-              <>
-                {saleStatus === 'upcoming' ? (
-                  <span className="inline-block border border-red-500 text-red-600 text-[12px] px-18 py-1.5 rounded-full font-bold shadow-sm">
-                    Sắp diễn ra
-                  </span>
-                ) : typeof originalQuantity === 'number' && originalQuantity > 0 ? (
-                  <div className="relative w-full h-full">
-                    <div className="absolute inset-0 bg-gray-200 rounded-full overflow-hidden" />
-                    <div
-                      className="absolute top-0 left-0 h-full bg-gradient-to-r from-yellow-300 to-yellow-400 rounded-full z-10"
-                      style={{ width: `${Math.min(100, remainingPercentage)}%` }}
-                    />
-                    {saleStatus === 'live' && (
-                      <img
-                        src={flashSaleImg}
-                        alt="🔥"
-                        className="absolute top-[-2px] left-[-2px] h-[29px] w-[24px] select-none pointer-events-none z-20"
-                      />
-                    )}
-                    <span className="absolute inset-0 flex items-center justify-center text-[11px] font-semibold text-orange-800 z-10">
-                      {displaySoldQuantityText}
-                    </span>
-                  </div>
-                ) : (
-                  <span className="inline-block text-[13px] font-semibold text-orange-800">{displaySoldQuantityText}</span>
-                )}
-              </>
-            )}
-          </div>
+    {/* Đánh giá + Đã bán luôn giữ chiều cao 18px */}
+    <div className="pt-2">
+      <div className="product-card-meta flex items-center justify-between min-h-[18px]">
+        <div className="flex items-center gap-x-1 sm:gap-x-1.5 text-[10px] sm:text-[10.5px] text-gray-600">
+          {ratingDisplay}
         </div>
+        {soldCountDisplay}
       </div>
+    </div>
+
+    {/* Progress bar luôn cao 28px */}
+    <div className="mt-2 mb-1 text-center h-[28px] relative">
+      {saleStatus === 'upcoming' ? (
+        <span
+          className="inline-block border border-red-500 text-red-600 
+                     text-[10px] sm:text-[11px] md:text-[12px] 
+                     px-2 sm:px-4 md:px-6 
+                     py-0.5 sm:py-1 md:py-1.5 
+                     rounded-full font-bold shadow-sm 
+                     whitespace-nowrap leading-none"
+        >
+          Sắp diễn ra
+        </span>
+      ) : (
+        <>
+          {!isCategoryDeal && typeof originalQuantity === 'number' && originalQuantity > 0 ? (
+            <div className="relative w-full h-full">
+              <div className="absolute inset-0 bg-gray-200 rounded-full overflow-hidden" />
+              <div
+                className="absolute top-0 left-0 h-full bg-gradient-to-r from-yellow-300 to-yellow-400 rounded-full z-10"
+                style={{ width: `${Math.min(100, remainingPercentage)}%` }}
+              />
+              {saleStatus === 'live' && (
+                <img
+                  src={flashSaleImg}
+                  alt="🔥"
+                  className="absolute top-[-2px] left-[-2px] h-[29px] w-[24px] select-none pointer-events-none z-20"
+                />
+              )}
+              <span className="absolute inset-0 flex items-center justify-center text-[11px] font-semibold text-orange-800 z-10">
+                {displaySoldQuantityText}
+              </span>
+            </div>
+          ) : (
+            !isCategoryDeal && (
+              <span className="inline-block text-[13px] font-semibold text-orange-800">
+                {displaySoldQuantityText}
+              </span>
+            )
+          )}
+        </>
+      )}
+    </div>
+  </div>
+</div>
+
     </div>
   );
 };
@@ -414,28 +440,36 @@ const HorizontalProductSlider = ({ flashSales = [], bgColor = '#007BFF' }) => {
     return 1;
   };
 
-  const sliderSettings = {
-    dots: false,
-    speed: 600,
-    slidesToScroll: 1,
-    slidesToShow: 5,
-    infinite: totalProducts > 5,
-    arrows: totalProducts > 5,
-    autoplay: true,
-    autoplaySpeed: 7000,
-    pauseOnHover: true,
-    prevArrow: <CustomSlickArrow type="prev" />,
-    nextArrow: <CustomSlickArrow type="next" />,
-    swipeToSlide: true,
-    responsive: [
-      { breakpoint: 1279, settings: { slidesToShow: 4, arrows: totalProducts > 4, infinite: totalProducts > 4 } },
-      { breakpoint: 1024, settings: { slidesToShow: 3, arrows: totalProducts > 3, infinite: totalProducts > 3 } },
-      // iPad Mini 768px => vẫn 3 sp
-      { breakpoint: 768, settings: { slidesToShow: 3, arrows: false, infinite: totalProducts > 3, centerMode: false } },
-      { breakpoint: 640, settings: { slidesToShow: 2, arrows: false, infinite: totalProducts > 2 } },
-      { breakpoint: 360, settings: { slidesToShow: 1, arrows: false, infinite: totalProducts > 1 } },
-    ],
-  };
+  // Tính số row động
+const rowsCount = (windowWidth >= 768 && windowWidth < 1280) ? 1 : 2;
+
+const maxSlots = getIdealSlidesToShow() * rowsCount;
+
+const sliderSettings = {
+  dots: false,
+  speed: 600,
+  slidesToScroll: 1,
+  slidesToShow: getIdealSlidesToShow(),
+  rows: rowsCount,
+  slidesPerRow: 1,
+  infinite: totalProducts > maxSlots,
+  arrows: totalProducts > maxSlots,
+  autoplay: true,
+  autoplaySpeed: 7000,
+  pauseOnHover: true,
+  prevArrow: <CustomSlickArrow type="prev" />,
+  nextArrow: <CustomSlickArrow type="next" />,
+  swipeToSlide: true,
+  responsive: [
+    { breakpoint: 1279, settings: { slidesToShow: 4, rows: 2, infinite: totalProducts > 8, arrows: totalProducts > 8 } },
+   { breakpoint: 1023, settings: { slidesToShow: 3, rows: 1, infinite: totalProducts > 3, arrows: totalProducts > 3 } },
+
+    { breakpoint: 767, settings: { slidesToShow: 2, rows: 1, infinite: totalProducts > 2, arrows: false } },
+    { breakpoint: 480, settings: { slidesToShow: 2, rows: 1, infinite: totalProducts > 2, arrows: false } },
+  ],
+};
+
+
 
 
   if (events.length === 0) {
@@ -481,26 +515,31 @@ const HorizontalProductSlider = ({ flashSales = [], bgColor = '#007BFF' }) => {
             </div>
           )}
 
-          {totalProducts === 0 ? (
-            <p className="text-center text-white py-10">Không có sản phẩm nào.</p>
-          ) : totalProducts <= getIdealSlidesToShow() ? (
-            <div className="flex flex-wrap gap-2">
-              {productsInput.map((p) => (
-                <div key={p.id} className="w-1/2 sm:w-1/3 md:w-1/4 xl:w-1/5">
-                  <InlinedProductCard {...p} saleStatus={saleStatus} />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <Slider {...sliderSettings} ref={sliderRef} className="two-row-slick-slider">
-              {productsInput.map((p) => (
-                <div key={p.id}>
-                  <InlinedProductCard {...p} saleStatus={saleStatus} />
-                </div>
-              ))}
-            </Slider>
+{totalProducts === 0 ? (
+  <p className="text-center text-white py-10">Không có sản phẩm nào.</p>
+) : totalProducts <= maxSlots ? (
+  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-2">
+    {productsInput.map((p) => (
+      <InlinedProductCard
+        key={p.id}
+        {...p}
+        saleStatus={saleStatus}
+      />
+    ))}
+  </div>
+) : (
+  <div className="two-row-slider-wrapper group">
+    <Slider {...sliderSettings} ref={sliderRef} className="two-row-slick-slider">
+      {productsInput.map((p) => (
+        <div key={p.id} className="real-slide">
+          <InlinedProductCard {...p} saleStatus={saleStatus} />
+        </div>
+      ))}
+    </Slider>
+  </div>
+)}
 
-          )}
+
         </div>
       </div>
     </div>

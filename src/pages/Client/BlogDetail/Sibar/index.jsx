@@ -3,7 +3,7 @@ import img3 from '../../../../assets/Client/images/News/mua-truoc-tra-sau-3.jpg'
 
 const Sibar = ({title}) => {
   return (
-    <div className="space-y-4 px-0 md:px-4">
+    <div className="space-y-4 px-0 md:px-4 lg:px-0">
       {/* Thanh tiêu đề khuyến mãi */}
       <div className="pb-1 relative">
       <div className="font-bold text-justify uppercase">{title}</div>

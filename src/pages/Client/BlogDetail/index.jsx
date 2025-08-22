@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { newsSevice } from '@/services/client/newsService';
 import { useParams } from 'react-router-dom';
 import Tags from './Tag';
+import Breadcrumb from '@/components/common/Breadcrumb';
 const NewsDetails = () => {
   const { slug } = useParams();
   const [newsDetails, setnewsDetails] = useState(null);
@@ -48,11 +49,12 @@ const NewsDetails = () => {
     };
     fetchFeature();
   }, []);
+  const breadcrumbItems = [{ label: 'Trang chủ', href: '/' }, { label: 'Tin nổi bật', href: '/tin-noi-bat' }, { label: newsDetails?.title || 'Loading...', href: `/tin-noi-bat/${slug}` },];
   return (
     <>
-      <div className="max-w-[1200px] mx-auto w-full px-4">
-        <div className="py-4">
-          <h1 className="text-xs md:text-sm">Bài viết / Galaxy s25</h1>
+      <div className="max-w-[1200px] mx-auto w-full px-4 lg:px-0">
+      <div className="mb-3 pt-4 sm:pt-4 lg:pt-0">
+          <Breadcrumb items={breadcrumbItems} />
         </div>
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="w-full lg:flex-[3]">

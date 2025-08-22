@@ -1,5 +1,3 @@
-/* TestResponsiveSlider.css */
-
 .two-row-slick-slider.slick-slider {
   position: relative;
 }
@@ -7,8 +5,13 @@
 .two-row-slick-slider .slick-list {
   overflow: hidden;
 }
+
 @media (min-width: 768px) and (max-width: 1024px) {
-  .main-event-block { max-width: 100% !important; padding-left: 8px; padding-right: 8px; }
+  .main-event-block {
+    max-width: 100% !important;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
 }
 
 .two-row-slick-slider .slick-slide {
@@ -16,6 +19,8 @@
 }
 
 .two-row-slick-slider .slick-slide > div {
+  padding: 4px;
+  box-sizing: border-box;
   display: flex !important;
   flex-direction: column !important;
   align-items: flex-start !important;
@@ -24,26 +29,32 @@
 
 .two-row-slick-slider .slick-track {
   display: flex !important;
+  flex-wrap: wrap !important;
   justify-content: flex-start !important;
-  align-items: flex-start !important;
+  align-items: stretch !important;
+  margin-left: -4px;
+  margin-right: -4px;
 }
 
 .two-row-slick-slider .slick-slide > div > .flex.flex-col {
-    width: 100% !important;
-    box-sizing: border-box !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
+
 .two-row-slick-slider .product-card-item {
-    width: 100% !important;
-    height: 100% !important;
-    box-sizing: border-box !important;
-    display: flex !important;
-    flex-direction: column !important;
+  width: 100% !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  border-radius: 6px;
+  background: #fff;
 }
 
 .two-row-slick-slider .slick-arrow {
   position: absolute;
   top: 50%;
-  transform: translateY(-50%);
+  transform: translateY(-50%) scale(0.8);
   z-index: 20;
   cursor: pointer;
   border-radius: 50%;
@@ -59,7 +70,6 @@
   transition: all 0.2s ease-in-out;
   opacity: 0;
   pointer-events: none;
-  transform: translateY(-50%) scale(0.8);
 }
 
 .two-row-slider-wrapper.group:hover .two-row-slick-slider .slick-arrow {
@@ -74,25 +84,11 @@
   cursor: default;
 }
 
-.two-row-slider-wrapper.group:hover .two-row-slick-slider .slick-arrow.slick-disabled {
-    opacity: 0 !important;
-    pointer-events: none !important;
-}
-
-.two-row-slick-slider .slick-arrow:hover:not(.slick-disabled) {
-  background-color: rgba(255, 255, 255, 0.9);
-  color: #111827;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
 .two-row-slick-slider .slick-prev {
-  left: -15px;
+  left: 12px;
 }
-.two-row-slick-slider .slick-slide > div {
-  width: 100% !important;
-}
-
 .two-row-slick-slider .slick-next {
-  right: -15px;
+  right: 12px;
 }
 
 .two-row-slick-slider .slick-arrow:before {
@@ -104,10 +100,12 @@
   height: 24px;
 }
 
-@media (max-width: 1023px) {
-  .two-row-slick-slider.slick-slider {
-  }
+.two-row-slick-slider .slick-arrow:hover:not(.slick-disabled) {
+  background-color: #1CA7EC;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
 }
+
 .product-card-item .product-card-name {
   display: -webkit-box !important;
   -webkit-line-clamp: 2 !important;
@@ -125,5 +123,23 @@
   .product-card-item .product-card-name {
     font-size: 0.8125rem;
     height: calc(2 * 1.35em);
+  }
+}
+.two-row-slick-slider .slick-slide > div:has(> .product-card-item:empty) {
+  display: none !important;
+}
+/* Giữ chữ Sắp diễn ra gọn trong progress bar */
+.two-row-slick-slider .product-card-item .coming-soon-text {
+  white-space: nowrap;
+  font-size: 11px; /* bạn có thể chỉnh 10px hoặc 12px tùy */
+  line-height: 1; 
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 480px) {
+  .two-row-slick-slider .product-card-item .coming-soon-text {
+    font-size: 10px; /* nhỏ hơn chút cho mobile */
   }
 }

@@ -412,7 +412,10 @@ const OrderList = () => {
                     <HighlightText text={order.phone || '—'} highlight={search} />
                   </TableCell>
 
-                  <TableCell>{Number(order.total).toLocaleString('vi-VN')} ₫</TableCell>
+                 <TableCell>
+  {Number(order.total).toLocaleString('vi-VN')} ₫
+</TableCell>
+
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>{getStatusChip(order.status)}</Box>
                   </TableCell>

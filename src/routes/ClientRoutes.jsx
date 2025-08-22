@@ -35,7 +35,7 @@ const ReturnOrderPage = Loadable(lazy(() => import('pages/Client/Auth/ReturnOrde
 const OrderDetailPage = Loadable(lazy(() => import('pages/Client/Auth/OrderDetailPage')));
 
 const LuckyWheelPage = Loadable(lazy(() => import('pages/Client/MiniGame')));
-
+const ComboDetail = Loadable(lazy(() => import('@/pages/Client/ComboDetail')));
 const ClientRoutes = {
   path: '/',
   element: <ClientLayout />,
@@ -96,7 +96,9 @@ const ClientRoutes = {
     { path: 'orderlookup', element: <OrderLookup /> },
     { path: 'compare-products', element: <ProductComparison /> },
     { path: 'return-order', element: <ReturnOrderPage /> },
-    { path: 'mini-game', element: <LuckyWheelPage /> }
+    { path: 'mini-game', element: <LuckyWheelPage /> },
+      { path: 'combo/:slug', element: <ComboDetail /> },
+
 
   ]
 };

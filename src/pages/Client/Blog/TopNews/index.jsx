@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import imgItem from '../../../../assets/Client/images/News/qua-tang-thieu-nhi-12-750x422.jpg';
-import imgList from '../../../../assets/Client/images/News/google-map-quet-anh-chup-man-hinh-1-600x338.jpg';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClock, faComment } from '@fortawesome/free-regular-svg-icons';
 import { useNews } from '../newsContext';
@@ -15,6 +13,7 @@ const TopNews = ({ getAllTitle = []}) => {
     }, 8000);
     return () => clearInterval(interval);
   }, [getAllTitle]);
+  console.log('daaa', featuredNews)
   return (
     <div className="bg-white h-fit">
       {/* Thanh tiêu đề hot */}
@@ -62,7 +61,11 @@ const TopNews = ({ getAllTitle = []}) => {
         {featuredNews.length > 0 && (
           <Link to={`/tin-noi-bat/${featuredNews[0].slug}`}>
             <div className="mb-6 lg:mb-0">
-              <img src={imgItem} alt="Bài viết nổi bật" className="w-full rounded mb-3" />
+              <img
+        src={featuredNews[0]?.thumbnail}
+        alt={featuredNews[0].title || "Bài viết nổi bật"}
+        className="w-250 h-70 rounded mb-3"
+      />
               <h3 className="text-xl font-bold mb-2 text-justify pr-4">{featuredNews[0].title}</h3>
               <div className="text-sm text-gray-500 flex gap-4 mb-2">
                 <span className="flex items-center gap-1 text-xs">
@@ -96,11 +99,12 @@ const TopNews = ({ getAllTitle = []}) => {
               className="flex gap-3 pb-3 items-start"
             >
               <img
-                src={imgList}
-                alt="thumb"
-                style={{ width: '120px', height: '70px', objectFit: 'cover' }}
-                className="rounded flex-shrink-0"
-              />
+        src={post.thumbnail || ""}
+        alt={post.title || "thumbnail"}
+        style={{ width: '120px', height: '70px', objectFit: 'cover' }}
+        className="rounded flex-shrink-0"
+      />
+              
               <div className="flex-1 min-w-0">
                 <h4 className="text-sm font-medium mb-1 text-left line-clamp-2">{post.title}</h4>
                 <span className="text-xs text-gray-500 flex items-center gap-1">

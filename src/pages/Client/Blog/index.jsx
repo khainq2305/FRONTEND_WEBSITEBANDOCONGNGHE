@@ -11,6 +11,7 @@ import { NewsContext, useNews } from './newsContext';
 import React, { useEffect, useState } from 'react';
 import { stripHTML } from '@/utils';
 import Slider from './Slider';
+import Breadcrumb from '@/components/common/Breadcrumb';
 
 const News = () => {
   const [featuredNews, setfeaturedNews] = useState([]);
@@ -98,15 +99,15 @@ const News = () => {
       [slug]: ((prev[slug] || 0) + 1) % list.length
     }));
   };
-
+  const breadcrumbItems = [{ label: 'Trang chủ', href: '/' }, { label: 'Tin nổi bật', href: '/tin-noi-bat' },];
   return (
     <NewsContext.Provider value={{ stripHTML, featuredNews, setfeaturedNews }}>
       <div className="max-w-[1200px] mx-auto w-full">
-        <div className="text-left px-4 py-4">
-          <h1>Trang chủ / Tin tức nổi bật </h1>
+      <div className="mb-3 pt-4 sm:pt-4 lg:pt-0">
+          <Breadcrumb items={breadcrumbItems} />
         </div>
        
-        <div className="flex flex-col lg:flex-row justify-between px-0 md:px-4">
+        <div className="flex flex-col lg:flex-row justify-between px-0 md:px-4 lg:px-0">
           <div className="w-full py-4 md:py-0">
             <TopNews getAllTitle={getAllTitle} />
           </div>
@@ -119,11 +120,11 @@ const News = () => {
          
           <Carousel title="Tin Tức sam sum" items={newsBySlug['tin-tuc-sam-sum'] || []} visibleCount={5} autoautoScroll={true} />
         </div>
-        <div className="flex flex-col lg:flex-row justify-between gap-4 px-0 md:px-4">
-          <div className="w-full">
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-x-2 px-0 md:px-4 lg:px-0">
+          <div className='w-4/6'>
             <MidNews title="Tin tức Apple" items={newsBySlug['tin-tuc-apple'] || []} visibleCount={3} />
           </div>
-          <div style={{ maxWidth: '430px' }}>
+          <div className='w-1/3' >
             <SibarMid title="Trí tuệ nhân tạo - AI" items={newsBySlug['tri-tue-nhan-tao-ai'] || []} visibleCount={5} />
           </div>
         </div>

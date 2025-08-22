@@ -14,6 +14,20 @@ import Breadcrumb from '../ProductListByCategory/Breadcrumb';
 import SortBar from '../ProductListByCategory/SortBar';
 import ViewedProducts from '../ProductListByCategory/ViewedProducts';
 import FilterBar from '../ProductListByCategory/FilterBar';
+import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
+
+const renderStars = (rate, id) => {
+  const stars = [];
+  const numRating = parseFloat(rate);
+  if (isNaN(numRating) || numRating <= 0) return <div className="h-[14px] sm:h-[16px] w-auto"></div>;
+  for (let i = 1; i <= 5; i++) {
+    if (numRating >= i) stars.push(<FaStar key={`star-${i}-${id}`} className="text-yellow-400 text-[10.5px] sm:text-[11.5px]" />);
+    else if (numRating >= i - 0.5)
+      stars.push(<FaStarHalfAlt key={`half-${i}-${id}`} className="text-yellow-400 text-[10.5px] sm:text-[11.5px]" />);
+    else stars.push(<FaRegStar key={`empty-${i}-${id}`} className="text-yellow-400 text-[10.5px] sm:text-[11.5px]" />);
+  }
+  return stars;
+};
 
 const formatCurrencyVND = (num) => {
   if (typeof num !== 'number' || isNaN(num) || num === 0) return '';
@@ -158,38 +172,25 @@ function ProductListItem({ product }) {
           )}
         </div>
 
-        <div className="flex justify-between items-center text-[10px] sm:text-xs mb-1.5 sm:mb-2 min-h-[16px] sm:min-h-[18px]"></div>
+<div className="flex justify-between items-center text-[10px] sm:text-[10.5px] text-gray-600">
+  {/* Cột bên trái: rating */}
+  <div className="flex items-center gap-px sm:gap-0.5 text-yellow-400">
+    {renderStars(product.rating, product.id)}
+    {product.rating > 0 && (
+      <span className="text-gray-500 ml-1">
+        ({parseFloat(product.rating).toFixed(1)})
+      </span>
+    )}
+  </div>
 
-        {/* Trạng thái + so sánh */}
-        <div className="product-card-actions flex items-center justify-between min-h-[26px] pt-1">
-          <button
-            aria-label="So sánh sản phẩm"
-            className={`flex items-center gap-1 text-[10px] sm:text-xs text-gray-600 hover:text-blue-700 transition-colors focus:outline-none p-1 rounded-md hover:bg-gray-100 ${
-              isProductTotallyOutOfStock ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
-            disabled={isProductTotallyOutOfStock}
-          >
-            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M7 21h10a2 2 0 002-2V9a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6m-3-3v12"
-              />
-            </svg>
-            <span className="leading-none whitespace-nowrap">So sánh</span>
-          </button>
+  {/* Cột bên phải: số đơn đã bán */}
+  {product.deliveredOrderCount > 0 && (
+    <span className="text-gray-500">
+      Đã bán {product.deliveredOrderCount}
+    </span>
+  )}
+</div>
 
-          {isProductTotallyOutOfStock ? (
-            <div className="flex items-center gap-1">
-              <span className="text-red-500 font-semibold text-[10px] sm:text-xs leading-none whitespace-nowrap">Hết hàng</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-1">
-              <span className="text-green-600 font-semibold text-[10px] sm:text-xs leading-none whitespace-nowrap">Còn hàng</span>
-              <img src={'/src/assets/Client/images/icon-deli.webp'} alt="Còn hàng" className="w-4 h-4 object-contain" />
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );

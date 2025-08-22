@@ -5,7 +5,7 @@ import { faClock, faComment } from '@fortawesome/free-regular-svg-icons';
 const Card = () => {
   return (
     <div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 px-0 md:px-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 px-0 md:px-4 lg:px-0">
         {[1, 2, 3].map((_, idx) => (
           <div key={idx} className="text-left">
             {/* Tiêu đề */}
