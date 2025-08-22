@@ -5,6 +5,7 @@
   font-size: 1rem;
   /* Các style chung khác */
   border: none;
+   border-top: 12px;
   border-radius: 8px;
   color: white;
   font-weight: bold;

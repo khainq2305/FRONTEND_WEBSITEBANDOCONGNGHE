@@ -145,7 +145,7 @@ export const API_ENDPOINT = {
       base: `${API_BASE_URL}/tin-noi-bat`,
       featurePost: '',
       byCategory: '/theo-danh-muc',
-      getBySlug: '',
+      getBySlug: (slug) => `/${slug}`,
       getRelated: '/bai-viet-lien-quan',
       calculateFee: '/calculate-fee',
       getAllTitle: '/all-title'
@@ -527,6 +527,16 @@ combo: {
       forceDelete: '/force-delete',
       restore: '/restore',
       updateOrder: '/update-order'
+    },
+    seo: {
+      config: `${API_BASE_URL}/admin/seo/config`,
+      reports: `${API_BASE_URL}/admin/seo/reports`
+    },
+    postSEO: {
+      base: `${API_BASE_URL}/admin/post-seo`,
+      posts: `${API_BASE_URL}/admin/post-seo/posts`,
+      postsWithoutSEO: `${API_BASE_URL}/admin/post-seo/posts-without-seo`,
+      stats: `${API_BASE_URL}/admin/post-seo/stats`
     },
     reviews: {
       base: `${API_BASE_URL}/admin/reviews`,

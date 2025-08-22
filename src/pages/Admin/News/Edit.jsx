@@ -12,8 +12,12 @@ const Edit = () => {
     const fetchPost = async () => {
       try {
         const res = await newsService.getBySlug(slug);
-        setPostData(res.data.data); // ✅ Lưu res.data
-        console.log(res.data.data)
+        const postData = res.data.data;
+        setPostData(postData);
+        
+        console.log('🔄 Loaded post data for editing:', postData);
+        console.log('🔑 SEO Data from API:', postData.seoData);
+        console.log('🔑 Focus keyword from SEO data:', postData.seoData?.focusKeyword);
       } catch (err) {
         console.error('Lỗi khi lấy bài viết:', err);
       }
@@ -28,7 +32,14 @@ const Edit = () => {
   try {
     const res = await newsService.update(slug, data);
     toast.success(res.data.message || 'Cập nhật thành công');
-    navigate('/admin/quan-ly-bai-viet');
+    
+    // Navigate với state để force refresh
+    navigate('/admin/quan-ly-bai-viet', { 
+      state: { 
+        refresh: true, 
+        updatedAt: Date.now() 
+      } 
+    });
   } catch (err) {
     if (err.response) {
       // Lỗi từ server (có response)

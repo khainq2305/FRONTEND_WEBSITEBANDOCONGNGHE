@@ -22,6 +22,19 @@ export default defineConfig(({ mode }) => {
         protocol: 'wss',
         host: 'ad1e-2402-800-6343-1157-602d-5d2b-2fa2-232d.ngrok-free.app',
       },
+      proxy: {
+        // Proxy robots.txt và sitemap.xml từ backend
+        '/robots.txt': {
+          target: 'http://localhost:5000',
+          changeOrigin: true,
+          secure: false
+        },
+        '/sitemap.xml': {
+          target: 'http://localhost:5000',
+          changeOrigin: true,
+          secure: false
+        }
+      }
     },
     preview: {
       host: true,

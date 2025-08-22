@@ -1,4 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
+import SEO from "../../../components/common/SEO";
+import {
+  createProductStructuredData,
+  createBreadcrumbStructuredData,
+  createProductUrl
+} from "../../../utils/seoUtils";
 import { useParams, Link, useNavigate } from 'react-router-dom';
 
 import { toast } from 'react-toastify';
@@ -388,7 +394,28 @@ export default function ProductDetail() {
     <div className="bg-gray-100">
       {(isAddingToCart || isBuyingNow) && <OrderLoader fullscreen />}
 
-      <Breadcrumb productName={productName} productCategory={product.category} />
+      <SEO
+        title={productName}
+        description={product?.description ? 
+          (product.description.length > 160 ? 
+            product.description.substring(0, 157) + '...' : 
+            product.description
+          ) : 
+          `Mua ${productName} chính hãng với giá tốt nhất tại Điện Thoại Giá Kho. Miễn phí vận chuyển, bảo hành chính hãng.`
+        }
+        keywords={`${productName}, điện thoại, ${product?.brand?.name || ''}, mua điện thoại, giá rẻ`}
+        canonicalUrl={createProductUrl(slug)}
+        ogTitle={`${productName} - Giá tốt nhất tại Điện Thoại Giá Kho`}
+        ogDescription={product?.description?.substring(0, 160) + '...' || `Mua ${productName} chính hãng với giá tốt nhất`}
+        ogImage={mainImage}
+        structuredData={product ? createProductStructuredData(product) : null}
+      />
+      
+      <Breadcrumb 
+        productName={productName} productCategory={product.category} 
+        categoryName={product?.category?.name}
+        categorySlug={product?.category?.slug}
+      />
 
       <div className="max-w-[1200px] mx-auto py-3 md:pt-1 md:pb-6 text-sm text-gray-800">
         <div className="grid grid-cols-1 xl:grid-cols-[3fr_2fr] gap-4 items-start mb-3">

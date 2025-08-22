@@ -1,4 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
+import SEO from '../../../components/common/SEO';
+import { 
+  createCategoryUrl, 
+  createBreadcrumbStructuredData,
+  createSlug 
+} from '../../../utils/seoUtils';
 import Banner from './Banner';
 import ProductFilters from './ProductFilters'; // Component lọc chi tiết (giá, còn hàng, thương hiệu)
 import FilterBar from './FilterBar'; // Component lọc thương hiệu dạng tab

@@ -3,6 +3,8 @@ import { useForm, Controller } from "react-hook-form";
 import { Grid } from "@mui/material";
 import Content from "@/pages/Admin/News/components/form/Content";
 import Sidebar from "@/pages/Admin/News/components/sidebar/Sidebar";
+import SEORealtimeAnalyzerEnhanced from "@/components/Admin/SEO/SEORealtimeAnalyzerEnhanced";
+import SchemaEditor from "@/components/Admin/SEO/SchemaEditor";
 import { newsCategoryService } from "@/services/admin/newCategoryService";
 import { normalizeCategoryList } from "@/utils";
 import { tagService } from "@/services/admin/tagService";
@@ -43,6 +45,9 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
   const { isScheduled, categories, allTags, newCategory } = watchedValues;
 
   // Load initial data
+  const [focusKeyword, setFocusKeyword] = useState("");
+  const [schema, setSchema] = useState(null);
+
   useEffect(() => {
     if (initialData) {
       reset({
@@ -59,6 +64,16 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
         allTags: allTags,
         newCategory: ""
       });
+      
+      // Tự động load focus keyword từ database khi chỉnh sửa
+      const existingFocusKeyword = 
+        initialData.seoData?.focusKeyword || 
+        initialData.focusKeyword || 
+        initialData.seo?.focusKeyword || 
+        "";
+      
+      setFocusKeyword(existingFocusKeyword);
+      console.log('🔑 Loaded focus keyword from database:', existingFocusKeyword);
     }
   }, [initialData, reset]);
 
@@ -112,7 +127,8 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
       formData.append("status", data.isScheduled ? 2 : data.status);
       formData.append("publishAt", data.isScheduled ? data.publishAt : "");
       formData.append("isFeature", data.isFeature);
-  
+      formData.append('focusKeyword', focusKeyword);
+      formData.append('schema', JSON.stringify(schema));
       // Thumbnail: nếu là file mới thì append file, nếu là string thì append thumbnailUrl
       if (data.thumbnail instanceof File) {
         formData.append("thumbnail", data.thumbnail); 
@@ -224,7 +240,27 @@ const onAddCategory = async () => {
             />
           </Grid>
           <Grid item xs={12} md={3}>
-            <Sidebar
+            {/* SEO Real-time Analyzer */}
+          <SEORealtimeAnalyzerEnhanced
+            title={title}
+            content={content}
+            focusKeyword={focusKeyword}
+            onFocusKeywordChange={setFocusKeyword}
+            mode={mode}
+            slug={initialData?.slug || ''}
+          />
+          
+          {/* Schema Editor */}
+          <SchemaEditor
+            postId={initialData?.id}
+            postTitle={title}
+            postContent={content}
+            postSlug={initialData?.slug || ''}
+            mode={mode}
+            onSchemaChange={setSchema}
+          />
+          
+          <Sidebar
               control={control}
               errors={errors}
               setError={setError}

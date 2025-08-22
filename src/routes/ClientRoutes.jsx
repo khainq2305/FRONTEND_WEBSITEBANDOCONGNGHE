@@ -2,7 +2,20 @@ import { lazy } from 'react';
 import Loadable from 'components/Admin/Loadable';
 import ClientLayout from 'layout/Client';
 import RequireAuth from '@/components/Admin/RequireAuth';
+import {
+  ProductRedirect,
+  NewsRedirect,
+  NewsDetailRedirect,
+  CartRedirect,
+  CheckoutRedirect,
+  OrderConfirmationRedirect,
+  UserProfileRedirect,
+  OrderLookupRedirect,
+  CompareProductsRedirect,
+  CategoryRedirect
+} from '../components/common/SEORedirects';
 
+// Lazy load components
 const HomePage = Loadable(lazy(() => import('pages/Client/Home')));
 const SignPage = Loadable(lazy(() => import('pages/Client/Auth/SignPage.jsx')));
 const ProductListByCategory = Loadable(lazy(() => import('pages/Client/ProductListByCategory')));
@@ -23,7 +36,6 @@ const StripeCheckoutPage = Loadable(lazy(() => import('pages/Client/Payment/Stri
 
 const News = Loadable(lazy(() => import('pages/Client/Blog')));
 const NewsDetails = Loadable(lazy(() => import('pages/Client/BlogDetail')));
-
 const OrderLookup = Loadable(lazy(() => import('pages/Client/OrderLookup')));
 const ProductComparison = Loadable(lazy(() => import('pages/Client/CompareProducts')));
 const ReturnOrderDetailPage = Loadable(lazy(() => import('pages/Client/Auth/ReturnOrderDetailPage')));
@@ -40,13 +52,16 @@ const ClientRoutes = {
   path: '/',
   element: <ClientLayout />,
   children: [
-    { index: true, element: <HomePage /> },
+    // Home page
+    { 
+      index: true, 
+      element: <HomePage /> 
+    },
 
     {
       path: 'dang-nhap',
       element: <SignPage />
     },
-
     {
       path: 'dang-ky',
       element: <SignPage />

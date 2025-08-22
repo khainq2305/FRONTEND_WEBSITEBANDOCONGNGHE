@@ -29,7 +29,9 @@ import {
   ToolOutlined,
   SettingOutlined,
   GiftOutlined,
-  CheckSquareOutlined
+  CheckSquareOutlined,
+  SearchOutlined,
+  BarChartOutlined
 } from '@ant-design/icons';
 
 const icons = {
@@ -62,7 +64,9 @@ const icons = {
   ToolOutlined,
   SettingOutlined,
   GiftOutlined,
-  CheckSquareOutlined
+  CheckSquareOutlined,
+  SearchOutlined,
+  BarChartOutlined
 };
 
 const pages = [
@@ -575,7 +579,38 @@ const pages = [
       }
     ]
   },
-
+{
+    id: 'seo-section',
+    title: 'SEO & Marketing',
+    type: 'collapse',
+    icon: icons.SearchOutlined,
+    children: [
+      {
+        id: 'seo-analyzer',
+        title: 'SEO Analyzer',
+        type: 'item',
+        url: '/admin/seo',
+        icon: icons.BarChartOutlined,
+        breadcrumbs: false
+      },
+      {
+        id: 'post-seo-manager',
+        title: 'Post SEO Manager',
+        type: 'item',
+        url: '/admin/post-seo',
+        icon: icons.FileTextOutlined,
+        breadcrumbs: false
+      },
+      {
+        id: 'seo-reports',
+        title: 'SEO Reports',
+        type: 'item',
+        url: '/admin/seo/reports',
+        icon: icons.TableOutlined,
+        breadcrumbs: false
+      }
+    ]
+  },
   {
     id: 'system-config-group',
     title: 'Cấu hình Hệ thống',

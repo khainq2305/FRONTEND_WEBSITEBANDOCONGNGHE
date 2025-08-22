@@ -47,6 +47,13 @@ const CategoryList = Loadable(lazy(() => import('pages/Admin/CaterogyProduct/Cat
 const CategoryAddd = Loadable(lazy(() => import('pages/Admin/CaterogyProduct/CategoryAdd/CategoryAdd')));
 const CategoryEdit = Loadable(lazy(() => import('pages/Admin/CaterogyProduct/CategoryEdit/CategoryEdit')));
 const UserDetailPage = Loadable(lazy(() => import('pages/Admin/User/UserDetailDialog')));
+
+// SEO Components
+const SEOManager = Loadable(lazy(() => import('components/admin/SEOManager/SEOManager')));
+const PostSEOManager = Loadable(lazy(() => import('components/admin/PostSEOManager/PostSEOManager')));
+const PostSEOManagerSimple = Loadable(lazy(() => import('components/admin/PostSEOManager/PostSEOManagerSimple')));
+const PostSEOManagerBeautiful = Loadable(lazy(() => import('components/admin/PostSEOManager/PostSEOManagerBeautiful')));
+
 const NotificationCreatePage = Loadable(lazy(() => import('pages/Admin/Notification/NotificationCreatePage')));
 const NotificationEditPage = Loadable(lazy(() => import('pages/Admin/Notification/NotificationEditPage')));
 const QuestionDetailPage = Loadable(lazy(() => import('pages/Admin/ProductQuestion/QuestionDetailPage/index.jsx')));
@@ -280,6 +287,27 @@ const AdminRoutes = {
         { path: ':id', element: <QuestionDetailPage /> }
       ]
     },
+    
+    // SEO Routes
+    {
+      path: 'seo',
+      children: [
+        { index: true, element: <SEOManager /> },
+        { path: 'reports', element: <SEOManager /> },
+        { path: 'posts', element: <PostSEOManager /> } // Redirect seo/posts to PostSEOManager
+      ]
+    },
+    
+    // Post SEO Routes
+    {
+      path: 'post-seo',
+      children: [
+        { index: true, element: <PostSEOManagerBeautiful /> },
+        { path: 'manage', element: <PostSEOManager /> },
+        { path: 'simple', element: <PostSEOManagerSimple /> }
+      ]
+    },
+    
     {
       path: 'system-settings',
       element: <SystemSettings />

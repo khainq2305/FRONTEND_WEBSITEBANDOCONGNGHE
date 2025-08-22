@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# SEO-friendly URLs - Allow crawling
+Allow: /san-pham/
+Allow: /danh-muc/
+Allow: /tin-tuc/
