@@ -4,6 +4,8 @@ import { formatCurrencyVND } from '@/utils/formatCurrency';
 import CountdownTimer from '../../Home/TwoRowMarketSlider/CountdownTimer';
 import flashSaleImg from '@/assets/Client/images/flash-sale.png';
 import dayjs from 'dayjs';
+import { toast } from "react-toastify";
+
 export default function ComboActionBox({ combo }) {
   const navigate = useNavigate();
 
@@ -36,68 +38,77 @@ export default function ComboActionBox({ combo }) {
   const notBuyable   = isOutOfStock || isComingSoon || isExpired;
   // ======================================
 
-  // ====== MUA NGAY: giữ flow checkout combo ======
-  const handleBuyNow = () => {
-     if (notBuyable) return; // chặn an toàn
-    const qty = 1;
-    const comboSummary = {
-      id: combo.id,
-      name: combo.name,
-      price: Number(combo.price),
-      originalPrice: Number(combo.originalPrice || 0),
-      thumbnail: combo.thumbnail || combo.image || ''
-    };
-    // ✅ Combo đi thẳng qua state; dọn cart-items lẻ để không “dính” lần trước
- localStorage.setItem('selectedCartItems', '[]');
+//   // ====== MUA NGAY: giữ flow checkout combo ======
+//   const handleBuyNow = () => {
+//      if (notBuyable) return; // chặn an toàn
+//     const qty = 1;
+//     const comboSummary = {
+//       id: combo.id,
+//       name: combo.name,
+//       price: Number(combo.price),
+//       originalPrice: Number(combo.originalPrice || 0),
+//       thumbnail: combo.thumbnail || combo.image || ''
+//     };
+//     // ✅ Combo đi thẳng qua state; dọn cart-items lẻ để không “dính” lần trước
+//  localStorage.setItem('selectedCartItems', '[]');
 
-    navigate('/checkout', {
-      state: {
-     buyNow: true,
-     mode: 'combo',
-     combos: [{
-       comboId: combo.id,
-       name: combo.name,
-       price: Number(combo.price || 0),
-       quantity: qty,
-       thumbnail: combo.thumbnail || combo.image || '',
-       // gửi kèm items để hiển thị/backup payload nếu cần
-       items: (combo.comboSkus || []).map(cs => ({
-         skuId: cs.skuId, quantity: cs.quantity
-       }))
-    }]
-  }
-    });
-  };
+//     navigate('/checkout', {
+//       state: {
+//      buyNow: true,
+//      mode: 'combo',
+//      combos: [{
+//        comboId: combo.id,
+//        name: combo.name,
+//        price: Number(combo.price || 0),
+//        quantity: qty,
+//        thumbnail: combo.thumbnail || combo.image || '',
+//        // gửi kèm items để hiển thị/backup payload nếu cần
+//        items: (combo.comboSkus || []).map(cs => ({
+//          skuId: cs.skuId, quantity: cs.quantity
+//        }))
+//     }]
+//   }
+//     });
+//   };
 
-  // ====== THÊM VÀO GIỎ HÀNG (combo = 1 item duy nhất) ======
-  const handleAddToCart = () => {
-    if (notBuyable) return; // chặn an toàn
-    const LS_KEY = 'comboCartItems:v1';
-    const read = () => { try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; } catch { return []; } };
-    const write = (it) => localStorage.setItem(LS_KEY, JSON.stringify(it));
+//   // ====== THÊM VÀO GIỎ HÀNG (combo = 1 item duy nhất) ======
+//   const handleAddToCart = () => {
+//     if (notBuyable) return; // chặn an toàn
+//     const LS_KEY = 'comboCartItems:v1';
+//     const read = () => { try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; } catch { return []; } };
+//     const write = (it) => localStorage.setItem(LS_KEY, JSON.stringify(it));
 
-    const children = (combo?.comboSkus || []).map(cs => ({
-      name: cs.productName,
-      image: cs.thumbnail,
-      quantity: cs.quantity
-    }));
+//     const children = (combo?.comboSkus || []).map(cs => ({
+//       name: cs.productName,
+//       image: cs.thumbnail,
+//       quantity: cs.quantity
+//     }));
 
-    const cur = read();
-    const idx = cur.findIndex(x => x.comboId === combo.id);
-    if (idx >= 0) cur[idx].quantity += 1;
-    else cur.push({
-      id: `combo-${combo.id}`,
-      comboId: combo.id,
-      name: combo.name,
-      price: Number(combo.price || 0),
-      thumbnail: combo.thumbnail || combo.image || '',
-      items: children,
-      quantity: 1
-    });
-    write(cur);
+//     const cur = read();
+//     const idx = cur.findIndex(x => x.comboId === combo.id);
+//     if (idx >= 0) cur[idx].quantity += 1;
+//     else cur.push({
+//       id: `combo-${combo.id}`,
+//       comboId: combo.id,
+//       name: combo.name,
+//       price: Number(combo.price || 0),
+//       thumbnail: combo.thumbnail || combo.image || '',
+//       items: children,
+//       quantity: 1
+//     });
+//     write(cur);
 
-    navigate('/cart'); // dùng ngay trang giỏ hiện có
-  };
+//     navigate('/cart'); // dùng ngay trang giỏ hiện có
+//   };
+// ====== MUA NGAY ======
+const handleBuyNow = () => {
+  toast.info("Chức năng MUA NGAY đang được cập nhật!");
+};
+
+// ====== THÊM VÀO GIỎ HÀNG ======
+const handleAddToCart = () => {
+  toast.info("Chức năng THÊM VÀO GIỎ đang được cập nhật!");
+};
 
   // ====== Hiển thị giá/khuyến mãi (giữ UI hiện có) ======
   return (

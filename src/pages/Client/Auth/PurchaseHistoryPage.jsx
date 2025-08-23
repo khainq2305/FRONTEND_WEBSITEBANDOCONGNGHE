@@ -186,42 +186,39 @@ const allowChooseReturnMethodStatuses = [
              {loadingReorder && <Loader fullscreen />}
             <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
                 <div className="flex flex-col">
-                   <div className="text-sm text-gray-800 font-medium">
-  Mã đơn hàng:{" "}
-  <span className="font-semibold">
-    <HighlightText text={order.orderCode} highlight={searchTerm} />
-  </span>
+<div className="text-sm text-gray-800 font-medium">
+  <div>
+    Mã đơn hàng:{" "}
+    <span className="font-semibold">
+      <HighlightText text={order.orderCode} highlight={searchTerm} />
+    </span>
 
-  {order.createdAt && !isNaN(new Date(order.createdAt)) && (
-    <>
-      <span className="mx-2 text-gray-400">|</span>
-      <span className="text-gray-600">
-        {format(new Date(order.createdAt), "HH:mm dd-MM-yyyy", { locale: vi })}
-      </span>
-    </>
-  )}
+    {order.createdAt && !isNaN(new Date(order.createdAt)) && (
+      <>
+        <span className="mx-2 text-gray-400">|</span>
+        <span className="text-gray-600">
+          {format(new Date(order.createdAt), "HH:mm dd-MM-yyyy", { locale: vi })}
+        </span>
+      </>
+    )}
+  </div>
 
-  {/* 🆕 Thêm trackingCode */}
-  {order.trackingCode && (
-    <>
-      <span className="mx-2 text-gray-400">|</span>
-      <span className="text-blue-600">
+  {/* Xuống hàng mới */}
+  <div className="mt-1 text-sm">
+    {order.trackingCode && (
+      <span className="text-blue-600 mr-4">
         Mã vận đơn: {order.trackingCode}
       </span>
-    </>
-  )}
-
-  {/* 🆕 Thêm expectedDelivery */}
-  {order.expectedDelivery && (
-    <>
-      <span className="mx-2 text-gray-400">|</span>
+    )}
+    {order.expectedDelivery && (
       <span className="text-green-600">
         Dự kiến giao:{" "}
         {format(new Date(order.expectedDelivery), "dd-MM-yyyy", { locale: vi })}
       </span>
-    </>
-  )}
+    )}
+  </div>
 </div>
+
 
                 </div>
                 <div className="flex items-center gap-1.5">
