@@ -172,6 +172,7 @@ const OrderConfirmation = () => {
     }
   };
 
+  if (loading) return <OrderLoader fullscreen />;
   if (!order)
     return (
       <div className="flex justify-center items-center h-[60vh] bg-gray-50">
