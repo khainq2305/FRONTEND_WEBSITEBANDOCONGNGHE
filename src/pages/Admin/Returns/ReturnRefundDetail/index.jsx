@@ -38,8 +38,11 @@ const reasonMap = {
   NOT_AS_DESCRIBED: 'Sản phẩm khác với mô tả của shop',
   DEFECTIVE: 'Sản phẩm bị lỗi, hư hỏng, không hoạt động',
   CHANGE_MIND: 'Không còn nhu cầu mua nữa',
+  ORDER_BY_MISTAKE: 'Đặt nhầm sản phẩm',
+  FOUND_BETTER_PRICE: 'Tìm được sản phẩm giá tốt hơn',
   OTHER: 'Lý do khác',
 };
+
 
 const StatusChip = ({ status }) => (
     <Chip label={labelMap[status] || status} color={statusColors[status] || 'default'} size="small" />

@@ -210,13 +210,7 @@ const ComboList = () => {
 
   return (
     <section className="p-2 rounded-lg shadow-md my-8 bg-white">
-      <h2 className="flex items-center text-2xl font-bold mb-6 gap-2 text-gray-800 uppercase tracking-wide">
-        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 1080 1080" fill="none">
-          <path
-            d="M515.09 725.824L472.006 824.503C455.444 862.434 402.954 862.434 386.393 824.503L343.308 725.824C304.966 638.006 235.953 568.104 149.868 529.892L31.2779 477.251C-6.42601 460.515 -6.42594 405.665 31.2779 388.929L146.164 337.932C234.463 298.737 304.714 226.244 342.401 135.431L386.044 30.2693C402.239 -8.75637 456.159 -8.75646 472.355 30.2692L515.998 135.432C553.685 226.244 623.935 298.737 712.234 337.932L827.121 388.929C864.825 405.665 864.825 460.515 827.121 477.251L708.53 529.892C622.446 568.104 553.433 638.006 515.09 725.824Z"
-            fill="#1BA1E3"
-          />
-        </svg>
+      <h2 className="flex items-center ml-2 text-2xl font-bold mt-2 mb-6 gap-2 text-gray-800 uppercase tracking-wide">
         ƯU ĐÃI COMBO
       </h2>
 

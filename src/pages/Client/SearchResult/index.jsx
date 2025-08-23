@@ -215,53 +215,68 @@ const SearchResult = () => {
   const onApplySort = (opt) => setSortOption(opt);
 
   const fetchFilteredProducts = async () => {
-    setLoading(true);
-    try {
-      let filteredAndSortedProducts = [...initialResults];
+  setLoading(true);
+  try {
+    let filteredAndSortedProducts = [...initialResults];
 
-      if (filters.stock) {
-        filteredAndSortedProducts = filteredAndSortedProducts.filter((p) => p.inStock);
-      }
-
-      if (filters.price) {
-        const getPriceRange = (priceString) => {
-          if (priceString === 'Dưới 10 Triệu') return { min: 0, max: 10000000 };
-          if (priceString === 'Từ 10 - 16 Triệu') return { min: 10000000, max: 16000000 };
-          if (priceString === 'Từ 16 - 22 Triệu') return { min: 16000000, max: 22000000 };
-          if (priceString === 'Trên 22 Triệu') return { min: 22000000, max: Infinity };
-          return null;
-        };
-        const priceRange = getPriceRange(filters.price);
-        if (priceRange) {
-          filteredAndSortedProducts = filteredAndSortedProducts.filter((p) => p.price >= priceRange.min && p.price <= priceRange.max);
-        }
-      }
-
-      if (filters.brand.length > 0) {
-        filteredAndSortedProducts = filteredAndSortedProducts.filter((p) => {
-          const productBrand = p.brand || findBrandInName(p.name);
-          return productBrand && filters.brand.includes(productBrand);
-        });
-      }
-
-      if (sortOption === 'asc') filteredAndSortedProducts.sort((a, b) => a.price - b.price);
-      else if (sortOption === 'desc') filteredAndSortedProducts.sort((a, b) => b.price - a.price);
-
-      const extractedBrands = filteredAndSortedProducts.map((p) => p.brand || findBrandInName(p.name));
-      const uniqueBrands = [...new Set(extractedBrands)].filter(Boolean);
-      const brandListForFilter = uniqueBrands.map((brandName) => ({
-        id: brandName.toLowerCase().replace(/\s/g, '-'),
-        name: brandName
-      }));
-
-      setProducts(filteredAndSortedProducts);
-      setBrands(brandListForFilter);
-    } catch (error) {
-      console.error('Lỗi khi xử lý sản phẩm:', error);
-    } finally {
-      setLoading(false);
+    // lọc theo stock
+    if (filters.stock) {
+      filteredAndSortedProducts = filteredAndSortedProducts.filter((p) => p.inStock);
     }
-  };
+
+    // lọc theo price
+    if (filters.price) {
+      const getPriceRange = (priceString) => {
+        if (priceString === 'Dưới 10 Triệu') return { min: 0, max: 10000000 };
+        if (priceString === 'Từ 10 - 16 Triệu') return { min: 10000000, max: 16000000 };
+        if (priceString === 'Từ 16 - 22 Triệu') return { min: 16000000, max: 22000000 };
+        if (priceString === 'Trên 22 Triệu') return { min: 22000000, max: Infinity };
+        return null;
+      };
+      const priceRange = getPriceRange(filters.price);
+      if (priceRange) {
+        filteredAndSortedProducts = filteredAndSortedProducts.filter(
+          (p) => p.price >= priceRange.min && p.price <= priceRange.max
+        );
+      }
+    }
+
+   if (filters.brand.length > 0) {
+  filteredAndSortedProducts = filteredAndSortedProducts.filter((p) => {
+    const productBrand = p.brand 
+      ? p.brand.trim().toLowerCase() 
+      : (brands.find(b => p.name.toLowerCase().includes(b.name.toLowerCase()))?.name.toLowerCase());
+
+    return productBrand && filters.brand.some(b => b.trim().toLowerCase() === productBrand);
+  });
+}
+
+
+    // sắp xếp
+    if (sortOption === 'asc') filteredAndSortedProducts.sort((a, b) => a.price - b.price);
+    else if (sortOption === 'desc') filteredAndSortedProducts.sort((a, b) => b.price - a.price);
+
+    // 🚀 Lấy tất cả brand từ API
+    let brandListForFilter = [];
+    try {
+      const res = await brandService.getAll();
+      brandListForFilter = (res.data || []).map((b) => ({
+        id: b.slug,
+        name: b.name,
+      }));
+    } catch (err) {
+      console.error('Lỗi khi tải brand:', err);
+    }
+
+    setProducts(filteredAndSortedProducts);
+    setBrands(brandListForFilter);
+  } catch (error) {
+    console.error('Lỗi khi xử lý sản phẩm:', error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     fetchFilteredProducts();

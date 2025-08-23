@@ -367,7 +367,7 @@ transition:all .2s ease-in-out;
     border-radius:0;
   }
   .floating-contact{
-    bottom:10px;
+    bottom:70px;
     right:10px;
   }
 }

@@ -28,7 +28,7 @@ import SearchInput from 'components/common/SearchInput';
 import MoreActionsMenu from '../MoreActionsMenu';
 import MUIPagination from 'components/common/Pagination';
 import Loader from 'components/common/Loader';
-import { getAllUsers, updateUserStatus, resetUserPassword, getDeletedUsers, forceDeleteManyUsers, updateRoles } from 'services/admin/userService';
+import { getAllUsers, updateUserStatus, resetUserPassword, getDeletedUsers, forceDeleteManyUsers } from 'services/admin/userService';
 import { toast } from 'react-toastify';
 import RoleSelectDialog from '../UserDetailDialog/PromotionDialog';
 import UserDetailDialog from '../UserDetailDialog';
@@ -37,14 +37,12 @@ import axios from 'axios';
 // --- Dữ liệu và hàm tiện ích ---
 const TABS = [
   { label: 'Tất cả', value: '', key: 'all' },
-  { label: 'Hoạt động', value: '1', key: 'active' },
-  { label: 'Ngưng hoạt động', value: '0', key: 'inactive' },
   { label: 'Thùng rác', value: 'trash', key: 'deleted' }
 ];
 
 const demoRoles = [
   { id: 1, label: 'Admin' },
-  { id: 2, label: 'Nhân viên bán hàng' },
+  { id: 2, label: 'Người Dùng' },
   { id: 3, label: 'Chăm sóc khách hàng' },
   { id: 4, label: 'Quản lý kho' },
   { id: 5, label: 'Marketing' }
@@ -155,16 +153,8 @@ const UserList = () => {
       setActionLoading(true);
       await resetUserPassword(user.id);
       toast.success(`Đã gửi mật khẩu mới đến email ${user.email}`);
-    } catch (err) {
-      if (err.response) {
-        console.error("Axios Response Data:", err.response.data);
-        console.error("Axios Response Status:", err.response.status);
-        console.error("Axios Response Headers:", err.response.headers);
-      } else {
-        console.error("Non-Axios Error:", err.message || err);
-      }
+    } catch {
       toast.error('Lỗi khi cấp lại mật khẩu');
-    
     } finally {
       setActionLoading(false);
     }
@@ -188,52 +178,14 @@ const UserList = () => {
     }
   };
 
-  const handleStatusChange = (user, newStatus) => {
-    setActionLoading(true);
-    const targetStatus = newStatus === 'inactive' ? 0 : 1;
-    updateUserStatus(user.id, targetStatus)
-      .then(() => {
-        toast.success(
-          targetStatus === 0 ? `Tài khoản ${user.fullName} đã ngưng hoạt động` : `Tài khoản ${user.fullName} đã được kích hoạt lại`
-        );
-        fetchUsers();
-      })
-      .catch((err) => {
-        if (err.response) {
-          console.error("Response Data:", err.response.data);
-          console.error("Response Status:", err.response.status);
-        } else if (err.request) {
-          console.error("Request:", err.request);
-        } else {
-          console.error("Error:", err.message);
-        }
-        toast.error('Lỗi khi cập nhật trạng thái tài khoản');
-      })
-      
-      .finally(() => setActionLoading(false));
-  };
+
 
   const handleViewDetail = (user) => {
     setSelectedUser(user);
     setDetailOpen(true);
   };
 
-  const handleApplyRoles = async (roles) => {
-    setSelectedRoles(roles);
-    try {
-      const data = await updateRoles(selectedUser.id, roles);
-      toast.success(data.message || 'Cập nhật vai trò thành công');
-    } catch (error) {
-      const errorMessage =
-        error.response?.data?.message ||
-        (typeof error.response?.data === 'string' ? error.response.data : null) ||
-        error.message;
-  
-      toast.error(errorMessage);
-      console.error('❌ Lỗi khi cập nhật vai trò:', errorMessage);
-    }
-  };
-  // --- Kết thúc phần hàm xử lý logic ---
+
 
   return (
     <Box p={isMobile ? 1 : 3}>
@@ -281,7 +233,6 @@ const UserList = () => {
                       </TableCell>
                       <TableCell sx={{ fontWeight: 'bold' }}>Người dùng</TableCell>
                       <TableCell sx={{ fontWeight: 'bold' }}>{tab === 3 ? 'Ngày xoá' : 'Vai trò'}</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Trạng thái</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 'bold' }}>
                         Hành động
                       </TableCell>
@@ -321,15 +272,6 @@ const UserList = () => {
                             <Chip label="Không rõ" size="small" color="default" />
                           )}
                         </TableCell>
-                        <TableCell>
-                          {tab === 3 ? (
-                            <Chip label="Đã xoá" size="small" variant="outlined" />
-                          ) : parseInt(row.status) === 1 ? (
-                            <Chip label="Hoạt động" color="success" size="small" />
-                          ) : (
-                            <Chip label="Ngưng hoạt động" color="default" size="small" />
-                          )}
-                        </TableCell>
                         <TableCell align="right">
                           <MoreActionsMenu
                             user={row}
@@ -338,7 +280,6 @@ const UserList = () => {
                             onView={() => {
                               setSelectedUser(row);
                               setOpenDialog(true);
-                              fetchUsers()
                             }}
                             onResetPassword={handleResetPassword}
                             onViewDetail={handleViewDetail}
@@ -373,10 +314,8 @@ const UserList = () => {
       </Card>
 
       <RoleSelectDialog
-        fetchUsers={fetchUsers}
         open={openDialog}
         onClose={() => setOpenDialog(false)}
-        onApply={handleApplyRoles}
         roles={demoRoles}
         defaultSelected={appliedRoles}
         user={selectedUser}

@@ -186,17 +186,43 @@ const allowChooseReturnMethodStatuses = [
              {loadingReorder && <Loader fullscreen />}
             <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
                 <div className="flex flex-col">
-                    <div className="text-sm text-gray-800 font-medium">
-                        Mã đơn hàng: <span className="font-semibold">{order.orderCode}</span>
-                        {order.createdAt && !isNaN(new Date(order.createdAt)) && (
-                            <>
-                                <span className="mx-2 text-gray-400">|</span>
-                                <span className="text-gray-600">
-                                    {format(new Date(order.createdAt), 'HH:mm dd-MM-yyyy', { locale: vi })}
-                                </span>
-                            </>
-                        )}
-                    </div>
+                   <div className="text-sm text-gray-800 font-medium">
+  Mã đơn hàng:{" "}
+  <span className="font-semibold">
+    <HighlightText text={order.orderCode} highlight={searchTerm} />
+  </span>
+
+  {order.createdAt && !isNaN(new Date(order.createdAt)) && (
+    <>
+      <span className="mx-2 text-gray-400">|</span>
+      <span className="text-gray-600">
+        {format(new Date(order.createdAt), "HH:mm dd-MM-yyyy", { locale: vi })}
+      </span>
+    </>
+  )}
+
+  {/* 🆕 Thêm trackingCode */}
+  {order.trackingCode && (
+    <>
+      <span className="mx-2 text-gray-400">|</span>
+      <span className="text-blue-600">
+        Mã vận đơn: {order.trackingCode}
+      </span>
+    </>
+  )}
+
+  {/* 🆕 Thêm expectedDelivery */}
+  {order.expectedDelivery && (
+    <>
+      <span className="mx-2 text-gray-400">|</span>
+      <span className="text-green-600">
+        Dự kiến giao:{" "}
+        {format(new Date(order.expectedDelivery), "dd-MM-yyyy", { locale: vi })}
+      </span>
+    </>
+  )}
+</div>
+
                 </div>
                 <div className="flex items-center gap-1.5">
                     <span className={`
@@ -601,6 +627,9 @@ const mapApiDataToView = (apiOrders = []) =>
       orderCode: order.orderCode,
       createdAt: order.createdAt,
       totalAmount: order.finalPrice,
+         trackingCode: order.trackingCode || null,
+      expectedDelivery: order.expectedDelivery || null,
+
       shippingAddress: order.shippingAddress || null,
       paymentMethod: order.paymentMethod || null,
       paymentMethodCode: order.paymentMethod?.code || null,
@@ -622,6 +651,7 @@ const mapApiDataToView = (apiOrders = []) =>
         name: p.name,
         variation: p.variation,
         quantity: p.quantity,
+
         price: p.price,
         originalPrice: p.originalPrice,
         isOutOfStock: Boolean(p.isOutOfStock)
@@ -640,7 +670,7 @@ const mapApiDataToView = (apiOrders = []) =>
                 limit: itemsPerPage
             });
 
-
+  console.log("🔥 API Response getUserOrders:", res.data); // <-- log toàn bộ response
 
             const apiData = res.data?.data ?? [];
             const mapped = mapApiDataToView(apiData);

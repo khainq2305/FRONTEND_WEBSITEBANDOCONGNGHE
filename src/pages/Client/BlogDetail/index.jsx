@@ -52,7 +52,7 @@ const NewsDetails = () => {
   const breadcrumbItems = [{ label: 'Trang chủ', href: '/' }, { label: 'Tin nổi bật', href: '/tin-noi-bat' }, { label: newsDetails?.title || 'Loading...', href: `/tin-noi-bat/${slug}` },];
   return (
     <>
-      <div className="max-w-[1200px] mx-auto w-full px-4 lg:px-0">
+      <div className="max-w-[1280px] mx-auto w-full px-4 lg:px-0">
       <div className="mb-3 pt-4 sm:pt-4 lg:pt-0">
           <Breadcrumb items={breadcrumbItems} />
         </div>

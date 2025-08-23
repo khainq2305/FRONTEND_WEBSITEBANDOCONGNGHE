@@ -10,6 +10,7 @@ import ProductGridDisplay from './ProductGridDisplay/ProductGridDisplay';
 import ProductTableDisplay from './ProductGridDisplay/ProductTableDisplay';
 
 const quickSuggestions = [
+  'Danh mục',
   'Tôi muốn tìm quạt điều hoà cho phòng 30m²',
   'Có sản phẩm nào đang giảm giá không?',
   'Tủ lạnh nào phù hợp gia đình 4 người?',
@@ -35,13 +36,23 @@ export default function FloatingContactBox() {
   const [displayTooltipMessage, setDisplayTooltipMessage] = useState(initialTooltipMessage);
   const [messageKey, setMessageKey] = useState(0);
 
+  const getProductSlugFromUrl = () => {
+    try {
+      const path = window.location.pathname || '';
+      const m = path.match(/^\/product\/([^/?#]+)/i);
+      return m ? decodeURIComponent(m[1]) : null;
+    } catch {
+      return null;
+    }
+  };
+
   const systemGreeting = {
     role: 'system',
     type: 'text',
     content: '👋 Xin chào Anh/Chị! Em là trợ lý ảo của CYBERZONE.'
   };
 
-  // Load chat từ localStorage + đổi tooltip sau 2s
+  /* ============ Effects ============ */
   useEffect(() => {
     const timer = setTimeout(() => {
       setDisplayTooltipMessage(secondaryTooltipMessage);
@@ -49,31 +60,25 @@ export default function FloatingContactBox() {
     }, 2000);
 
     const savedChat = localStorage.getItem('hp_chat_history');
-    if (savedChat) {
-      setChatHistory(JSON.parse(savedChat));
-    }
+    if (savedChat) setChatHistory(JSON.parse(savedChat));
 
     return () => clearTimeout(timer);
   }, []);
 
-  // Lưu chat vào localStorage
   useEffect(() => {
     localStorage.setItem('hp_chat_history', JSON.stringify(chatHistory));
   }, [chatHistory]);
 
-  // Khi mở lần đầu -> chèn systemGreeting
   useEffect(() => {
-    if (open && chatHistory.length === 0) {
-      setChatHistory([systemGreeting]);
-    }
+    if (open && chatHistory.length === 0) setChatHistory([systemGreeting]);
     if (open) inputRef.current?.focus();
   }, [open, chatHistory.length]);
 
-  // Auto scroll khi có tin nhắn mới
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatHistory, isLoading]);
 
+  /* ============ Handlers ============ */
   const handleOpenChat = () => {
     setOpen(true);
     setTooltipVisible(false);
@@ -93,66 +98,111 @@ export default function FloatingContactBox() {
     inputRef.current?.focus();
   };
 
-  const sendMessage = useCallback(async (msg = message) => {
-    const trimmed = msg.trim();
-    if (!trimmed) return;
+  const sendMessage = useCallback(
+    async (msg = message) => {
+      const trimmed = msg.trim();
+      if (!trimmed) return;
 
-    const isFromSuggestion = quickSuggestions.includes(msg);
-    if (showSuggestions && !isFromSuggestion) setShowSuggestions(false);
+      // 1) Ngữ cảnh URL
+      const context = {};
+      const slug = getProductSlugFromUrl();
+      if (slug) context.productSlug = slug;
 
-    setChatHistory((prev) => [...prev, { role: 'user', type: 'text', content: trimmed }]);
-    setMessage('');
-    setIsLoading(true);
+      // 2) UI: push user message
+      setChatHistory((prev) => [...prev, { role: 'user', type: 'text', content: trimmed }]);
+      setMessage('');
+      setIsLoading(true);
 
-    try {
-      const res = await chatService.sendMessage({ message: trimmed });
-      const replyData = res?.data?.data;
+      try {
+        const res = await chatService.sendMessage({ message: trimmed, context });
+        const replyData = res?.data?.data;
 
-      if (!replyData) {
-        setChatHistory((prev) => [...prev, { role: 'ai', type: 'text', content: '🤖 Xin lỗi, em chưa hiểu rõ câu hỏi. Anh/Chị vui lòng thử lại.' }]);
-        return;
-      }
+        if (!replyData) {
+          setChatHistory((prev) => [
+            ...prev,
+            { role: 'ai', type: 'text', content: '🤖 Xin lỗi, em chưa hiểu rõ câu hỏi. Anh/Chị vui lòng thử lại.' }
+          ]);
+          return;
+        }
 
-      if (replyData.replyMessage) {
-        setChatHistory((prev) => [...prev, { role: 'ai', type: 'text', content: replyData.replyMessage }]);
-      }
+        if (replyData.replyMessage) {
+          setChatHistory((prev) => [...prev, { role: 'ai', type: 'text', content: replyData.replyMessage }]);
+        }
 
-      if (replyData.type === 'product_grid' && replyData.content?.table) {
+        // Nếu có bảng + grid
+        if (replyData.type === 'product_grid' && replyData.content?.table) {
+          setChatHistory((prev) => [
+            ...prev,
+            {
+              role: 'ai',
+              type: 'text',
+              content:
+                `${replyData.content.descriptionTop || ''}<br /><i>Nếu bạn cần thêm thông tin chi tiết về sản phẩm nào, hãy cho em biết nhé!</i>`
+            },
+            { role: 'ai', type: 'table_only', content: replyData.content.table },
+            {
+              role: 'ai',
+              type: 'product_grid_only',
+              content: {
+                title: replyData.content.title,
+                products: replyData.content.products,
+                noteAfterGrid: replyData.content.noteAfterGrid
+              }
+            }
+          ]);
+        } else {
+          // Trả về các loại khác: text, product_grid, product_detail, category_list,...
+          setChatHistory((prev) => [...prev, { role: 'ai', type: replyData.type, content: replyData.content }]);
+        }
+      } catch (e) {
+        console.error('Lỗi gửi tin nhắn:', e);
         setChatHistory((prev) => [
           ...prev,
-          {
-            role: 'ai',
-            type: 'text',
-            content: `${replyData.content.descriptionTop}<br /><i>Nếu bạn cần thêm thông tin chi tiết về sản phẩm nào, hãy cho em biết nhé!</i>`
-          },
-          { role: 'ai', type: 'table_only', content: replyData.content.table },
-          {
-            role: 'ai',
-            type: 'product_grid_only',
-            content: {
-              title: replyData.content.title,
-              products: replyData.content.products,
-              noteAfterGrid: replyData.content.noteAfterGrid
-            }
-          }
+          { role: 'ai', type: 'text', content: '❌ Đã xảy ra lỗi. Vui lòng thử lại sau.' }
         ]);
-      } else {
-        setChatHistory((prev) => [...prev, { role: 'ai', type: replyData.type, content: replyData.content }]);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error('Lỗi gửi tin nhắn:', error);
-      setChatHistory((prev) => [...prev, { role: 'ai', type: 'text', content: '❌ Đã xảy ra lỗi. Vui lòng thử lại sau.' }]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [message, showSuggestions]);
+    },
+    [message]
+  );
 
+  // Cho phép click “danh mục”/“chip” để kích hoạt tìm kiếm lại
+  const handleTriggerClick = useCallback(
+    (trigger) => {
+      if (!trigger) return;
+      sendMessage(trigger);
+    },
+    [sendMessage]
+  );
+
+  /* ============ Render content ============ */
   const renderMessageContent = (msg) => {
     const safeHtml = (html) => ({ __html: DOMPurify.sanitize(html || '') });
 
     switch (msg.type) {
       case 'text':
         return <div dangerouslySetInnerHTML={safeHtml(msg.content)} />;
+
+      case 'product_detail': {
+        const p = msg.content;
+        if (!p) return null;
+        const price = p?.defaultSku?.price ?? p?.skus?.[0]?.price;
+        return (
+          <div className="ai-product-card">
+            <a className="title" href={`/product/${p.slug}`} target="_blank" rel="noreferrer">
+              {p.name}
+            </a>
+            {p.thumbnail && <img src={p.thumbnail} alt={p.name} className="thumb" />}
+            {price != null && (
+              <div className="price">{new Intl.NumberFormat('vi-VN').format(price)}₫</div>
+            )}
+            <a className="btn" href={`/product/${p.slug}`} target="_blank" rel="noreferrer">
+              Xem chi tiết
+            </a>
+          </div>
+        );
+      }
 
       case 'table_only':
         return msg.content?.headers && msg.content?.rows ? (
@@ -164,8 +214,13 @@ export default function FloatingContactBox() {
       case 'product_grid_only':
         return msg.content?.products ? (
           <>
-            <ProductGridDisplay title={msg.content.title || 'Sản phẩm đề xuất'} products={msg.content.products} />
-            {msg.content.noteAfterGrid && <p className="text-[13px] mt-2 text-gray-600">{msg.content.noteAfterGrid}</p>}
+            <ProductGridDisplay
+              title={msg.content.title || 'Sản phẩm đề xuất'}
+              products={msg.content.products}
+            />
+            {msg.content.noteAfterGrid && (
+              <p className="text-[13px] mt-2 text-gray-600">{msg.content.noteAfterGrid}</p>
+            )}
           </>
         ) : null;
 
@@ -174,19 +229,72 @@ export default function FloatingContactBox() {
           <>
             {msg.content.table?.headers && msg.content.table?.rows && (
               <div className="overflow-x-auto max-w-full">
-                <ProductTableDisplay tableTitle={msg.content.descriptionTop || ''} headers={msg.content.table.headers} rows={msg.content.table.rows} />
+                <ProductTableDisplay
+                  tableTitle={msg.content.descriptionTop || ''}
+                  headers={msg.content.table.headers}
+                  rows={msg.content.table.rows}
+                />
               </div>
             )}
-            <ProductGridDisplay title={msg.content.title || 'Sản phẩm đề xuất'} products={msg.content.products} />
-            {msg.content.noteAfterGrid && <p className="text-[13px] mt-2 text-gray-600">{msg.content.noteAfterGrid}</p>}
+            <ProductGridDisplay
+              title={msg.content.title || 'Sản phẩm đề xuất'}
+              products={msg.content.products}
+            />
+            {msg.content.noteAfterGrid && (
+              <p className="text-[13px] mt-2 text-gray-600">{msg.content.noteAfterGrid}</p>
+            )}
           </>
         ) : null;
+
+      // >>> NEW: danh sách danh mục có thể bấm
+      case 'category_list': {
+        const content = msg.content || msg;
+        const items = content?.items || [];
+
+        if (items.length) {
+          return (
+            <div className="ai-category-list">
+              <p className="mb-2 font-medium">{content?.title || 'Danh mục sản phẩm hiện có'}</p>
+              <div className="flex flex-wrap gap-2">
+                {items.map((it) => (
+                  <button
+                    key={it.id || it.name}
+                    className="zz-chip-btn"
+                    onClick={() => handleTriggerClick(it.triggerMessage || it.name)}
+                    title={`Tìm "${it.name}"`}
+                  >
+                    {it.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          );
+        }
+
+        // Fallback: nhận HTML đã render sẵn với data-trigger
+        return (
+          <div
+            className="ai-category-list"
+            onClick={(e) => {
+              const a = e.target.closest('a.zz-chip[data-trigger]');
+              if (a) {
+                e.preventDefault();
+                handleTriggerClick(a.getAttribute('data-trigger'));
+              }
+            }}
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(content?.htmlFallback || '')
+            }}
+          />
+        );
+      }
 
       default:
         return <div dangerouslySetInnerHTML={safeHtml(msg.content)} />;
     }
   };
 
+  /* ============ UI ============ */
   return (
     <>
       {!open && (
@@ -218,7 +326,13 @@ export default function FloatingContactBox() {
               </button>
               <button onClick={handleCloseChat} className="header-button" title="Đóng chat">
                 <svg viewBox="0 0 24 24" className="action-icon">
-                  <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path
+                    d="M6 18L18 6M6 6l12 12"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
               </button>
             </div>
@@ -226,14 +340,21 @@ export default function FloatingContactBox() {
 
           <div className="chat-content">
             {chatHistory.map((msg, i) => (
-              <div key={i} className={`chat-message ${msg.role === 'user' ? 'user-message' : 'ai-message'}`}>
+              <div
+                key={i}
+                className={`chat-message ${msg.role === 'user' ? 'user-message' : 'ai-message'}`}
+              >
                 {renderMessageContent(msg)}
               </div>
             ))}
             {isLoading && (
               <div className="chat-message ai-message">
                 <span className="loading-text">Trợ lý đang trả lời...</span>
-                <div className="loading-dots"><span>.</span><span>.</span><span>.</span></div>
+                <div className="loading-dots">
+                  <span>.</span>
+                  <span>.</span>
+                  <span>.</span>
+                </div>
               </div>
             )}
             <div ref={chatEndRef} />
@@ -247,6 +368,7 @@ export default function FloatingContactBox() {
                 </button>
               </div>
             )}
+
             {showSuggestions && (
               <div className="quick-suggestions">
                 {quickSuggestions.map((sug, idx) => (
@@ -256,6 +378,7 @@ export default function FloatingContactBox() {
                 ))}
               </div>
             )}
+
             <div className="message-input-container">
               <input
                 ref={inputRef}
@@ -266,12 +389,17 @@ export default function FloatingContactBox() {
                 placeholder="Nhập tin nhắn..."
                 className="message-input"
               />
-              <button onClick={() => sendMessage()} disabled={isLoading || !message.trim()} className="send-button">
+              <button
+                onClick={() => sendMessage()}
+                disabled={isLoading || !message.trim()}
+                className="send-button"
+              >
                 <svg className="send-icon" viewBox="0 0 24 24">
                   <path d="M2 21l21-9L2 3v7l15 2-15 2v7z" fill="currentColor" />
                 </svg>
               </button>
             </div>
+
             <p className="disclaimer-text">Trợ lý AI hỗ trợ 24/7 - Nội dung tham khảo</p>
           </div>
         </div>
