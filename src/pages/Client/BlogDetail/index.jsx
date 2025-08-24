@@ -1,10 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Main from './Main';
 import Sibar from './Sibar';
 import Sibar2 from './Sibar2';
 import Sibar3 from './Sibar3';
 import RelatedPosts from './RelatedPosts';
-import { useEffect, useState } from 'react';
 import { newsSevice } from '@/services/client/newsService';
 import { useParams } from 'react-router-dom';
 import Tags from './Tag';
@@ -166,7 +165,7 @@ const NewsDetails = () => {
     const pageTitle = seoData.title || newsDetails.title || 'Bài viết';
     const metaDescription = seoData.metaDescription || newsDetails.title || '';
     const focusKeyword = seoData.focusKeyword || '';
-    const canonicalUrl = seoData.canonicalUrl || `${window.location.origin}/tin-tuc/${slug}`;
+    const canonicalUrl = seoData.canonicalUrl || (typeof window !== 'undefined' ? `${window.location.origin}/tin-tuc/${slug}` : `/tin-tuc/${slug}`);
     const thumbnailUrl = newsDetails.thumbnail ? 
         (newsDetails.thumbnail.startsWith('http') ? 
             newsDetails.thumbnail : 

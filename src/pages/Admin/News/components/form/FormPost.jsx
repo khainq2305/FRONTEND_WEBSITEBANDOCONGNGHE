@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { Grid } from "@mui/material";
 import Content from "@/pages/Admin/News/components/form/Content";
@@ -42,7 +42,7 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
 
   // Watch values for dependent logic
   const watchedValues = watch();
-  const { isScheduled, categories, allTags, newCategory } = watchedValues;
+  const { isScheduled, categories, allTags, newCategory, title, content } = watchedValues;
 
   // Load initial data
   const [focusKeyword, setFocusKeyword] = useState("");

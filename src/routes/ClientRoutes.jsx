@@ -102,6 +102,8 @@ const ClientRoutes = {
     { path: 'product/:slug', element: <ProductDetail /> },
     { path: 'tin-noi-bat', element: <News /> },
     { path: 'tin-noi-bat/:slug', element: <NewsDetails /> },
+    { path: 'tin-tuc', element: <News /> },
+    { path: 'tin-tuc/:slug', element: <NewsDetails /> },
     { path: 'cart', element: <CartPage /> },
     { path: 'checkout', element: <CheckoutPage /> },
     { path: 'search-result', element: <SearchResult /> },

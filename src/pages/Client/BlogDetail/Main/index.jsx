@@ -1,6 +1,11 @@
 const Main = ({ post }) => {
   if (!post) return null;
   console.log(post)
+  
+  // Derive thumbnailUrl safely from post
+  const thumbnailUrl = post.thumbnail ? 
+    (post.thumbnail.startsWith('http') ? post.thumbnail : `http://localhost:5000/uploads/${post.thumbnail}`) : '';
+    
   return (
     <div className="pb-8">
       {/* Article Title */}

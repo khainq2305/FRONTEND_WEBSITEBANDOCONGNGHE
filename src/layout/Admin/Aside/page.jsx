@@ -587,28 +587,15 @@ const pages = [
     children: [
       {
         id: 'seo-analyzer',
-        title: 'SEO Analyzer',
+        title: 'SEO Configs',
         type: 'item',
         url: '/admin/seo',
         icon: icons.BarChartOutlined,
-        breadcrumbs: false
-      },
-      {
-        id: 'post-seo-manager',
-        title: 'Post SEO Manager',
-        type: 'item',
-        url: '/admin/post-seo',
-        icon: icons.FileTextOutlined,
-        breadcrumbs: false
-      },
-      {
-        id: 'seo-reports',
-        title: 'SEO Reports',
-        type: 'item',
-        url: '/admin/seo/reports',
-        icon: icons.TableOutlined,
-        breadcrumbs: false
+        breadcrumbs: false,
+        action: 'read',
+        subject: 'SEO'
       }
+      
     ]
   },
   {
