@@ -43,7 +43,8 @@ const OrderSummary = ({
   const [gaQr, setGaQr] = useState('');
   const [gaLoading, setGaLoading] = useState(false);
 
-  const pointDiscountAmount = usePoints ? pointInfo.maxUsablePoints * 10 : 0;
+  const pointDiscountAmount = usePoints ? pointInfo.maxUsablePoints * 4000 : 0;
+
 
   useEffect(() => {
     if (propCoupon) {
@@ -477,7 +478,8 @@ const OrderSummary = ({
               <img src={xudiem} alt="coin" className="w-6 h-6 object-contain" />
               <div className="flex items-baseline gap-1">
                 <span>Đổi {pointInfo.maxUsablePoints.toLocaleString('vi-VN')} điểm</span>
-                <span className="text-gray-400 text-xs">(~{formatCurrencyVND(pointInfo.maxUsablePoints * 10)})</span>
+               <span className="text-gray-400 text-xs">(~{formatCurrencyVND(pointInfo.maxUsablePoints * 4000)})</span>
+
               </div>
             </div>
 

@@ -26,12 +26,13 @@ const CartSummary = ({
 
   const [isCheckingOut, setIsCheckingOut] = useState(false);
 
-  const {
+ const {
   userPointBalance = 0,
-  exchangeRate = 10,
-  minPointRequired = 0,
+  exchangeRate = 4000,  
+  minPointRequired = 1, 
   canUsePoints = false
 } = orderTotals || {};
+
 
 const recalculatedMaxUsablePoints = useMemo(() => {
   const payable = Number(orderTotals?.payablePrice || 0);
