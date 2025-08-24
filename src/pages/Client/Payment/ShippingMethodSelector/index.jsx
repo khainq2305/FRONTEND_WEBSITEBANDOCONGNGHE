@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { orderService } from '../../../../services/client/orderService';
 import { FiTruck, FiLoader } from 'react-icons/fi';
 import { formatCurrencyVND } from '../../../../utils/formatCurrency';
+import ghnLogo from '@/assets/Client/images/unnamed.png';
+import ghtkLogo from '@/assets/Client/images/vav-1725788421441340763684.webp';
 
 const ShippingMethodSelector = ({
   selectedAddress,
@@ -73,19 +75,34 @@ const ShippingMethodSelector = ({
                 ].join(" ")}
               >
                 {/* Changed items-start to items-center */}
-                <div className="flex items-center gap-3">
-                  {/* Removed mt-1 */}
-                  <span
-                    className={[
-                      "inline-block h-3 w-3 rounded-full border",
-                      isSelected ? "bg-primary border-primary" : "bg-white border-gray-300"
-                    ].join(" ")}
-                  />
-                  <div>
-                    <p className="font-medium text-sm text-gray-900">{m.name}</p>
-                    <p className="text-xs text-gray-500">Thời gian {m.leadTime || "?"} ngày</p>
-                  </div>
-                </div>
+               <div className="flex items-center gap-3">
+  <span
+    className={[
+      "inline-block h-3 w-3 rounded-full border",
+      isSelected ? "bg-primary border-primary" : "bg-white border-gray-300"
+    ].join(" ")}
+  />
+
+  <div className="flex items-center gap-2">
+    {/* Logo theo code */}
+    {m.code === "ghn" && (
+      <img src={ghnLogo} alt="GHN" className="w-8 h-8 object-contain" />
+    )}
+    {m.code === "ghtk" && (
+      <img src={ghtkLogo} alt="GHTK" className="w-8 h-8 object-contain" />
+    )}
+    {/* Nếu sau này có ViettelPost thì import logo và thêm như này */}
+    {/* {m.code === "vtp" && (
+      <img src={vtpLogo} alt="ViettelPost" className="w-8 h-8 object-contain" />
+    )} */}
+
+    <div>
+      <p className="font-medium text-sm text-gray-900">{m.name}</p>
+      <p className="text-xs text-gray-500">Thời gian {m.leadTime || "?"} ngày</p>
+    </div>
+  </div>
+</div>
+
                 <span className="text-sm font-semibold text-red-600">
                   {m.fee === 0 ? "Miễn phí" : formatCurrencyVND(m.fee)}
                 </span>
