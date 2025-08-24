@@ -27,13 +27,18 @@ const CartSummary = ({
   const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   const {
-    userPointBalance = 0,
-    exchangeRate = 10,
-    minPointRequired = 0,
-    canUsePoints = false,
-    maxUsablePoints = 0,
-    pointDiscountAmount = 0
-  } = orderTotals || {};
+  userPointBalance = 0,
+  exchangeRate = 10,
+  minPointRequired = 0,
+  canUsePoints = false
+} = orderTotals || {};
+
+const recalculatedMaxUsablePoints = useMemo(() => {
+  const payable = Number(orderTotals?.payablePrice || 0);
+  return Math.min(userPointBalance, Math.floor(payable / exchangeRate));
+}, [orderTotals, userPointBalance, exchangeRate]);
+
+const recalculatedPointDiscount = recalculatedMaxUsablePoints * exchangeRate;
 
   const openPromoModal = () => {
     if (!hasSelectedItems) {
@@ -161,7 +166,11 @@ const CartSummary = ({
 
   const payableBeforeDiscount = Number(orderTotals?.payablePrice || 0);
 
-  const payableAfterDiscount = Math.max(0, payableBeforeDiscount - discountAmount - (usePoints ? pointDiscountAmount : 0));
+const payableAfterDiscount = Math.max(
+  0,
+  payableBeforeDiscount - discountAmount - (usePoints ? recalculatedPointDiscount : 0)
+);
+
 
   const payableAfterDiscountFormatted = formatCurrencyVND(payableAfterDiscount > 0 ? payableAfterDiscount : 0);
 
@@ -275,8 +284,9 @@ const CartSummary = ({
             <div className="flex items-center gap-2 text-sm text-gray-700">
               <img src={xudiem} alt="coin" className="w-6 h-6 object-contain" />
               <div className="flex items-baseline gap-1">
-                <span>Đổi {maxUsablePoints.toLocaleString('vi-VN')} điểm</span>
-                <span className="text-gray-400 text-xs">(~{formatCurrencyVND(pointDiscountAmount)})</span>
+              <span>Đổi {recalculatedMaxUsablePoints.toLocaleString('vi-VN')} điểm</span>
+<span className="text-gray-400 text-xs">(~{formatCurrencyVND(recalculatedPointDiscount)})</span>
+
               </div>
             </div>
 
