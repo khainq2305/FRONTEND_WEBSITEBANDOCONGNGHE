@@ -155,12 +155,33 @@ export default function LuckyWheelPage() {
   const wheelStrokeWidth = width < 640 ? 2 : 4;
 
   // Kích thước chữ động
-  const wheelTextFontSize = width < 640 ? 12 : 18;
+  const wheelTextFontSize = width < 640 ? 10 : 14;
   const titleFontSize = width < 640 ? 'text-base' : 'text-lg md:text-xl';
   const prizeTextFontSize = width < 640 ? 'text-lg' : 'text-2xl';
   const popupTitleFontSize = width < 640 ? 'text-2xl' : 'text-4xl';
   const popupContentFontSize = width < 640 ? 'text-base' : 'text-xl md:text-2xl';
   const buttonFontSize = width < 640 ? 'px-4 py-2' : 'px-8 py-3';
+
+  // Chức năng mới: Chia nhỏ chuỗi nếu quá dài
+  const wrapText = (text, maxCharsPerLine) => {
+    const words = text.split(' ');
+    let lines = [];
+    let currentLine = '';
+
+    words.forEach(word => {
+      if ((currentLine + word).length <= maxCharsPerLine) {
+        currentLine += (currentLine.length > 0 ? ' ' : '') + word;
+      } else {
+        lines.push(currentLine);
+        currentLine = word;
+      }
+    });
+
+    if (currentLine.length > 0) {
+      lines.push(currentLine);
+    }
+    return lines;
+  };
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-yellow-100 to-pink-50 flex flex-col items-center justify-center p-4 md:p-8">
@@ -229,6 +250,11 @@ export default function LuckyWheelPage() {
               const path = getSegmentPath(start, end, wheelSize / 2);
               const angle = start + segmentAngle / 2;
               const { x, y } = getCoords(angle, (wheelSize / 2) * 0.7);
+
+              const wrappedLines = wrapText(prize.name, 12);
+              const totalLines = wrappedLines.length;
+              const yOffset = (totalLines - 1) * -8;
+
               return (
                 <g key={i}>
                   <path
@@ -251,7 +277,11 @@ export default function LuckyWheelPage() {
                         "1px 1px 2px rgba(255,255,255,0.7)"
                     }}
                   >
-                    {prize.name}
+                    {wrappedLines.map((line, index) => (
+                      <tspan key={index} x={x} dy={index === 0 ? yOffset : 16}>
+                        {line}
+                      </tspan>
+                    ))}
                   </text>
                 </g>
               );
