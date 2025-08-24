@@ -66,7 +66,7 @@ const Main = ({ post }) => {
             )}
           </div>
           
-          {/* SEO Score Display */}
+          {/* SEO Score Display
           {post.seoData?.seoScore && (
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">SEO Score:</span>
@@ -78,7 +78,7 @@ const Main = ({ post }) => {
                 {post.seoData.seoScore}/100
               </div>
             </div>
-          )}
+          )} */}
         </div>
       </div>
     </div>

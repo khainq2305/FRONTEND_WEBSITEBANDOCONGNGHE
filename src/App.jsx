@@ -1,6 +1,7 @@
 // src/App.jsx
 import { useEffect } from "react";
 import { RouterProvider } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import router from "./routes";
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
@@ -80,13 +81,15 @@ console.log('API URL:', import.meta.env.VITE_API_BASE_URL);
 
 export default function App() {
   return (
-    <GoogleOAuthProvider clientId={clientId}>
-      <SystemSettingProvider>
-        {/* Đặt ThemeCustomization ở đây, bao bọc AppContent hoặc trực tiếp RouterProvider */}
-        <ThemeCustomization> {/* <-- Đặt ThemeCustomization ở cấp cao hơn */}
-          <AppContent />
-        </ThemeCustomization>
-      </SystemSettingProvider>
-    </GoogleOAuthProvider>
+    <HelmetProvider>
+      <GoogleOAuthProvider clientId={clientId}>
+        <SystemSettingProvider>
+          {/* Đặt ThemeCustomization ở đây, bao bọc AppContent hoặc trực tiếp RouterProvider */}
+          <ThemeCustomization> {/* <-- Đặt ThemeCustomization ở cấp cao hơn */}
+            <AppContent />
+          </ThemeCustomization>
+        </SystemSettingProvider>
+      </GoogleOAuthProvider>
+    </HelmetProvider>
   );
 }

@@ -4,7 +4,8 @@ import { useShallow } from 'zustand/react/shallow';
 import io from 'socket.io-client';
 import LuckyWheel from '@/components/Client/LuckyWheel';
 import ComboList from './ComboList';
-          
+import SEO from "../../../components/common/SEO";
+import { createOrganizationStructuredData } from "../../../utils/seoUtils";          
 import SliderBanner from './SliderBanner';
 import ProductCategorySection from './ProductCategorySection';
 import ViewedProductsSlider from './ViewedProductsSlider';
@@ -18,7 +19,7 @@ import { bannerService } from '../../../services/client/bannerService';
 import { flashSaleService } from '../../../services/client/flashSaleService';
 import { sectionService } from '../../../services/client/sectionService';
 import RecommendedProductsSection from './RecommendedProductsSection';
-
+import { publicSeoService } from '../../../services/client/publicSeoService'; // Thêm import publicSeoService
 import { API_BASE_URL } from '../../../constants/environment';
 import useAuthStore from '../../../stores/AuthStore';
 
@@ -26,7 +27,7 @@ const HomePage = () => {
   const [sections, setSections] = useState([]);
   const [flashSales, setFlashSales] = useState([]);
   const [stickyBanners, setStickyBanners] = useState([]);
-
+  const [seoConfig, setSeoConfig] = useState(null); // Thêm state cho SEO config
   const {
     user,
     loading: authLoading,
@@ -101,13 +102,65 @@ const HomePage = () => {
 
   const leftBanner = stickyBanners[0];
   const rightBanner = stickyBanners[1];
+  // Thêm useEffect để lấy SEO config
+    useEffect(() => {
+        const fetchSeoConfig = async () => {
+            try {
+                console.log('🔄 Fetching SEO config for HomePage');
+                const res = await publicSeoService.getConfig(); // Lấy SEO config từ public API
+                console.log('📥 SEO config response:', res);
+                
+                if (res?.data) {
+                    console.log('✅ SEO config loaded:', res.data);
+                    setSeoConfig(res.data);
+                }
+            } catch (error) {
+                console.error('❌ Lỗi lấy SEO config:', error);
+                // Set default config nếu không lấy được
+                setSeoConfig({
+                    siteName: 'Điện Thoại Giá Kho',
+                    defaultTitle: 'Điện Thoại Giá Kho - Cửa hàng điện thoại uy tín, giá tốt nhất',
+                    siteDescription: 'Mua điện thoại chính hãng với giá tốt nhất tại Điện Thoại Giá Kho. Đa dạng thương hiệu iPhone, Samsung, Xiaomi, Oppo. Bảo hành chính hãng, miễn phí vận chuyển.',
+                    siteKeywords: ['điện thoại', 'iPhone', 'Samsung', 'Xiaomi', 'Oppo', 'điện thoại giá rẻ', 'mua điện thoại', 'chính hãng'],
+                    enableOpenGraph: true,
+                    enableTwitterCard: true,
+                    enableJsonLd: true
+                });
+            }
+        };
+        fetchSeoConfig();
+    }, []);
 
+    // Prepare SEO data từ config với fallback
+    const pageTitle = seoConfig?.defaultTitle || 'Điện Thoại Giá Kho - Cửa hàng điện thoại uy tín, giá tốt nhất';
+    const metaDescription = seoConfig?.siteDescription || 'Mua điện thoại chính hãng với giá tốt nhất tại Điện Thoại Giá Kho. Đa dạng thương hiệu iPhone, Samsung, Xiaomi, Oppo. Bảo hành chính hãng, miễn phí vận chuyển.';
+    const metaKeywords = seoConfig?.siteKeywords ? 
+        (Array.isArray(seoConfig.siteKeywords) ? seoConfig.siteKeywords.join(', ') : seoConfig.siteKeywords) : 
+        'điện thoại, iPhone, Samsung, Xiaomi, Oppo, điện thoại giá rẻ, mua điện thoại, chính hãng';
+    const canonicalUrl = `${window.location.origin}/`;
+    const ogImage = `${window.location.origin}/logo.png`;
   return (
-    <div className="w-full bg-gray-100 overflow-x-hidden">
-      <div className="xl:grid xl:grid-cols-[1fr_auto_1fr] xl:gap-x-4">
-        <div className="hidden xl:flex justify-end items-start">
-          <StickyBannerItem banner={leftBanner} />
-        </div>
+      <>
+            <SEO
+             title={pageTitle}
+                description={metaDescription}
+                keywords={metaKeywords}
+                canonicalUrl={canonicalUrl}
+                ogTitle={pageTitle}
+                ogDescription={metaDescription}
+                ogImage={ogImage}
+                enableOpenGraph={seoConfig?.enableOpenGraph}
+                enableTwitterCard={seoConfig?.enableTwitterCard}
+                enableJsonLd={seoConfig?.enableJsonLd}
+                structuredData={createOrganizationStructuredData(seoConfig)}
+                seoConfig={seoConfig}
+            />
+
+      <div className="w-full bg-gray-100 overflow-x-hidden">
+        <div className="xl:grid xl:grid-cols-[1fr_auto_1fr] xl:gap-x-4">
+          <div className="hidden xl:flex justify-end items-start">
+            <StickyBannerItem banner={leftBanner} />
+          </div>
         <main className="w-full max-w-[1200px] mx-auto flex flex-col gap-4 py-4">
           <section>
             <SliderBanner />
@@ -202,7 +255,8 @@ const HomePage = () => {
         </div>
       </div>
       <LuckyWheel />
-    </div>
+      </div>
+      </>
   );
 };
 
