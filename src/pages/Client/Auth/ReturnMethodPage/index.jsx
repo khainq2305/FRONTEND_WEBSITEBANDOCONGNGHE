@@ -611,42 +611,180 @@ const handleSubmit = async () => {
                             </Box>
                         </Box>
 
-                                              <Box
+ {/* <Box
+                            sx={{
+                                border: '1px solid #e0e0e0',
+                                borderRadius: '8px',
+                                mb: 2,
+                                bgcolor: 'white',
+                                p: '16px',
+                                opacity: 0.6, 
+                                cursor: 'not-allowed'
+                            }}
+                        >
+                            <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
+                                
+                                <Box sx={{ flexGrow: 1 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <Typography variant="body1" fontWeight="bold">
+                                            Trả hàng tại bưu cục
+                                        </Typography>
+                                        <Chip
+                                            label="Đang cập nhật"
+                                            size="small"
+                                            color="warning"
+                                            sx={{ fontWeight: 600 }}
+                                        />
+                                    </Box>
+
+                                    <Typography
+                                        variant="body2"
+                                        color="text.secondary"
+                                        sx={{ mt: 0.5, ml: 0.5 }}
+                                    >
+                                        Tính năng này đang được cập nhật, vui lòng chọn phương thức khác.
+                                    </Typography>
+                                </Box>
+                            </Box>
+                        </Box> */}
+                         <Box
+                            onClick={() => setReturnMethod('self_send')}
+                            sx={{
+                                border: '1px solid #e0e0e0',
+                                borderRadius: '8px',
+                                mb: 2,
+                                bgcolor: 'white',
+                                p: '16px',
+                                cursor: 'pointer',
+                                '&:hover': {
+                                    borderColor: 'primary.main'
+                                }
+                            }}
+                        >
+                            <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
+                                <Radio
+                                    checked={returnMethod === 'self_send'}
+                                    onChange={() => setReturnMethod('self_send')}
+                                    value="self_send"
+                                    size="small"
+                                    sx={{
+                                        p: 0, m: 0,
+                                        ml: '0px',
+                                        mr: '12px',
+                                        mt: '2px',
+                                        alignSelf: 'flex-start'
+                                    }}
+                                />
+                                <Box sx={{ flexGrow: 1 }}>
+                             <Box
   sx={{
-    border: '1px solid #e0e0e0',
-    borderRadius: '8px',
-    mb: 2,
-    bgcolor: 'white',
-    p: '16px',
-    opacity: 0.6, // làm mờ cho thấy chưa active
-    cursor: 'not-allowed'
+    display: 'flex',
+    alignItems: 'center',
+    gap: 1,
+    flexWrap: 'wrap', // để xuống dòng khi hết chỗ
   }}
 >
-  <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
-    {/* Bỏ Radio đi, thay bằng icon disable hoặc chip */}
-    <Box sx={{ flexGrow: 1 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Typography variant="body1" fontWeight="bold">
-          Trả hàng tại bưu cục
-        </Typography>
-        <Chip
-          label="Đang cập nhật"
-          size="small"
-          color="warning"
-          sx={{ fontWeight: 600 }}
-        />
-      </Box>
+  <Typography variant="body1" fontWeight="bold">
+    Trả hàng tại bưu cục
+  </Typography>
 
-      <Typography
-        variant="body2"
-        color="text.secondary"
-        sx={{ mt: 0.5, ml: 0.5 }}
-      >
-        Tính năng này đang được cập nhật, vui lòng chọn phương thức khác.
+  <Chip
+    label="Vui lòng thanh toán phí vận chuyển"
+    size="small"
+    variant="outlined"
+    sx={{
+      borderColor: '#1AA2E9',
+      color: '#1AA2E9',
+      fontWeight: 600,
+      ml: 1,
+    }}
+  />
+
+  {/* Dòng mô tả thêm */}
+  <Typography
+    variant="body2"
+    color="text.secondary"
+    sx={{ width: '100%', mt: 0.5, ml: 0.5 }}
+  >
+    Bạn có thể chủ động thời gian trả hàng tại các bưu cục đối tác. 
+    <span style={{ color: '#1AA2E9', cursor: 'pointer' }}>
+      {' '}Bấm để xem địa chỉ gần nhất.
+    </span>
+  </Typography>
+</Box>
+
+
+ {returnMethod === 'self_send' && (
+  <Box sx={{ mt: 2 }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      <Typography variant="body2" fontWeight="bold">
+        Chọn dịch vụ vận chuyển:
       </Typography>
+
+      {dropoffServices.length === 0 ? (
+        <Typography variant="body2" color="text.secondary">
+          {loading ? 'Đang tải dịch vụ...' : 'Không có dịch vụ khả dụng'}
+        </Typography>
+      ) : (
+        <Box sx={{ flex: 1 }}>
+  {dropoffServices.map((svc) => (
+    <Box
+  key={`${svc.provider}-${svc.serviceCode}`}
+  onClick={() => setSelectedDropoffService(svc)}
+  sx={{
+    border: '1px solid',
+    borderColor:
+      selectedDropoffService?.provider === svc.provider &&
+      selectedDropoffService?.serviceCode === svc.serviceCode
+        ? 'primary.main'
+        : '#e0e0e0',
+    borderRadius: '8px',
+    p: 1.5,
+    mb: 1,
+    cursor: 'pointer',
+    '&:hover': { borderColor: 'primary.main' },
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  }}
+>
+  <Box>
+    <Typography variant="body2" fontWeight={600}>
+      {svc.serviceName}
+    </Typography>
+  </Box>
+
+ {svc.fee > 0 && (
+  <Typography
+    variant="body2"
+    sx={{
+      border: '1px solid red',
+      borderRadius: '4px',
+      px: 1.5,
+      py: '2px',
+      color: 'red',
+      fontWeight: 600,
+      whiteSpace: 'nowrap',
+    }}
+  >
+    Phí vận chuyển: {Number(svc.fee).toLocaleString('vi-VN')} đ
+  </Typography>
+)}
+
+</Box>
+
+  ))}
+</Box>
+
+      )}
     </Box>
   </Box>
-</Box>
+)}
+
+                                    
+                                </Box>
+                            </Box>
+                        </Box>
                     </RadioGroup>
                 </Box>
 
