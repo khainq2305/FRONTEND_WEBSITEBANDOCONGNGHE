@@ -39,14 +39,20 @@ const News = () => {
     fetchFeature();
   }, []);
 
+  // const categorySlugs = [
+  //   { slug: 'tin-tuc-sam-sum', limit: 5 },
+  //   { slug: 'tin-tuc-apple', limit: 10 },
+  //   { slug: 'thu-thuat-meo-hay', limit: 8 },
+  //   { slug: 'tri-tue-nhan-tao-ai', limit: 3 },
+  //   { slug: 'tin-noi-bat-nhat', limit: 10 }
+  // ];
   const categorySlugs = [
-    { slug: 'tin-tuc-sam-sum', limit: 5 },
-    { slug: 'tin-tuc-apple', limit: 10 },
-    { slug: 'thu-thuat-meo-hay', limit: 8 },
-    { slug: 'tri-tue-nhan-tao-ai', limit: 3 },
-    { slug: 'tin-noi-bat-nhat', limit: 10 }
+    { slug: 'nha-bep', limit: 5 },
+    { slug: 'giat-ui', limit: 10 },
+    { slug: 'lam-mat-dieu-hoa-khong-khi', limit: 8 },
+    { slug: 'giai-tri-thiet-bi-nghe-nhin', limit: 3 },
+    { slug: 'bao-quan-thuc-pham', limit: 10 }
   ];
-
   const fetchByCategory = async () => {
     const result = {};
 
@@ -118,24 +124,24 @@ const News = () => {
 
         <div className="my-5">
          
-          <Carousel title="Tin Tức sam sum" items={newsBySlug['tin-tuc-sam-sum'] || []} visibleCount={5} autoautoScroll={true} />
+          <Carousel title="Nhà Bếp" items={newsBySlug['nha-bep'] || []} visibleCount={5} autoautoScroll={true} />
         </div>
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-x-2 px-0 md:px-4 lg:px-0">
           <div className='w-4/6'>
-            <MidNews title="Tin tức Apple" items={newsBySlug['tin-tuc-apple'] || []} visibleCount={3} />
+            <MidNews title="Làm mát & Điều hòa không khí" items={newsBySlug['lam-mat-dieu-hoa-khong-khi'] || []} visibleCount={3} />
           </div>
           <div className='w-1/3' >
-            <SibarMid title="Trí tuệ nhân tạo - AI" items={newsBySlug['tri-tue-nhan-tao-ai'] || []} visibleCount={5} />
+            <SibarMid title="Giải trí & Thiết bị nghe nhìn" items={newsBySlug['giai-tri-thiet-bi-nghe-nhin'] || []} visibleCount={5} />
           </div>
         </div>
         <div className="my-5">
           <Carousel2
-            title="Tin nổi bật"
-            items={newsBySlug['tin-noi-bat-nhat'] || []}
-            currentIndex={carouselIndexes['tin-noi-bat-nhat'] || 0}
+            title="Bảo quản thực phẩm"
+            items={newsBySlug['bao-quan-thuc-pham'] || []}
+            currentIndex={carouselIndexes['bao-quan-thuc-pham'] || 0}
             visibleCount={5}
-            onPrev={() => handlePrev('tin-noi-bat-nhat')}
-            onNext={() => handleNext('tin-noi-bat-nhat')}
+            onPrev={() => handlePrev('bao-quan-thuc-pham')}
+            onNext={() => handleNext('bao-quan-thuc-pham')}
           />
         </div>
         <div className="my-5">
@@ -143,8 +149,8 @@ const News = () => {
         </div>
         <div className="my-5">
           <Carousel
-            title="Thủ thuật - mẹo hay"
-            items={newsBySlug['thu-thuat-meo-hay'] || []}
+            title="Giặt ủi"
+            items={newsBySlug['giat-ui'] || []}
             currentIndex={carouselIndex}
             visibleCount={5}
           />

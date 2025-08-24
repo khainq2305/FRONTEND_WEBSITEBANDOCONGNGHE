@@ -34,7 +34,7 @@ import 'tinymce/plugins/preview';
 const CategoryMain = ({ initialData = null, onSubmit }) => {
   const [category, setCategory] = useState({
     name: "",
-    parentId: "",
+    parentId: null,
     isActive: true, // ✅ boolean
     description: ""
   });
@@ -43,10 +43,9 @@ const CategoryMain = ({ initialData = null, onSubmit }) => {
   const [errors, setErrors] = useState({});
   useEffect(() => {
     if (initialData) {
-      console.log('🧾 initialData.description:', initialData.description);
       setCategory({
         name: initialData.name || "",
-        parentId: initialData.parentId || "",
+        parentId: initialData.parentId || null,
         isActive: initialData.isActive ?? true, // ✅ boolean
         description: initialData.description || ""
       });
@@ -67,7 +66,6 @@ const CategoryMain = ({ initialData = null, onSubmit }) => {
   }, []);
 
   const handleChange = (field, value) => {
-    console.log(`🧪 Change field: ${field} →`, value); // 👈 LOG QUAN TRỌNG
     setCategory((prev) => ({
       ...prev,
       [field]: value
@@ -76,7 +74,7 @@ const CategoryMain = ({ initialData = null, onSubmit }) => {
    const handleSubmit = async () => {
   const formData = new FormData();
   formData.append("name", category.name);
-  formData.append("parentId", category.parentId || "");
+  formData.append("parentId", category.parentId ? category.parentId : "");
   formData.append("isActive", category.isActive); // boolean
   formData.append("description", category.description);
 

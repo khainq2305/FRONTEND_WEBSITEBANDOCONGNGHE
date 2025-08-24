@@ -172,7 +172,7 @@ const RolesCard = ({ role, color, onDelete, onViewDetails, onEdit }) => {
           <Box display="flex" flexWrap="wrap" alignItems="center" gap={0.5}>
             <DotColor color={color} />
             <Typography variant="h6" component="div" fontWeight={600}>
-              {name}
+              {name} {userCount > 0 && `+${userCount}`}
             </Typography>
           </Box>
 

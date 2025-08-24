@@ -423,6 +423,12 @@ const pages = [
             subject: 'Post'
           },
           {
+          
+            url: '/admin/them-danh-muc-bai-viet',
+            action: 'create',
+            subject: 'Post'
+          },
+          {
             url: '/admin/danh-muc-bai-viet/chinh-sua-danh-muc/:slug',
             action: 'update',
             subject: 'Post'
