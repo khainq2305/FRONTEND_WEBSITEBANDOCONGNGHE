@@ -2,6 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Plus, ChevronDown, Search as SearchIcon, X as CloseIcon } from 'lucide-react';
 import { shippingService } from '../../../../../services/client/shippingService';
 import Loader from '../../../../../components/common/Loader';
+import { GoogleMap, Marker, useLoadScript } from "@react-google-maps/api";
+
+
 
 const addressLabels = ['Nhà Riêng', 'Văn Phòng', 'Nhà Người Yêu'];
 
@@ -25,6 +28,12 @@ const AddressModal = ({ open, onClose, onSave, editingAddress, loading }) => {
   const [loadingProvinces, setLoadingProvinces] = useState(false);
   const [loadingDistricts, setLoadingDistricts] = useState(false);
   const [loadingWards, setLoadingWards] = useState(false);
+const [marker, setMarker] = useState(null);
+
+const { isLoaded } = useLoadScript({
+  googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_KEY,
+});
+const [showMapModal, setShowMapModal] = useState(false);
 
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [locationPickerTab, setLocationPickerTab] = useState('city');
@@ -236,7 +245,9 @@ const AddressModal = ({ open, onClose, onSave, editingAddress, loading }) => {
       wardId,
       selectedProvince: formData.cityObj,
       selectedDistrict: formData.districtObj,
-      selectedWard: formData.wardObj
+      selectedWard: formData.wardObj,
+      latitude: formData.latitude,
+  longitude: formData.longitude,
     });
   };
 
@@ -436,6 +447,14 @@ const AddressModal = ({ open, onClose, onSave, editingAddress, loading }) => {
               />
               {formErrors.streetAddress && <p className="text-xs text-red-500 mt-1">{formErrors.streetAddress}</p>}
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Ví dụ: Số nhà 123, Tên đường (Tên tòa nhà)</p>
+ <button
+    type="button"
+    onClick={() => setShowMapModal(true)}
+    className="mt-2 px-3 py-1.5 text-sm text-primary border border-primary rounded hover:bg-primary hover:text-white transition"
+  >
+    + Thêm vị trí
+  </button>
+
             </div>
 
             <div className="flex items-center gap-3 flex-wrap">
@@ -477,6 +496,8 @@ const AddressModal = ({ open, onClose, onSave, editingAddress, loading }) => {
           </form>
         </div>
 
+
+
         <div className="flex-shrink-0 py-3 px-4 sm:px-5 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-2.5 bg-white dark:bg-gray-800">
           <button
             type="button"
@@ -501,6 +522,61 @@ const AddressModal = ({ open, onClose, onSave, editingAddress, loading }) => {
           </button>
         </div>
       </div>
+      {showMapModal && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[3000]">
+    <div className="bg-white rounded shadow-lg w-[90%] max-w-lg p-4 relative">
+      <button
+        onClick={() => setShowMapModal(false)}
+        className="absolute top-2 right-2 text-gray-500 hover:text-black"
+      >
+        ✕
+      </button>
+
+      <h3 className="text-base font-semibold mb-3">Chọn vị trí trên bản đồ</h3>
+
+      <div className="h-72 w-full rounded border">
+        <GoogleMap
+  center={marker ? marker : { lat: 10.776889, lng: 106.700806 }}
+  zoom={15}
+  mapContainerStyle={{ width: "100%", height: "100%" }}
+  onClick={(e) => {
+    const lat = e.latLng.lat();
+    const lng = e.latLng.lng();
+    setMarker({ lat, lng });
+  }}
+>
+  {marker && <Marker position={marker} />}
+</GoogleMap>
+
+      </div>
+
+      <div className="flex justify-end gap-3 mt-4">
+        <button
+          onClick={() => setShowMapModal(false)}
+          className="px-4 py-1.5 text-sm border rounded hover:bg-gray-100"
+        >
+          Hủy
+        </button>
+        <button
+          onClick={() => {
+            if (marker) {
+              setFormData((prev) => ({
+                ...prev,
+                latitude: marker.lat,
+                longitude: marker.lng,
+              }));
+            }
+            setShowMapModal(false);
+          }}
+          className="px-4 py-1.5 text-sm bg-primary text-white rounded hover:opacity-90"
+        >
+          Đồng ý
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   );
 };
