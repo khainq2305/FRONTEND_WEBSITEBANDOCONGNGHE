@@ -13,8 +13,8 @@ import { comboServiceClient } from '@/services/client/comboService';
 import Loader from '@/components/common/Loader';
 
 const Breadcrumb = ({ comboName }) => (
-  <div className="bg-white border-b border-gray-200 text-sm text-gray-500">
-    <div className="max-w-[1200px] mx-auto px-4 py-2 flex items-center gap-2">
+  <div className="text-sm text-gray-500">
+  <div className="max-w-[1200px] mx-auto py-2 flex items-center gap-2">
       <Link to="/" className="hover:text-primary">
         Trang chủ
       </Link>

@@ -38,8 +38,11 @@ const reasonMap = {
   NOT_AS_DESCRIBED: 'Sản phẩm khác với mô tả của shop',
   DEFECTIVE: 'Sản phẩm bị lỗi, hư hỏng, không hoạt động',
   CHANGE_MIND: 'Không còn nhu cầu mua nữa',
+  ORDER_BY_MISTAKE: 'Đặt nhầm sản phẩm',
+  FOUND_BETTER_PRICE: 'Tìm được sản phẩm giá tốt hơn',
   OTHER: 'Lý do khác',
 };
+
 
 const StatusChip = ({ status }) => (
     <Chip label={labelMap[status] || status} color={statusColors[status] || 'default'} size="small" />
@@ -322,7 +325,24 @@ const handleConfirmReceivedSwal = async () => {
       InputProps={{ readOnly: true }}
       size="small"
     />
+    
   </Grid>
+  <Grid item xs={12} sm={6}>
+  <TextField
+    label="Phương thức trả hàng"
+    value={
+      detail.returnMethod === 'ghn_pickup'
+        ? 'GHN đến lấy tận nơi'
+        : detail.returnMethod === 'self_send'
+        ? 'Khách tự gửi (mang ra bưu cục)'
+        : 'Chưa cập nhật'
+    }
+    fullWidth
+    InputProps={{ readOnly: true }}
+    size="small"
+  />
+</Grid>
+
   <Grid item xs={12} sm={6}>
     <TextField
       label="Trạng thái"
@@ -520,7 +540,7 @@ const handleConfirmReceivedSwal = async () => {
 
   {detail.status === 'received' && (
     <Button variant="contained" color="secondary" onClick={handleOpenRefundedDialog}>
-      Hoàn tiền xong
+      Hoàn tiền cho khách hàng
     </Button>
   )}
 </Box>

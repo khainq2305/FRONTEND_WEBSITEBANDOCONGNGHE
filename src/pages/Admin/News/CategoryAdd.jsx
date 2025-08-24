@@ -11,7 +11,6 @@ const CategoryAdd = () => {
     const res = await newsCategoryService.create(data);
     toast.success(res.data.message || 'Thêm danh mục thành công');
     navigate('/admin/danh-muc-bai-viet');
-    console.log('du lieu la',data)
   } catch (err) {
     throw err
   }

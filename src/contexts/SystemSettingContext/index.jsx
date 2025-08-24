@@ -21,7 +21,7 @@ export const SystemSettingProvider = ({ children }) => {
   }, []);
 
   return (
-    <SystemSettingContext.Provider value={{ settings, fetchSettings }}>
+    <SystemSettingContext.Provider value={{ settings, setSettings, fetchSettings }}>
       {children}
     </SystemSettingContext.Provider>
   );

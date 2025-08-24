@@ -182,7 +182,7 @@ useEffect(() => {
   ? format(parseISO(returnRequestDetails.deadlineChooseReturnMethod), 'dd-MM-yyyy HH:mm', { locale: vi })
   : 'Không xác định';
 
-   const handleSubmit = async () => {
+const handleSubmit = async () => {
   if (!returnRequestIdFromDetails) {
     toast.error('Không tìm thấy ID yêu cầu trả hàng để xử lý.');
     return;
@@ -197,7 +197,6 @@ useEffect(() => {
   try {
     const payload = { returnMethod };
 
-    // Luôn update phương thức trả hàng trước
     await returnRefundService.chooseReturnMethod(returnRequestIdFromDetails, {
       ...payload,
       pickupAddressId:
@@ -205,29 +204,25 @@ useEffect(() => {
     });
 
     if (returnMethod === 'ghn_pickup') {
-      // Pickup tận nơi
       await returnRefundService.bookReturnPickup(returnRequestIdFromDetails);
       toast.success('Đã đặt GHN đến lấy hàng!');
     } else if (returnMethod === 'self_send') {
-      // ✅ Drop-off: bắt buộc chọn service
-      if (!selectedDropoffService) {
-        toast.error('Vui lòng chọn dịch vụ bưu cục');
+      const svc = selectedDropoffService || dropoffServices[0];
+      if (!svc) {
+        toast.error('Không có dịch vụ bưu cục khả dụng');
         return;
       }
       await returnRefundService.createDropoffReturnOrder(
-    returnRequestIdFromDetails,
-    {
-      provider: selectedDropoffService.provider,       // ví dụ: 'ghn' | 'ghtk' | 'vtp'
-      serviceCode: selectedDropoffService.service_id,  // mã dịch vụ từ API getDropoffServices
-      serviceName: selectedDropoffService.short_name,  // tên hiển thị
+        returnRequestIdFromDetails,
+        {
+          provider: svc.provider,
+          serviceCode: svc.service_id,
+          serviceName: svc.short_name,
+        }
+      );
+      toast.success('Đã tạo đơn trả hàng tại bưu cục!');
     }
-  );
 
-  toast.success('Đã tạo đơn trả hàng tại bưu cục!');
-}
-     
-
-    // Điều hướng về trang chi tiết
     navigate(`/user-profile/return-order/${returnRequestIdFromDetails}`);
   } catch (err) {
     console.error('[ReturnMethodPage] Lỗi cập nhật phương thức hoàn hàng:', err);
@@ -238,6 +233,7 @@ useEffect(() => {
     setLoading(false);
   }
 };
+
 
 
     const handleCancelRequest = async () => {
@@ -255,7 +251,7 @@ useEffect(() => {
             // Gọi API bằng returnRequestIdFromDetails
             await returnRefundService.cancelReturnRequest(returnRequestIdFromDetails);
             toast.success('Đã huỷ yêu cầu trả hàng!');
-            navigate('/user-profile/return-order'); // Điều hướng về trang danh sách yêu cầu
+            navigate('/user-profile#quan-ly-don-hang'); // Điều hướng về trang danh sách yêu cầu
         } catch (err) {
             console.error('[CancelReturnRequest] Lỗi hủy yêu cầu:', err);
             toast.error(err?.response?.data?.message || 'Không thể huỷ yêu cầu');
@@ -615,8 +611,43 @@ useEffect(() => {
                             </Box>
                         </Box>
 
-                        {/* KHUNG "Trả hàng tại bưu cục" */}
-                        <Box
+ {/* <Box
+                            sx={{
+                                border: '1px solid #e0e0e0',
+                                borderRadius: '8px',
+                                mb: 2,
+                                bgcolor: 'white',
+                                p: '16px',
+                                opacity: 0.6, 
+                                cursor: 'not-allowed'
+                            }}
+                        >
+                            <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
+                                
+                                <Box sx={{ flexGrow: 1 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <Typography variant="body1" fontWeight="bold">
+                                            Trả hàng tại bưu cục
+                                        </Typography>
+                                        <Chip
+                                            label="Đang cập nhật"
+                                            size="small"
+                                            color="warning"
+                                            sx={{ fontWeight: 600 }}
+                                        />
+                                    </Box>
+
+                                    <Typography
+                                        variant="body2"
+                                        color="text.secondary"
+                                        sx={{ mt: 0.5, ml: 0.5 }}
+                                    >
+                                        Tính năng này đang được cập nhật, vui lòng chọn phương thức khác.
+                                    </Typography>
+                                </Box>
+                            </Box>
+                        </Box> */}
+                         <Box
                             onClick={() => setReturnMethod('self_send')}
                             sx={{
                                 border: '1px solid #e0e0e0',

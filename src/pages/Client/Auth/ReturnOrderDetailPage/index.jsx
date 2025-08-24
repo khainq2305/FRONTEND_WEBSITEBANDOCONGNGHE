@@ -167,12 +167,17 @@ const handleCopyTracking = async () => {
       return 'Sản phẩm bị lỗi, hư hỏng, không hoạt động';
     case 'CHANGE_MIND':
       return 'Không còn nhu cầu mua nữa';
+    case 'ORDER_BY_MISTAKE':
+      return 'Đặt nhầm sản phẩm';
+    case 'FOUND_BETTER_PRICE':
+      return 'Tìm được sản phẩm giá tốt hơn';
     case 'OTHER':
       return detailedReason || 'Lý do khác (vui lòng mô tả bên dưới)';
     default:
       return reasonCode;
   }
 };
+
 
 
 
@@ -219,13 +224,12 @@ const refundTextMap = {
   payos: () => 'Số dư TK (Cyberzone) của bạn',
 };
 
-const refundText = refundTextMap[paymentMethodCode]
-  ? refundTextMap[paymentMethodCode](bankName)
-  : refundDest;
-// hỗ trợ biến thể vnpay_qr, vnpay_atm...
 const refundDest =
   MAP[paymentMethodCode] ??
   (paymentMethodCode.startsWith('vnpay') ? 'Ví VNPay' : 'Không rõ');
+
+const refundText =
+  refundTextMap[paymentMethodCode]?.(bankName) || refundDest;
 
 console.log('pmRaw:', pmRaw, '=> paymentMethodCode:', paymentMethodCode);
 
@@ -573,11 +577,12 @@ return (
       <Typography className="mb-2 text-gray-800 text-sm">
         Lý do: <span className="font-bold">{getReasonText(reason)}</span>
       </Typography>
-      {detailedReason && reason === 'OTHER' && (
-        <Typography className="text-gray-800 text-sm">
-          Chi tiết: {detailedReason}
-        </Typography>
-      )}
+     {detailedReason && (
+  <Typography className="text-gray-800 text-sm">
+    Chi tiết: {detailedReason}
+  </Typography>
+)}
+
       {(imageUrls?.length > 0 || videoUrls?.length > 0) && (
         <Box className="mt-4 pt-4 border-t border-gray-200">
           <Typography variant="subtitle1" className="font-semibold mb-2 text-gray-700">Bằng chứng:</Typography>

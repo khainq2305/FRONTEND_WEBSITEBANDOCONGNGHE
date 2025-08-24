@@ -63,15 +63,15 @@
   background-color: var(--secondary-color);
   color: #fff;
 }
+/* globals.css */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE và Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;             /* Chrome, Safari, Opera */
+}
 
-.scrollbar-thin::-webkit-scrollbar {
-  width: 6px; 
-}
-/* Scroll */
-.scrollbar-thin::-webkit-scrollbar-thumb {
-  background-color: var(--primary-color);
-  border-radius: 8px;
-}
 .input-style {
   width: 100%;
   padding: 0.5rem 1rem;

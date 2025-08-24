@@ -8,7 +8,7 @@ const OrderLookup = () => {
   const [orderData, setOrderData] = useState(null); 
   const [error, setError] = useState("");
 
-  const handleLookup = async (phone, code) => {
+const handleLookup = async (phone, code) => {
   try {
     setError("");
     const res = await orderService.lookupOrder(code, phone);
@@ -18,13 +18,19 @@ const OrderLookup = () => {
       customer: order.customer,
       phone: order.phone,
       code: order.code,
-       address: order.address, // ✅ THÊM DÒNG NÀY
+      address: order.address,
       status: order.status,
+      paymentStatus: order.paymentStatus,       // ✅ thêm
       totalPrice: order.totalPrice || 0,
+      finalPrice: order.finalPrice || 0,        // ✅ thêm
       shippingProviderId: order.shippingProviderId,
       paymentMethod: order.paymentMethod,
-      shippingFee: order.shippingFee,
-      products: order.products || []
+      paymentMethodCode: order.paymentMethodCode, // ✅ thêm
+      shippingFee: order.shippingFee || 0,
+      trackingCode: order.trackingCode || null, // ✅ thêm
+      customerNote: order.customerNote || "",   // ✅ thêm
+      createdAt: order.createdAt || null,       // ✅ thêm
+      products: order.products || [],
     });
   } catch (err) {
     console.error(err);
@@ -36,6 +42,7 @@ const OrderLookup = () => {
     setOrderData(null);
   }
 };
+
 
 
   return (

@@ -4,6 +4,8 @@ import { paymentService } from '../../../../services/client/paymentService';
 import { walletService } from '../../../../services/client/walletService';
 import vietqrIcon from '../../../../assets/Client/images/566d62fd25cf0867e0033fb1b9b47927.png';
 import payosIcon from '../../../../assets/Client/images/images.png';
+import walletIcon from '../../../../assets/Client/images/1041876.png';
+
 
 const ICON_COD = 'https://salt.tikicdn.com/ts/upload/92/b2/78/1b3b9cda5208b323eb9ec56b84c7eb87.png';
 const ICON_ATM = vietqrIcon;
@@ -13,7 +15,7 @@ const ICON_ZALOPAY = 'https://s3-sgn09.fptcloud.com/ict-payment-icon/payment/zal
 const ICON_VIETTEL_MONEY = 'https://i.imgur.com/ttZPvTx.png';
 const ICON_STRIPE = 'https://salt.tikicdn.com/ts/upload/7e/48/50/7fb406156d0827b736cf0fe66c90ed78.png';
 const ICON_CREDIT = 'https://salt.tikicdn.com/ts/upload/16/f8/f3/0c02ea827b71cd89ffadb7a22babbdd6.png';
-const ICON_WALLET = 'https://cdn-icons-png.flaticon.com/512/1041/1041876.png';
+const ICON_WALLET = walletIcon;
 const ICON_PAYOS = payosIcon;
 
 const paymentIconMap = {
@@ -25,7 +27,7 @@ const paymentIconMap = {
   viettel_money: ICON_VIETTEL_MONEY,
   stripe: ICON_STRIPE,
   credit: ICON_CREDIT,
-  internalWallet: ICON_WALLET,
+  internalwallet: ICON_WALLET, 
   payos: ICON_ATM,
   credit_card: ICON_CREDIT,
   card: ICON_CREDIT,
@@ -47,8 +49,8 @@ const PaymentMethod = ({
       try {
         const res = await paymentService.getPaymentMethods();
         const sorted = [...(res.data?.data || [])].sort((a, b) => {
-          if (a.code === 'internalWallet') return -1;
-          if (b.code === 'internalWallet') return 1;
+          if (a.code === 'internalwallet') return -1;
+          if (b.code === 'internalwallet') return 1;
           return 0;
         });
         setPaymentMethods(sorted);
@@ -74,7 +76,7 @@ const PaymentMethod = ({
       <h2 className="font-semibold mb-4">Phương thức thanh toán</h2>
       <div className="space-y-3">
         {paymentMethods.map((method) => {
-          const isWallet = method.code === 'internalWallet';
+          const isWallet = method.code === 'internalwallet';
           const isGaNotSetup = isWallet && walletInfo && !walletInfo.hasGoogleAuth;
           const isDisabled = isWallet && (walletBalance < finalAmount || isGaNotSetup);
           const isSelected = selectedPaymentMethod === method.id;

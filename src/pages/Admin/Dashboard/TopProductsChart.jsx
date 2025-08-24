@@ -46,7 +46,7 @@
       from: dateRange.from?.toISOString(),
       to: dateRange.to?.toISOString(),
      })
-     setData(apiData)
+     setData(apiData.data)   
     } catch (e) {
      console.error("Lỗi khi lấy top sản phẩm bán chạy:", e)
      setError("Không thể tải biểu đồ sản phẩm bán chạy. Vui lòng thử lại sau.")

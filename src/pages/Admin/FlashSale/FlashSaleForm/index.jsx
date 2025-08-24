@@ -146,6 +146,7 @@ const FlashSaleForm = () => {
           quantity: item.quantity,
           maxPerUser: item.maxPerUser,
           note: item.note,
+          price: item.flashSaleSku?.price,         
           productName: item.flashSaleSku?.product?.name,
           skuCode: item.flashSaleSku?.skuCode,
           originalPrice: item.flashSaleSku?.originalPrice,
@@ -537,24 +538,50 @@ const FlashSaleForm = () => {
                             </Grid>
 
                             <Grid item xs={12}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                {sku.originalPrice != null && (
-                                  <Typography variant="body2" color="text.secondary">
-                                    Giá gốc: <strong style={{ color: '#d32f2f' }}>{formatCurrencyVND(sku.originalPrice)}</strong>
-                                  </Typography>
-                                )}
-                                {sku.soldCount != null && sku.originalQuantity != null && (
-                                  <Typography variant="body2" color="text.secondary">
-                                    Đã bán: <strong>{sku.soldCount}</strong> / {sku.originalQuantity} &nbsp; (Còn lại:{' '}
-                                    <strong>{sku.originalQuantity - sku.soldCount}</strong>)
-                                  </Typography>
-                                )}
-                                {sku.stock != null && (
-                                  <Typography variant="body2" color="text.secondary">
-                                    Tồn kho: <strong>{sku.stock}</strong>
-                                  </Typography>
-                                )}
-                              </Box>
+                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+ {sku.price ? (
+  <>
+    {/* Giá gốc gạch ngang */}
+    {sku.originalPrice && (
+      <Typography
+        variant="body2"
+        sx={{ textDecoration: "line-through", color: "gray" }}
+      >
+        {formatCurrencyVND(sku.originalPrice)}
+      </Typography>
+    )}
+
+    {/* Giá bán hiện tại */}
+    <Typography variant="body2" color="error" fontWeight="bold">
+      {formatCurrencyVND(sku.price)}
+    </Typography>
+  </>
+) : (
+  // Nếu không có price thì chỉ hiển thị originalPrice
+  sku.originalPrice && (
+    <Typography variant="body2" color="error" fontWeight="bold">
+      {formatCurrencyVND(sku.originalPrice)}
+    </Typography>
+  )
+)}
+
+
+  {/* Đã bán */}
+  {sku.soldCount != null && sku.originalQuantity != null && (
+    <Typography variant="body2" color="text.secondary">
+      Đã bán: <strong>{sku.soldCount}</strong> / {sku.originalQuantity} &nbsp;
+      (Còn lại: <strong>{sku.originalQuantity - sku.soldCount}</strong>)
+    </Typography>
+  )}
+
+  {/* Tồn kho */}
+  {sku.stock != null && (
+    <Typography variant="body2" color="text.secondary">
+      Tồn kho: <strong>{sku.stock}</strong>
+    </Typography>
+  )}
+</Box>
+
                             </Grid>
 
                             <Grid item xs={12} sm={6}>

@@ -326,7 +326,7 @@ const confirmLogout = async () => {
 
   return (
     <>
-      {isCategoriesLoading && <Loader fullscreen={true} />}
+      {/* {isCategoriesLoading && <Loader fullscreen={true} />} */}
       {isLoggingOut && <Loader fullscreen={true} />}
       <div ref={sentinelRef} style={{ height: '1px', position: 'absolute', top: '0' }}></div>
 

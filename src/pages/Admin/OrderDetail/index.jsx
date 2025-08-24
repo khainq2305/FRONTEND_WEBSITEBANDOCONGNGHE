@@ -10,6 +10,9 @@ import { orderService } from '../../../services/admin/orderService';
 import Breadcrumb from '../../../components/common/Breadcrumb';
 
 import { toast } from 'react-toastify'; 
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
+import { RobotoRegular } from "../../../fonts/roboto"; // đường dẫn đúng tới file roboto.js
 
 const orderStatusLabels = {
   processing: 'Đang xử lý',
@@ -41,6 +44,113 @@ const OrderDetail = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isUpdatingPaymentStatus, setIsUpdatingPaymentStatus] = useState(false); 
+
+const handleExportInvoice = () => {
+  if (!order) return;
+
+  const doc = new jsPDF("p", "mm", "a4"); // A4 dọc
+  const pageWidth = doc.internal.pageSize.getWidth();
+
+  // ===== Nhúng font Unicode (Roboto) =====
+  doc.addFileToVFS("Roboto-Regular.ttf", RobotoRegular);
+  doc.addFont("Roboto-Regular.ttf", "Roboto", "normal");
+  doc.setFont("Roboto", "normal");
+
+  // ===== HEADER (Logo + Tiêu đề) =====
+  doc.addImage(
+    "https://res.cloudinary.com/dzrp2hsvh/image/upload/v1753528700/system/gw0ddnjrvscavwae0yl0.png", // URL logo của bạn
+    "PNG",
+    14, 10, 60, 20
+  );
+
+  doc.setFontSize(18);
+  doc.text("HÓA ĐƠN BÁN HÀNG", pageWidth / 2, 25, { align: "center" });
+
+  // ===== THÔNG TIN KHÁCH HÀNG =====
+  doc.setFontSize(12);
+  doc.text("Thông tin khách hàng", 14, 50);
+
+  doc.setFontSize(10);
+  doc.text(`Khách hàng: ${fullName}`, 14, 58);
+  doc.text(`SĐT: ${phone}`, 14, 64);
+  doc.text(`Email: ${email}`, 14, 70);
+  doc.text(
+    `Địa chỉ: ${shipping?.streetAddress || ""}, ${shipping?.ward?.name || ""}, ${shipping?.district?.name || ""}, ${shipping?.province?.name || ""}`,
+    14,
+    76
+  );
+
+  // ===== THÔNG TIN ĐƠN HÀNG =====
+  doc.setFontSize(12);
+  doc.text("Thông tin đơn hàng", 14, 90);
+
+  doc.setFontSize(10);
+  doc.text(`Mã đơn: ${order.orderCode || order.id}`, 14, 98);
+  doc.text(`Ngày đặt: ${new Date(order.createdAt).toLocaleString("vi-VN")}`, 14, 104);
+  doc.text(`Trạng thái: ${orderStatusLabels[order.status] || "Không rõ"}`, 14, 110);
+
+  // ===== BẢNG SẢN PHẨM =====
+  const rows = products.map((item, idx) => [
+    idx + 1,
+    item.Sku?.product?.name,
+    item.quantity,
+    `${Number(item.price || 0).toLocaleString()} ₫`,
+    `${(item.quantity * (item.price || 0)).toLocaleString()} ₫`,
+  ]);
+
+autoTable(doc, {
+  head: [["#", "Sản phẩm", "SL", "Đơn giá", "Thành tiền"]],
+  body: rows,
+  startY: 115,
+  styles: { font: "Roboto", fontStyle: "normal", fontSize: 10, halign: "center" },
+  headStyles: { 
+    font: "Roboto",
+    fontStyle: "bold",
+    fillColor: [41, 128, 185],
+    textColor: 255,
+    halign: "center"
+  },
+  columnStyles: {
+    0: { halign: "center", cellWidth: 15 },
+    1: { halign: "left", cellWidth: 70 },
+    2: { halign: "center", cellWidth: 20 },
+    3: { halign: "right", cellWidth: 40 },
+    4: { halign: "right", cellWidth: 40 },
+  },
+  didParseCell: (data) => {
+    data.cell.styles.font = "Roboto";   // ép toàn bộ cell dùng Roboto
+    data.cell.styles.fontStyle = "normal";
+  }
+});
+
+
+  // ===== TỔNG KẾT =====
+  const finalY = doc.lastAutoTable.finalY + 10;
+  const vat = Math.round(order.finalPrice * 0.1);
+  const total = Math.round(order.finalPrice + vat);
+
+  const marginRight = pageWidth - 20;
+
+  doc.setFontSize(11);
+  doc.text(`Tạm tính: ${Number(order.totalPrice).toLocaleString()} ₫`, marginRight, finalY, { align: "right" });
+  doc.text(`Phí vận chuyển: ${Number(order.shippingFee).toLocaleString()} ₫`, marginRight, finalY + 6, { align: "right" });
+  doc.text(`Giảm giá: -${Number(order.couponDiscount || 0).toLocaleString()} ₫`, marginRight, finalY + 12, { align: "right" });
+  doc.text(`VAT (10%): ${vat.toLocaleString()} ₫`, marginRight, finalY + 18, { align: "right" });
+
+  // ===== TỔNG CỘNG =====
+  const totalText = `TỔNG CỘNG: ${total.toLocaleString()} ₫`;
+  doc.setFontSize(14);
+  doc.text(totalText, marginRight, finalY + 30, { align: "right" });
+
+  // ===== FOOTER =====
+  doc.setFontSize(10);
+  doc.text("Cảm ơn quý khách đã mua hàng tại Cyberzone!", pageWidth / 2, finalY + 50, {
+    align: "center",
+  });
+
+  // Xuất file
+  doc.save(`invoice_${order.orderCode || order.id}.pdf`);
+};
 
   
   const readOnlyStyle = {
@@ -141,9 +251,16 @@ const OrderDetail = () => {
       </Button>
 
       <Paper elevation={3} sx={{ p: 3, borderRadius: 3 }}>
-        <Typography variant="h5" fontWeight={600} gutterBottom>
-          Đơn hàng {order.orderCode}
-        </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+  <Typography variant="h5" fontWeight={600}>
+    Đơn hàng {order.orderCode}
+  </Typography>
+  <Button variant="contained" color="primary" onClick={handleExportInvoice}>
+    Xuất hóa đơn PDF
+  </Button>
+  
+</Box>
+
 
         <Divider sx={{ mb: 2 }} />
 
@@ -190,6 +307,40 @@ const OrderDetail = () => {
   margin="dense"
   {...readOnlyStyle}
 />
+
+<TextField
+  label="Mã vận đơn (GHN)"
+  value={order.trackingCode || '—'}
+  fullWidth
+  margin="dense"
+  {...readOnlyStyle}
+/>
+
+<TextField
+  label="Dự kiến giao"
+  value={order.shippingLeadTime ? new Date(order.shippingLeadTime).toLocaleString('vi-VN') : '—'}
+  fullWidth
+  margin="dense"
+  {...readOnlyStyle}
+/>
+{order.labelUrl && (
+  <>
+   
+
+   <Button
+  variant="contained"
+  color="secondary"
+  component="a"
+  href={order.labelUrl}
+  download={`label_${order.trackingCode || order.id}.pdf`}
+  sx={{ mt: 1 }}
+>
+  Tải phiếu giao hàng
+</Button>
+
+  </>
+)}
+
 
 
             {order.status === 'cancelled' && (

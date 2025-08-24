@@ -1,12 +1,13 @@
 // src/pages/client/OrderDetailPage.jsx
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Loader2, ArrowLeft, Package, User, Truck, CheckCircle, Star, XCircle, Clock } from 'lucide-react';
+import { Loader2, ArrowLeft, Package, User, Truck, CheckCircle,Home, Star, XCircle, Clock } from 'lucide-react';
 import { orderService } from '@/services/client/orderService';
 import { formatCurrencyVND } from '@/utils/formatCurrency';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import CancelOrderDialog from './CancelOrderDialog'; // hoặc đúng path nếu khác
+
 
 // --- Icons ---
 const creditIcons = 'https://salt.tikicdn.com/ts/upload/16/f8/f3/0c02ea827b71cd89ffadb7a22babbdd6.png';
@@ -26,7 +27,7 @@ const paymentIconMap = {
   stripe: 'https://salt.tikicdn.com/ts/upload/7e/48/50/7fb406156d0827b736cf0fe66c90ed78.png',
 
   // Wallet & credit aliases
-  internalWallet: walletIcon,
+  internalwallet: walletIcon,
   credit: creditIcons,
   credit_card: creditIcons,
   card: creditIcons,
@@ -273,6 +274,17 @@ const handleMarkAsReceived = async () => {
       ${userAddress.streetAddress}, ${userAddress.ward?.name}, ${userAddress.district?.name}, ${userAddress.province?.name}`
     : 'Đang cập nhật địa chỉ...';
 
+const ghnStatusConfig = {
+  picking:     { label: "Đang lấy hàng",     icon: <Package size={16} />, color: "text-blue-500", dot: "bg-blue-500" },
+  picked:      { label: "Đã lấy hàng",       icon: <CheckCircle size={16} />, color: "text-green-600", dot: "bg-green-600" },
+  storing:     { label: "Đã nhập kho",       icon: <Home size={16} />, color: "text-purple-500", dot: "bg-purple-500" },
+  transporting:{ label: "Đang vận chuyển",   icon: <Truck size={16} />, color: "text-orange-500", dot: "bg-orange-500" },
+  delivering:  { label: "Đang giao hàng",    icon: <Truck size={16} />, color: "text-blue-600", dot: "bg-blue-600" },
+  delivered:   { label: "Đã giao hàng",      icon: <CheckCircle size={16} />, color: "text-green-700 font-semibold", dot: "bg-green-700" },
+  return:      { label: "Đơn hàng hoàn trả", icon: <XCircle size={16} />, color: "text-red-500", dot: "bg-red-500" },
+  cancelled:   { label: "Đơn hàng đã hủy",   icon: <XCircle size={16} />, color: "text-gray-500", dot: "bg-gray-400" },
+  default:     { label: "Đang xử lý",        icon: <Package size={16} />, color: "text-gray-600", dot: "bg-gray-400" }
+};
   return (
     <div className="max-w-5xl mx-auto bg-white ">
       {/* Header Section */}
@@ -337,6 +349,50 @@ const handleMarkAsReceived = async () => {
           </p>
         </div>
       )}
+{data.tracking && data.tracking.logs?.length > 0 && (
+  <section className="p-4 sm:p-6 border-b border-gray-200">
+    <h2 className="font-semibold text-gray-800 mb-3">Trạng thái vận chuyển</h2>
+    <div className="relative pl-8">
+      {/* Đường line timeline */}
+      <div className="absolute top-0 left-2 w-[2px] h-full bg-gray-300"></div>
+
+      {data.tracking.logs.map((log, index) => {
+        const cfg = ghnStatusConfig[log.status] || ghnStatusConfig.default;
+        const isLatest = index === 0; // trạng thái mới nhất
+
+        return (
+          <div key={index} className="relative flex items-start mb-6">
+            {/* Chấm tròn */}
+            <div
+              className={`w-4 h-4 mt-1 rounded-full flex items-center justify-center z-10
+                ${isLatest ? "bg-blue-600 text-white" : "bg-gray-300 text-gray-600"}`}
+            >
+              {cfg.icon}
+            </div>
+
+            {/* Nội dung */}
+            <div className="ml-2">
+              <p
+                className={`text-sm font-medium ${
+                  isLatest ? "text-blue-600" : "text-gray-700"
+                }`}
+              >
+                {cfg.label}
+              </p>
+              <p className="text-xs text-gray-500">
+                {log.time ? new Date(log.time).toLocaleString("vi-VN") : ""}
+              </p>
+              {log.note && (
+                <p className="text-xs text-gray-400 italic mt-1">{log.note}</p>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </section>
+)}
+
 
       {/* Product List (giữ nguyên) */}
       <section className="border-b border-gray-200 divide-y divide-gray-200">

@@ -9,7 +9,9 @@ export const walletService = {
 
   
   getBalance: () => get(`${base}${API_ENDPOINT.client.wallet.balance}`),
-  getTransactions: () => get(`${base}${API_ENDPOINT.client.wallet.transactions}`),
+  getTransactions: (page = 1, pageSize = 10) =>
+  get(`${base}${API_ENDPOINT.client.wallet.transactions}?page=${page}&pageSize=${pageSize}`),
+
  requestWithdrawal: (data) => post(`${base}${API_ENDPOINT.client.wallet.withdrawals}`, data),
   getWithdrawals: () => get(`${base}${API_ENDPOINT.client.wallet.withdrawalList}`),
   enableGoogleAuth: () => post(`${base}${API_ENDPOINT.client.wallet.enableGoogleAuth}`),

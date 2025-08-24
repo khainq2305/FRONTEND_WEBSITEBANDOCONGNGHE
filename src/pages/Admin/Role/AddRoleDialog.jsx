@@ -77,17 +77,6 @@ const AddRoleDialog = ({ open, onClose, onSubmit, initialData, mode = 'create' }
             rows={2}
           />
           {/* Checkbox quyền truy cập admin */}
-          <FormControlLabel
-            control={
-              <Checkbox
-                name="canAccess"
-                checked={form.canAccess}
-                onChange={handleChange}
-                color="primary"
-              />
-            }
-            label="Quyền truy cập admin"
-          />
 
           {/* Xem trước vai trò */}
           {form.name && form.description && (

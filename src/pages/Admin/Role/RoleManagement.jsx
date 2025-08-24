@@ -98,7 +98,7 @@ const RoleManagement = () => {
     try {
       const res = await rolesService.getAll();
       setRoles(res.data.data);
-      console.log();
+      console.log('res.data.data', res.data.data);
     } catch (error) {}
   };
   const handleViewDetails = (role) => {
@@ -165,15 +165,15 @@ const RoleManagement = () => {
       <Button variant="contained" onClick={() => setOpen(true)} sx={{ mb: 2 }}>
         + Thêm vai trò
       </Button>
-      <PaperContainer>
+      {/* <PaperContainer>
         <Grid container spacing={2} p={2}>
-          {countLable.map((role) => (
+          {roles.map((role) => (
             <Grid item xs={3} sm={3} md={3} key={role.id}>
-              <CountCard id={role.id} label={role.label} count={role.count} />
+              <CountCard id={role.id} label={role.name} count={role.userCount} />
             </Grid>
           ))}
         </Grid>
-      </PaperContainer>
+      </PaperContainer> */}
 
       <Box sx={{ bgcolor: '#f7f8fa', minHeight: '100vh' }}>
         <Typography variant="h4" fontWeight="bold" mb={4}>

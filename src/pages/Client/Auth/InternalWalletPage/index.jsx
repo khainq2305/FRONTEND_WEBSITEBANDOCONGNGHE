@@ -59,30 +59,35 @@ export default function InternalWalletPage() {
   const [gaOpen, setGaOpen] = useState(false);
   const [gaQr, setGaQr] = useState('');
   const [gaLoading, setGaLoading] = useState(false);
-  useEffect(() => {
-    const fetchWalletData = async () => {
-      try {
-        const res = await walletService.getWallet();
-        const walletData = res?.data?.data || {};
-        setWallet(walletData);
-        setBalance(Number(walletData.balance) || 0);
+useEffect(() => {
+  const fetchWalletData = async () => {
+    try {
+      const res = await walletService.getWallet();
+      const walletData = res?.data?.data || {};
+      setWallet(walletData);
+      setBalance(Number(walletData.balance) || 0);
 
-        if (!walletData?.email) {
-          return navigate('/dang-nhap');
-        }
-
-        const historyRes = await walletService.getTransactions();
-        const list = Array.isArray(historyRes?.data?.data) ? historyRes.data.data : [];
-        setTransactions(list);
-        setTotal(historyRes?.data?.total || list.length || 0);
-      } catch (err) {
-        console.error('Lỗi khi lấy dữ liệu ví:', err);
-        navigate('/dang-nhap');
+      if (!walletData?.email) {
+        return navigate('/dang-nhap');
       }
-    };
 
-    fetchWalletData();
-  }, [navigate, page]);
+      const historyRes = await walletService.getTransactions(page, limit);
+      const list = Array.isArray(historyRes?.data?.data) ? historyRes.data.data : [];
+      setTransactions(list);
+
+      const pagination = historyRes?.data?.pagination || {};
+      setTotal(pagination.total || 0);
+    } catch (err) {
+      console.error('Lỗi khi lấy dữ liệu ví:', err);
+      navigate('/dang-nhap');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchWalletData();
+}, [navigate, page]);
+
   const startWithdraw = async () => {
     if (!withdrawAmount || Number(withdrawAmount) <= 0) return alert('Vui lòng nhập số tiền hợp lệ');
     if (Number(withdrawAmount) > balance) return alert('Số dư không đủ');
@@ -270,14 +275,15 @@ export default function InternalWalletPage() {
         )}
       </div>
 
-      {!loading && filtered.length > limit && (
-        <MUIPagination
-          currentPage={page}
-          totalItems={filtered.length}
-          itemsPerPage={limit}
-          onPageChange={(newPage) => !loading && setPage(newPage)}
-        />
-      )}
+     {!loading && total > limit && (
+  <MUIPagination
+    currentPage={page}
+    totalItems={total}
+    itemsPerPage={limit}
+    onPageChange={(newPage) => !loading && setPage(newPage)}
+  />
+)}
+
 
       <GoogleAuthModal
         open={gaOpen}

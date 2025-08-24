@@ -186,21 +186,22 @@ const UserProfilePage = () => {
         setWalletBalance(0);
       });
   }, []);
-  const handleTabClick = (tabId) => {
-    localStorage.setItem('activeTab', tabId);
+const handleTabClick = (tabId) => {
+  localStorage.setItem('activeTab', tabId);
 
-    if (tabId === 'san-pham-da-xem') {
-      navigate('/san-pham-da-xem');
+  if (tabId === 'san-pham-da-xem') {
+    navigate('/san-pham-da-xem');
+  } else {
+    // Nếu đang ở trang chi tiết (có orderCode, id, returnCode) -> quay về user-profile gốc
+    if (orderCode || id || returnCode) {
+      navigate(`/user-profile#${tabId}`, { replace: true });
     } else {
-      setActiveTab(tabId);
-      if (orderCode) {
-        navigate(`/user-profile#${tabId}`, { replace: true });
-      } else {
-        window.location.hash = tabId;
-      }
+      window.location.hash = tabId;
     }
-    setIsDropdownOpen(false);
-  };
+  }
+  setIsDropdownOpen(false);
+};
+
 
   const sidebarNavItems = [
     { id: 'quan-ly-don-hang', label: 'Quản lý đơn hàng', icon: ShoppingBag, href: '#quan-ly-don-hang' },

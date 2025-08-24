@@ -243,7 +243,7 @@ const NewsDetails = () => {
                 ) : null}
             </Helmet>
 
-            <div className="max-w-[1200px] mx-auto w-full px-4 lg:px-0">
+                <div className="max-w-[1200px] mx-auto w-full px-4 lg:px-0 pb-5">
       <div className="mb-3 pt-4 sm:pt-4 lg:pt-0">
           <Breadcrumb items={breadcrumbItems} />
         </div>
