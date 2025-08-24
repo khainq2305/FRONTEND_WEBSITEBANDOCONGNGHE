@@ -214,9 +214,9 @@ export default function LuckyWheelPage() {
       {/* Tiêu đề */}
       <div className="relative mb-6 px-4 py-2 rounded-full bg-gradient-to-r from-yellow-200 via-pink-200 to-red-200 shadow-md border border-pink-300">
         <div className={`font-bold text-fuchsia-700 flex items-center gap-2 ${titleFontSize}`}>
-          <span className="text-xl md:text-2xl">🎉</span>
+          
           <span>Vòng Quay May Mắn - Nhận quà mỗi ngày</span>
-          <span className="text-xl md:text-2xl">🎁</span>
+          
         </div>
       </div>
 
@@ -315,7 +315,7 @@ export default function LuckyWheelPage() {
               exit={{ y: -50, opacity: 0, scale: 0.8 }}
             >
               <h2 className={`${popupTitleFontSize} font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 mb-4`}>
-                🎉 CHÚC MỪNG! 🎉
+               CHÚC MỪNG! 
               </h2>
               <p className={`${popupContentFontSize} font-semibold text-gray-800 mb-6`}>
                 Bạn đã trúng: <br />
@@ -352,7 +352,7 @@ export default function LuckyWheelPage() {
               exit={{ y: -50, opacity: 0 }}
             >
               <h2 className="text-xl md:text-2xl font-bold mb-4 text-pink-600">
-                📘 Hướng dẫn chơi
+               Hướng dẫn chơi
               </h2>
               <ul className="list-disc list-inside text-gray-700 space-y-2 text-sm md:text-base">
                 <li>Nhấn nút "QUAY" để thử vận may.</li>
@@ -391,7 +391,7 @@ export default function LuckyWheelPage() {
               exit={{ y: -50, opacity: 0 }}
             >
               <h2 className="text-xl md:text-2xl font-bold mb-4 text-indigo-600">
-                🕘 Lịch sử quay
+                 Lịch sử quay
               </h2>
               {history.length === 0 ? (
                 <p className="text-gray-500 italic text-sm md:text-base">
@@ -405,7 +405,7 @@ export default function LuckyWheelPage() {
                       className="flex justify-between items-center border-b pb-1"
                     >
                       <div>
-                        🎁 {item.rewardName}
+                         {item.rewardName}
                         {item.couponCode && (
                           <span className="ml-2 text-pink-600 font-semibold">
                             ({item.couponCode})

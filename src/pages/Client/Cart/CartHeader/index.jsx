@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FiTrash2 } from 'react-icons/fi';
-
+import OrderLoader from "@/components/common/OrderLoader";
 const CartHeader = ({
   isAllChecked,
   onToggleAll,
@@ -11,7 +11,7 @@ const CartHeader = ({
   const [isSelectingAll, setIsSelectingAll] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleToggleAll = async () => {
+   const handleToggleAll = async () => {
     if (isSelectingAll) return;
     try {
       setIsSelectingAll(true);
@@ -30,9 +30,9 @@ const CartHeader = ({
       setIsDeleting(false);
     }
   };
-
   return (
     <>
+     {(isSelectingAll || isDeleting) && <OrderLoader fullscreen />}
       {/* Mobile */}
       <div className="flex items-center justify-between h-12 border-b border-gray-200 text-sm text-gray-500 px-4 sm:hidden">
         <div onClick={handleToggleAll} className="flex items-center gap-2 cursor-pointer">

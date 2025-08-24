@@ -22,8 +22,18 @@ function DynamicTitleUpdater() {
   const { settings } = useSystemSetting();
 
   useEffect(() => {
-    if (settings?.site_name) {
-      document.title = settings.site_name;
+    if (settings?.siteName) {
+      // đổi title
+      document.title = settings.siteName;
+
+      // đổi meta description
+      let meta = document.querySelector("meta[name='description']");
+      if (!meta) {
+        meta = document.createElement("meta");
+        meta.name = "description";
+        document.head.appendChild(meta);
+      }
+      meta.content = settings.siteDescription || "Mô tả mặc định...";
     }
   }, [settings]);
 
