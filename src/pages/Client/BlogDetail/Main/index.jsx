@@ -33,14 +33,14 @@ const Main = ({ post }) => {
         </div>
       )}
 
-      {/* Article Excerpt/Summary (if available) */}
+      {/* Article Excerpt/Summary (if available)
       {post.seoData?.metaDescription && (
         <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg">
           <p className="text-gray-700 italic text-lg leading-relaxed">
             {post.seoData.metaDescription}
           </p>
         </div>
-      )}
+      )} */}
 
       {/* Article Content */}
       <div className="prose prose-lg max-w-none">
