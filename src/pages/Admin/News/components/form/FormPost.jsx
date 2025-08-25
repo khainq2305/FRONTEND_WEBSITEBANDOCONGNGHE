@@ -23,7 +23,7 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
   } = useForm({
     defaultValues: {
       title: "",
-      category: "",
+   categoryId: "", 
       status: 1,
       content: "",
       thumbnail: null,
@@ -157,19 +157,16 @@ const onAddCategory = async () => {
     return;
   }
 
-  if (!watchedValues.thumbnail) {
-    setError("thumbnail", {
-      type: "manual",
-      message: "Vui lòng chọn ảnh thumbnail"
-    });
-    return;
-  }
-
   try {
-    const res = await newsCategoryService.create({
-      name: newCategory,
-      thumbnail: watchedValues.thumbnail
-    });
+    const formData = new FormData();
+    formData.append("name", newCategory);
+
+    // Nếu chọn thumbnail thì thêm vào
+    if (watchedValues.thumbnail instanceof File) {
+      formData.append("thumbnail", watchedValues.thumbnail);
+    }
+
+    const res = await newsCategoryService.create(formData);
     const newCat = res.data.data;
 
     const updatedCategories = [...categories, newCat];
@@ -179,17 +176,14 @@ const onAddCategory = async () => {
 
     console.log("Danh mục mới đã được thêm:", newCat);
   } catch (error) {
-    console.error(
-      "Lỗi tạo danh mục mới",
-      error.response ? error.response.data : error
-    );
+    console.error("Lỗi tạo danh mục mới", error.response?.data || error);
     setError("newCategory", {
       type: "server",
-      message:
-        error.response?.data?.message || "Không thể tạo danh mục mới"
+      message: error.response?.data?.message || "Không thể tạo danh mục mới"
     });
   }
 };
+
 
 
   return (
