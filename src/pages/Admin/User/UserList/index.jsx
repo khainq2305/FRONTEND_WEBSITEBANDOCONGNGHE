@@ -326,13 +326,15 @@ const handleApplyRoles = async (roles) => {
       </Card>
 
       <RoleSelectDialog
-        open={openDialog}
-        onClose={() => setOpenDialog(false)}
-        roles={demoRoles}
-        defaultSelected={appliedRoles}
-        user={selectedUser}
-        onApply={handleApplyRoles}
-      />
+  open={openDialog}
+  onClose={() => setOpenDialog(false)}
+  roles={demoRoles}
+  defaultSelected={appliedRoles}
+  user={selectedUser}
+  onApply={handleApplyRoles}
+  fetchUsers={fetchUsers}   // 👈 thêm dòng này
+/>
+
 
       <UserDetailDialog open={detailOpen} onClose={() => setDetailOpen(false)} user={selectedUser} />
     </Box>
