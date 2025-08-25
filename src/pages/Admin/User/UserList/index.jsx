@@ -186,7 +186,19 @@ const UserList = () => {
   };
 
 
-
+const handleApplyRoles = async (roles) => {
+  if (!selectedUser) return;
+  try {
+    await updateRoles(selectedUser.id, roles);
+    toast.success('Cập nhật vai trò thành công!');
+    setAppliedRoles(roles);
+    fetchUsers();
+    setOpenDialog(false);
+  } catch (err) {
+    toast.error('Cập nhật vai trò thất bại');
+    console.error(err);
+  }
+};
   return (
     <Box p={isMobile ? 1 : 3}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
@@ -319,6 +331,7 @@ const UserList = () => {
         roles={demoRoles}
         defaultSelected={appliedRoles}
         user={selectedUser}
+        onApply={handleApplyRoles}
       />
 
       <UserDetailDialog open={detailOpen} onClose={() => setDetailOpen(false)} user={selectedUser} />
