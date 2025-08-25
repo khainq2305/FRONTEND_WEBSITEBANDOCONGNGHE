@@ -23,7 +23,7 @@ import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import AddIcon from '@mui/icons-material/Add'; // Icon cho nút thêm mới
 import DeleteIcon from '@mui/icons-material/Delete'; // Icon cho nút xoá
-import { getAllUsers, updateUserStatus, resetUserPassword, getDeletedUsers, forceDeleteManyUsers, updateRoles } from 'services/admin/userService';
+import { getAllUsers, updateUserStatus, resetUserPassword, getDeletedUsers, forceDeleteManyUsers, updateRoles } from '@/services/admin/userService';
 import SearchInput from 'components/common/SearchInput';
 import MoreActionsMenu from '../MoreActionsMenu';
 import MUIPagination from 'components/common/Pagination';
