@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClock, faComment } from '@fortawesome/free-regular-svg-icons';
 import { useNews } from '../newsContext';
 import { Link } from 'react-router-dom';
+import { Zap } from 'lucide-react';
 const TopNews = ({ getAllTitle = [] }) => {
   const [currentHotIndex, setCurrentHotIndex] = useState(0);
   const { stripHTML, featuredNews } = useNews();
@@ -13,8 +14,7 @@ const TopNews = ({ getAllTitle = [] }) => {
     }, 8000);
     return () => clearInterval(interval);
   }, [getAllTitle]);
-  console.log(getAllTitle)
-  console.log('daaa', featuredNews);
+
   return (
     <div className="h-fit">
       {/* Thanh tiêu đề hot */}
@@ -22,24 +22,25 @@ const TopNews = ({ getAllTitle = [] }) => {
         {/* TIN TỨC HOT */}
         <div className="flex-shrink-0 bg-primary text-white px-2 md:px-4 py-1 md:py-2 font-bold text-xs md:text-sm flex items-center gap-1 md:gap-2 rounded">
           <span className="hidden md:inline">TIN TỨC HOT</span>
+          <span className="inline md:hidden" color="#000" size={5}>
+            <Zap />
+          </span>
         </div>
 
         {/* Nội dung + nút chuyển */}
         <div className="flex flex-1 min-w-0">
           <div className="flex-1 flex items-center justify-around opacity-90 border border-gray-400 rounded rounded-r-none px-3 py-2 min-w-0">
-          <Link
-  to={
-    getAllTitle.length > 0
-      ? `/tin-noi-bat/${getAllTitle[currentHotIndex].slug}`
-      : '#'
-  }
-  className="truncate text-xs hover:underline"
->
-  {getAllTitle.length > 0 ? getAllTitle[currentHotIndex].title : ''}
-</Link>
+            <Link
+              to={getAllTitle.length > 0 ? `/tin-noi-bat/${getAllTitle[currentHotIndex].slug}` : '#'}
+              className="truncate text-xs hover:underline"
+            >
+              {getAllTitle.length > 0 ? getAllTitle[currentHotIndex].title : ''}
+            </Link>
 
             <span className="text-gray-500 text-xs flex-shrink-0 ml-4 hidden md:inline">
-              {getAllTitle.length > 0 ? new Date(getAllTitle[currentHotIndex].createdAt).toLocaleDateString('vi-VN') : ''}
+              {getAllTitle.length > 0
+                ? new Date(getAllTitle[currentHotIndex].publishAt || getAllTitle[currentHotIndex].createdAt).toLocaleDateString('vi-VN')
+                : ''}
             </span>
           </div>
 
@@ -65,81 +66,76 @@ const TopNews = ({ getAllTitle = [] }) => {
 
       {/* Thanh tiêu đề khuyến mãi */}
       <div className="text-left">
-        <div className="inline-block font-bold text-2xl  border-b-4 border-primary rounded-b-md mb-3 pt-4">Tin nổi bật nhất</div>
+        <div className="inline-block font-bold text-md md:text-2xl  border-b-4 border-primary rounded-b-md mb-3 pt-4">Tin nổi bật nhất</div>
       </div>
 
       {/* Nội dung nổi bật */}
       <div className="flex flex-col lg:flex-row gap-5">
-  {/* Bài viết lớn bên trái */}
-  {featuredNews.length > 0 && (
-    <Link to={`/tin-noi-bat/${featuredNews[0].slug}`} className="lg:w-3/5 w-full">
-      <div className="mb-6 lg:mb-0">
-        <div className="w-full h-[250px] rounded mb-3 overflow-hidden">
-          <img
-            src={featuredNews[0]?.thumbnail || '/default-thumbnail.jpg'}
-            alt={featuredNews[0]?.title || 'Bài viết nổi bật'}
-            className="w-full h-full object-cover rounded"
-          />
-        </div>
+        {/* Bài viết lớn bên trái */}
+        {featuredNews.length > 0 && (
+          <Link to={`/tin-noi-bat/${featuredNews[0].slug}`} className="lg:w-3/5 w-full">
+            <div className="mb-6 lg:mb-0">
+              <div className="w-full h-[250px] rounded mb-3 overflow-hidden">
+                <img
+                  src={featuredNews[0]?.thumbnail || '/default-thumbnail.jpg'}
+                  alt={featuredNews[0]?.title || 'Bài viết nổi bật'}
+                  className="w-full h-full object-cover rounded"
+                />
+              </div>
 
-        <h3 className="text-xl font-bold mb-2 text-justify pr-4">
-          {featuredNews[0]?.title || 'Không có tiêu đề'}
-        </h3>
+              <h3 className="text-xl font-bold mb-2 text-justify pr-4">{featuredNews[0]?.title || 'Không có tiêu đề'}</h3>
 
-        <div className="text-sm text-gray-500 flex gap-4 mb-2">
-          <span className="flex items-center gap-1 text-xs">
-            <FontAwesomeIcon icon={faClock} style={{ color: '#000' }} />
-            {featuredNews[0]?.createdAt
-              ? new Date(featuredNews[0].createdAt).toLocaleDateString('vi-VN')
-              : 'Chưa có ngày'}
-          </span>
-          <span className="flex items-center gap-1 text-xs">
-            <FontAwesomeIcon icon={faComment} flip="horizontal" style={{ color: '#000' }} />0
-          </span>
-        </div>
+              <div className="text-sm text-gray-500 flex gap-4 mb-2">
+                <span className="flex items-center gap-1 text-xs">
+                  <FontAwesomeIcon icon={faClock} style={{ color: '#000' }} />
+                  {featuredNews[0]?.publishAt
+                    ? new Date(featuredNews[0].publishAt).toLocaleDateString('vi-VN')
+                    : featuredNews[0]?.createdAt
+                      ? new Date(featuredNews[0].createdAt).toLocaleDateString('vi-VN')
+                      : 'Chưa có ngày'}
+                </span>
+                <span className="flex items-center gap-1 text-xs">
+                  <FontAwesomeIcon icon={faComment} flip="horizontal" style={{ color: '#000' }} />0
+                </span>
+              </div>
 
-        <p className="text-sm mb-3 text-gray-700 text-justify pr-4 max-w-md line-clamp-2">
-          {featuredNews[0]?.content
-            ? stripHTML(featuredNews[0].content)
-            : 'Không có mô tả.'}
-        </p>
+              <p className="text-sm mb-3 text-gray-700 text-justify pr-4 max-w-md line-clamp-2">
+                {featuredNews[0]?.content ? stripHTML(featuredNews[0].content) : 'Không có mô tả.'}
+              </p>
 
-        <div className="text-left">
-          <button className="border border-gray-300 px-4 py-1 text-sm uppercase rounded hover:bg-gray-100 transition">
-            Xem thêm
-          </button>
+              <div className="text-left">
+                <button className="block text-center font-semibold rounded-md transition-colors text-sm px-2 py-1 mt-4 bg-primary text-white hover:opacity-90 disabled:bg-gray-300 disabled:text-gray-500 cursor-pointer">
+                  Xem thêm
+                </button>
+              </div>
+            </div>
+          </Link>
+        )}
+
+        {/* Danh sách bài viết nhỏ */}
+        <div className="lg:w-2/5 w-full flex flex-col space-y-2">
+          {featuredNews.slice(1, 5).map((post, idx) => (
+            <Link to={`/tin-noi-bat/${post.slug}`} key={idx} className="flex gap-3 pb-3 items-start">
+              <img
+                src={post.thumbnail || '/default-thumbnail.jpg'}
+                alt={post.title || 'thumbnail'}
+                className="rounded flex-shrink-0"
+                style={{ width: '120px', height: '70px', objectFit: 'cover' }}
+              />
+
+              <div className="flex-1 min-w-0">
+                <h4 className="text-sm font-medium mb-1 text-left line-clamp-2">{post.title}</h4>
+                <span className="text-xs text-gray-500 flex items-center gap-1">
+                  <FontAwesomeIcon icon={faClock} style={{ color: '#000' }} />
+                  {post.publishAt
+                    ? new Date(post.publishAt).toLocaleDateString('vi-VN')
+                    : new Date(post.createdAt).toLocaleDateString('vi-VN')}
+                </span>
+              </div>
+            </Link>
+          ))}
         </div>
       </div>
-    </Link>
-  )}
-
-  {/* Danh sách bài viết nhỏ */}
-  <div className="lg:w-2/5 w-full flex flex-col space-y-2">
-    {featuredNews.slice(1, 5).map((post, idx) => (
-      <Link
-        to={`/tin-noi-bat/${post.slug}`}
-        key={idx}
-        className="flex gap-3 pb-3 items-start"
-      >
-        <img
-          src={post.thumbnail || '/default-thumbnail.jpg'}
-          alt={post.title || 'thumbnail'}
-          className="rounded flex-shrink-0"
-          style={{ width: '120px', height: '70px', objectFit: 'cover' }}
-        />
-
-        <div className="flex-1 min-w-0">
-          <h4 className="text-sm font-medium mb-1 text-left line-clamp-2">{post.title}</h4>
-          <span className="text-xs text-gray-500 flex items-center gap-1">
-            <FontAwesomeIcon icon={faClock} style={{ color: '#000' }} />
-            {new Date(post.createdAt).toLocaleDateString('vi-VN')}
-          </span>
-        </div>
-      </Link>
-    ))}
-  </div>
-</div>
-
     </div>
   );
 };

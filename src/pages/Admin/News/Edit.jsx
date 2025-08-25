@@ -24,16 +24,13 @@ const Edit = () => {
 
   
   const handleSubmit = async (data) => {
-  console.log('📦 Submit cập nhật:', data);
   try {
     const res = await newsService.update(slug, data);
     toast.success(res.data.message || 'Cập nhật thành công');
     navigate('/admin/quan-ly-bai-viet');
   } catch (err) {
+    console.log('lỗi', err)
     if (err.response) {
-      // Lỗi từ server (có response)
-      console.log("Server trả về lỗi:", err.response.data);
-      console.log("Status code:", err.response.status);
     } else if (err.request) {
       // Request gửi đi nhưng không nhận được phản hồi
       console.log("Không có phản hồi từ server:", err.request);

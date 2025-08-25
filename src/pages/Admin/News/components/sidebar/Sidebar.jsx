@@ -74,32 +74,35 @@ const Sidebar = ({
       <Stack spacing={2}>
         {/* Category Selection */}
         <Box>
-          <Controller
-            name="categoryId"
-            control={control}
-            rules={{ required: "Vui lòng chọn danh mục" }}
-            render={({ field }) => (
-              <FormControl fullWidth error={!!errors.category}>
-                <InputLabel>Danh mục</InputLabel>
-                <Select
-                  {...field}
-                  onChange={(e) => {
-                    field.onChange(e.target.value);
-                    clearErrors("category");
-                  }}
-                >
-                  {categories?.map((c) => (
-                    <MenuItem key={c.id} value={c.id}>
-                      {'— '.repeat(c.level || 0) + c.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {errors.category && (
-                  <FormHelperText>{errors.category.message}</FormHelperText>
-                )}
-              </FormControl>
-            )}
-          />
+        <Controller
+  name="categoryId"
+  control={control}
+  rules={{ required: "Vui lòng chọn danh mục" }}
+  render={({ field }) => (
+    <FormControl fullWidth error={!!errors.categoryId}>
+      <InputLabel>Danh mục</InputLabel>
+      <Select
+        {...field} // ⚡ quan trọng, bind field
+        value={field.value || ''}
+        onChange={(e) => {
+          field.onChange(e.target.value);
+          clearErrors("categoryId");
+        }}
+      >
+        {categories?.map((c) => (
+          <MenuItem key={c.id} value={c.id}>
+            {'— '.repeat(c.level || 0) + c.name}
+          </MenuItem>
+        ))}
+      </Select>
+      {errors.categoryId && (
+        <FormHelperText>{errors.categoryId.message}</FormHelperText>
+      )}
+    </FormControl>
+  )}
+/>
+
+
           
           <Typography
             variant="body1"
@@ -201,16 +204,16 @@ const Sidebar = ({
                 <FormControlLabel
                   control={
                     <SwitchCustom
-                      checked={field.value}
-                      onChange={(e) => {
-                        field.onChange(e.target.checked);
-                        if (!e.target.checked) {
-                          setValue("publishAt", "");
-                          clearErrors("publishAt");
-                        }
-                      }}
-                      color="primary"
-                    />
+  checked={field.value}
+  onChange={(e) => {
+    field.onChange(e.target.checked);
+    if (!e.target.checked) {
+      setValue("publishAt",null); // reset ngay khi tắt
+      clearErrors("publishAt");
+    }
+  }}
+/>
+
                   }
                 />
               )}

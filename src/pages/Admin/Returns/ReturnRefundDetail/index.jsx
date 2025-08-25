@@ -14,6 +14,7 @@ import RejectReturnDialog from '../RejectReturnDialog';
 import { confirmDelete } from '../../../../components/common/ConfirmDeleteDialog';
 import { confirmAction } from '../ConfirmActionDialog';
 import { toast } from 'react-toastify';
+import { LoadingButton } from '@mui/lab';
 
 const statusColors = {
     pending: 'warning',
@@ -69,6 +70,10 @@ const ReturnRefundDetail = () => {
 
     const [openRefundedDialog, setOpenRefundedDialog] = useState(false);
     const [refundedNote, setRefundedNote] = useState('');
+const [loadingApprove, setLoadingApprove] = useState(false);
+const [loadingReject, setLoadingReject] = useState(false);
+const [loadingReceived, setLoadingReceived] = useState(false);
+const [loadingRefund, setLoadingRefund] = useState(false);
 
     const [openRejectDialog, setOpenRejectDialog] = useState(false);
     const [selectedRejectReasonOption, setSelectedRejectReasonOption] = useState('');
@@ -107,22 +112,23 @@ const ReturnRefundDetail = () => {
         setReceivedNote('');
     };
 
-    const handleConfirmReceived = async () => {
+const handleConfirmReceived = async () => {
   try {
-   await returnRefundService.updateReturnStatus(id, {
-  status: 'received',
-  responseNote: receivedNote.trim() || null
-});
-toast.success('Xác nhận đã nhận hàng thành công!');
-
-   
+    setLoadingReceived(true);
+    await returnRefundService.updateReturnStatus(id, {
+      status: 'received',
+      responseNote: receivedNote.trim() || null
+    });
+    toast.success('Xác nhận đã nhận hàng thành công!');
     handleCloseReceivedDialog();
     fetchDetail();
   } catch (err) {
-
-    alert(err.response?.data?.message || 'Lỗi không xác định');
+    toast.error(err.response?.data?.message || 'Có lỗi xảy ra');
+  } finally {
+    setLoadingReceived(false);
   }
 };
+
 
 
     
@@ -136,18 +142,23 @@ toast.success('Xác nhận đã nhận hàng thành công!');
         setRefundedNote('');
     };
 
-    const handleConfirmRefunded = async () => {
-       
-       
-       await returnRefundService.updateReturnStatus(id, {
-  status: 'refunded',
-  responseNote: refundedNote.trim()
-});
-toast.success('Xác nhận hoàn tiền thành công!');
+   const handleConfirmRefunded = async () => {
+  try {
+    setLoadingRefund(true);
+    await returnRefundService.updateReturnStatus(id, {
+      status: 'refunded',
+      responseNote: refundedNote.trim()
+    });
+    toast.success('Xác nhận hoàn tiền thành công!');
+    handleCloseRefundedDialog();
+    fetchDetail();
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Có lỗi xảy ra');
+  } finally {
+    setLoadingRefund(false);
+  }
+};
 
-        handleCloseRefundedDialog();
-        fetchDetail();
-    };
 
 
     const handleOpenRejectDialog = () => {
@@ -165,58 +176,84 @@ toast.success('Xác nhận hoàn tiền thành công!');
     };
 
     const handleConfirmReject = async () => {
-        let finalRejectReason = '';
+  try {
+    setLoadingReject(true);
+    let finalRejectReason = '';
 
-        if (selectedRejectReasonOption === 'OTHER') {
-            finalRejectReason = customRejectReason.trim();
-        } else if (selectedRejectReasonOption) {
-            finalRejectReason = rejectReasonsOptions.find(opt => opt.id === selectedRejectReasonOption)?.label || '';
-        }
+    if (selectedRejectReasonOption === 'OTHER') {
+      finalRejectReason = customRejectReason.trim();
+    } else if (selectedRejectReasonOption) {
+      finalRejectReason =
+        rejectReasonsOptions.find(opt => opt.id === selectedRejectReasonOption)?.label || '';
+    }
 
-        if (!finalRejectReason) {
-            setRejectReasonError(true);
-            return;
-        }
+    if (!finalRejectReason) {
+      setRejectReasonError(true);
+      return;
+    }
 
-        
-        await returnRefundService.updateReturnStatus(id, { status: 'rejected', responseNote: finalRejectReason });
+    await returnRefundService.updateReturnStatus(id, { 
+      status: 'rejected', 
+      responseNote: finalRejectReason 
+    });
 
-        handleCloseRejectDialog();
-        fetchDetail();
-    };
+    toast.success('Đã từ chối yêu cầu trả hàng!');
+    handleCloseRejectDialog();
+    fetchDetail();
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Có lỗi xảy ra');
+  } finally {
+    setLoadingReject(false);
+  }
+};
+
 
    
-   const handleApproved = async () => {
-  const confirm = await confirmAction(
-  'duyệt', // hành động
-  'yêu cầu trả hàng này', // đối tượng
-  'Duyệt', // nút xác nhận
-
-);
-
-  if (confirm) {
-   await returnRefundService.updateReturnStatus(id, { status: 'approved', responseNote: null });
-toast.success('Đã duyệt yêu cầu trả hàng thành công!');
-fetchDetail();
-
+const handleApproved = async () => {
+  try {
+    setLoadingApprove(true);
+    const confirm = await confirmAction(
+      'duyệt',
+      'yêu cầu trả hàng này',
+      'Duyệt'
+    );
+    if (confirm) {
+      await returnRefundService.updateReturnStatus(id, {
+        status: 'approved',
+        responseNote: null
+      });
+      toast.success('Đã duyệt yêu cầu trả hàng thành công!');
+      fetchDetail();
+    }
+  } finally {
+    setLoadingApprove(false);
   }
 };
+
 const handleConfirmReceivedSwal = async () => {
-  const confirm = await confirmAction(
-    'xác nhận đã nhận hàng',
-    'yêu cầu trả hàng này',
-    'Xác nhận'
-  );
+  try {
+    setLoadingReceived(true);
+    const confirm = await confirmAction(
+      'xác nhận đã nhận hàng',
+      'yêu cầu trả hàng này',
+      'Xác nhận'
+    );
 
-  if (confirm) {
-    await returnRefundService.updateReturnStatus(id, {
-      status: 'received',
-      responseNote: null
-    });
-    toast.success('Đã xác nhận đã nhận hàng trả!');
-    fetchDetail();
+    if (confirm) {
+      await returnRefundService.updateReturnStatus(id, {
+        status: 'received',
+        responseNote: null
+      });
+      toast.success('Đã xác nhận đã nhận hàng trả!');
+      fetchDetail();
+    }
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Có lỗi xảy ra');
+  } finally {
+    setLoadingReceived(false);
   }
 };
+
 
     if (loading) {
         return (
@@ -521,29 +558,60 @@ const handleConfirmReceivedSwal = async () => {
   Hành động xử lý yêu cầu
 </Typography>
 <Divider sx={{ mb: 2 }} />
-<Box sx={{ mb: 4, display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: { xs: 'center', sm: 'flex-start' } }}>
+<Box
+  sx={{
+    mb: 4,
+    display: 'flex',
+    gap: 2,
+    flexWrap: 'wrap',
+    justifyContent: { xs: 'center', sm: 'flex-start' }
+  }}
+>
   {detail.status === 'pending' && (
     <>
-      <Button variant="contained" color="success" onClick={handleApproved}>Duyệt yêu cầu</Button>
-      <Button variant="outlined" color="error" onClick={handleOpenRejectDialog}>Từ chối yêu cầu</Button>
+      <LoadingButton
+        loading={loadingApprove}
+        variant="contained"
+        color="success"
+        onClick={handleApproved}
+      >
+        Duyệt yêu cầu
+      </LoadingButton>
+
+      <LoadingButton
+        loading={loadingReject}
+        variant="outlined"
+        color="error"
+        onClick={handleOpenRejectDialog}
+      >
+        Từ chối yêu cầu
+      </LoadingButton>
     </>
   )}
+
   {['awaiting_pickup', 'pickup_booked', 'awaiting_dropoff'].includes(detail.status) && (
-  <Button
-    variant="contained"
-    color="primary"
-    onClick={handleConfirmReceivedSwal}
-  >
-    Đã nhận hàng hoàn
-  </Button>
-)}
+    <LoadingButton
+      loading={loadingReceived}
+      variant="contained"
+      color="primary"
+      onClick={handleConfirmReceivedSwal}
+    >
+      Đã nhận hàng hoàn
+    </LoadingButton>
+  )}
 
   {detail.status === 'received' && (
-    <Button variant="contained" color="secondary" onClick={handleOpenRefundedDialog}>
+    <LoadingButton
+      loading={loadingRefund}
+      variant="contained"
+      color="secondary"
+      onClick={handleOpenRefundedDialog}
+    >
       Hoàn tiền cho khách hàng
-    </Button>
+    </LoadingButton>
   )}
 </Box>
+
 
       </List>
     </Paper>
