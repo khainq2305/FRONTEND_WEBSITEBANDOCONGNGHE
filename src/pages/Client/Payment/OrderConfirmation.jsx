@@ -55,9 +55,15 @@ const OrderConfirmation = () => {
           }
           return res.text();
         })
-        .then(() => {
-          fetchOrderDetails(orderCodeFromUrl);
-        })
+        .then(res => res.json())
+.then(data => {
+  if (data.order) {
+    setOrder(data.order);   // 👈 dùng luôn order từ backend
+  } else {
+    fetchOrderDetails(orderCodeFromUrl); // fallback nếu backend không trả order
+  }
+})
+
         .catch((err) => {
           console.error('Callback lỗi:', err);
           toast.error('Có lỗi xảy ra khi xử lý thanh toán MoMo.');
@@ -114,13 +120,13 @@ const OrderConfirmation = () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ rawQuery })
     })
-      .then((res) => res.text().then((txt) => ({ ok: res.ok, txt })))
-      .then(({ ok, txt }) => {
-        if (!ok || txt.trim().toUpperCase() !== 'OK') {
-          throw new Error(txt);
-        }
-        fetchOrderDetails(orderCodeFromUrl);
-      })
+     .then(res => res.json())
+.then(data => {
+  if (data.order) {
+    setOrder(data.order);  // không cần fetchOrderDetails nữa
+  }
+})
+
       .catch((err) => {
         console.error('VNPay callback error:', err);
         toast.error('Có lỗi khi xử lý thanh toán VNPay.');
