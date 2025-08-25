@@ -204,7 +204,10 @@ const OrderSummary = ({
 
   const totalDiscountDisplay = discount + couponDiscount + shippingDiscount;
 
-  const finalAmount = totalAmount - discount - couponDiscount + shippingFee - shippingDiscount - pointDiscountAmount;
+const finalAmount = Math.max(
+  totalAmount - discount - couponDiscount + shippingFee - shippingDiscount - pointDiscountAmount,
+  0
+);
 
   const handleSubmitOtp = async (token) => {
     try {
