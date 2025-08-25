@@ -4,7 +4,7 @@ import { orderService } from '../../../../services/client/orderService';
 import { paymentService } from '../../../../services/client/paymentService';
 import { toast } from 'react-toastify';
 import { FiInfo, FiChevronRight, FiChevronUp } from 'react-icons/fi';
-import OrderLoader from '@/components/common/OrderLoader'
+import Loader from '@/components/common/Loader'
 import TotpModal from '../TotpModal';
 import GoogleAuthModal from '../../Auth/GoogleAuthModal';
 import { walletService } from '../../../../services/client/walletService'; 
@@ -421,7 +421,8 @@ const finalAmount = Math.max(
 
   return (
     <div className="relative">
-     {isPlacing && <OrderLoader fullscreen />}
+     {isPlacing && <Loader fullscreen />}
+
       <aside className="bg-white rounded-xl p-3 sm:p-4 border border-gray-200 shadow-sm sticky top-6 h-fit">
         {/* Promotion section */}
         <div className="flex justify-between items-center">

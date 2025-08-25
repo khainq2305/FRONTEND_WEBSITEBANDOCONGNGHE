@@ -10,7 +10,7 @@ import { paymentService } from '../../../services/client/paymentService';
 
 import { orderService } from '../../../services/client/orderService';
 import { toast } from 'react-toastify';
-import OrderLoader from '../../../components/common/OrderLoader';
+import Loader from '../../../components/common/Loader';
 import { formatCurrencyVND } from '../../../utils/formatCurrency';
 
 import bgPc from '../../../assets/Client/images/bg-pc.png';
@@ -172,7 +172,8 @@ const OrderConfirmation = () => {
     }
   };
 
-  if (loading) return <OrderLoader fullscreen />;
+if (loading) return <Loader fullscreen />;
+
   if (!order)
     return (
       <div className="flex justify-center items-center h-[60vh] bg-gray-50">
