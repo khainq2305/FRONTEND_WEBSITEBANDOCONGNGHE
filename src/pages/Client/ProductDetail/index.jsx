@@ -374,6 +374,23 @@ export default function ProductDetail() {
   const isFavorited = selectedSku?.isFavorited ?? false;
   const optionBySku = productOptionsData.find((o) => o.skuId === skuId);
 
+  // Function to strip HTML tags and decode HTML entities
+  const stripHtmlTags = (html) => {
+    if (!html) return '';
+    
+    // Create a temporary div element to parse HTML
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    
+    // Get the text content (this automatically decodes HTML entities)
+    let text = tmp.textContent || tmp.innerText || '';
+    
+    // Additional cleanup: remove extra whitespace and normalize spaces
+    text = text.replace(/\s+/g, ' ').trim();
+    
+    return text;
+  };
+
   const compareData =
     product && skuId
       ? {
@@ -397,16 +414,26 @@ export default function ProductDetail() {
       <SEO
         title={productName}
         description={product?.description ? 
-          (product.description.length > 160 ? 
-            product.description.substring(0, 157) + '...' : 
-            product.description
-          ) : 
+          (() => {
+            const cleanDescription = stripHtmlTags(product.description);
+            return cleanDescription.length > 160 ? 
+              cleanDescription.substring(0, 157) + '...' : 
+              cleanDescription;
+          })() : 
           `Mua ${productName} chính hãng với giá tốt nhất tại Điện Thoại Giá Kho. Miễn phí vận chuyển, bảo hành chính hãng.`
         }
         keywords={`${productName}, điện thoại, ${product?.brand?.name || ''}, mua điện thoại, giá rẻ`}
-        canonicalUrl={createProductUrl(slug)}
+        canonicalUrl={ (typeof window !== 'undefined' ? `${window.location.origin}${createProductUrl(slug)}` : '')}
         ogTitle={`${productName} - Giá tốt nhất tại Điện Thoại Giá Kho`}
-        ogDescription={product?.description?.substring(0, 160) + '...' || `Mua ${productName} chính hãng với giá tốt nhất`}
+        ogDescription={product?.description ? 
+          (() => {
+            const cleanDescription = stripHtmlTags(product.description);
+            return cleanDescription.length > 160 ? 
+              cleanDescription.substring(0, 157) + '...' : 
+              cleanDescription;
+          })() : 
+          `Mua ${productName} chính hãng với giá tốt nhất`
+        }
         ogImage={mainImage}
         structuredData={product ? createProductStructuredData(product) : null}
       />
