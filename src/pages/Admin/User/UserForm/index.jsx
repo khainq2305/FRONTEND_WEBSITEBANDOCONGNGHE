@@ -40,7 +40,6 @@ const [showPassword, setShowPassword] = useState(false);
     setUser((prev) => ({ ...prev, [field]: value }));
    setErrors((prev) => {
   const updated = { ...prev };
-  // hễ user gõ lại thì clear lỗi field đó
   if (updated[field]) delete updated[field];
   return updated;
 });
