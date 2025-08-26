@@ -328,20 +328,29 @@ const SchemaEditor = ({
   return (
     <Card sx={{ mt: 2 }}>
       <CardContent>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-          <Code color="primary" />
-          <Typography variant="h6">Schema Markup</Typography>
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: { xs: 'flex-start', sm: 'center' }, 
+          gap: 1, 
+          mb: 2,
+          flexDirection: { xs: 'column', sm: 'row' }
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Code color="primary" />
+            <Typography variant="h6">Schema Markup</Typography>
+          </Box>
           <Chip 
             label={schemaType} 
             size="small" 
             color="primary" 
-            variant="outlined" 
+            variant="outlined"
+            sx={{ alignSelf: { xs: 'flex-start', sm: 'center' } }}
           />
         </Box>
 
         {/* Controls */}
         <Grid container spacing={2} sx={{ mb: 2 }}>
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} sm={6} md={4}>
             <FormControl fullWidth size="small">
               <InputLabel>Loại Schema</InputLabel>
               <Select
@@ -357,7 +366,7 @@ const SchemaEditor = ({
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} sm={6} md={4}>
             <FormControlLabel
               control={
                 <Switch
@@ -369,13 +378,19 @@ const SchemaEditor = ({
             />
           </Grid>
           <Grid item xs={12} md={4}>
-            <Box sx={{ display: 'flex', gap: 1 }}>
+            <Box sx={{ 
+              display: 'flex', 
+              gap: 1, 
+              flexDirection: { xs: 'column', sm: 'row' },
+              width: '100%'
+            }}>
               <Button
                 size="small"
                 variant="outlined"
                 startIcon={<Refresh />}
                 onClick={resetSchema}
                 disabled={isLoading}
+                fullWidth={{ xs: true, sm: false }}
               >
                 Reset
               </Button>
@@ -385,6 +400,7 @@ const SchemaEditor = ({
                 startIcon={<Preview />}
                 onClick={() => setPreviewOpen(true)}
                 disabled={!schema}
+                fullWidth={{ xs: true, sm: false }}
               >
                 Xem trước
               </Button>
@@ -395,6 +411,11 @@ const SchemaEditor = ({
                   startIcon={<Save />}
                   onClick={saveSchema}
                   disabled={isLoading || !schema}
+                  fullWidth={{ xs: true, sm: false }}
+                  sx={{
+                    minWidth: { xs: '100%', sm: 'auto' },
+                    mt: { xs: 0, sm: 0 }
+                  }}
                 >
                   Lưu
                 </Button>
