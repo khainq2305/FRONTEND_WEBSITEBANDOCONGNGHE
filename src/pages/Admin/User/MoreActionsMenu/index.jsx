@@ -43,17 +43,6 @@ const MoreActionsMenu = ({ user, isDeleted = false, onChangeStatus, onResetPassw
               <RestartAltIcon fontSize="small" sx={{ mr: 1 }} />
               Cấp lại mật khẩu
             </MenuItem>
-            {user.status === 1 ? (
-              <MenuItem onClick={() => handleAction(() => onChangeStatus('inactive'))}>
-                <LockIcon fontSize="small" sx={{ mr: 1 }} />
-                Ngưng hoạt động
-              </MenuItem>
-            ) : (
-              <MenuItem onClick={() => handleAction(() => onChangeStatus('active'))}>
-                <LockOpenIcon fontSize="small" sx={{ mr: 1 }} />
-                Kích hoạt lại
-              </MenuItem>
-            )}
           </>
         )}
       </Menu>

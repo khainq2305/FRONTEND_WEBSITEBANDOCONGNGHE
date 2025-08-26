@@ -645,16 +645,6 @@ const pages = [
         ]
       },
       {
-        id: 'hislog',
-        title: 'Nhật ký hoạt động',
-        type: 'item',
-        url: '/admin/hislog',
-        icon: icons.HistoryOutlined,
-        breadcrumbs: false,
-        action: 'read',
-        subject: 'ActivityLog'
-      },
-      {
         id: 'payment-methods',
         title: 'Phương thức thanh toán',
         type: 'item',

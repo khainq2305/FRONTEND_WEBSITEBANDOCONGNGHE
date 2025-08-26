@@ -43,22 +43,24 @@ const OrderConfirmation = () => {
 useEffect(() => {
   if (momoOrderId && resultCode !== null && !isPaymentAttempted) {
     setIsPaymentAttempted(true);
+
     fetch('https://backend-websitebandocongnghe-1.onrender.com/payment/momo-callback', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ orderId: momoOrderId, resultCode })
     })
-      .then((res) => {
-        if (!res.ok) {
-          console.error('MoMo callback failed with status:', res.status);
-          throw new Error('MoMo callback failed');
-        }
-        return res.json();  
-      })
+      .then((res) => res.json()) // luôn parse JSON, kể cả khi 400
       .then((data) => {
-        if (data.order) {
-          setOrder(data.order); 
+        if (data.success) {
+          // ✅ Callback MoMo thành công
+          if (data.order) {
+            setOrder(data.order);
+          } else {
+            fetchOrderDetails(orderCodeFromUrl);
+          }
         } else {
+          // ❌ Callback MoMo thất bại → hiện thông báo lỗi rõ ràng
+          toast.error(data.message || 'Thanh toán MoMo thất bại.');
           fetchOrderDetails(orderCodeFromUrl);
         }
       })

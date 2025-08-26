@@ -21,6 +21,38 @@ const quickSuggestions = [
   'Tôi muốn được tư vấn về máy lọc nước'
 ];
 
+/** ================= Category Gallery (CHIPS – click để tìm) ================ */
+function CategoryGallery({ content = {}, onTrigger }) {
+  const items = (Array.isArray(content.items) ? content.items : [])
+    .map((it, i) => ({
+      ...it,
+      _key: it.id || it.slug || i,
+      _name: String(it.name || '').trim(),
+      _trigger: it.triggerMessage || it.name,
+    }))
+    .filter(it => it._name);
+
+  return (
+    <div className="ai-cat-chips">
+      <p className="chips-title">{content.title || 'Danh mục sản phẩm hiện có:'}</p>
+      <div className="chips-wrap">
+        {items.map((it) => (
+          <button
+            key={it._key}
+            className="chip"
+            title={`Tìm "${it._name}"`}
+            onClick={() => onTrigger?.(it._trigger)}
+            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onTrigger?.(it._trigger)}
+          >
+            {it._name}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** ================= FloatingContactBox ================= */
 export default function FloatingContactBox() {
   const [open, setOpen] = useState(false);
   const [tooltipVisible, setTooltipVisible] = useState(true);
@@ -64,6 +96,16 @@ export default function FloatingContactBox() {
 
     return () => clearTimeout(timer);
   }, []);
+// nhớ trạng thái đã đóng tooltip trong session
+useEffect(() => {
+  const dismissed = localStorage.getItem('hp_tooltip_dismissed') === '1';
+  if (dismissed) setTooltipVisible(false);
+}, []);
+
+const closeTooltip = useCallback(() => {
+  setTooltipVisible(false);
+  localStorage.setItem('hp_tooltip_dismissed', '1');
+}, []);
 
   useEffect(() => {
     localStorage.setItem('hp_chat_history', JSON.stringify(chatHistory));
@@ -241,44 +283,13 @@ export default function FloatingContactBox() {
           </>
         ) : null;
 
-      // >>> NEW: danh sách danh mục có thể bấm
+      // Danh mục bấm là tìm ngay
       case 'category_list': {
         const content = msg.content || msg;
-        const items = content?.items || [];
-
-        if (items.length) {
-          return (
-            <div className="ai-category-list">
-              <p className="mb-2 font-medium">{content?.title || 'Danh mục sản phẩm hiện có'}</p>
-              <div className="flex flex-wrap gap-2">
-                {items.map((it) => (
-                  <button
-                    key={it.id || it.name}
-                    className="zz-chip-btn"
-                    onClick={() => handleTriggerClick(it.triggerMessage || it.name)}
-                    title={`Tìm "${it.name}"`}
-                  >
-                    {it.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          );
-        }a
-
         return (
-          <div
-            className="ai-category-list"
-            onClick={(e) => {
-              const a = e.target.closest('a.zz-chip[data-trigger]');
-              if (a) {
-                e.preventDefault();
-                handleTriggerClick(a.getAttribute('data-trigger'));
-              }
-            }}
-            dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(content?.htmlFallback || '')
-            }}
+          <CategoryGallery
+            content={content}
+            onTrigger={(trigger) => handleTriggerClick(trigger)}
           />
         );
       }
@@ -292,21 +303,31 @@ export default function FloatingContactBox() {
   return (
     <>
       {!open && (
-        <div className="floating-contact">
-          <div className={`contact-tooltip ${!tooltipVisible ? 'hidden' : ''}`}>
-            <div className="tooltip-header">
-              <span className="tooltip-title">CYBERZONE</span>
-            </div>
-            <div key={messageKey} className="tooltip-message-wrapper">
-              <p className="tooltip-message-content">{displayTooltipMessage}</p>
-            </div>
-          </div>
+  <div className="floating-contact">
+    <div className={`contact-tooltip ${!tooltipVisible ? 'hidden' : ''}`}>
+      <button
+        className="tooltip-close"
+        aria-label="Đóng tooltip"
+        title="Đóng"
+        onClick={closeTooltip}
+      >
+        ×
+      </button>
 
-          <button className="contact-item contact-item-dmx" onClick={handleOpenChat}>
-            <img src={assistantDMXIcon} alt="Trợ lý AI" className="dmx-icon-image" />
-          </button>
-        </div>
-      )}
+      <div className="tooltip-header">
+        <span className="tooltip-title">CYBERZONE</span>
+      </div>
+      <div key={messageKey} className="tooltip-message-wrapper">
+        <p className="tooltip-message-content">{displayTooltipMessage}</p>
+      </div>
+    </div>
+
+    <button className="contact-item contact-item-dmx" onClick={handleOpenChat}>
+      <img src={assistantDMXIcon} alt="Trợ lý AI" className="dmx-icon-image" />
+    </button>
+  </div>
+)}
+
 
       {open && (
         <div className="chatbox-container">
