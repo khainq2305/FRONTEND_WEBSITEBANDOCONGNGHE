@@ -116,7 +116,7 @@ useEffect(() => {
 
     const rawQuery = window.location.search.slice(1);
 
-    fetch('http://localhost:5000/payment/vnpay-callback', {
+    fetch('https://backend-websitebandocongnghe-1.onrender.com/payment/vnpay-callback', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ rawQuery })
