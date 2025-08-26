@@ -31,14 +31,16 @@ const MoreActionsMenu = ({ user, isDeleted = false, onChangeStatus, onResetPassw
           </MenuItem>
         ) : (
           <>
-          <MenuItem onClick={() => handleAction(() => onView(user))}>
-              <VisibilityIcon fontSize="small" sx={{ mr: 1 }} />
-              Bổ nhiệm
-            </MenuItem>
-            <MenuItem onClick={() => handleAction(() => onViewDetail(user))}>
-              <VisibilityIcon fontSize="small" sx={{ mr: 1 }} />
-              Xem chi tiết
-            </MenuItem>
+         <MenuItem onClick={() => handleAction(() => onView(user))}>
+  <LockOpenIcon fontSize="small" sx={{ mr: 1 }} />
+  Bổ nhiệm vai trò
+</MenuItem>
+
+<MenuItem onClick={() => handleAction(() => onViewDetail(user))}>
+  <VisibilityIcon fontSize="small" sx={{ mr: 1 }} />
+  Xem chi tiết
+</MenuItem>
+
             <MenuItem onClick={() => handleAction(() => onResetPassword(user))}>
               <RestartAltIcon fontSize="small" sx={{ mr: 1 }} />
               Cấp lại mật khẩu
