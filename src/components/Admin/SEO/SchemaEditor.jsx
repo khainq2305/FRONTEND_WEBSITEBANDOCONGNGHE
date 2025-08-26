@@ -388,17 +388,6 @@ const SchemaEditor = ({
               >
                 Xem trước
               </Button>
-              {mode === 'edit' && (
-                <Button
-                  size="small"
-                  variant="contained"
-                  startIcon={<Save />}
-                  onClick={saveSchema}
-                  disabled={isLoading || !schema}
-                >
-                  Lưu
-                </Button>
-              )}
             </Box>
           </Grid>
         </Grid>
@@ -414,6 +403,21 @@ const SchemaEditor = ({
               if (key === '@context' || key === '@type') return null;
               return renderSchemaField(key, value);
             })}
+            
+            {/* Nút Lưu */}
+            {mode === 'edit' && (
+              <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
+                <Button
+                  variant="contained"
+                  startIcon={<Save />}
+                  onClick={saveSchema}
+                  disabled={isLoading || !schema}
+                  size="large"
+                >
+                  Lưu Schema
+                </Button>
+              </Box>
+            )}
           </Box>
         )}
 
