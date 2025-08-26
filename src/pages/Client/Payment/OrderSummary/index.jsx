@@ -200,7 +200,13 @@ const OrderSummary = ({
 
   const couponDiscount = selectedCoupon?.discountType !== 'shipping' ? Number(selectedCoupon?.discountAmount || 0) : 0;
 
-  const shippingDiscount = selectedCoupon?.discountType === 'shipping' ? Math.min(shippingFee, selectedCoupon.discountValue || 0) : 0;
+  const shippingDiscount =
+  selectedCoupon?.discountType === 'shipping'
+    ? (selectedCoupon.discountValue > 0
+        ? Math.min(shippingFee, selectedCoupon.discountValue)
+        : shippingFee) 
+    : 0;
+
 
   const totalDiscountDisplay = discount + couponDiscount + shippingDiscount;
 

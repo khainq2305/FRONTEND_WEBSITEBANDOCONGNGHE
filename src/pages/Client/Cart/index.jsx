@@ -263,7 +263,7 @@ const CartPage = () => {
   return (
     <main className="max-w-[1200px] mx-auto pb-20">
       {loading && <Loader fullscreen />}     {' '}
-      <div className="py-3">
+      <div className="py-2">
                 <Breadcrumb items={[{ label: 'Trang chủ', href: '/' }, { label: 'Giỏ hàng' }]} />     {' '}
       </div>
            {' '}
