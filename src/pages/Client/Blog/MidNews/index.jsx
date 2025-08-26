@@ -23,7 +23,7 @@ const MidNews = ({ title = "Tin Tức", items = [], visibleCount = 3 }) => {
     <div>
       {/* Title + Buttons */}
       <div className="flex items-center justify-between mb-3">
-        <div className="inline-block font-bold text-2xl border-b-4 border-yellow-300 rounded-b-md">
+        <div className="inline-block font-bold text-md md:text-2xl border-b-4 border-yellow-300 rounded-b-md">
           {title}
         </div>
 
@@ -63,22 +63,27 @@ const MidNews = ({ title = "Tin Tức", items = [], visibleCount = 3 }) => {
             </div>
 
             {/* Content */}
-            <div className="flex-1 text-left">
-              <h1 className="font-bold text-xs sm:text-xl">{item.title}</h1>
-              <div className="hidden sm:flex gap-3 my-2 text-sm text-gray-600 flex-wrap">
-                <p className="flex items-center text-xs gap-1">
-                  <FontAwesomeIcon icon={faClock} style={{ color: "#000" }} />
-                  {item.createdAt}
-                </p>
-                <span className="flex items-center gap-1">
-                  <FontAwesomeIcon icon={faComment} flip="horizontal" style={{ color: "#000" }} />
-                  {item.views || 0}
-                </span>
-              </div>
-              <p className="py-1 text-xs text-gray-700 line-clamp-2 hidden md:inline">
-                {item.content}
-              </p>
-            </div>
+            <div className="flex-1 text-left min-w-0">
+  <h1 className="font-bold text-xs sm:text-xl line-clamp-2 sm:line-clamp-3">{item.title}</h1>
+  <div className="hidden sm:flex gap-3 my-2 text-sm text-gray-600 flex-wrap">
+    <p className="flex items-center text-xs gap-1">
+      <FontAwesomeIcon icon={faClock} style={{ color: "#000" }} />
+      {item.publishAt
+        ? new Date(item.publishAt).toLocaleDateString('vi-VN')
+        : item.createdAt
+        ? new Date(item.createdAt).toLocaleDateString('vi-VN')
+        : 'Chưa có ngày'}
+    </p>
+    <span className="flex items-center gap-1">
+      <FontAwesomeIcon icon={faComment} flip="horizontal" style={{ color: "#000" }} />
+      {item.views || 0}
+    </span>
+  </div>
+  <p className="py-1 text-xs text-gray-700 line-clamp-2 md:line-clamp-4 overflow-hidden">
+    {item.content}
+  </p>
+</div>
+
           </Link>
         ))}
       </div>

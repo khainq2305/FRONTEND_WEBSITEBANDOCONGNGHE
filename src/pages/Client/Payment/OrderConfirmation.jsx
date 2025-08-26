@@ -10,7 +10,7 @@ import { paymentService } from '../../../services/client/paymentService';
 
 import { orderService } from '../../../services/client/orderService';
 import { toast } from 'react-toastify';
-import OrderLoader from '../../../components/common/OrderLoader';
+import Loader from '../../../components/common/Loader';
 import { formatCurrencyVND } from '../../../utils/formatCurrency';
 
 import bgPc from '../../../assets/Client/images/bg-pc.png';
@@ -40,31 +40,36 @@ const OrderConfirmation = () => {
   const [loading, setLoading] = useState(true);
   const [isPaymentAttempted, setIsPaymentAttempted] = useState(false);
 
-  useEffect(() => {
-    if (momoOrderId && resultCode !== null && !isPaymentAttempted) {
-      setIsPaymentAttempted(true);
-      fetch('https://backend-websitebandocongnghe-1.onrender.com/payment/momo-callback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: momoOrderId, resultCode })
+useEffect(() => {
+  if (momoOrderId && resultCode !== null && !isPaymentAttempted) {
+    setIsPaymentAttempted(true);
+    fetch('https://backend-websitebandocongnghe-1.onrender.com/payment/momo-callback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId: momoOrderId, resultCode })
+    })
+      .then((res) => {
+        if (!res.ok) {
+          console.error('MoMo callback failed with status:', res.status);
+          throw new Error('MoMo callback failed');
+        }
+        return res.json();  
       })
-        .then((res) => {
-          if (!res.ok) {
-            console.error('MoMo callback failed with status:', res.status);
-            throw new Error('MoMo callback failed');
-          }
-          return res.text();
-        })
-        .then(() => {
+      .then((data) => {
+        if (data.order) {
+          setOrder(data.order); 
+        } else {
           fetchOrderDetails(orderCodeFromUrl);
-        })
-        .catch((err) => {
-          console.error('Callback lỗi:', err);
-          toast.error('Có lỗi xảy ra khi xử lý thanh toán MoMo.');
-          fetchOrderDetails(orderCodeFromUrl);
-        });
-    }
-  }, [momoOrderId, resultCode, isPaymentAttempted, orderCodeFromUrl]);
+        }
+      })
+      .catch((err) => {
+        console.error('Callback lỗi:', err);
+        toast.error('Có lỗi xảy ra khi xử lý thanh toán MoMo.');
+        fetchOrderDetails(orderCodeFromUrl);
+      });
+  }
+}, [momoOrderId, resultCode, isPaymentAttempted, orderCodeFromUrl]);
+
  useEffect(() => {
     // Chỉ chạy nếu có các tham số cần thiết
     if (!payosOrderCode || !payosStatus || isPaymentAttempted) return;
@@ -114,13 +119,13 @@ const OrderConfirmation = () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ rawQuery })
     })
-      .then((res) => res.text().then((txt) => ({ ok: res.ok, txt })))
-      .then(({ ok, txt }) => {
-        if (!ok || txt.trim().toUpperCase() !== 'OK') {
-          throw new Error(txt);
-        }
-        fetchOrderDetails(orderCodeFromUrl);
-      })
+     .then(res => res.json())
+.then(data => {
+  if (data.order) {
+    setOrder(data.order);  // không cần fetchOrderDetails nữa
+  }
+})
+
       .catch((err) => {
         console.error('VNPay callback error:', err);
         toast.error('Có lỗi khi xử lý thanh toán VNPay.');
@@ -172,7 +177,8 @@ const OrderConfirmation = () => {
     }
   };
 
-  if (loading) return <OrderLoader fullscreen />;
+if (loading) return <Loader fullscreen />;
+
   if (!order)
     return (
       <div className="flex justify-center items-center h-[60vh] bg-gray-50">

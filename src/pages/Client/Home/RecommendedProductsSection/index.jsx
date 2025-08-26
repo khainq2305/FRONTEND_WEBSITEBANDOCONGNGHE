@@ -206,14 +206,17 @@ const RecommendedProductsSection = ({ userId, currentProductId = null }) => {
                   )}
                 </div>
 
-                <div
-                  className="product-card-saving text-[10px] sm:text-[10.5px] font-medium mb-1.5 min-h-[16px]"
-                  style={{ color: 'rgb(80, 171, 95)' }}
-                >
-                  {product.price !== null && product.oldPrice !== null && product.discount > 0
-                    ? `Tiết kiệm ${(parseFloat(String(product.oldPrice).replace(/[^0-9.-]+/g, '')) - parseFloat(String(product.price).replace(/[^0-9.-]+/g, ''))).toLocaleString('vi-VN')}₫`
-                    : ''}
-                </div>
+               <div
+  className="product-card-saving text-[10px] sm:text-[10.5px] font-medium mb-1.5 min-h-[16px]"
+  style={{ color: 'rgb(80, 171, 95)' }}
+>
+  {product.price !== null && product.oldPrice !== null && product.discount > 0 &&
+   parseFloat(String(product.oldPrice).replace(/[^0-9.-]+/g, '')) >
+   parseFloat(String(product.price).replace(/[^0-9.-]+/g, ''))
+    ? `Tiết kiệm ${(parseFloat(String(product.oldPrice).replace(/[^0-9.-]+/g, '')) - parseFloat(String(product.price).replace(/[^0-9.-]+/g, ''))).toLocaleString('vi-VN')}₫`
+    : ''}
+</div>
+
 
                 <div className="pt-1.5">
                   <div className="product-card-meta flex items-center justify-between min-h-[18px]">

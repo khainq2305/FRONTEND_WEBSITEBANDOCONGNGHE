@@ -22,7 +22,9 @@ import { cartService } from '../../../services/client/cartService';
 import { bannerService } from '../../../services/client/bannerService';
 import { productViewService } from '../../../services/client/productViewService';
 import { productQuestionService } from '@/services/client/productQuestionService';
-import OrderLoader from '@/components/common/OrderLoader';
+import Loader from '@/components/common/Loader';
+
+
 import ProductBanner from './ProductBanner';
 import ProductHighlights from './ProductHighlights';
 
@@ -363,9 +365,9 @@ export default function ProductDetail() {
       setIsBuyingNow(false);
     }
   };
-  if (!product) {
-    return <OrderLoader fullscreen />;
-  }
+if (!product) {
+  return <Loader fullscreen />;
+}
 
   const productName = product.name;
   const productRating = product.averageRating || 0;

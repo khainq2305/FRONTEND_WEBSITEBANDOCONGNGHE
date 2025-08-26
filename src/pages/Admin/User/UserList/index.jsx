@@ -23,12 +23,12 @@ import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import AddIcon from '@mui/icons-material/Add'; // Icon cho nút thêm mới
 import DeleteIcon from '@mui/icons-material/Delete'; // Icon cho nút xoá
-
+import { getAllUsers, updateUserStatus, resetUserPassword, getDeletedUsers, forceDeleteManyUsers, updateRoles } from '@/services/admin/userService';
 import SearchInput from 'components/common/SearchInput';
 import MoreActionsMenu from '../MoreActionsMenu';
 import MUIPagination from 'components/common/Pagination';
 import Loader from 'components/common/Loader';
-import { getAllUsers, updateUserStatus, resetUserPassword, getDeletedUsers, forceDeleteManyUsers } from 'services/admin/userService';
+
 import { toast } from 'react-toastify';
 import RoleSelectDialog from '../UserDetailDialog/PromotionDialog';
 import UserDetailDialog from '../UserDetailDialog';
@@ -186,7 +186,19 @@ const UserList = () => {
   };
 
 
-
+const handleApplyRoles = async (roles) => {
+  if (!selectedUser) return;
+  try {
+    await updateRoles(selectedUser.id, roles);
+    toast.success('Cập nhật vai trò thành công!');
+    setAppliedRoles(roles);
+    fetchUsers();
+    setOpenDialog(false);
+  } catch (err) {
+    toast.error('Cập nhật vai trò thất bại');
+    console.error(err);
+  }
+};
   return (
     <Box p={isMobile ? 1 : 3}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
@@ -314,12 +326,15 @@ const UserList = () => {
       </Card>
 
       <RoleSelectDialog
-        open={openDialog}
-        onClose={() => setOpenDialog(false)}
-        roles={demoRoles}
-        defaultSelected={appliedRoles}
-        user={selectedUser}
-      />
+  open={openDialog}
+  onClose={() => setOpenDialog(false)}
+  roles={demoRoles}
+  defaultSelected={appliedRoles}
+  user={selectedUser}
+  onApply={handleApplyRoles}
+  fetchUsers={fetchUsers}   // 👈 thêm dòng này
+/>
+
 
       <UserDetailDialog open={detailOpen} onClose={() => setDetailOpen(false)} user={selectedUser} />
     </Box>

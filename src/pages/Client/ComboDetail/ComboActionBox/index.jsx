@@ -39,54 +39,54 @@ export default function ComboActionBox({ combo }) {
   const notBuyable   = isOutOfStock || isComingSoon || isExpired;
   // ======================================
 
-const handleAddToCart = async () => {
-  try {
-    // Lấy các sku con trong combo
-    const comboSkus = combo.comboSkus || [];
+// const handleAddToCart = async () => {
+//   try {
+//     // Lấy các sku con trong combo
+//     const comboSkus = combo.comboSkus || [];
 
-    // Loop thêm từng sku con vào giỏ
-    for (const cs of comboSkus) {
-      await cartService.addToCart({
-        skuId: cs.skuId,       // skuId con
-        quantity: cs.quantity  // số lượng định nghĩa trong combo
-      });
-    }
+//     // Loop thêm từng sku con vào giỏ
+//     for (const cs of comboSkus) {
+//       await cartService.addToCart({
+//         skuId: cs.skuId,       // skuId con
+//         quantity: cs.quantity  // số lượng định nghĩa trong combo
+//       });
+//     }
 
-    toast.success("Đã thêm combo vào giỏ hàng!");
-    navigate('/cart');
-  } catch (err) {
-    console.error("Lỗi thêm combo:", err);
-    toast.error(err.response?.data?.message || "Không thể thêm combo vào giỏ");
-  }
-};
-const handleBuyNow = async () => {
-  try {
-    const comboSkus = combo.comboSkus || [];
+//     toast.success("Đã thêm combo vào giỏ hàng!");
+//     navigate('/cart');
+//   } catch (err) {
+//     console.error("Lỗi thêm combo:", err);
+//     toast.error(err.response?.data?.message || "Không thể thêm combo vào giỏ");
+//   }
+// };
+// const handleBuyNow = async () => {
+//   try {
+//     const comboSkus = combo.comboSkus || [];
 
-    for (const cs of comboSkus) {
-      await cartService.addToCart({
-        skuId: cs.skuId,
-        quantity: cs.quantity
-      });
-    }
+//     for (const cs of comboSkus) {
+//       await cartService.addToCart({
+//         skuId: cs.skuId,
+//         quantity: cs.quantity
+//       });
+//     }
 
-    toast.success("Đang chuyển tới thanh toán...");
-    navigate('/checkout');
-  } catch (err) {
-    console.error("Lỗi mua ngay combo:", err);
-    toast.error(err.response?.data?.message || "Không thể mua ngay combo");
-  }
-};
-
-// ====== MUA NGAY ======
-// const handleBuyNow = () => {
-//   toast.info("Chức năng MUA NGAY đang được cập nhật!");
+//     toast.success("Đang chuyển tới thanh toán...");
+//     navigate('/checkout');
+//   } catch (err) {
+//     console.error("Lỗi mua ngay combo:", err);
+//     toast.error(err.response?.data?.message || "Không thể mua ngay combo");
+//   }
 // };
 
-// // ====== THÊM VÀO GIỎ HÀNG ======
-// const handleAddToCart = () => {
-//   toast.info("Chức năng THÊM VÀO GIỎ đang được cập nhật!");
-// };
+
+const handleBuyNow = () => {
+  toast.info("Chức năng MUA NGAY đang được cập nhật!");
+};
+
+
+const handleAddToCart = () => {
+  toast.info("Chức năng THÊM VÀO GIỎ đang được cập nhật!");
+};
 
   // ====== Hiển thị giá/khuyến mãi (giữ UI hiện có) ======
   return (

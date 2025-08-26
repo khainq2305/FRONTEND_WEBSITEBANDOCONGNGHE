@@ -21,17 +21,18 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
     setError,
     clearErrors,
     formState: { errors, isSubmitting },
-    reset
+    reset,
+    resetField
   } = useForm({
     defaultValues: {
       title: "",
-      category: "",
+      categoryId: "",
       status: 1,
       content: "",
       thumbnail: null,
       tags: [],
       isScheduled: false,
-      publishAt: "",
+      publishAt: null,
       isFeature: false,
       categories: [],
       allTags: [],
@@ -49,21 +50,35 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
   const [schema, setSchema] = useState(null);
 
   useEffect(() => {
-    if (initialData) {
-      reset({
-        title: initialData.title || "",
-        categoryId: initialData?.category?.id || "",  // 👈 fix chỗ này
-        status: initialData.status || 1,
-        content: initialData.content || "",
-        thumbnail: initialData.thumbnail || null,
-        tags: initialData.tags || [],
-        isFeature: initialData.isFeature || false,
-        isScheduled: Boolean(initialData.publishAt),
-        publishAt: initialData.publishAt || "",
-        categories: categories,
-        allTags: allTags,
-        newCategory: ""
-      });
+    const loadFormData = async () => {
+      try {
+        const [catRes, tagRes] = await Promise.all([
+          newsCategoryService.getAll(),
+          tagService.getAll()
+        ]);
+  
+        const activeCategories = catRes.data.data.filter(c => c.deletedAt === null);
+        const normalizedCategories = normalizeCategoryList(activeCategories);
+        setValue("categories", normalizedCategories);
+  
+        setValue("allTags", tagRes.data.data);
+  
+        // Chỉ reset khi edit mode
+        if (mode === "edit" && initialData) {
+          reset({
+            title: initialData.title || "",
+            categoryId: initialData.categoryId || initialData?.category?.id || "",
+            status: initialData.status || 1,
+            content: initialData.content || "",
+            thumbnail: initialData.thumbnail || null,
+            tags: initialData.tags || [],
+            isFeature: initialData.isFeature || false,
+            isScheduled: Boolean(initialData.publishAt),
+            publishAt: initialData.publishAt || "",
+            categories: normalizedCategories,
+            allTags: tagRes.data.data,
+            newCategory: ""
+          });
       
       // Tự động load focus keyword từ database khi chỉnh sửa
       const existingFocusKeyword = 
@@ -74,10 +89,19 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
       
       setFocusKeyword(existingFocusKeyword);
       console.log('🔑 Loaded focus keyword from database:', existingFocusKeyword);
-    }
-  }, [initialData, reset]);
+        }
+  
+      } catch (err) {
+        console.error("Lỗi load categories hoặc tags", err);
+        setError("categories", { type: "manual", message: "Không thể tải danh mục" });
+        setError("allTags", { type: "manual", message: "Không thể tải tags" });
+      }
+    };
+  
+    loadFormData();
+  }, [mode, initialData, setValue, reset, setError]);
+  
 
-  console.log('initialData', initialData)
   // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
@@ -123,9 +147,9 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
       formData.append("title", data.title);
       formData.append("authorId", user.id);
       formData.append("content", data.content);
-      formData.append("categoryId", data.categoryId); // 🟢 đúng key backend chờ
+      formData.append("categoryId", data.categoryId);
       formData.append("status", data.isScheduled ? 2 : data.status);
-      formData.append("publishAt", data.isScheduled ? data.publishAt : "");
+      formData.append("publishAt", data.isScheduled ? data.publishAt : null);
       formData.append("isFeature", data.isFeature);
       formData.append('focusKeyword', focusKeyword);
       formData.append('schema', JSON.stringify(schema));
@@ -144,9 +168,13 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
       }
   
       await onSubmit?.(formData);
-      console.log("Form data submitted successfully");
-  
-      if (mode === "add") reset();
+      console.table("Form data submitted successfully", formData);
+      if (mode === "add") {
+        reset({
+          ...defaultValues,
+          publishAt: null
+        });
+      }
     } catch (err) {
       const res = err.response;
       if (res?.status === 400 && typeof res.data?.errors === "object") {
@@ -164,48 +192,34 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
   };
 
   
-const onAddCategory = async () => {
-  if (!newCategory.trim()) {
-    setError("newCategory", {
-      type: "manual",
-      message: "Tên danh mục không được để trống"
-    });
-    return;
-  }
-
-  if (!watchedValues.thumbnail) {
-    setError("thumbnail", {
-      type: "manual",
-      message: "Vui lòng chọn ảnh thumbnail"
-    });
-    return;
-  }
-
-  try {
-    const res = await newsCategoryService.create({
-      name: newCategory,
-      thumbnail: watchedValues.thumbnail
-    });
-    const newCat = res.data.data;
-
-    const updatedCategories = [...categories, newCat];
-    setValue("categories", updatedCategories);
-    setValue("newCategory", "");
-    clearErrors(["newCategory", "thumbnail"]);
-
-    console.log("Danh mục mới đã được thêm:", newCat);
-  } catch (error) {
-    console.error(
-      "Lỗi tạo danh mục mới",
-      error.response ? error.response.data : error
-    );
-    setError("newCategory", {
-      type: "server",
-      message:
-        error.response?.data?.message || "Không thể tạo danh mục mới"
-    });
-  }
-};
+  const onAddCategory = async () => {
+    if (!newCategory.trim()) {
+      setError("newCategory", { type: "manual", message: "Tên danh mục không được để trống" });
+      return;
+    }
+  
+    try {
+      const res = await newsCategoryService.create({
+        name: newCategory,
+        thumbnail: watchedValues.thumbnail || null  // nếu không có ảnh thì null
+      });
+      const newCat = res.data.data;
+  
+      setValue("categories", [...(categories ?? []), newCat]);
+      resetField("newCategory");
+      resetField("thumbnail");
+  
+      console.log("Danh mục mới đã được thêm:", newCat);
+    } catch (error) {
+      console.error("Lỗi tạo danh mục mới", error.response ?? error);
+      setError("newCategory", {
+        type: "server",
+        message: error.response?.data?.message ?? "Không thể tạo danh mục mới"
+      });
+    }
+  };
+  
+  
 
 
   return (

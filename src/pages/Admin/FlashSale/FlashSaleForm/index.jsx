@@ -490,33 +490,14 @@ const FlashSaleForm = () => {
                       </FormHelperText>
                     </FormControl>
 
-                    <SkuSelectionDialog
-                      open={isSkuDialogOpen}
-                      onClose={() => setIsSkuDialogOpen(false)}
-                      value={field.value.map((it) => it.id)}
-                      onChange={(selectedSkus) => {
-                        const updatedItems = selectedSkus.map((sku) => {
-                          const existingItem = field.value.find((item) => item.id === sku.id);
-                          return (
-                            existingItem || {
-                              id: sku.id,
-                              skuId: sku.id,
-                              productName: sku.productName,
-                              skuCode: sku.skuCode,
-                              originalPrice: sku.originalPrice,
-                              stock: sku.stock,
-                              salePrice: '',
-                              originalQuantity: '',
-                              quantity: '',
-                              maxPerUser: '',
-                              note: ''
-                            }
-                          );
-                        });
-                        field.onChange(updatedItems);
-                      }}
-                      fetchSkus={flashSaleService.getSkus}
-                    />
+                   <SkuSelectionDialog
+  open={isSkuDialogOpen}
+  onClose={() => setIsSkuDialogOpen(false)}
+  value={field.value}
+  onChange={(merged) => field.onChange(merged)}
+  fetchSkus={flashSaleService.getSkus}
+/>
+
 
                     <Box mt={2} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                       {field.value.map((sku, index) => (

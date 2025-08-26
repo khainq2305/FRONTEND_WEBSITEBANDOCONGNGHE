@@ -26,11 +26,10 @@ const News = () => {
   const items = newsByTitle['Tin Tức sam sum'] || [];
 
   const maxIndex = items.length > visibleCount ? items.length - visibleCount : 0;
-  const titles = ['Tin Tức sam sum', 'Tin tức Apple', 'Thủ thuật - mẹo hay', 'Tin nổi bật nhất'];
   useEffect(() => {
     const fetchFeature = async () => {
       try {
-        const res = await newsSevice.getFeature(); 
+        const res = await newsSevice.getFeature();
         setfeaturedNews(res.data.data);
       } catch (error) {
         console.error('Lỗi lấy tin tức:', error);
@@ -61,7 +60,7 @@ const News = () => {
         .getNewsByCategory(slug, limit)
         .then((res) => ({ slug, data: res.data.data }))
         .catch((err) => {
-          console.error(`❌ Lỗi lấy tin "${slug}":`, err?.message || err);
+          // console.error(`❌ Lỗi lấy tin "${slug}":`, err?.message || err);
           return null;
         })
     );
@@ -82,7 +81,7 @@ const News = () => {
   const fetchAllTitle = async () => {
     const res = await newsSevice.getAllTitle();
     setGetAllTitle(res.data.data);
-  }
+  };
   useEffect(() => {
     fetchAllTitle();
   }, []);
@@ -105,35 +104,41 @@ const News = () => {
       [slug]: ((prev[slug] || 0) + 1) % list.length
     }));
   };
-  const breadcrumbItems = [{ label: 'Trang chủ', href: '/' }, { label: 'Tin nổi bật', href: '/tin-noi-bat' },];
+  const breadcrumbItems = [
+    { label: 'Trang chủ', href: '/' },
+    { label: 'Tin nổi bật', href: '/tin-noi-bat' }
+  ];
   return (
     <NewsContext.Provider value={{ stripHTML, featuredNews, setfeaturedNews }}>
-      <div className="max-w-[1200px] mx-auto w-full">
-      <div className="mb-3 pt-4 sm:pt-4 lg:pt-0">
+      <div className="max-w-[1200px] mx-auto w-full px-4 lg:px-0">
+        <div className="mb-3 pt-4 sm:pt-4 lg:pt-0">
           <Breadcrumb items={breadcrumbItems} />
         </div>
-       
-        <div className="flex flex-col lg:flex-row justify-between px-0 md:px-4 lg:px-0">
+
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_390px] gap-4 px-0 md:px-4 lg:px-0">
+          {/* TopNews */}
           <div className="w-full py-4 md:py-0">
             <TopNews getAllTitle={getAllTitle} />
           </div>
-          <div style={{ maxWidth: '390px' }}>
+
+          {/* Sidebar */}
+          <div className="w-full">
             <SibarTop />
           </div>
         </div>
 
         <div className="my-5">
-         
           <Carousel title="Nhà Bếp" items={newsBySlug['nha-bep'] || []} visibleCount={5} autoautoScroll={true} />
         </div>
-        <div className="flex flex-col lg:flex-row gap-4 lg:gap-x-2 px-0 md:px-4 lg:px-0">
-          <div className='w-4/6'>
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-x-6 px-0 md:px-4 lg:px-0">
+          <div className="w-full lg:w-4/6 min-w-0">
             <MidNews title="Làm mát & Điều hòa không khí" items={newsBySlug['lam-mat-dieu-hoa-khong-khi'] || []} visibleCount={3} />
           </div>
-          <div className='w-1/3' >
+          <div className="w-full lg:w-1/3 min-w-0">
             <SibarMid title="Giải trí & Thiết bị nghe nhìn" items={newsBySlug['giai-tri-thiet-bi-nghe-nhin'] || []} visibleCount={5} />
           </div>
         </div>
+
         <div className="my-5">
           <Carousel2
             title="Bảo quản thực phẩm"
@@ -144,16 +149,11 @@ const News = () => {
             onNext={() => handleNext('bao-quan-thuc-pham')}
           />
         </div>
-        <div className="my-5">
+        {/* <div className="my-5">
           <Card />
-        </div>
+        </div> */}
         <div className="my-5">
-          <Carousel
-            title="Giặt ủi"
-            items={newsBySlug['giat-ui'] || []}
-            currentIndex={carouselIndex}
-            visibleCount={5}
-          />
+          <Carousel title="Giặt ủi" items={newsBySlug['giat-ui'] || []} currentIndex={carouselIndex} visibleCount={5} />
         </div>
       </div>
     </NewsContext.Provider>

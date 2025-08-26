@@ -8,9 +8,9 @@ import { Link } from 'react-router-dom';
  */
 const SibarMid = ({ items = [], title}) => {
   return (
-    <div className="space-y-4 md:space-y-6 px-0 md:px-4 lg:px-0 ">
+    <div className="space-y-4 md:space-y-6 px-0 md:px-4 lg:px-0 lg:pl-4">
       {/* Khối TIN KHUYẾN MÃI */}
-      <div className="bg-primary text-white px-3 sm:px-4 py-2 font-bold text-sm sm:text-base text-center sm:text-left rounded-md shadow">
+      <div className="bg-primary text-white px-3 sm:px-4 py-2 font-bold text-sm sm:text-base sm:text-left rounded-md shadow">
         TIN KHUYẾN MÃI
       </div>
 
@@ -39,7 +39,7 @@ const SibarMid = ({ items = [], title}) => {
 
       {/* Tiêu đề danh sách tin */}
       <div className="text-left mt-6 mb-3 sm:mb-4">
-        <div className="inline-block font-bold text-lg sm:text-xl text-gray-800 border-b-4 border-primary rounded-sm pb-1">
+        <div className="inline-block font-bold text-md md:text-2xl text-gray-800 border-b-4 border-primary rounded-sm pb-1">
           {title}
         </div>
       </div>
@@ -58,7 +58,12 @@ const SibarMid = ({ items = [], title}) => {
                 <div className="text-xs text-gray-500 flex items-center gap-x-3 gap-y-1 mb-1 sm:mb-1.5">
                   <span className="flex items-center gap-1">
                     <FontAwesomeIcon icon={faClock} />
-                    {item.createdAt}
+                    {item.publishAt
+  ? new Date(item.publishAt).toLocaleDateString('vi-VN')
+  : item.createdAt
+  ? new Date(item.createdAt).toLocaleDateString('vi-VN')
+  : 'Chưa có ngày'}
+
                   </span>
                   <span className="flex items-center gap-1">
                     <FontAwesomeIcon icon={faComment} flip="horizontal" />

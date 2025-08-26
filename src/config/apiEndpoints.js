@@ -491,6 +491,7 @@ combo: {
       base: `${API_BASE_URL}/admin/tags`,
       getAll: ''
     },
+    
     newsCategory: {
       base: `${API_BASE_URL}/admin/post-category`,
       getAll: '',

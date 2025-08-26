@@ -49,7 +49,7 @@ export default function FloatingContactBox() {
   const systemGreeting = {
     role: 'system',
     type: 'text',
-    content: '👋 Xin chào Anh/Chị! Em là trợ lý ảo của CYBERZONE.'
+    content: 'Xin chào Anh/Chị! Em là trợ lý ảo của CYBERZONE.'
   };
 
   /* ============ Effects ============ */
@@ -78,7 +78,6 @@ export default function FloatingContactBox() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatHistory, isLoading]);
 
-  /* ============ Handlers ============ */
   const handleOpenChat = () => {
     setOpen(true);
     setTooltipVisible(false);
@@ -103,12 +102,10 @@ export default function FloatingContactBox() {
       const trimmed = msg.trim();
       if (!trimmed) return;
 
-      // 1) Ngữ cảnh URL
       const context = {};
       const slug = getProductSlugFromUrl();
       if (slug) context.productSlug = slug;
 
-      // 2) UI: push user message
       setChatHistory((prev) => [...prev, { role: 'user', type: 'text', content: trimmed }]);
       setMessage('');
       setIsLoading(true);
@@ -120,7 +117,7 @@ export default function FloatingContactBox() {
         if (!replyData) {
           setChatHistory((prev) => [
             ...prev,
-            { role: 'ai', type: 'text', content: '🤖 Xin lỗi, em chưa hiểu rõ câu hỏi. Anh/Chị vui lòng thử lại.' }
+            { role: 'ai', type: 'text', content: 'Xin lỗi, em chưa hiểu rõ câu hỏi. Anh/Chị vui lòng thử lại.' }
           ]);
           return;
         }
@@ -151,14 +148,13 @@ export default function FloatingContactBox() {
             }
           ]);
         } else {
-          // Trả về các loại khác: text, product_grid, product_detail, category_list,...
           setChatHistory((prev) => [...prev, { role: 'ai', type: replyData.type, content: replyData.content }]);
         }
       } catch (e) {
         console.error('Lỗi gửi tin nhắn:', e);
         setChatHistory((prev) => [
           ...prev,
-          { role: 'ai', type: 'text', content: '❌ Đã xảy ra lỗi. Vui lòng thử lại sau.' }
+          { role: 'ai', type: 'text', content: 'Đã xảy ra lỗi. Vui lòng thử lại sau.' }
         ]);
       } finally {
         setIsLoading(false);
@@ -167,7 +163,6 @@ export default function FloatingContactBox() {
     [message]
   );
 
-  // Cho phép click “danh mục”/“chip” để kích hoạt tìm kiếm lại
   const handleTriggerClick = useCallback(
     (trigger) => {
       if (!trigger) return;
@@ -269,9 +264,8 @@ export default function FloatingContactBox() {
               </div>
             </div>
           );
-        }
+        }a
 
-        // Fallback: nhận HTML đã render sẵn với data-trigger
         return (
           <div
             className="ai-category-list"

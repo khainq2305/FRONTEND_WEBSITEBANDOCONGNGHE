@@ -16,7 +16,7 @@ const RelatedPosts = ({ title, related }) => {
                         <Link to={`/tin-noi-bat/${item.slug}`} onClick={() => {
                             console.log(`post ne ${item.slug}`);
                         }} className=" overflow-hidden h-full">
-                            <img src={newsimg1} alt="news" className="w-full h-[150px] object-cover rounded" />
+                            <img src={item.thumbnail} alt="news" className="w-full h-[150px] object-cover rounded" />
                             <div className="p-2 text-md font-medium">{item.title}</div>
                             <div className="flex gap-3 text-xs text-gray-600 flex-wrap pl-2">
                                 <p className="flex items-center text-xs gap-1">

@@ -44,9 +44,9 @@ export default function SkuSelectionDialog({
   const [isLoading, setIsLoading] = useState(false);
   const limit = 10;
 
-  useEffect(() => {
-    setSelectedIds(value || []);
-  }, [value, open]);
+ useEffect(() => {
+  setSelectedIds((value || []).map(v => v.id));
+}, [value, open]);
 
   useEffect(() => {
     if (!open) return;
@@ -83,9 +83,37 @@ export default function SkuSelectionDialog({
 
 const handleSave = () => {
   const selectedSkus = rows.filter(sku => selectedIds.includes(sku.id));
-  onChange(selectedSkus);
+
+  // merge với value cũ và giữ lại dữ liệu đã nhập
+  const merged = [
+    // giữ lại SKU cũ chưa bị bỏ
+    ...value.filter(v => !selectedSkus.some(s => s.id === v.id)),
+    // map SKU mới chọn, nếu đã tồn tại thì giữ dữ liệu cũ
+    ...selectedSkus.map(sku => {
+      const existing = value.find(v => v.id === sku.id);
+      return existing
+          ? { ...sku, ...existing } // 👈 đảo ngược lại
+        : {
+            id: sku.id,
+            skuId: sku.id,
+            productName: sku.productName,
+            skuCode: sku.skuCode,
+            originalPrice: sku.originalPrice,
+            stock: sku.stock,
+            salePrice: '',
+            originalQuantity: '',
+            quantity: '',
+            maxPerUser: '',
+            note: ''
+          };
+    })
+  ];
+
+  onChange(merged);
   onClose();
 };
+
+
 
 
   return (

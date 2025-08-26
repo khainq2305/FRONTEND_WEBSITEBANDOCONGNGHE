@@ -32,7 +32,8 @@ import { getAllRolesApi } from '@/services/admin/userService';
  * @param {Function} props.onClose - Hàm được gọi khi đóng Dialog.
  * @param {Function} props.onApply - Hàm được gọi khi nhấn "Áp dụng", trả về mảng ID đã chọn.
  */
-export default function RoleSelectDialog({ open, onClose, onApply, defaultSelected = [], user = [], fetchUsers }) {
+
+export default function RoleSelectDialog({ open, onClose, onApply, defaultSelected = [], user = [] }) {
   // State để lưu các ID của vai trò đang được chọn
   const [selectedIds, setSelectedIds] = useState([]);
   const [roles, setRoles] = useState([])
@@ -84,7 +85,7 @@ export default function RoleSelectDialog({ open, onClose, onApply, defaultSelect
   const handleApply = async () => {
     try {
       await onApply(selectedIds);  // chạy API update/lock/assign role
-      await fetchUsers();          // gọi lại API lấy danh sách mới
+  
       onClose();                   // đóng modal
     } catch (err) {
       console.error("Lỗi khi apply:", err);

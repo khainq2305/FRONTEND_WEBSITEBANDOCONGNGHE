@@ -12,7 +12,6 @@ const ArticleFilters = ({
   getActionOptions
 }) => {
   const [categoryOptions, setCategoryOptions] = useState([]);
-  console.log("DEBUG filters:", filters);
 useEffect(() => {
   newsCategoryService.getAll().then(res => {
     const normalized = normalizeCategoryList(res.data.data);

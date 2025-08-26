@@ -20,22 +20,30 @@ const UserFormDialog = ({ open, onClose, onSubmit, initialData = {}, asPage = fa
   const [formErrors, setFormErrors] = useState({});
   const [roles, setRoles] = useState([]);
 
+  // ✅ Sync initialData an toàn (chỉ update nếu khác)
   useEffect(() => {
     if (initialData) {
-      setForm({
+      const newForm = {
         fullName: initialData.fullName || '',
         email: initialData.email || '',
         roleId: initialData.roleId || '',
         password: '',
         status: initialData.status ?? 1
+      };
+      setForm(prev => {
+        return JSON.stringify(prev) !== JSON.stringify(newForm) ? newForm : prev;
       });
     }
   }, [initialData]);
 
+  // ✅ Sync errors an toàn (chỉ update khi có lỗi mới)
   useEffect(() => {
-    setFormErrors(errors || {});
-  }, [errors]);
+    if (errors && JSON.stringify(errors) !== JSON.stringify(formErrors)) {
+      setFormErrors(errors);
+    }
+  }, [errors, formErrors]);
 
+  // ✅ Load roles (nếu cần)
   useEffect(() => {
     const fetchRoles = async () => {
       try {
@@ -81,7 +89,7 @@ const UserFormDialog = ({ open, onClose, onSubmit, initialData = {}, asPage = fa
       '& input': {
         outline: 'none !important',
         '&:-webkit-autofill': {
-          WebkitBoxShadow: '0 0 0 1000px white inset', 
+          WebkitBoxShadow: '0 0 0 1000px white inset',
           WebkitTextFillColor: '#000'
         }
       },

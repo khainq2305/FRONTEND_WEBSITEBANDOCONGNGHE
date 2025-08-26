@@ -437,6 +437,11 @@ const pages = [
             action: 'update',
             subject: 'Post'
           },
+          {
+            url: '/admin/quan-ly-bai-viet/chi-tiet-bai-viet/:slug',
+            action: 'read',
+            subject: 'Post'
+          },
         ]
       }
     ]
