@@ -292,19 +292,11 @@ const AdminRoutes = {
       children: [
         { index: true, element: <SEOManager /> },
         { path: 'reports', element: <SEOManager /> },
-        { path: 'posts', element: <PostSEOManager /> } // Redirect seo/posts to PostSEOManager
+       
       ]
     },
     
-    // Post SEO Routes
-    {
-      path: 'post-seo',
-      children: [
-        { index: true, element: <PostSEOManagerBeautiful /> },
-        { path: 'manage', element: <PostSEOManager /> },
-        { path: 'simple', element: <PostSEOManagerSimple /> }
-      ]
-    },
+    
     
     {
       path: 'system-settings',
