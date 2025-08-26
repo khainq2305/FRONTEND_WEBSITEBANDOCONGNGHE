@@ -50,9 +50,7 @@ const UserDetailPage = Loadable(lazy(() => import('pages/Admin/User/UserDetailDi
 
 // SEO Components
 const SEOManager = Loadable(lazy(() => import('components/admin/SEOManager/SEOManager')));
-const PostSEOManager = Loadable(lazy(() => import('components/admin/PostSEOManager/PostSEOManager')));
-const PostSEOManagerSimple = Loadable(lazy(() => import('components/admin/PostSEOManager/PostSEOManagerSimple')));
-const PostSEOManagerBeautiful = Loadable(lazy(() => import('components/admin/PostSEOManager/PostSEOManagerBeautiful')));
+
 
 const NotificationCreatePage = Loadable(lazy(() => import('pages/Admin/Notification/NotificationCreatePage')));
 const NotificationEditPage = Loadable(lazy(() => import('pages/Admin/Notification/NotificationEditPage')));
