@@ -25,12 +25,12 @@ export default defineConfig(({ mode }) => {
       proxy: {
         // Proxy robots.txt và sitemap.xml từ backend
         '/robots.txt': {
-          target: 'http://localhost:5000',
+          target: 'https://backend-websitebandocongnghe-4rkw.onrender.com',
           changeOrigin: true,
           secure: false
         },
         '/sitemap.xml': {
-          target: 'http://localhost:5000',
+          target: 'https://backend-websitebandocongnghe-4rkw.onrender.com',
           changeOrigin: true,
           secure: false
         }
