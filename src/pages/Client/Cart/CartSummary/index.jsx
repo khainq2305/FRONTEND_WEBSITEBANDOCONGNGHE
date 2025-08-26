@@ -26,9 +26,10 @@ const CartSummary = ({
 
   const [isCheckingOut, setIsCheckingOut] = useState(false);
 
- const {
+const {
   userPointBalance = 0,
-  exchangeRate = 4000,  
+  earnRate = 10000,    // 10k VNĐ = 1 điểm
+  redeemRate = 100,    // 1 điểm = 100 VNĐ khi đổi
   minPointRequired = 1, 
   canUsePoints = false
 } = orderTotals || {};
@@ -36,10 +37,10 @@ const CartSummary = ({
 
 const recalculatedMaxUsablePoints = useMemo(() => {
   const payable = Number(orderTotals?.payablePrice || 0);
-  return Math.min(userPointBalance, Math.floor(payable / exchangeRate));
-}, [orderTotals, userPointBalance, exchangeRate]);
+  return Math.min(userPointBalance, Math.floor(payable / redeemRate));
+}, [orderTotals, userPointBalance, redeemRate]);
 
-const recalculatedPointDiscount = recalculatedMaxUsablePoints * exchangeRate;
+const recalculatedPointDiscount = recalculatedMaxUsablePoints * redeemRate;
 
   const openPromoModal = () => {
     if (!hasSelectedItems) {
@@ -356,14 +357,15 @@ const payableAfterDiscount = Math.max(
             <span className="text-red-600">{formatCurrencyVND(payableAfterDiscount)}</span>
           </div>
           {payableAfterDiscount > 0 && (
-            <div className="flex justify-between text-xs text-yellow-600 font-medium items-center">
-              <span>Điểm thưởng</span>
-              <span className="flex items-center gap-1">
-                  <img src={xudiem} alt="coin" className="w-4 h-4 object-contain" />
-                {'+' + Math.floor(payableAfterDiscount / 4000).toLocaleString('vi-VN')} điểm
-              </span>
-            </div>
-          )}
+  <div className="flex justify-between text-xs text-yellow-600 font-medium items-center">
+    <span>Điểm thưởng</span>
+    <span className="flex items-center gap-1">
+      <img src={xudiem} alt="coin" className="w-4 h-4 object-contain" />
+      {'+' + Math.floor(payableAfterDiscount / earnRate).toLocaleString('vi-VN')} điểm
+    </span>
+  </div>
+)}
+
           {(totals.totalDiscount > 0 || discountAmount > 0) && (
             <button
               className="text-blue-600 text-sm font-medium inline-flex items-center ml-auto"

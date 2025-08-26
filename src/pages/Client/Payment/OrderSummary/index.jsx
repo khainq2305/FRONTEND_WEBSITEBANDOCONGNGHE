@@ -43,9 +43,7 @@ const OrderSummary = ({
   const [gaQr, setGaQr] = useState('');
   const [gaLoading, setGaLoading] = useState(false);
 
-  const pointDiscountAmount = usePoints ? pointInfo.maxUsablePoints * 4000 : 0;
-
-
+  const pointDiscountAmount = usePoints ? pointInfo.maxUsablePoints * (pointInfo.redeemRate || 100) : 0;
   useEffect(() => {
     if (propCoupon) {
       setSelectedCoupon(propCoupon);
@@ -488,8 +486,9 @@ const finalAmount = Math.max(
               <img src={xudiem} alt="coin" className="w-6 h-6 object-contain" />
               <div className="flex items-baseline gap-1">
                 <span>Đổi {pointInfo.maxUsablePoints.toLocaleString('vi-VN')} điểm</span>
-               <span className="text-gray-400 text-xs">(~{formatCurrencyVND(pointInfo.maxUsablePoints * 4000)})</span>
-
+               <span className="text-gray-400 text-xs">
+  (~{formatCurrencyVND(pointInfo.maxUsablePoints * (pointInfo.redeemRate || 100))})
+</span>
               </div>
             </div>
 
@@ -601,7 +600,7 @@ const finalAmount = Math.max(
               <span>Điểm thưởng</span>
               <span className="flex items-center gap-1">
                 <img src={xudiem} alt="coin" className="w-4 h-4 object-contain" />
-                {'+ ' + Math.floor(finalAmount / 4000).toLocaleString('vi-VN')} điểm
+               {'+ ' + Math.floor(finalAmount / (pointInfo.earnRate || 10000)).toLocaleString('vi-VN')} điểm
               </span>
             </div>
           )}

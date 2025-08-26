@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import { Trash2, PlusCircle } from 'lucide-react';
 import { useTheme } from '@mui/material/styles';
-
+import { Eye, EyeOff } from 'lucide-react'; // 👈 thêm icon
 const UserForm = ({ initialData = null, onSubmit, externalErrors = {} }) => {
   const theme = useTheme();
   const [user, setUser] = useState({
@@ -26,7 +26,7 @@ const UserForm = ({ initialData = null, onSubmit, externalErrors = {} }) => {
     status: initialData?.status ?? 'active',
     avatarFile: null,
   });
-
+const [showPassword, setShowPassword] = useState(false);
   const [preview, setPreview] = useState(initialData?.avatar || null);
   const [errors, setErrors] = useState({});
 
@@ -36,11 +36,13 @@ const UserForm = ({ initialData = null, onSubmit, externalErrors = {} }) => {
 
   const handleChange = (field, value) => {
     setUser((prev) => ({ ...prev, [field]: value }));
-    setErrors((prev) => {
-      const updated = { ...prev };
-      if (value?.toString().trim() && updated[field]) delete updated[field];
-      return updated;
-    });
+   setErrors((prev) => {
+  const updated = { ...prev };
+  // hễ user gõ lại thì clear lỗi field đó
+  if (updated[field]) delete updated[field];
+  return updated;
+});
+
   };
 
 const validateAllFields = () => {
