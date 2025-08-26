@@ -121,7 +121,6 @@ const AuthPage = () => {
         >
           <div className="flex flex-col items-center">
             <Loader />
-            <p className="text-white text-lg font-semibold mt-2">Đang xử lý...</p>
           </div>
         </div>
       )}
