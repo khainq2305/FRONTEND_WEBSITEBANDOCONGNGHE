@@ -31,8 +31,10 @@ const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    setErrors(externalErrors);
-  }, [externalErrors]);
+  if (externalErrors && Object.keys(externalErrors).length > 0) {
+    setErrors((prev) => ({ ...prev, ...externalErrors }));
+  }
+}, [externalErrors]);
 
   const handleChange = (field, value) => {
     setUser((prev) => ({ ...prev, [field]: value }));
@@ -46,14 +48,19 @@ const [showPassword, setShowPassword] = useState(false);
   };
 
 const validateAllFields = () => {
-  const newErrors = { ...externalErrors };
-  if (!user.email.trim()) newErrors.email = 'Email không được để trống!';
+  const newErrors = {};
+
+  if (!user.email.trim()) {
+    newErrors.email = 'Email không được để trống!';
+  }
   if (!initialData && !user.password.trim()) {
     newErrors.password = 'Mật khẩu không được để trống!';
   }
+
   setErrors(newErrors);
   return Object.keys(newErrors).length === 0;
 };
+
 
 
   const handleFileChange = (e) => {
@@ -111,17 +118,28 @@ const validateAllFields = () => {
           </Grid>
 
           <Grid container spacing={4} sx={{ mb: 4 }}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Mật khẩu *"
-                type="password"
-                value={user.password}
-                onChange={(e) => handleChange('password', e.target.value)}
-                fullWidth
-                error={!!errors.password}
-                helperText={errors.password}
-              />
-            </Grid>
+           <Grid item xs={12} sm={6}>
+  <TextField
+    label="Mật khẩu *"
+    type={showPassword ? 'text' : 'password'}   // 👈 đổi type theo state
+    value={user.password}
+    onChange={(e) => handleChange('password', e.target.value)}
+    fullWidth
+    error={!!errors.password}
+    helperText={errors.password}
+    InputProps={{
+      endAdornment: (
+        <Button
+          onClick={() => setShowPassword((prev) => !prev)}
+          sx={{ minWidth: 0 }}
+        >
+          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+        </Button>
+      ),
+    }}
+  />
+</Grid>
+
             <Grid item xs={12} sm={6}>
               <TextField
                 label="Số điện thoại"
