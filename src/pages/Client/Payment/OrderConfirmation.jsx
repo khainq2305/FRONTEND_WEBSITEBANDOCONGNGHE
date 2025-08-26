@@ -40,37 +40,36 @@ const OrderConfirmation = () => {
   const [loading, setLoading] = useState(true);
   const [isPaymentAttempted, setIsPaymentAttempted] = useState(false);
 
-  useEffect(() => {
-    if (momoOrderId && resultCode !== null && !isPaymentAttempted) {
-      setIsPaymentAttempted(true);
-      fetch('https://backend-websitebandocongnghe-1.onrender.com/payment/momo-callback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: momoOrderId, resultCode })
+useEffect(() => {
+  if (momoOrderId && resultCode !== null && !isPaymentAttempted) {
+    setIsPaymentAttempted(true);
+    fetch('https://backend-websitebandocongnghe-1.onrender.com/payment/momo-callback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId: momoOrderId, resultCode })
+    })
+      .then((res) => {
+        if (!res.ok) {
+          console.error('MoMo callback failed with status:', res.status);
+          throw new Error('MoMo callback failed');
+        }
+        return res.json();  
       })
-        .then((res) => {
-          if (!res.ok) {
-            console.error('MoMo callback failed with status:', res.status);
-            throw new Error('MoMo callback failed');
-          }
-          return res.text();
-        })
-        .then(res => res.json())
-.then(data => {
-  if (data.order) {
-    setOrder(data.order);   // 👈 dùng luôn order từ backend
-  } else {
-    fetchOrderDetails(orderCodeFromUrl); // fallback nếu backend không trả order
-  }
-})
-
-        .catch((err) => {
-          console.error('Callback lỗi:', err);
-          toast.error('Có lỗi xảy ra khi xử lý thanh toán MoMo.');
+      .then((data) => {
+        if (data.order) {
+          setOrder(data.order); 
+        } else {
           fetchOrderDetails(orderCodeFromUrl);
-        });
-    }
-  }, [momoOrderId, resultCode, isPaymentAttempted, orderCodeFromUrl]);
+        }
+      })
+      .catch((err) => {
+        console.error('Callback lỗi:', err);
+        toast.error('Có lỗi xảy ra khi xử lý thanh toán MoMo.');
+        fetchOrderDetails(orderCodeFromUrl);
+      });
+  }
+}, [momoOrderId, resultCode, isPaymentAttempted, orderCodeFromUrl]);
+
  useEffect(() => {
     // Chỉ chạy nếu có các tham số cần thiết
     if (!payosOrderCode || !payosStatus || isPaymentAttempted) return;
