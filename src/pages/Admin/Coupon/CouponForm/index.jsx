@@ -48,6 +48,7 @@ export default function CouponForm() {
       minOrderValue: '',
       maxDiscountValue: '',
       startTime: '',
+       isActive: true,
       endTime: '',
       type: 'public'
     }
@@ -101,7 +102,7 @@ export default function CouponForm() {
             title: data.title || '',
             description: data.description || '',
             discountType: data.discountType || 'percent',
-
+isActive: data.isActive,
             totalQuantity: data.totalQuantity || '',
             maxUsagePerUser: data.maxUsagePerUser || '',
             discountValue: formatNumber(data.discountValue),
@@ -284,6 +285,24 @@ export default function CouponForm() {
                 )}
               />
             </Grid>
+<Grid item xs={12} sm={6}>
+  <Controller
+    name="isActive"
+    control={control}
+    render={({ field }) => (
+      <FormControlLabel
+        control={
+          <Checkbox
+            {...field}
+            checked={!!field.value}
+            onChange={(e) => field.onChange(e.target.checked)}
+          />
+        }
+        label="Đang hoạt động"
+      />
+    )}
+  />
+</Grid>
 
             {selectedType === 'private' && (
               <Grid item xs={12}>
