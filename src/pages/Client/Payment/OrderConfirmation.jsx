@@ -145,7 +145,7 @@ useEffect(() => {
         toast.error('Không tìm thấy dữ liệu cho đơn hàng này.');
       }
     } catch (err) {
-      console.error('❌ Lỗi lấy đơn hàng:', err);
+      console.error('Lỗi lấy đơn hàng:', err);
       toast.error(err.response?.data?.message || 'Không thể tải thông tin đơn hàng.');
     } finally {
       setLoading(false);
