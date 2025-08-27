@@ -217,7 +217,7 @@ isActive: data.isActive,
       >
         <form
           onSubmit={handleSubmit(onSubmit, (invalidErrors) => {
-            console.log('❌ Form invalid:', invalidErrors);
+         
             toast.error('Vui lòng kiểm tra lại các trường bắt buộc!');
           })}
         >
