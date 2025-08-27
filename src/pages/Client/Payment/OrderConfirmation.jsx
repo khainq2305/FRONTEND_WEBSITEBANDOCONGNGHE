@@ -49,17 +49,17 @@ useEffect(() => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ orderId: momoOrderId, resultCode })
     })
-      .then((res) => res.json()) // luôn parse JSON, kể cả khi 400
+      .then((res) => res.json()) 
       .then((data) => {
         if (data.success) {
-          // ✅ Callback MoMo thành công
+          
           if (data.order) {
             setOrder(data.order);
           } else {
             fetchOrderDetails(orderCodeFromUrl);
           }
         } else {
-          // ❌ Callback MoMo thất bại → hiện thông báo lỗi rõ ràng
+          
           toast.error(data.message || 'Thanh toán MoMo thất bại.');
           fetchOrderDetails(orderCodeFromUrl);
         }
@@ -73,23 +73,23 @@ useEffect(() => {
 }, [momoOrderId, resultCode, isPaymentAttempted, orderCodeFromUrl]);
 
  useEffect(() => {
-    // Chỉ chạy nếu có các tham số cần thiết
+    
     if (!payosOrderCode || !payosStatus || isPaymentAttempted) return;
 
-    // Ngăn việc chạy lại
+    
     setIsPaymentAttempted(true);
     
-    // ✅ Trích xuất orderCode và status từ URL
+  
     const urlParams = new URLSearchParams(window.location.search);
     const orderCode = urlParams.get('orderCode');
     const status = urlParams.get('status');
-
-    // Chỉ gửi request nếu có orderCode
+http://localhost:5000/
+   
     if (orderCode) {
         fetch(`http://localhost:5000/payment/payos-callback`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            // ✅ Gửi dữ liệu đúng định dạng
+         
             body: JSON.stringify({ orderCode, status })
         })
         .then((res) => res.text().then((txt) => ({ ok: res.ok, txt })))
@@ -97,12 +97,12 @@ useEffect(() => {
             if (!ok || txt.trim().toUpperCase() !== 'CẬP NHẬT TRẠNG THÁI PAYOS THÀNH CÔNG') {
                 throw new Error(txt || 'PAYOS_CALLBACK_FAILED');
             }
-            // Gọi hàm để tải lại đơn hàng sau khi cập nhật
+          
             fetchOrderDetails(orderCode);
         })
         .catch((err) => {
             console.error('PayOS callback error:', err);
-            // Dù lỗi callback vẫn thử tải đơn để không chặn UI
+            
             fetchOrderDetails(orderCode);
         });
     } else {
