@@ -6,8 +6,10 @@ import QuayButton from "@/components/Client/ButtonSpin";
 import { Link } from "react-router-dom";
 import Confetti from "react-confetti";
 import { useWindowSize } from "react-use";
+import Loader from "@/components/common/Loader";
 
 export default function LuckyWheelPage() {
+  const [loading, setLoading] = useState(true);
   const [currentWinner, setCurrentWinner] = useState(null);
   const [rotation, setRotation] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
@@ -18,10 +20,9 @@ export default function LuckyWheelPage() {
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState([]);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [key, setKey] = useState(0); // Add a key to force a re-render and re-apply transition
 
   const { width, height } = useWindowSize();
-  const wheelRadius = 280;
-
   const colors = [
     "#FFADAD", "#FFD6A5", "#FDFFB6", "#CAFFBF",
     "#9BF6FF", "#A0C4FF", "#BDB2FF", "#FFC6FF"
@@ -53,6 +54,7 @@ export default function LuckyWheelPage() {
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
         const rewardsRes = await spinService.getRewards();
         if (rewardsRes.data) {
@@ -62,6 +64,8 @@ export default function LuckyWheelPage() {
         await fetchSpinStatus();
       } catch (err) {
         console.error("Lỗi khi tải dữ liệu vòng quay:", err);
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
@@ -109,6 +113,7 @@ export default function LuckyWheelPage() {
     if (isSpinning || spinsRemaining === 0 || prizes.length === 0) return;
     setIsSpinning(true);
     setCurrentWinner(null);
+    setKey(prevKey => prevKey + 1); // Increment key to reset animation
 
     try {
       const spinRes = await spinService.spin();
@@ -122,14 +127,10 @@ export default function LuckyWheelPage() {
         const prizeCenter =
           winnerIndex * segmentAngle + segmentAngle / 2;
 
-        let stopAngle = 360 - (prizeCenter - 90);
-        const randomOffset =
-          (Math.random() - 0.5) * (segmentAngle * 0.4);
-        stopAngle += randomOffset;
-
-        const spins = 5 + Math.floor(Math.random() * 3);
-        const totalRotation = spins * 360 + stopAngle;
-
+        const stopAngle = 360 - (prizeCenter - 90);
+        const randomOffset = (Math.random() - 0.5) * (segmentAngle * 0.4);
+        const totalRotation = 5 * 360 + stopAngle + randomOffset;
+        
         setRotation(totalRotation);
 
         setTimeout(async () => {
@@ -150,11 +151,8 @@ export default function LuckyWheelPage() {
     }
   };
 
-  // Kích thước vòng quay động
   const wheelSize = width < 640 ? 250 : width < 1024 ? 400 : 560;
   const wheelStrokeWidth = width < 640 ? 2 : 4;
-
-  // Kích thước chữ động
   const wheelTextFontSize = width < 640 ? 10 : 14;
   const titleFontSize = width < 640 ? 'text-base' : 'text-lg md:text-xl';
   const prizeTextFontSize = width < 640 ? 'text-lg' : 'text-2xl';
@@ -162,12 +160,10 @@ export default function LuckyWheelPage() {
   const popupContentFontSize = width < 640 ? 'text-base' : 'text-xl md:text-2xl';
   const buttonFontSize = width < 640 ? 'px-4 py-2' : 'px-8 py-3';
 
-  // Chức năng mới: Chia nhỏ chuỗi nếu quá dài
   const wrapText = (text, maxCharsPerLine) => {
     const words = text.split(' ');
     let lines = [];
     let currentLine = '';
-
     words.forEach(word => {
       if ((currentLine + word).length <= maxCharsPerLine) {
         currentLine += (currentLine.length > 0 ? ' ' : '') + word;
@@ -176,16 +172,19 @@ export default function LuckyWheelPage() {
         currentLine = word;
       }
     });
-
     if (currentLine.length > 0) {
       lines.push(currentLine);
     }
     return lines;
   };
 
+  if (loading) {
+    return <Loader fullscreen />;
+  }
+
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-yellow-100 to-pink-50 flex flex-col items-center justify-center p-4 md:p-8">
-      {/* Nút quay lại */}
+      {/* Back button */}
       <div className="absolute top-4 left-4 z-[60]">
         <Link
           to="/"
@@ -195,7 +194,7 @@ export default function LuckyWheelPage() {
         </Link>
       </div>
 
-      {/* Nút hướng dẫn & lịch sử */}
+      {/* Guide & History buttons */}
       <div className="absolute top-4 right-4 z-[60] flex gap-2">
         <button
           onClick={() => setShowGuide(true)}
@@ -211,32 +210,34 @@ export default function LuckyWheelPage() {
         </button>
       </div>
 
-      {/* Tiêu đề */}
+      {/* Title */}
       <div className="relative mb-6 px-4 py-2 rounded-full bg-gradient-to-r from-yellow-200 via-pink-200 to-red-200 shadow-md border border-pink-300">
         <div className={`font-bold text-fuchsia-700 flex items-center gap-2 ${titleFontSize}`}>
-          
           <span>Vòng Quay May Mắn - Nhận quà mỗi ngày</span>
-          
         </div>
       </div>
 
-      {/* Số lượt quay */}
+      {/* Spins remaining */}
       <div className="text-center mb-4 text-gray-700 font-semibold text-sm md:text-base">
         Bạn còn{" "}
         <span className="text-pink-600 font-bold">{spinsRemaining}</span> lượt
         quay hôm nay
       </div>
 
-      {/* Vòng quay */}
+      {/* The Wheel */}
       <div className="relative bg-white rounded-full p-2 shadow-2xl">
         <motion.svg
+          key={key} // Use key to re-mount and reset the animation on each spin
           width={wheelSize}
           height={wheelSize}
           viewBox={`-${wheelSize / 2} -${wheelSize / 2} ${wheelSize} ${wheelSize}`}
           animate={{ rotate: rotation }}
           transition={{
+            type: "spring",
             duration: 4,
-            ease: [0.17, 0.67, 0.83, 0.67]
+            bounce: 0,
+            velocity: 100, // Make the initial spin faster
+            ease: "circOut" // A good ease function for fast start, slow end
           }}
           style={{
             filter: "drop-shadow(0px 10px 10px rgba(0,0,0,0.1))"
@@ -250,7 +251,6 @@ export default function LuckyWheelPage() {
               const path = getSegmentPath(start, end, wheelSize / 2);
               const angle = start + segmentAngle / 2;
               const { x, y } = getCoords(angle, (wheelSize / 2) * 0.7);
-
               const wrappedLines = wrapText(prize.name, 12);
               const totalLines = wrappedLines.length;
               const yOffset = (totalLines - 1) * -8;
@@ -299,7 +299,7 @@ export default function LuckyWheelPage() {
         </div>
       </div>
 
-      {/* Popup trúng thưởng */}
+      {/* Prize Popup */}
       <AnimatePresence>
         {currentWinner && (
           <motion.div
@@ -315,7 +315,7 @@ export default function LuckyWheelPage() {
               exit={{ y: -50, opacity: 0, scale: 0.8 }}
             >
               <h2 className={`${popupTitleFontSize} font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 mb-4`}>
-               CHÚC MỪNG! 
+                CHÚC MỪNG!
               </h2>
               <p className={`${popupContentFontSize} font-semibold text-gray-800 mb-6`}>
                 Bạn đã trúng: <br />
@@ -336,7 +336,7 @@ export default function LuckyWheelPage() {
 
       {showConfetti && <Confetti width={width} height={height} />}
 
-      {/* Popup hướng dẫn */}
+      {/* Guide Popup */}
       <AnimatePresence>
         {showGuide && (
           <motion.div
@@ -352,7 +352,7 @@ export default function LuckyWheelPage() {
               exit={{ y: -50, opacity: 0 }}
             >
               <h2 className="text-xl md:text-2xl font-bold mb-4 text-pink-600">
-               Hướng dẫn chơi
+                Hướng dẫn chơi
               </h2>
               <ul className="list-disc list-inside text-gray-700 space-y-2 text-sm md:text-base">
                 <li>Nhấn nút "QUAY" để thử vận may.</li>
@@ -375,7 +375,7 @@ export default function LuckyWheelPage() {
         )}
       </AnimatePresence>
 
-      {/* Popup lịch sử */}
+      {/* History Popup */}
       <AnimatePresence>
         {showHistory && (
           <motion.div
@@ -391,7 +391,7 @@ export default function LuckyWheelPage() {
               exit={{ y: -50, opacity: 0 }}
             >
               <h2 className="text-xl md:text-2xl font-bold mb-4 text-indigo-600">
-                 Lịch sử quay
+                Lịch sử quay
               </h2>
               {history.length === 0 ? (
                 <p className="text-gray-500 italic text-sm md:text-base">
@@ -405,7 +405,7 @@ export default function LuckyWheelPage() {
                       className="flex justify-between items-center border-b pb-1"
                     >
                       <div>
-                         {item.rewardName}
+                        {item.rewardName}
                         {item.couponCode && (
                           <span className="ml-2 text-pink-600 font-semibold">
                             ({item.couponCode})

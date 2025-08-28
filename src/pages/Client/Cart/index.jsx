@@ -17,7 +17,7 @@ const CartPage = () => {
   const [cartItems, setCartItems] = useState([]);
   const [checkedItems, setCheckedItems] = useState([]);
   const navigate = useNavigate();
-  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [appliedCoupons, setAppliedCoupons] = useState({ discount: null, shipping: null });
   const totalAvailableItems = cartItems.filter((item) => item.stock > 0).length;
   const checkedAvailableItems = cartItems.filter((item, index) => item.stock > 0 && checkedItems[index]).length;
   const isAllChecked = totalAvailableItems > 0 && totalAvailableItems === checkedAvailableItems;
@@ -33,17 +33,18 @@ const CartPage = () => {
   }, [usePoints]);
 
   useEffect(() => {
-    if (!appliedCoupon) return;
+    if (!appliedCoupons.discount && !appliedCoupons.shipping) return;
 
-    const allowed = appliedCoupon.allowedSkuIds || [];
+    const coupon = appliedCoupons.discount || appliedCoupons.shipping;
+    const allowed = coupon.allowedSkuIds || [];
     const stillValid = allowed.length === 0 || selectedItems.some((i) => allowed.includes(i.skuId));
 
     if (!stillValid) {
       toast.info('Bạn đã bỏ sản phẩm đủ điều kiện, mã giảm giá bị gỡ.');
-      setAppliedCoupon(null);
-      localStorage.removeItem('appliedCoupon');
+      setAppliedCoupons({ discount: null, shipping: null });
+      localStorage.removeItem('appliedCoupons');
     }
-  }, [selectedItems, appliedCoupon]);
+  }, [selectedItems, appliedCoupons]);
 
   const totals = selectedItems.reduce(
     (acc, item) => {
@@ -60,9 +61,6 @@ const CartPage = () => {
     { totalPrice: 0, totalDiscount: 0, payablePrice: 0, rewardPoints: 0 }
   );
   totals.rewardPoints = '+' + totals.rewardPoints;
-
-  const discountAmount = appliedCoupon ? Number(appliedCoupon.discountAmount || 0) : 0;
-  const payableAfterCoupon = Math.max(0, totals.payablePrice - discountAmount);
 
   const fetchPointInfoOnly = async () => {
     try {
@@ -117,42 +115,50 @@ const CartPage = () => {
   }, []);
 
   useEffect(() => {
-    const saved = localStorage.getItem('appliedCoupon');
+    const saved = localStorage.getItem('appliedCoupons');
     if (!saved) return;
 
     try {
       const parsed = JSON.parse(saved);
 
-      if (!parsed?.code) return;
+      if (!parsed?.discount?.code && !parsed?.shipping?.code) return;
 
-      if (parsed.expiryDate && new Date(parsed.expiryDate) < new Date()) {
-        localStorage.removeItem('appliedCoupon');
-        return;
+      const isValidDiscount = parsed.discount && (!parsed.discount.endTime || new Date(parsed.discount.endTime) > new Date());
+      const isValidShipping = parsed.shipping && (!parsed.shipping.endTime || new Date(parsed.shipping.endTime) > new Date());
+      
+      if (!isValidDiscount && !isValidShipping) {
+          localStorage.removeItem('appliedCoupons');
+          return;
       }
+      
+      setAppliedCoupons({
+          discount: isValidDiscount ? parsed.discount : null,
+          shipping: isValidShipping ? parsed.shipping : null,
+      });
 
-      setAppliedCoupon(parsed);
     } catch (err) {
-      localStorage.removeItem('appliedCoupon');
+      localStorage.removeItem('appliedCoupons');
     }
   }, []);
 
   useEffect(() => {
-    if (!appliedCoupon) return;
+    if (!appliedCoupons.discount && !appliedCoupons.shipping) return;
 
     const skuIds = [...new Set(selectedItems.map((i) => i.skuId))];
     const orderTotal = totals.payablePrice;
+    const codes = [appliedCoupons.discount?.code, appliedCoupons.shipping?.code].filter(Boolean);
 
     async function validate() {
       try {
         await couponService.applyCoupon({
-          code: appliedCoupon.code,
+          codes,
           skuIds,
           orderTotal
         });
       } catch (err) {
         toast.warn(err.response?.data?.message || 'Mã giảm giá không còn hiệu lực.', { position: 'top-right' });
-        setAppliedCoupon(null);
-        localStorage.removeItem('appliedCoupon');
+        setAppliedCoupons({ discount: null, shipping: null });
+        localStorage.removeItem('appliedCoupons');
       }
     }
 
@@ -160,7 +166,7 @@ const CartPage = () => {
 
     const id = setInterval(validate, 60000);
     return () => clearInterval(id);
-  }, [appliedCoupon, selectedItems, totals.payablePrice]);
+  }, [appliedCoupons, selectedItems, totals.payablePrice]);
 
   const toggleAll = async () => {
     const targetValue = !isAllChecked;
@@ -228,11 +234,11 @@ const CartPage = () => {
 
   useEffect(() => {
     if (!isCartLoaded) return;
-    if (selectedItems.length === 0 && appliedCoupon) {
-      setAppliedCoupon(null);
-      localStorage.removeItem('appliedCoupon');
+    if (selectedItems.length === 0 && (appliedCoupons.discount || appliedCoupons.shipping)) {
+      setAppliedCoupons({ discount: null, shipping: null });
+      localStorage.removeItem('appliedCoupons');
     }
-  }, [isCartLoaded, selectedItems, appliedCoupon]);
+  }, [isCartLoaded, selectedItems, appliedCoupons]);
 
   const handleProceedToCheckout = async () => {
     if (selectedItems.length === 0) {
@@ -240,19 +246,20 @@ const CartPage = () => {
       return;
     }
     const skuIdsForCoupon = [...new Set(selectedItems.map((i) => Number(i.skuId)).filter(Boolean))];
+    const codesToApply = [appliedCoupons.discount?.code, appliedCoupons.shipping?.code].filter(Boolean);
 
-    if (appliedCoupon) {
+    if (codesToApply.length > 0) {
       try {
         await couponService.applyCoupon({
-          code: appliedCoupon.code,
+          codes: codesToApply,
           orderTotal: totals.payablePrice,
           skuIds: skuIdsForCoupon
         });
       } catch (err) {
         const msg = err?.response?.data?.message || err.message || 'Mã giảm giá không còn hợp lệ, vui lòng thử lại.';
         toast.error(msg, { position: 'top-right' });
-        setAppliedCoupon(null);
-        localStorage.removeItem('appliedCoupon');
+        setAppliedCoupons({ discount: null, shipping: null });
+        localStorage.removeItem('appliedCoupons');
         return;
       }
     }
@@ -262,18 +269,14 @@ const CartPage = () => {
 
   return (
     <main className="max-w-[1200px] mx-auto pb-20">
-      {loading && <Loader fullscreen />}     {' '}
+      {loading && <Loader fullscreen />}
       <div className="py-2">
-                <Breadcrumb items={[{ label: 'Trang chủ', href: '/' }, { label: 'Giỏ hàng' }]} />     {' '}
+        <Breadcrumb items={[{ label: 'Trang chủ', href: '/' }, { label: 'Giỏ hàng' }]} />
       </div>
-           {' '}
       {cartItems.length > 0 ? (
         <div className="flex flex-col xl:flex-row gap-4">
-                   {' '}
           <section className="w-full xl:w-[70%]">
-                       {' '}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-                           {' '}
               <CartHeader
                 isAllChecked={isAllChecked}
                 onToggleAll={toggleAll}
@@ -281,9 +284,7 @@ const CartPage = () => {
                 onDeleteSelected={handleDeleteSelected}
                 hasSelectedItems={hasSelectedItems}
               />
-                           {' '}
               <div className="flex flex-col">
-                               {' '}
                 {cartItems.map((item, index) => (
                   <CartItem
                     key={item.id}
@@ -294,21 +295,16 @@ const CartPage = () => {
                     isLastItem={index === cartItems.length - 1}
                   />
                 ))}
-                             {' '}
               </div>
-                         {' '}
             </div>
-                     {' '}
           </section>
-                             {' '}
           <aside className="w-full xl:w-[30%] self-start h-fit mt-6 xl:mt-0">
             <div className="sticky top-[30px]">
-                         {' '}
               <CartSummary
                 hasSelectedItems={hasSelectedItems}
                 selectedItems={selectedItems}
-                appliedCoupon={appliedCoupon}
-                setAppliedCoupon={setAppliedCoupon}
+                appliedCoupons={appliedCoupons}
+                setAppliedCoupons={setAppliedCoupons}
                 usePoints={usePoints}
                 setUsePoints={setUsePoints}
                 orderTotals={{
@@ -320,18 +316,14 @@ const CartPage = () => {
                 }}
                 onCheckout={handleProceedToCheckout}
               />
-               {' '}
             </div>
-                     {' '}
           </aside>
-                 {' '}
         </div>
       ) : (
         <div className="w-full">
-                    <EmptyCart />       {' '}
+          <EmptyCart />
         </div>
       )}
-         {' '}
     </main>
   );
 };

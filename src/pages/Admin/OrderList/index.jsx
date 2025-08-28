@@ -425,22 +425,28 @@ const OrderList = () => {
                   <TableCell align="center">{new Date(order.createdAt).toLocaleString('vi-VN')}</TableCell>
 
                   <TableCell align="center">
-                    <MoreActionsMenu
-                      actions={[
-                        {
-                          label: 'Xem chi tiết',
-                          onClick: () => navigate(`/admin/orders/${order.id}`)
-                        },
-                        ...(order.status !== 'cancelled' && order.status !== 'completed'
-                          ? [
-                            {
-                              label: 'Cập nhật trạng thái',
-                              onClick: () => openUpdateStatusDialog(order)
-                            }
-                          ]
-                          : [])
-                      ]}
-                    />
+                   <MoreActionsMenu
+  actions={[
+    {
+      label: 'Xem chi tiết',
+      onClick: () => navigate(`/admin/orders/${order.id}`)
+    },
+    ...(order.status === 'processing'
+      ? [
+          {
+            label: 'Cập nhật trạng thái',
+            onClick: () => openUpdateStatusDialog(order)
+          },
+          {
+            label: 'Huỷ đơn',
+            color: 'error',
+            onClick: () => openCancelDialog(order)
+          }
+        ]
+      : [])
+  ]}
+/>
+
                   </TableCell>
                 </TableRow>
               ))
