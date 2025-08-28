@@ -243,7 +243,7 @@ const PromoModal = ({ modalTitle = 'Hồng Ân Khuyến Mãi', onClose, onApplyS
         params.set('orderTotal', String(orderTotal ?? 0));
         const res = await couponService.getAvailable(`?${params.toString()}`);
         const coupons = res.data?.data || [];
-        console.log("📌 Coupons raw:", coupons); // log toàn bộ API trả về
+  
         setAvailablePromos(
           coupons.map((c) => ({
             id: c.code,
