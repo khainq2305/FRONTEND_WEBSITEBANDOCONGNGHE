@@ -1,4 +1,3 @@
-// src/components/Client/LuckyWheelPage/index.jsx
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { spinService } from "@/services/client/spinService";
@@ -20,7 +19,7 @@ export default function LuckyWheelPage() {
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState([]);
   const [showConfetti, setShowConfetti] = useState(false);
-  const [key, setKey] = useState(0); // Add a key to force a re-render and re-apply transition
+  const [key, setKey] = useState(0);
 
   const { width, height } = useWindowSize();
   const colors = [
@@ -113,12 +112,13 @@ export default function LuckyWheelPage() {
     if (isSpinning || spinsRemaining === 0 || prizes.length === 0) return;
     setIsSpinning(true);
     setCurrentWinner(null);
-    setKey(prevKey => prevKey + 1); // Increment key to reset animation
+    setKey(prevKey => prevKey + 1);
 
     try {
       const spinRes = await spinService.spin();
       const winnerName = spinRes.data.reward;
       const rewardId = spinRes.data.rewardId;
+      const couponCode = spinRes.data.couponCode || null;
 
       const winnerIndex = prizes.findIndex((p) => p.id === rewardId);
 
@@ -130,11 +130,11 @@ export default function LuckyWheelPage() {
         const stopAngle = 360 - (prizeCenter - 90);
         const randomOffset = (Math.random() - 0.5) * (segmentAngle * 0.4);
         const totalRotation = 5 * 360 + stopAngle + randomOffset;
-        
+
         setRotation(totalRotation);
 
         setTimeout(async () => {
-          setCurrentWinner(winnerName);
+          setCurrentWinner({ name: winnerName, code: couponCode });
           setShowConfetti(true);
           setTimeout(() => setShowConfetti(false), 2000);
 
@@ -227,7 +227,7 @@ export default function LuckyWheelPage() {
       {/* The Wheel */}
       <div className="relative bg-white rounded-full p-2 shadow-2xl">
         <motion.svg
-          key={key} // Use key to re-mount and reset the animation on each spin
+          key={key}
           width={wheelSize}
           height={wheelSize}
           viewBox={`-${wheelSize / 2} -${wheelSize / 2} ${wheelSize} ${wheelSize}`}
@@ -236,8 +236,8 @@ export default function LuckyWheelPage() {
             type: "spring",
             duration: 4,
             bounce: 0,
-            velocity: 100, // Make the initial spin faster
-            ease: "circOut" // A good ease function for fast start, slow end
+            velocity: 100,
+            ease: "circOut"
           }}
           style={{
             filter: "drop-shadow(0px 10px 10px rgba(0,0,0,0.1))"
@@ -273,8 +273,7 @@ export default function LuckyWheelPage() {
                     dominantBaseline="middle"
                     transform={`rotate(${angle} ${x} ${y})`}
                     style={{
-                      textShadow:
-                        "1px 1px 2px rgba(255,255,255,0.7)"
+                      textShadow: "1px 1px 2px rgba(255,255,255,0.7)"
                     }}
                   >
                     {wrappedLines.map((line, index) => (
@@ -320,8 +319,14 @@ export default function LuckyWheelPage() {
               <p className={`${popupContentFontSize} font-semibold text-gray-800 mb-6`}>
                 Bạn đã trúng: <br />
                 <span className={`${prizeTextFontSize} font-bold text-purple-700`}>
-                  {currentWinner}
+                  {currentWinner.name}
                 </span>
+                {currentWinner.code && (
+                  <div className="mt-3 text-pink-600 text-base md:text-lg">
+                    Mã giảm giá của bạn:{" "}
+                    <b className="font-mono text-lg">{currentWinner.code}</b>
+                  </div>
+                )}
               </p>
               <button
                 onClick={() => setCurrentWinner(null)}
@@ -356,13 +361,8 @@ export default function LuckyWheelPage() {
               </h2>
               <ul className="list-disc list-inside text-gray-700 space-y-2 text-sm md:text-base">
                 <li>Nhấn nút "QUAY" để thử vận may.</li>
-                <li>
-                  Bạn có 3 lượt quay miễn phí nhất định mỗi ngày và sẽ được làm mới hàng ngày.
-                </li>
-                <li>
-                  Nếu bạn quay trúng thưởng, phần quà sẽ được tự động cộng vào
-                  tài khoản của bạn.
-                </li>
+                <li>Bạn có 3 lượt quay miễn phí mỗi ngày và sẽ được làm mới hàng ngày.</li>
+                <li>Nếu quay trúng coupon, hệ thống sẽ phát cho bạn một mã giảm giá riêng biệt.</li>
               </ul>
               <button
                 onClick={() => setShowGuide(false)}
@@ -400,21 +400,19 @@ export default function LuckyWheelPage() {
               ) : (
                 <ul className="space-y-2 text-gray-700 text-xs md:text-sm max-h-64 overflow-y-auto pr-2">
                   {history.map((item, index) => (
-                    <li
-                      key={index}
-                      className="flex justify-between items-center border-b pb-1"
-                    >
-                      <div>
-                        {item.rewardName}
-                        {item.couponCode && (
-                          <span className="ml-2 text-pink-600 font-semibold">
-                            ({item.couponCode})
-                          </span>
-                        )}
+                    <li key={index} className="border-b pb-2">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">{item.rewardName}</span>
+                        <span className="text-xs text-gray-500">
+                          {new Date(item.createdAt).toLocaleString("vi-VN")}
+                        </span>
                       </div>
-                      <span className="text-xs text-gray-500">
-                        {new Date(item.createdAt).toLocaleString("vi-VN")}
-                      </span>
+                      {item.couponCode && (
+                        <div className="mt-1 text-pink-600 font-semibold">
+                          Mã giảm giá:{" "}
+                          <span className="font-mono">{item.couponCode}</span>
+                        </div>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -429,7 +427,6 @@ export default function LuckyWheelPage() {
           </motion.div>
         )}
       </AnimatePresence>
-
     </div>
   );
 }

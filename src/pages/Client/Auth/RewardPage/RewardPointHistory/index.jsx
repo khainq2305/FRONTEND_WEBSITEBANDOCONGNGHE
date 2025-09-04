@@ -15,7 +15,7 @@ const TABS = [
 
 const formatPoint = (value) => new Intl.NumberFormat('vi-VN').format(value);
 
-export default function RewardPointHistory({ onLoadingChange }) {
+export default function RewardPointHistory({ onLoadingChange, onCancelSuccess }) {
   const [history, setHistory] = useState([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -40,7 +40,18 @@ export default function RewardPointHistory({ onLoadingChange }) {
     })();
   }, [page, onLoadingChange]);
 
-  const filtered = history.filter((h) => (active === 'all' ? true : active === 'earn' ? h.type === 'earn' : h.type === 'spend'));
+  const cancelOrder = async (orderId) => {
+    try {
+      await rewardPointService.cancelOrder(orderId);
+      onCancelSuccess?.();
+    } catch (err) {
+      console.error("Lỗi khi hủy đơn:", err);
+    }
+  };
+
+  const filtered = history.filter((h) =>
+    active === 'all' ? true : active === 'earn' ? h.type === 'earn' : h.type === 'spend'
+  );
 
   return (
     <section className="mb-10">
@@ -53,7 +64,6 @@ export default function RewardPointHistory({ onLoadingChange }) {
             onClick={() => setActive(t.key)}
             className={`flex-1 text-center py-3 text-sm font-medium relative
               ${active === t.key ? 'text-[#1CA7EC] font-semibold' : 'text-gray-500'}
-              ${index > 0 ? '' : ''}
               after:absolute after:left-0 after:right-0 after:-bottom-[1px] after:h-[2px]
               ${active === t.key ? 'after:bg-[#1CA7EC]' : 'after:bg-transparent'}
             `}
@@ -95,21 +105,39 @@ export default function RewardPointHistory({ onLoadingChange }) {
 
                 <div>
                   <p className="font-semibold mb-1">
-                    {item.type === 'earn' ? 'Mua hàng tích điểm' : item.type === 'expired' ? 'Điểm bị hết hạn' : 'Sử dụng điểm'}
+                    {item.type === 'earn'
+                      ? 'Mua hàng tích điểm'
+                      : item.type === 'expired'
+                      ? 'Điểm bị hết hạn'
+                      : 'Sử dụng điểm'}
                   </p>
 
                   <p className="text-xs text-gray-500 mb-1">
                     vào lúc {format(new Date(item.createdAt), 'HH:mm, dd/MM/yyyy', { locale: vi })} tại CYBERZONE Shop
                   </p>
 
-                  {item.note && <div className="text-sm text-gray-700" dangerouslySetInnerHTML={{ __html: item.note }} />}
+                  {item.note && (
+                    <div
+                      className="text-sm text-gray-700"
+                      dangerouslySetInnerHTML={{ __html: item.note }}
+                    />
+                  )}
 
                   {item.orderCode && item.type !== 'expired' && (
                     <p className="text-sm mt-1 text-gray-700">
                       Đơn hàng: <span className="font-medium">{item.orderCode}</span>{' '}
-                      <a href={`/user-profile/orders/${item.orderCode}`} className="text-blue-600 hover:underline text-sm">
+                      <a
+                        href={`/user-profile/orders/${item.orderCode}`}
+                        className="text-blue-600 hover:underline text-sm"
+                      >
                         Xem chi tiết
-                      </a>
+                      </a>{' '}
+                      <button
+                        onClick={() => cancelOrder(item.orderCode)}
+                        className="ml-2 px-2 py-0.5 bg-red-500 text-white text-xs rounded"
+                      >
+                        Hủy đơn
+                      </button>
                     </p>
                   )}
 

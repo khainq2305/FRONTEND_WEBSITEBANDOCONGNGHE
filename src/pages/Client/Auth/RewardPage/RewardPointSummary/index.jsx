@@ -1,32 +1,33 @@
 import React, { useEffect, useState } from 'react';
 import { rewardPointService } from '@/services/client/rewardPointService';
-import Loader from '@/components/common/Loader';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import coinImg from '@/assets/Client/images/xudiem.png';
 import rewardBannerImg from '@/assets/Client/images/NENDIEM.png';
 
-const RewardPointSummary = ({ onLoadingChange }) => {
+const RewardPointSummary = ({ onLoadingChange, reloadFlag }) => {
   const [points, setPoints] = useState(0);
   const [expiringSoon, setExpiringSoon] = useState(0);
   const [expireDate, setExpireDate] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const fetchData = async () => {
+    try {
+      const { data } = await rewardPointService.getTotalPoints();
+      setPoints(Number(data?.totalPoints) || 0);
+      setExpiringSoon(Number(data?.expiringSoon) || 0);
+      setExpireDate(data?.expireDate || null);
+    } catch (err) {
+      console.error('Lỗi khi lấy điểm thưởng:', err);
+    } finally {
+      setLoading(false);
+      onLoadingChange?.(false);
+    }
+  };
+
   useEffect(() => {
-    (async () => {
-      try {
-        const { data } = await rewardPointService.getTotalPoints();
-        setPoints(Number(data?.totalPoints) || 0);
-        setExpiringSoon(Number(data?.expiringSoon) || 0);
-        setExpireDate(data?.expireDate || null);
-      } catch (err) {
-        console.error('Lỗi khi lấy điểm thưởng:', err);
-      } finally {
-        setLoading(false);
-        onLoadingChange?.(false);
-      }
-    })();
-  }, []);
+    fetchData();
+  }, [reloadFlag]);
 
   return (
     <div className="flex items-center justify-between bg-white border border-yellow-300 rounded-xl shadow-sm p-5 mb-5">
