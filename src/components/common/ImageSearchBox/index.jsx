@@ -148,6 +148,7 @@ const ImageSearchBox = () => {
     try {
       setSearching(true);
       const response = await searchImageService.searchByImage(file);
+      console.log("Response từ searchByImage:", response);
       const similarProducts = response.similarProducts || [];
       navigate('/search-result', { state: { results: similarProducts } });
     } catch (err) {
