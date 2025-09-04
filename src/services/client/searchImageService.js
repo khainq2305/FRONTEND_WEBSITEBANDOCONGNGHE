@@ -2,22 +2,28 @@ import { API_ENDPOINT } from '@/config/apiEndpoints';
 import API from '../common/api'; // axios instance đã cấu hình baseURL + interceptor JWT
 
 export const searchImageService = {
-  // 🔍 Tìm kiếm bằng hình ảnh
-  async searchByImage(file) {
-    const formData = new FormData();
-    formData.append('image', file);
+ // 🔍 Tìm kiếm bằng hình ảnh
+async searchByImage(file) {
+  const formData = new FormData();
+  formData.append('image', file);
 
-    const url = `${API_ENDPOINT.client.search.base}${API_ENDPOINT.client.search.search}`;
-    try {
-      const res = await API.post(url, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      return res.data; // { similarProducts: [...] }
-    } catch (error) {
-      console.error('❌ Lỗi searchByImage:', error);
-      throw error;
-    }
-  },
+  const url = `${API_ENDPOINT.client.search.base}${API_ENDPOINT.client.search.search}`;
+  
+  // 🚀 Debug log
+  console.log("📸 [searchByImage] URL gọi:", url);
+  console.log("📸 [searchByImage] File gửi:", file?.name || file);
+
+  try {
+    const res = await API.post(url, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    console.log("📸 [searchByImage] Kết quả trả về:", res.data);
+    return res.data; // { similarProducts: [...] }
+  } catch (error) {
+    console.error('❌ [searchByImage] Lỗi:', error?.response?.data || error.message);
+    throw error;
+  }
+},
 
   // 🔍 Tìm kiếm bằng tên (text search + filter)
   async searchByName(params) {
