@@ -25,7 +25,7 @@ const CartSummary = ({
     const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
     const [showDiscountDetails, setShowDiscountDetails] = useState(false);
     const [isCheckingOut, setIsCheckingOut] = useState(false);
-    
+
     const {
         userPointBalance = 0,
         earnRate = 10000,
@@ -66,7 +66,7 @@ const CartSummary = ({
             toast.success('Đã bỏ mã giảm giá.');
             return;
         }
-    
+
         try {
             const res = await couponService.applyCoupon({
                 codes: [couponObject.discount?.code, couponObject.shipping?.code].filter(Boolean),
@@ -91,7 +91,7 @@ const CartSummary = ({
             localStorage.removeItem('appliedCoupons');
         }
     };
-    
+
     const prevRef = useRef({ skuIds: [], orderTotal: null });
 
     useEffect(() => {
@@ -99,13 +99,13 @@ const CartSummary = ({
 
         const skuIds = selectedItems.map((i) => i.skuId).sort();
         const orderTotal = Number(orderTotals?.payablePrice || 0);
-    
+
         const prev = prevRef.current;
         const skuChanged = JSON.stringify(prev.skuIds) !== JSON.stringify(skuIds);
         const totalChanged = prev.orderTotal !== orderTotal;
-    
+
         if (!skuChanged && !totalChanged) return;
-    
+
         const refreshCoupons = async () => {
             try {
                 const codes = [appliedCoupons.discount?.code, appliedCoupons.shipping?.code].filter(Boolean);
@@ -115,16 +115,16 @@ const CartSummary = ({
                     codes: codes,
                     orderTotal,
                     skuIds,
-                        shippingFee: Number(orderTotals?.shippingFee || 0)   // ✅ thêm dòng này
+                    shippingFee: Number(orderTotals?.shippingFee || 0)   // ✅ thêm dòng này
                 });
-    
+
                 if (!res.data?.isValid) {
                     toast.warn(res.data.message || 'Mã giảm giá không còn hiệu lực');
                     setAppliedCoupons({ discount: null, shipping: null });
                     localStorage.removeItem('appliedCoupons');
                     return;
                 }
-    
+
                 const { discountCoupon, shippingCoupon } = res.data;
                 const updatedCoupons = { discount: discountCoupon, shipping: shippingCoupon };
                 setAppliedCoupons(updatedCoupons);
@@ -138,7 +138,7 @@ const CartSummary = ({
         };
 
         refreshCoupons();
-    
+
         prevRef.current = { skuIds, orderTotal };
     }, [selectedItems, orderTotals, appliedCoupons?.discount?.code, appliedCoupons?.shipping?.code]);
 
@@ -146,14 +146,14 @@ const CartSummary = ({
     const shippingDiscount = appliedCoupons?.shipping?.discountAmount ? Number(appliedCoupons.shipping.discountAmount) : 0;
 
     const payableBeforeDiscount = Number(orderTotals?.payablePrice || 0);
-    
+
     const payableAfterDiscount = Math.max(
         0,
         payableBeforeDiscount - discountAmount - shippingDiscount - (usePoints ? recalculatedPointDiscount : 0)
     );
 
     const payableAfterDiscountFormatted = formatCurrencyVND(payableAfterDiscount > 0 ? payableAfterDiscount : 0);
-    
+
     const totals = orderTotals || {
         totalPrice: '0 đ',
         totalDiscount: '0 đ',
@@ -169,10 +169,10 @@ const CartSummary = ({
                 const res = await couponService.applyCoupon({
                     codes: codesToApply,
                     orderTotal: Number(orderTotals?.payablePrice || 0),
-                    shippingFee: Number(orderTotals?.shippingFee || 0) ,  // ✅ thêm dòng này
+                    shippingFee: Number(orderTotals?.shippingFee || 0),  // ✅ thêm dòng này
                     skuIds: selectedItems.map((i) => i.skuId)
                 });
-    
+
                 if (!res.data?.isValid) {
                     const msg = (res.data?.message || '').toLowerCase();
                     if (msg.includes('hết lượt') || msg.includes('hết hạn')) {
@@ -183,7 +183,7 @@ const CartSummary = ({
                     localStorage.removeItem('appliedCoupons');
                     throw new Error(res.data?.message || 'Mã không còn hiệu lực');
                 }
-    
+
                 const { discountCoupon, shippingCoupon } = res.data;
                 const updatedCoupons = { discount: discountCoupon, shipping: shippingCoupon };
                 setAppliedCoupons(updatedCoupons);
@@ -196,7 +196,7 @@ const CartSummary = ({
             setIsCheckingOut(false);
         }
     };
-    
+
     return (
         <>
             <aside className="bg-white rounded-xl p-3 sm:p-4 border border-gray-200 shadow-sm flex flex-col gap-4">
@@ -204,7 +204,7 @@ const CartSummary = ({
                 <div className="flex justify-between items-center">
                     <h4 className="font-semibold text-sm text-gray-800">CYBERZONE khuyến mãi</h4>
                     <div className="flex items-center text-xs text-gray-500">
-                        Có thể chọn&nbsp;1
+                        Có thể chọn&nbsp;2
                         <FiInfo className="ml-1 text-gray-400" size={14} />
                     </div>
                 </div>
@@ -337,11 +337,26 @@ const CartSummary = ({
                                     <span>- {formatCurrencyVND(shippingDiscount)}</span>
                                 </div>
                             )}
+                            {usePoints && recalculatedPointDiscount > 0 && (
+                                <div className="flex justify-between text-xs text-green-600 ml-2 relative">
+                                    <span className="before:content-['•'] before:mr-1 before:text-green-600">Giảm giá từ điểm thưởng</span>
+                                    <span>- {formatCurrencyVND(recalculatedPointDiscount)}</span>
+                                </div>
+                            )}
+
                         </>
                     )}
                     <div className="flex justify-between">
                         <span>Tổng khuyến mãi</span>
-                        <span className="font-medium text-gray-800">{formatCurrencyVND(Number(totals.totalDiscount) + discountAmount + shippingDiscount)}</span>
+                        <span className="font-medium text-gray-800">
+  {formatCurrencyVND(
+    Number(totals.totalDiscount) +
+    discountAmount +
+    shippingDiscount +
+    (usePoints ? recalculatedPointDiscount : 0)
+  )}
+</span>
+
                     </div>
                     <hr className="border-dashed" />
                     <div className="flex justify-between text-gray-800 font-semibold">
@@ -376,9 +391,8 @@ const CartSummary = ({
                 <button
                     onClick={handleCheckout}
                     disabled={!hasSelectedItems}
-                    className={`block text-center w-full font-semibold py-3 rounded-md transition-colors text-base ${
-                        hasSelectedItems ? 'bg-primary text-white hover:opacity-90' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    }`}
+                    className={`block text-center w-full font-semibold py-3 rounded-md transition-colors text-base ${hasSelectedItems ? 'bg-primary text-white hover:opacity-90' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        }`}
                 >
                     Xác nhận đơn
                 </button>

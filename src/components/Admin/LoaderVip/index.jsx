@@ -1,7 +1,7 @@
 // src/components/Admin/LoaderVip
 import React, { useEffect } from "react";
 import Lottie from "lottie-react";
-import loadingAnimation from "../../../assets/Admin/animations/loader.json"; 
+import loadingAnimation from "../../../assets/Client/animations/loader.json"; 
 
 const LoaderAdmin = ({ fullscreen }) => {
   useEffect(() => {

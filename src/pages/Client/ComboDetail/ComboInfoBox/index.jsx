@@ -59,7 +59,7 @@ export default function ComboInfoBox({ skus = [] }) {
 
   return (
     <div className="bg-white p-4 md:p-6 rounded-lg border border-gray-200 shadow-sm relative">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">Mô tả chi tiết của các sản phẩm</h2>
+      <h2 className="text-xl font-bold text-gray-800 mb-4">Mô tả chi tiết</h2>
 
       <div className={`${!isExpanded && canExpand ? 'max-h-[500px] overflow-hidden relative' : ''}`}>
         {itemsToShow.map((g, idx) => (

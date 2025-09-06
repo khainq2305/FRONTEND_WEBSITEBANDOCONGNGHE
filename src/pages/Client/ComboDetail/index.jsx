@@ -146,8 +146,7 @@ export default function ComboDetail() {
         {/* Cột trái: mô tả, mô tả sản phẩm | Cột phải: thông số kỹ thuật */}
         <div className="grid grid-cols-1 xl:grid-cols-[3fr_2fr] gap-4 items-start mb-6">
           <div className="space-y-4">
-            <ComboDescription description={combo.description} />
-
+           
             <ComboInfoBox
               skus={(combo.comboSkus ?? []).map((sku, index) => ({
                 id: sku.skuId ?? index,

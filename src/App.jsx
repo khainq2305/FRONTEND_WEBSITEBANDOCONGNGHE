@@ -7,7 +7,7 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 import { SystemSettingProvider, useSystemSetting } from "@/contexts/SystemSettingContext";
 import { systemSettingService } from "@/services/admin/systemSettingService";
 import useAuthStore from "@/stores/AuthStore";
-
+import { RewardPointProvider } from "@/contexts/RewardPointContext"; // 👈 import thêm
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import ThemeCustomization from "./themes"; 
 import Toastify from "components/common/Toastify";
@@ -82,10 +82,12 @@ export default function App() {
   return (
     <GoogleOAuthProvider clientId={clientId}>
       <SystemSettingProvider>
+          <RewardPointProvider> {/* 👈 bọc ở đây để toàn bộ app xài được */}
         {/* Đặt ThemeCustomization ở đây, bao bọc AppContent hoặc trực tiếp RouterProvider */}
         <ThemeCustomization> {/* <-- Đặt ThemeCustomization ở cấp cao hơn */}
           <AppContent />
         </ThemeCustomization>
+         </RewardPointProvider>
       </SystemSettingProvider>
     </GoogleOAuthProvider>
   );

@@ -12,6 +12,12 @@ const TABS = [
   { key: 'earn', label: 'Đã tích điểm' },
   { key: 'spend', label: 'Đã sử dụng' }
 ];
+const TYPE_LABELS = {
+  earn: "Mua hàng tích điểm",
+  spend: "Sử dụng điểm",
+  expired: "Điểm bị hết hạn",
+  refund: "Hoàn điểm do hủy đơn"
+};
 
 const formatPoint = (value) => new Intl.NumberFormat('vi-VN').format(value);
 
@@ -40,14 +46,18 @@ export default function RewardPointHistory({ onLoadingChange, onCancelSuccess })
     })();
   }, [page, onLoadingChange]);
 
-  const cancelOrder = async (orderId) => {
-    try {
-      await rewardPointService.cancelOrder(orderId);
-      onCancelSuccess?.();
-    } catch (err) {
-      console.error("Lỗi khi hủy đơn:", err);
-    }
-  };
+ const cancelOrder = async (orderId) => {
+  try {
+    await rewardPointService.cancelOrder(orderId);
+    onCancelSuccess?.();
+
+    // 👇 Thêm dòng này để báo cho RewardPointContext refetch điểm
+    window.dispatchEvent(new Event("pointsUpdated"));
+  } catch (err) {
+    console.error("Lỗi khi hủy đơn:", err);
+  }
+};
+
 
   const filtered = history.filter((h) =>
     active === 'all' ? true : active === 'earn' ? h.type === 'earn' : h.type === 'spend'
@@ -104,13 +114,10 @@ export default function RewardPointHistory({ onLoadingChange, onCancelSuccess })
                 />
 
                 <div>
-                  <p className="font-semibold mb-1">
-                    {item.type === 'earn'
-                      ? 'Mua hàng tích điểm'
-                      : item.type === 'expired'
-                      ? 'Điểm bị hết hạn'
-                      : 'Sử dụng điểm'}
-                  </p>
+                 <p className="font-semibold mb-1">
+  {TYPE_LABELS[item.type] || "Giao dịch khác"}
+</p>
+
 
                   <p className="text-xs text-gray-500 mb-1">
                     vào lúc {format(new Date(item.createdAt), 'HH:mm, dd/MM/yyyy', { locale: vi })} tại CYBERZONE Shop
@@ -123,23 +130,17 @@ export default function RewardPointHistory({ onLoadingChange, onCancelSuccess })
                     />
                   )}
 
-                  {item.orderCode && item.type !== 'expired' && (
-                    <p className="text-sm mt-1 text-gray-700">
-                      Đơn hàng: <span className="font-medium">{item.orderCode}</span>{' '}
-                      <a
-                        href={`/user-profile/orders/${item.orderCode}`}
-                        className="text-blue-600 hover:underline text-sm"
-                      >
-                        Xem chi tiết
-                      </a>{' '}
-                      <button
-                        onClick={() => cancelOrder(item.orderCode)}
-                        className="ml-2 px-2 py-0.5 bg-red-500 text-white text-xs rounded"
-                      >
-                        Hủy đơn
-                      </button>
-                    </p>
-                  )}
+                 {item.orderCode && (
+  <p className="text-sm mt-1 text-gray-700">
+    Đơn hàng: <span className="font-medium">{item.orderCode}</span>{' '}
+    <a
+      href={`/user-profile/orders/${item.orderCode}`}
+      className="text-blue-600 hover:underline text-sm"
+    >
+      Xem chi tiết
+    </a>
+  </p>
+)}
 
                   {item.expiredAt && (
                     <p className="text-xs text-gray-500 mt-1">

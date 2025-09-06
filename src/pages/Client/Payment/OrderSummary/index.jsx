@@ -337,7 +337,7 @@ useEffect(() => {
       localStorage.removeItem('appliedCoupons');
       useCartStore.getState().clearCart();
       window.dispatchEvent(new Event('cartUpdated'));
-
+window.dispatchEvent(new Event('pointsUpdated')); 
       if (isQR) {
         const payableNow = finalAmount;
         const qrRes = await paymentService.vietqrPay({
@@ -363,40 +363,41 @@ useEffect(() => {
       if (isVNPay) {
         const url = (await paymentService.vnpay({ orderId, bankCode: 'NCB' })).data?.payUrl;
         if (!url) throw new Error('Không nhận được link VNPay');
-        window.location.href = url;
+        window.location.replace(url);
         return;
       }
 
       if (isMoMo) {
         const url = (await paymentService.momoPay({ orderId })).data?.payUrl;
         if (!url) throw new Error('Không nhận được link MoMo');
-        window.location.href = url;
+        window.location.replace(url);
         return;
       }
 
       if (isZalo) {
         const url = (await paymentService.zaloPay({ orderId })).data?.payUrl;
         if (!url) throw new Error('Không nhận được link ZaloPay');
-        window.location.href = url;
+        window.location.replace(url);
         return;
       }
 
       if (isViettel) {
         const url = (await paymentService.viettelMoney({ orderId })).data?.payUrl;
         if (!url) throw new Error('Không nhận được link Viettel Money');
-        window.location.href = url;
+        window.location.replace(url);
         return;
       }
 
       if (isPayOS) {
         const url = (await paymentService.payosPay({ orderId })).data?.payUrl;
         if (!url) throw new Error('Không nhận được link PayOS');
-        window.location.href = url;
+        window.location.replace(url);
         return;
       }
 
       toast.success('Đặt hàng thành công!');
-      navigate(`/order-confirmation?orderCode=${orderCode}`);
+      navigate(`/order-confirmation?orderCode=${orderCode}`, { replace: true });
+
     } catch (err) {
       console.error('[Create Order]', err);
       toast.error(err?.response?.data?.message || 'Lỗi đặt hàng!');
@@ -431,7 +432,7 @@ useEffect(() => {
         <div className="flex justify-between items-center">
           <h4 className="font-semibold text-sm text-gray-800">CYBERZONE khuyến mãi</h4>
           <div className="flex items-center text-xs text-gray-500">
-            Có thể chọn&nbsp;1
+            Có thể chọn&nbsp;2
             <FiInfo className="ml-1 text-gray-400" size={14} />
           </div>
         </div>

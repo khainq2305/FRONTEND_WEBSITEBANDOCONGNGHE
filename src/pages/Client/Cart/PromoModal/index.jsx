@@ -215,7 +215,7 @@ export const CouponCard = ({
   );
 };
 
-const PromoModal = ({ modalTitle = 'Hồng Ân Khuyến Mãi', onClose, onApplySuccess, skuIds = [], orderTotal, appliedCodes = [] }) => {
+const PromoModal = ({ modalTitle = 'CYBERZONE Khuyến Mãi', onClose, onApplySuccess, skuIds = [], orderTotal, appliedCodes = [] }) => {
   const [availablePromos, setAvailablePromos] = useState([]);
   const [selectedCodes, setSelectedCodes] = useState(appliedCodes || []);
   const [inputPromoCode, setInputPromoCode] = useState('');

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { User, ShoppingBag, MapPin, Eye, Ticket, Heart, ChevronDown, X } from 'lucide-react';
 import { Wallet2 } from 'lucide-react';
+import { useRewardPoints } from "@/contexts/RewardPointContext";
 
 import { Outlet, useParams, useNavigate } from 'react-router-dom';
 import ProfileContent from './ProfileContent';
@@ -30,6 +31,7 @@ const UserProfilePage = () => {
     return hashTab || savedTab || 'thong-tin-tai-khoan';
   });
   const [walletBalance, setWalletBalance] = useState(null);
+ 
 
   const [sidebarUserInfo, setSidebarUserInfo] = useState({
     initial: '?',
@@ -40,8 +42,10 @@ const UserProfilePage = () => {
   const [isSidebarLoading, setIsSidebarLoading] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { orderCode, id, returnCode } = useParams();
-  const [totalPoints, setTotalPoints] = useState(null);
-
+  
+  // const [totalPoints, setTotalPoints] = useState(null);
+  const { points: totalPoints } = useRewardPoints();
+const [reloadFlag, setReloadFlag] = useState(0); // 👈 thêm state reloadFlag
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
   useEffect(() => {
@@ -134,17 +138,10 @@ const UserProfilePage = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isDropdownOpen]);
-  useEffect(() => {
-    rewardPointService
-      .getTotalPoints()
-      .then((res) => {
-        setTotalPoints(res?.data?.totalPoints || 0);
-      })
-      .catch((err) => {
-        console.error('Lỗi lấy điểm thưởng:', err);
-        setTotalPoints(0);
-      });
-  }, []);
+ 
+
+
+
   useEffect(() => {
     const handleAvatarUpdate = (event) => {
       const newAvatarUrl = event.detail;
@@ -186,6 +183,7 @@ const UserProfilePage = () => {
         setWalletBalance(0);
       });
   }, []);
+  
 const handleTabClick = (tabId) => {
   localStorage.setItem('activeTab', tabId);
 
@@ -261,27 +259,28 @@ const handleTabClick = (tabId) => {
               </div>
             </div>
 
-            {totalPoints !== null && (
-              <div className="mt-3 bg-[#EFF6FF] rounded-md p-3 flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-gray-600">Điểm thưởng của bạn</p>
-                  <p className="text-base font-semibold text-primary flex items-center gap-1 mt-0.5">
-                    {formatPoint(totalPoints)}
-                    <img src={coinIcon} alt="coin" className="w-4 h-4 object-contain" />
-                  </p>
-                  <a href="/diem-thuong/the-le" className="text-xs text-blue-600 hover:underline mt-1 inline-block">
-                    Xem thể lệ
-                  </a>
-                </div>
+<div className="mt-3 bg-[#EFF6FF] rounded-md p-3 flex items-center justify-between">
+  <div>
+    <p className="text-xs text-gray-600">Điểm thưởng của bạn</p>
+    <p className="text-base font-semibold text-primary flex items-center gap-1 mt-0.5">
+      {formatPoint(totalPoints ?? 0)}
+      <img src={coinIcon} alt="coin" className="w-4 h-4 object-contain" />
+    </p>
+    <a
+      href="/diem-thuong/the-le"
+      className="text-xs text-blue-600 hover:underline mt-1 inline-block"
+    >
+      Xem thể lệ
+    </a>
+  </div>
+  <img
+    src={coinBanner}
+    alt="coin banner"
+    className="w-20 h-20 object-cover ml-3 select-none pointer-events-none"
+    draggable={false}
+  />
+</div>
 
-                <img
-                  src={coinBanner}
-                  alt="coin banner"
-                  className="w-20 h-20 object-cover ml-3 select-none pointer-events-none"
-                  draggable={false}
-                />
-              </div>
-            )}
           </div>
 
           <nav className="bg-white rounded-lg shadow-sm my-2 py-2">

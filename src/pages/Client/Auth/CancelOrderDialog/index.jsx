@@ -29,7 +29,9 @@ export default function CancelOrderDialog({ open, onClose, orderId, orderCode, o
     setLoading(true);
     try {
       await orderService.cancelOrder(orderId, selectedReason);
+      
       toast.success("Hủy đơn hàng thành công");
+      window.dispatchEvent(new Event("pointsUpdated")); // ✅ thêm dòng này
       onSuccess?.(); 
       onClose(); 
     } catch (error) {
