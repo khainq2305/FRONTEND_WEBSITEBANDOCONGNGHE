@@ -11,7 +11,7 @@ import ProductSelectModal from '../../../components/Admin/ProductSelectModal';
 import { useFormContext } from 'react-hook-form';
 import { Stack } from '@mui/material';
 import { formatCurrencyVND } from '../../../utils/formatCurrency';
-
+import Breadcrumb from '../../../components/common/Breadcrumb'; // 👈 import breadcrumb
 import DeleteIcon from '@mui/icons-material/Delete';
 import slugify from 'slugify';
 import { useMemo } from 'react';
@@ -73,6 +73,12 @@ const ComboForm = ({ isEdit = false, initialData = {} }) => {
       setPreview(initialData.thumbnail || '');
     }
   }, [initialData, isEdit]);
+const handleRemoveThumbnail = (e) => {
+  e.stopPropagation();              // ⛔️ đừng mở file picker khi bấm xoá
+  setPreview('');
+  setForm((prev) => ({ ...prev, thumbnail: null }));
+  setErrors((prev) => ({ ...prev, thumbnail: '' }));
+};
 
   const onDrop = (acceptedFiles) => {
     if (acceptedFiles.length > 0) {
@@ -354,26 +360,39 @@ const ComboForm = ({ isEdit = false, initialData = {} }) => {
   }, [form.comboSkus]);
 
   return (
-    <form onSubmit={handleSubmit} className="w-full space-y-6" encType="multipart/form-data">
+    <>
+    <Breadcrumb
+    items={[
+      { label: 'Trang chủ', href: '/admin' },
+      { label: 'Quản lý Combo', href: '/admin/combos' },
+      { label: isEdit ? 'Cập nhật Combo' : 'Tạo Combo mới' }
+    ]}
+  />
+    
+   <Box sx={{ border: '1px solid #ddd', borderRadius: 2, p: 3, boxShadow: 1, backgroundColor: '#fff', mt: 2 }}>
+    
+     <form onSubmit={handleSubmit} className="w-full space-y-6"  encType="multipart/form-data">
       <Typography variant="h5" fontWeight={600}>
         {isEdit ? 'Cập nhật combo' : 'Tạo combo mới'}
       </Typography>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[3fr_1fr] gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[3fr_1fr] gap-6 mt-3">
         {/* Left */}
-        <div className="space-y-6">
-          <TextField
-            label="Tên combo"
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            fullWidth
-            error={Boolean(errors.name)}
-            helperText={errors.name}
-          />
+        <div className="space-y-6 mb-2">
+        <TextField
+  label="Tên combo"
+  name="name"
+  value={form.name}
+  onChange={handleChange}
+  fullWidth
+  error={Boolean(errors.name)}
+  helperText={errors.name}
+  sx={{ mb: 2 }}        // 👈 thêm dòng này
+/>
+
 
           <div>
-            <Typography className="mb-1 mt-1 font-medium text-sm text-gray-700">Mô tả</Typography>
+            <Typography className="mb-1 mt-3 font-medium text-sm text-gray-700">Mô tả</Typography>
             <TinyEditor value={form.description} onChange={(val) => setForm((prev) => ({ ...prev, description: val }))} height={250} />
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
@@ -489,19 +508,49 @@ const ComboForm = ({ isEdit = false, initialData = {} }) => {
 
         {/* Right */}
         <div className="flex flex-col gap-4">
-          <div
-            {...getRootProps()}
-            className={`w-full border-[2px] border-dashed rounded-md px-3 py-10 text-center cursor-pointer
-  ${isDragActive ? 'bg-blue-50 border-blue-500' : errors.thumbnail ? 'border-red-500 bg-red-50' : 'border-blue-400 bg-white'}
-  hover:border-blue-500 hover:bg-blue-50 transition-all`}
-          >
-            <input {...getInputProps()} />
-            {preview ? (
-              <img src={preview} alt="preview" className="max-h-32 mx-auto object-contain" />
-            ) : (
-              <p className="text-gray-700 text-sm">Kéo ảnh vào hoặc nhấp để chọn ảnh</p>
-            )}
-          </div>
+          {/* Dropzone cao hơn */}
+<div
+  {...getRootProps()}
+  className={`w-full border-[2px] border-dashed rounded-md text-center cursor-pointer transition-all
+    ${isDragActive ? 'bg-blue-50 border-blue-500' : errors.thumbnail ? 'border-red-500 bg-red-50' : 'border-blue-400 bg-white'}
+    hover:border-blue-500 hover:bg-blue-50`}
+  style={{
+    minHeight: 150,           // 👈 tăng chiều cao ô kéo ảnh
+    padding: 16,
+    display: 'flex',
+        backgroundColor: '#F5F5F5', // 👈 nền xám
+    alignItems: 'center',
+    justifyContent: 'center'
+  }}
+>
+  <input {...getInputProps()} />
+  <p className="text-gray-700 text-sm">Kéo ảnh vào hoặc nhấp để chọn ảnh</p>
+</div>
+
+{/* Preview full width = đúng bằng ô kéo ảnh (w-full) */}
+{preview && (
+  <div className="relative mt-3 w-full">
+    <img
+      src={preview}
+      alt="preview"
+      className="w-full max-h-40 object-contain rounded-md border"  // 👈 w-full để ngang bằng dropzone
+    />
+    <IconButton
+      size="small"
+      color="error"
+      onClick={(e) => {
+        e.stopPropagation();
+        setPreview('');
+        setForm((prev) => ({ ...prev, thumbnail: null }));
+      }}
+      className="!absolute top-1 right-1 bg-white shadow"
+      aria-label="Xoá ảnh"
+    >
+      <DeleteIcon fontSize="small" />
+    </IconButton>
+  </div>
+)}
+
           {errors.thumbnail && (
             <Typography variant="caption" color="error" sx={{ mt: 1 }}>
               {errors.thumbnail}
@@ -649,6 +698,8 @@ const ComboForm = ({ isEdit = false, initialData = {} }) => {
         selectedSkus={modalSelectedSkus} // 👈 THÊM DÒNG NÀY
       />
     </form>
+   </Box>
+   </>
   );
 };
 

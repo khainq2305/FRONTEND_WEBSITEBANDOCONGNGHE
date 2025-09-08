@@ -44,7 +44,7 @@ useEffect(() => {
   if (momoOrderId && resultCode !== null && !isPaymentAttempted) {
     setIsPaymentAttempted(true);
 
-    fetch('https://backend-websitebandocongnghe-1.onrender.com/payment/momo-callback', {
+    fetch('http://www.quockhai.id.vn/payment/momo-callback', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ orderId: momoOrderId, resultCode })
@@ -86,7 +86,7 @@ useEffect(() => {
 http://localhost:5000/
    
     if (orderCode) {
-        fetch(`https://fab18b115212.ngrok-free.app/payment/payos-webhook`, {
+        fetch(`http://www.quockhai.id.vn/payment/payos-webhook`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
          
@@ -116,7 +116,7 @@ http://localhost:5000/
 
     const rawQuery = window.location.search.slice(1);
 
-    fetch('https://backend-websitebandocongnghe-1.onrender.com/payment/vnpay-callback', {
+    fetch('http://www.quockhai.id.vn/payment/vnpay-callback', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ rawQuery })

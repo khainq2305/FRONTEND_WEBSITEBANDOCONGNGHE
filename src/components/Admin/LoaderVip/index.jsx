@@ -14,44 +14,36 @@ const LoaderAdmin = ({ fullscreen }) => {
     };
   }, [fullscreen]);
 
-  return (
-  <div
-    style={{
-      position: "fixed", // luôn luôn fixed
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: fullscreen
-        ? "rgba(255, 255, 255, 0.85)"
-        : "transparent",
-      zIndex: 9999,
-      width: "100%",
-      height: "100vh", // chiều cao toàn màn hình
-    }}
-  >
-    <Lottie
-      animationData={loadingAnimation}
-      style={{ height: 100, width: 100 }}
-      loop
-      autoplay
-    />
-
-    <p
+return (
+    <div
       style={{
-        marginTop: "15px",
-        fontSize: "1rem",
-        color: "#333333",
+        position: fullscreen ? "fixed" : "relative",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: fullscreen
+          ? "rgba(255, 255, 255, 0.8)"
+          : "transparent",
+        zIndex: fullscreen ? 9999 : 1,
+        width: fullscreen ? "100%" : "auto",
+        height: fullscreen ? "100vh" : "auto",
       }}
     >
-      Chờ một chút nhé...
-    </p>
-  </div>
-);
+      <Lottie
+        animationData={loadingAnimation}
+        style={{
+          width: fullscreen ? 250 : 200, 
+          height: fullscreen ? 250 : 200,
+        }}
+        loop
+        autoplay
+      />
+    </div>
+  );
 
 };
 

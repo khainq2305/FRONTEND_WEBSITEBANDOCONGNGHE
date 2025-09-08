@@ -27,7 +27,7 @@ import { getAllUsers, updateUserStatus, resetUserPassword, getDeletedUsers, forc
 import SearchInput from 'components/common/SearchInput';
 import MoreActionsMenu from '../MoreActionsMenu';
 import MUIPagination from 'components/common/Pagination';
-import Loader from 'components/common/Loader';
+import LoaderAdmin from 'components/Admin/LoaderVip';
 
 import { toast } from 'react-toastify';
 import RoleSelectDialog from '../UserDetailDialog/PromotionDialog';
@@ -199,146 +199,166 @@ const handleApplyRoles = async (roles) => {
     console.error(err);
   }
 };
-  return (
-    <Box p={isMobile ? 1 : 3}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h5" fontWeight="bold">
-          Quản lý Người dùng
-        </Typography>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate('/admin/users/create')}>
-          Thêm mới
-        </Button>
-      </Stack>
+return (
+  <Box p={isMobile ? 1 : 3}>
+    {(loading || actionLoading) && <LoaderAdmin fullscreen />}
 
-      <Card>
-        <CardContent sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
-          <Tabs value={tab} onChange={handleTabChange} variant="scrollable" sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-            {TABS.map((tabItem) => (
-              <Tab key={tabItem.key} label={`${tabItem.label} (${statusCounts[tabItem.key] || 0})`} />
-            ))}
-          </Tabs>
+    <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+      <Typography variant="h5" fontWeight="bold">
+        Quản lý Người dùng
+      </Typography>
+      <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate('/admin/users/create')}>
+        Thêm mới
+      </Button>
+    </Stack>
 
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} mb={2} justifyContent="space-between">
-            <SearchInput
-              value={search}
-              onChange={setSearch}
-              placeholder="Tìm kiếm theo tên, email..."
-              sx={{ width: { xs: '100%', sm: 320 } }}
-            />
-            {tab === 3 && selectedIds.length > 0 && (
-              <Button variant="contained" color="error" startIcon={<DeleteIcon />} onClick={handleForceDeleteMany}>
-                Xoá vĩnh viễn ({selectedIds.length})
-              </Button>
-            )}
-          </Stack>
+    <Card>
+      <CardContent
+        sx={{
+          p: { xs: 1, sm: 2, md: 3 },
+          pointerEvents: (loading || actionLoading) ? 'none' : 'auto',
+          opacity: (loading || actionLoading) ? 0.98 : 1
+        }}
+      >
+        <Tabs
+          value={tab}
+          onChange={handleTabChange}
+          variant="scrollable"
+          sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}
+        >
+          {TABS.map((tabItem) => (
+            <Tab key={tabItem.key} label={`${tabItem.label} (${statusCounts[tabItem.key] || 0})`} />
+          ))}
+        </Tabs>
 
-          {loading || actionLoading ? (
-            <Loader />
-          ) : (
-            <>
-              <TableContainer>
-                <Table size={isMobile ? 'small' : 'medium'}>
-                  <TableHead sx={{ bgcolor: 'action.hover' }}>
-                    <TableRow>
-                      <TableCell padding="checkbox">
-                        <Checkbox checked={users.length > 0 && users.every((u) => selectedIds.includes(u.id))} onChange={toggleSelectAll} />
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Người dùng</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>{tab === 3 ? 'Ngày xoá' : 'Vai trò'}</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 'bold' }}>
-                        Hành động
-                      </TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {users.map((row) => (
-                      <TableRow key={row.id} selected={selectedIds.includes(row.id)} hover>
-                        <TableCell padding="checkbox">
-                          <Checkbox checked={selectedIds.includes(row.id)} onChange={() => toggleSelect(row.id)} />
-                        </TableCell>
-
-                        <TableCell>
-                          <Stack direction="row" alignItems="center" spacing={1.5}>
-                            <Avatar src={row.avatarUrl} alt={row.fullName} sx={{ width: 40, height: 40 }} />
-                            <Box>
-                              <Typography variant="subtitle2" component="div" noWrap sx={{ maxWidth: 200 }}>
-                                {row.fullName}
-                              </Typography>
-                              <Typography variant="body2" color="text.secondary" noWrap sx={{ maxWidth: 200 }}>
-                                {row.email}
-                              </Typography>
-                            </Box>
-                          </Stack>
-                        </TableCell>
-
-                        <TableCell>
-                          {tab === 3 ? (
-                            new Date(row.deletedAt).toLocaleString()
-                          ) : row.roles && row.roles.length > 0 ? (
-                            <Stack direction="row" spacing={0.5} flexWrap="wrap">
-                              {row.roles.map((role) => (
-                                <Chip key={role.id} label={role.name} size="small" sx={{ mb: 0.5 }} />
-                              ))}
-                            </Stack>
-                          ) : (
-                            <Chip label="Không rõ" size="small" color="default" />
-                          )}
-                        </TableCell>
-                        <TableCell align="right">
-                          <MoreActionsMenu
-                            user={row}
-                            isDeleted={tab === 3}
-                            onChangeStatus={(newStatus) => handleStatusChange(row, newStatus)}
-                            onView={() => {
-                              setSelectedUser(row);
-                              setOpenDialog(true);
-                            }}
-                            onResetPassword={handleResetPassword}
-                            onViewDetail={handleViewDetail}
-                            onForceDelete={() => handleForceDelete(row.id)}
-                          />
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {users.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={5} align="center">
-                          <Typography p={4}>Không có người dùng nào</Typography>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-
-              {totalPages > 1 && (
-                <MUIPagination
-                  currentPage={page}
-                  totalItems={statusCounts[TABS[tab].key] || 0}
-                  itemsPerPage={itemsPerPage}
-                  onPageChange={(p) => setPage(p)}
-                  sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}
-                />
-              )}
-            </>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} mb={2} justifyContent="space-between">
+          <SearchInput
+            value={search}
+            onChange={setSearch}
+            placeholder="Tìm kiếm theo tên, email..."
+            sx={{ width: { xs: '100%', sm: 320 } }}
+          />
+          {tab === 1 && selectedIds.length > 0 && (
+            <Button variant="contained" color="error" startIcon={<DeleteIcon />} onClick={handleForceDeleteMany}>
+              Xoá vĩnh viễn ({selectedIds.length})
+            </Button>
           )}
-        </CardContent>
-      </Card>
+        </Stack>
 
-      <RoleSelectDialog
-  open={openDialog}
-  onClose={() => setOpenDialog(false)}
-  roles={demoRoles}
-  defaultSelected={appliedRoles}
-  user={selectedUser}
-  onApply={handleApplyRoles}
-  fetchUsers={fetchUsers}   // 👈 thêm dòng này
-/>
+        {/* Luôn render bảng; overlay loader sẽ che và khoá tương tác */}
+        <>
+          <TableContainer>
+            <Table size={isMobile ? 'small' : 'medium'}>
+              <TableHead sx={{ bgcolor: 'action.hover' }}>
+                <TableRow>
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      checked={users.length > 0 && users.every((u) => selectedIds.includes(u.id))}
+                      onChange={toggleSelectAll}
+                    />
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Người dùng</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>
+                    {tab === 1 ? 'Ngày xoá' : 'Vai trò'}
+                  </TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+                    Hành động
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {users.map((row) => (
+                  <TableRow key={row.id} selected={selectedIds.includes(row.id)} hover>
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        checked={selectedIds.includes(row.id)}
+                        onChange={() => toggleSelect(row.id)}
+                      />
+                    </TableCell>
 
+                    <TableCell>
+                      <Stack direction="row" alignItems="center" spacing={1.5}>
+                        <Avatar src={row.avatarUrl} alt={row.fullName} sx={{ width: 40, height: 40 }} />
+                        <Box>
+                          <Typography variant="subtitle2" component="div" noWrap sx={{ maxWidth: 200 }}>
+                            {row.fullName}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" noWrap sx={{ maxWidth: 200 }}>
+                            {row.email}
+                          </Typography>
+                        </Box>
+                      </Stack>
+                    </TableCell>
 
-      <UserDetailDialog open={detailOpen} onClose={() => setDetailOpen(false)} user={selectedUser} />
-    </Box>
-  );
+                    <TableCell>
+                      {tab === 1 ? (
+                        new Date(row.deletedAt).toLocaleString()
+                      ) : row.roles && row.roles.length > 0 ? (
+                        <Stack direction="row" spacing={0.5} flexWrap="wrap">
+                          {row.roles.map((role) => (
+                            <Chip key={role.id} label={role.name} size="small" sx={{ mb: 0.5 }} />
+                          ))}
+                        </Stack>
+                      ) : (
+                        <Chip label="Không rõ" size="small" color="default" />
+                      )}
+                    </TableCell>
+
+                    <TableCell align="right">
+                      <MoreActionsMenu
+                        user={row}
+                        isDeleted={tab === 1}
+                        onChangeStatus={(newStatus) => handleStatusChange(row, newStatus)}
+                        onView={() => {
+                          setSelectedUser(row);
+                          setOpenDialog(true);
+                        }}
+                        onResetPassword={handleResetPassword}
+                        onViewDetail={handleViewDetail}
+                        onForceDelete={() => handleForceDelete(row.id)}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+
+                {users.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5} align="center">
+                      <Typography p={4}>Không có người dùng nào</Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+
+          {totalPages > 1 && (
+            <MUIPagination
+              currentPage={page}
+              totalItems={statusCounts[TABS[tab].key] || 0}
+              itemsPerPage={itemsPerPage}
+              onPageChange={(p) => setPage(p)}
+              sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}
+            />
+          )}
+        </>
+      </CardContent>
+    </Card>
+
+    <RoleSelectDialog
+      open={openDialog}
+      onClose={() => setOpenDialog(false)}
+      roles={demoRoles}
+      defaultSelected={appliedRoles}
+      user={selectedUser}
+      onApply={handleApplyRoles}
+      fetchUsers={fetchUsers}
+    />
+
+    <UserDetailDialog open={detailOpen} onClose={() => setDetailOpen(false)} user={selectedUser} />
+  </Box>
+);
+
 };
 
 export default UserList;
