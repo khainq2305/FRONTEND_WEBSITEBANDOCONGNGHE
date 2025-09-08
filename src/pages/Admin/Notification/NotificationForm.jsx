@@ -7,6 +7,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Box,
   Chip,
   FormGroup,
   Switch,
@@ -193,20 +194,23 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full space-y-6" encType="multipart/form-data">
+    <Box sx={{ border: '1px solid #ddd', borderRadius: 2, p: 3, boxShadow: 1, backgroundColor: '#fff', mt: 2 }}>
+      <form onSubmit={handleSubmit} className="w-full space-y-6" encType="multipart/form-data">
       <div className="grid grid-cols-1 lg:grid-cols-[3fr_1fr] gap-6">
         {/* Left column */}
         <div className="space-y-6">
           <TextField
-            label="Tiêu đề"
-            name="title"
-            value={form.title}
-            onChange={handleChange}
-            fullWidth
-            error={!!errors.title}
-            helperText={errors.title}
-          />
-          <div>
+  label="Tiêu đề"
+  name="title"
+  value={form.title}
+  onChange={handleChange}
+  fullWidth
+  error={!!errors.title}
+  helperText={errors.title}
+  className="mb-[2px]"   // 👈 margin-bottom 2px
+/>
+
+          <div className='mt-3'>
             <TinyEditor
               value={form.message}
               onChange={(val) => setForm((prev) => ({ ...prev, message: val }))}
@@ -331,7 +335,7 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
           <div
             {...getRootProps()}
             className={`w-full border-[2px] border-dashed rounded-md px-3 py-14 text-center cursor-pointer
-            ${isDragActive ? 'bg-blue-50 border-blue-500' : 'border-blue-400 bg-white'}
+            ${isDragActive ? 'bg-blue-50 border-blue-500' : 'border-blue-400 bg-[#f5f5f5]'}
             hover:border-blue-500 hover:bg-blue-50 transition-all`}
           >
             <input {...getInputProps()} />
@@ -369,6 +373,7 @@ const NotificationForm = ({ editing, onSuccess, onCancel }) => {
         </button>
       </div>
     </form>
+    </Box>
   );
 };
 

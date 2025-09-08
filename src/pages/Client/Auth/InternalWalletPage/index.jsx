@@ -72,11 +72,9 @@ useEffect(() => {
       }
 
       const historyRes = await walletService.getTransactions(page, limit);
-      const list = Array.isArray(historyRes?.data?.data) ? historyRes.data.data : [];
-      setTransactions(list);
-
-      const pagination = historyRes?.data?.pagination || {};
-      setTotal(pagination.total || 0);
+      const { history = [], total = 0 } = historyRes?.data ?? {};
+      setTransactions(history);
+      setTotal(total);
     } catch (err) {
       console.error('Lỗi khi lấy dữ liệu ví:', err);
       navigate('/dang-nhap');

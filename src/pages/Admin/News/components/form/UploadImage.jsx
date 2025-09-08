@@ -63,20 +63,28 @@ const UploadImage = ({ thumbnail, setThumbnail }) => {
   return (
     <Box>
       <Box
-        {...getRootProps()}
-        sx={{
-          border: '2px dashed #90caf9',
-          borderRadius: 2,
-          padding: 2,
-          textAlign: 'center',
-          cursor: 'pointer',
-          bgcolor: isDragActive ? '#e3f2fd' : 'inherit',
-          transition: 'background-color 0.2s ease-in-out'
-        }}
-      >
-        <input {...getInputProps()} />
-        <Typography variant="body2">{isDragActive ? 'Thả ảnh vào đây...' : 'Kéo ảnh vào hoặc nhấp để chọn ảnh'}</Typography>
-      </Box>
+  {...getRootProps()}
+  sx={{
+    border: '2px dashed #90caf9',
+    borderRadius: 2,
+    px: 2,
+    py: 3,               // ⬅️ tăng padding dọc
+    minHeight: 140,      // ⬅️ tăng chiều cao tối thiểu (tuỳ bạn 140–180)
+    display: 'flex',     // ⬅️ canh giữa nội dung
+    alignItems: 'center',
+    justifyContent: 'center',
+    textAlign: 'center',
+    cursor: 'pointer',
+    bgcolor: isDragActive ? '#e3f2fd' : '#f5f5f5',
+    transition: 'background-color 0.2s ease-in-out'
+  }}
+>
+  <input {...getInputProps()} />
+  <Typography variant="body2">
+    {isDragActive ? 'Thả ảnh vào đây...' : 'Kéo ảnh vào hoặc nhấp để chọn ảnh'}
+  </Typography>
+</Box>
+
 
       {thumbnail && (
   <Box mt={2}>

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { Grid } from "@mui/material";
+import { Grid, Box } from "@mui/material";
 import Content from "@/pages/Admin/News/components/form/Content";
 import Sidebar from "@/pages/Admin/News/components/sidebar/Sidebar";
 import { newsCategoryService } from "@/services/admin/newCategoryService";
@@ -209,7 +209,8 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
 
   return (
     <div title="Thêm bài viết mới">
-      <form onSubmit={handleSubmit(onFormSubmit)}>
+    <Box sx={{ border: '1px solid #ddd', borderRadius: 2, p: 3, boxShadow: 1, backgroundColor: '#fff', mt: 2 }}>
+            <form onSubmit={handleSubmit(onFormSubmit)}>
         <Grid container spacing={3}>
           <Grid item xs={12} md={9}>
             <Controller
@@ -253,6 +254,7 @@ const FormPost = ({ onSubmit, initialData, mode = "add" }) => {
           </Grid>
         </Grid>
       </form>
+</Box>
     </div>
   );
 };
