@@ -29,22 +29,27 @@ export default function RewardPointHistory({ onLoadingChange, onCancelSuccess })
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState('all');
 
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      onLoadingChange?.(true);
-      try {
-        const { data } = await rewardPointService.getHistory({ page, limit });
-        setHistory(data?.history || []);
-        setTotal(data?.total || 0);
-      } catch (e) {
-        console.error('Lỗi getPointHistory:', e);
-      } finally {
-        setLoading(false);
-        onLoadingChange?.(false);
-      }
-    })();
-  }, [page, onLoadingChange]);
+useEffect(() => {
+  (async () => {
+    setLoading(true);
+    onLoadingChange?.(true);
+    try {
+      const { data } = await rewardPointService.getHistory({
+        page,
+        limit,
+        type: active === "all" ? undefined : active,
+      });
+      setHistory(data?.history || []);
+      setTotal(data?.total || 0);
+    } catch (e) {
+      console.error("Lỗi getPointHistory:", e);
+    } finally {
+      setLoading(false);
+      onLoadingChange?.(false);
+    }
+  })();
+}, [page, active, onLoadingChange]);
+
 
  const cancelOrder = async (orderId) => {
   try {
@@ -162,14 +167,15 @@ export default function RewardPointHistory({ onLoadingChange, onCancelSuccess })
         </ul>
       )}
 
-      {!loading && filtered.length > limit && (
-        <MUIPagination
-          currentPage={page}
-          totalItems={filtered.length}
-          itemsPerPage={limit}
-          onPageChange={(newPage) => !loading && setPage(newPage)}
-        />
-      )}
+      {!loading && Math.ceil(total / limit) > 1 && (
+  <MUIPagination
+    currentPage={page}
+    totalItems={total}        // dùng tổng từ API
+    itemsPerPage={limit}
+    onPageChange={setPage}
+  />
+)}
+
     </section>
   );
 }
