@@ -25,6 +25,7 @@ import { confirmDelete } from '../../../components/common/ConfirmDeleteDialog';
 import ComboRowItem from './ComboRowItem';
 import ComboDetailDialog from './ComboDetailDialog';
 import { useNavigate } from 'react-router-dom';
+import Breadcrumb from '../../../components/common/Breadcrumb';
 
 export default function ComboListPage() {
   const [combos, setCombos] = useState([]);
@@ -174,17 +175,31 @@ export default function ComboListPage() {
 
   const toggleSelectAll = (checked) => setSelectedIds(checked ? combos.map((c) => c.id) : []);
   const toggleSelectOne = (id) => setSelectedIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
+const breadcrumbItems = [
+  { label: 'Trang Chủ', href: '/admin' },
+  { label: 'Quản Lý Combo', href: '/admin/combos' },
+  { label: 'Danh Sách Combo' } // item cuối không có href
+];
 
   return (
     <Box>
       {isLoading && <LoaderAdmin fullscreen />}
 
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h4">Danh sách combo</Typography>
-        <Button variant="contained" onClick={() => navigate('/admin/combos/create')}>
-          + Thêm combo
-        </Button>
-      </Box>
+  <Box sx={{ mb: 2 }}>
+  <Breadcrumb items={[
+    { label: 'Trang Chủ', href: '/admin' },
+    { label: 'Quản Lý Combo', href: '/admin/combos' },
+    { label: 'Danh Sách Combo' }
+  ]} />
+</Box>
+
+<Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+  <Typography variant="h4">Danh sách combo</Typography>
+  <Button variant="contained" onClick={() => navigate('/admin/combos/create')}>
+    + Thêm combo
+  </Button>
+</Box>
+
 
       <Box sx={{ p: 2, mb: 2, border: '1px solid #eee', borderRadius: 2, bgcolor: '#fafafa' }}>
         <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
@@ -263,6 +278,7 @@ export default function ComboListPage() {
                     onChange={(e) => toggleSelectAll(e.target.checked)}
                   />
                 </TableCell>
+                  <TableCell align="center">STT</TableCell>
                 <TableCell>Ảnh</TableCell>
                 <TableCell>Tên combo</TableCell>
                 <TableCell>Giá</TableCell>
@@ -278,7 +294,8 @@ export default function ComboListPage() {
                 <ComboRowItem
                   key={combo.id}
                   combo={combo}
-                  index={index}
+                   index={(currentPage - 1) * itemsPerPage + index + 1}
+                 
                   selected={selectedIds.includes(combo.id)}
                   onSelect={toggleSelectOne}
                   onEdit={() => navigate(`/admin/combos/edit/${combo.slug}`)}

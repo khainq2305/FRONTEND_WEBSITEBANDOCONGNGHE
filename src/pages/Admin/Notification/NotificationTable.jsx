@@ -35,7 +35,7 @@ function RowSortable({ item, index, selectedIds, onSelect, onEdit, onDelete, onV
         <input type="checkbox" checked={selectedIds.includes(item.id)} onChange={() => onSelect(item.id)} />
       </TableCell>
       {/* 👇 STT tính theo trang */}
-      <TableCell>{(page - 1) * limit + index + 1}</TableCell>
+      <TableCell align="center">{(page - 1) * limit + index + 1}</TableCell>
 
       <TableCell>
         {item.imageUrl ? (
@@ -134,7 +134,7 @@ function RowSortable({ item, index, selectedIds, onSelect, onEdit, onDelete, onV
                         onChange={onSelectAll}
                       />
                     </TableCell>
-                    <TableCell>STT</TableCell>
+                    <TableCell align="center">STT</TableCell>
                     <TableCell>Ảnh</TableCell>
                     <TableCell>Tiêu đề</TableCell>
                     <TableCell>Loại</TableCell>

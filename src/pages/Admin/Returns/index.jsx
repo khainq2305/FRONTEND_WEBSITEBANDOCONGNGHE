@@ -284,7 +284,7 @@ const OrderReturnRefund = () => {
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>STT</TableCell>
+              <TableCell align="center">STT</TableCell>
               <TableCell>Mã yêu cầu</TableCell>
               <TableCell>Mã đơn hàng</TableCell>
               <TableCell>Trạng thái</TableCell>
@@ -302,7 +302,7 @@ const OrderReturnRefund = () => {
             ) : returns.length ? (
               returns.map((it, i) => (
                 <TableRow key={it.id}>
-                  <TableCell>{(page - 1) * itemsPerPage + i + 1}</TableCell>
+                  <TableCell align="center">{(page - 1) * itemsPerPage + i + 1}</TableCell>
                   <TableCell>
                     <HighlightText text={it.returnCode || '—'} highlight={search} />
                   </TableCell>

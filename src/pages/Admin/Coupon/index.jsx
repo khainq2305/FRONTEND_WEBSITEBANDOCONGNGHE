@@ -195,13 +195,22 @@ export default function CouponList() {
         else setSelectedIds(coupons.map((c) => c.id));
     };
 
-    const getDiscountLabel = (coupon) =>
-        coupon.type === 'shipping'
-            ? `${formatNumber(coupon.discountValue)}₫`
-            : coupon.discountType === 'percent'
-            ? `${formatNumber(coupon.discountValue)}%`
-            : `${Number(coupon.discountValue).toLocaleString('vi-VN')}₫`;
-
+  const getDiscountLabel = (coupon) => {
+    // Kiểm tra loại coupon là vận chuyển
+    if (coupon.type === 'shipping') {
+        // Nếu giá trị giảm là null, undefined, hoặc 0, hiển thị "Miễn phí vận chuyển"
+        if (coupon.discountValue === null || coupon.discountValue === undefined || Number(coupon.discountValue) === 0) {
+            return 'Miễn phí vận chuyển';
+        }
+        // Ngược lại, hiển thị giá trị giảm có kèm ký hiệu ₫
+        return `${formatNumber(coupon.discountValue)}₫`;
+    }
+    // Đối với loại coupon giảm giá, giữ nguyên logic cũ
+    if (coupon.discountType === 'percent') {
+        return `${formatNumber(coupon.discountValue)}%`;
+    }
+    return `${Number(coupon.discountValue).toLocaleString('vi-VN')}₫`;
+};
     const formatDate = (date) => (date ? new Date(date).toLocaleDateString('vi-VN') : '---');
 
     return (

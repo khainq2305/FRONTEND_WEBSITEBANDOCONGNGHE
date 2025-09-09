@@ -259,7 +259,7 @@ export default function HighlightedCategoryItemList() {
                     disabled={items.length === 0}
                   />
                 </TableCell>
-                <TableCell sx={{width: '60px'}}>STT</TableCell>
+                <TableCell align="center" sx={{width: '60px'}}>STT</TableCell>
     
                 <TableCell align="center" sx={{width: '100px'}}>Ảnh</TableCell>
                 <TableCell sx={{minWidth: 200}}>Tiêu đề</TableCell>
@@ -292,7 +292,7 @@ export default function HighlightedCategoryItemList() {
                               <TableCell padding="checkbox">
                                 <Checkbox checked={selectedIds.includes(item.id)} onChange={() => toggleSelectOne(item.id)} />
                               </TableCell>
-                              <TableCell>{(page - 1) * itemsPerPage + idx + 1}</TableCell>
+                              <TableCell align="center">{(page - 1) * itemsPerPage + idx + 1}</TableCell>
                            
                               <TableCell align="center">
                                 <Box

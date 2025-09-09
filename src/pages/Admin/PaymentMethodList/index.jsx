@@ -62,7 +62,7 @@ export default function PaymentMethodList() {
         <Table>
           <TableHead sx={{ backgroundColor: 'grey.100' }}>
             <TableRow>
-              <TableCell>STT</TableCell>
+              <TableCell align="center">STT</TableCell>
               <TableCell>Mã</TableCell>
               <TableCell>Tên hiển thị</TableCell>
               <TableCell align="center">Hoạt động</TableCell>
@@ -71,7 +71,7 @@ export default function PaymentMethodList() {
           <TableBody>
             {methods.map((m, idx) => (
               <TableRow key={m.id} hover>
-                <TableCell>{idx + 1}</TableCell>
+                <TableCell align="center">{idx + 1}</TableCell>
                 <TableCell>{m.code}</TableCell>
                 <TableCell>{m.name}</TableCell>
                 <TableCell align="center">

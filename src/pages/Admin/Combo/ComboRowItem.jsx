@@ -34,6 +34,7 @@ export default function ComboRowItem({
         <TableCell padding="checkbox">
           <Checkbox checked={selected} onChange={() => onSelect(combo.id)} />
         </TableCell>
+         <TableCell align="center">{index}</TableCell>
         <TableCell>
           <Avatar
             variant="rounded"

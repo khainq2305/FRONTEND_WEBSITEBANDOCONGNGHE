@@ -62,7 +62,7 @@ export default function ShippingProviderList() {
         <Table>
           <TableHead sx={{ backgroundColor: 'grey.100' }}>
             <TableRow>
-              <TableCell>STT</TableCell>
+              <TableCell align="center">STT</TableCell>
               <TableCell>Mã</TableCell>
               <TableCell>Tên hiển thị</TableCell>
               <TableCell align="center">Hoạt động</TableCell>
@@ -71,7 +71,7 @@ export default function ShippingProviderList() {
           <TableBody>
             {providers.map((p, idx) => (
               <TableRow key={p.id} hover>
-                <TableCell>{idx + 1}</TableCell>
+                <TableCell align="center">{idx + 1}</TableCell>
                 <TableCell>{p.code}</TableCell>
                 <TableCell>{p.name}</TableCell>
                 <TableCell align="center">

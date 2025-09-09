@@ -280,13 +280,7 @@ const handleSubmit = async (e) => {
                 </FormGroup>
               ))}
 
-              {renderSection('Cảnh báo tồn kho', 'stock', (
-                <Grid container spacing={3}>
-                  <Grid item xs={12} sm={6}>
-                    {renderAutocompleteInput('Ngưỡng tồn kho thấp', 'lowStockThreshold', 'number')}
-                  </Grid>
-                </Grid>
-              ))}
+             
             </Box>
           </CardContent>
 

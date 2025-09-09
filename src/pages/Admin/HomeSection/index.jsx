@@ -259,7 +259,7 @@ export default function HomeSectionList() {
                   disabled={sections.length === 0}
                 />
               </TableCell>
-              <TableCell sx={{ width: '60px' }}>STT</TableCell>
+              <TableCell align="center" sx={{ width: '60px' }}>STT</TableCell>
 
               <TableCell sx={{ minWidth: 200 }}>Tiêu đề</TableCell>
               <TableCell sx={{ minWidth: 150 }}>Slug</TableCell>
@@ -313,7 +313,7 @@ export default function HomeSectionList() {
                             <TableCell padding="checkbox">
                               <Checkbox checked={selectedIds.includes(sec.id)} onChange={() => toggleSelectOne(sec.id)} />
                             </TableCell>
-                            <TableCell>{(page - 1) * pageSize + idx + 1}</TableCell>
+                            <TableCell align="center">{(page - 1) * pageSize + idx + 1}</TableCell>
 
                             <TableCell sx={{ maxWidth: 240, whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.4 }}>
                               <HighlightText text={sec.title} highlight={searchText} />

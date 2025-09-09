@@ -247,101 +247,102 @@ return (
 
         {/* Luôn render bảng; overlay loader sẽ che và khoá tương tác */}
         <>
-          <TableContainer>
-            <Table size={isMobile ? 'small' : 'medium'}>
-              <TableHead sx={{ bgcolor: 'action.hover' }}>
-                <TableRow>
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      checked={users.length > 0 && users.every((u) => selectedIds.includes(u.id))}
-                      onChange={toggleSelectAll}
-                    />
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Người dùng</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold' }}>
-                    {tab === 1 ? 'Ngày xoá' : 'Vai trò'}
-                  </TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold' }}>
-                    Hành động
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {users.map((row) => (
-                  <TableRow key={row.id} selected={selectedIds.includes(row.id)} hover>
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        checked={selectedIds.includes(row.id)}
-                        onChange={() => toggleSelect(row.id)}
-                      />
-                    </TableCell>
-
-                    <TableCell>
-                      <Stack direction="row" alignItems="center" spacing={1.5}>
-                        <Avatar src={row.avatarUrl} alt={row.fullName} sx={{ width: 40, height: 40 }} />
-                        <Box>
-                          <Typography variant="subtitle2" component="div" noWrap sx={{ maxWidth: 200 }}>
-                            {row.fullName}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary" noWrap sx={{ maxWidth: 200 }}>
-                            {row.email}
-                          </Typography>
-                        </Box>
-                      </Stack>
-                    </TableCell>
-
-                    <TableCell>
-                      {tab === 1 ? (
-                        new Date(row.deletedAt).toLocaleString()
-                      ) : row.roles && row.roles.length > 0 ? (
-                        <Stack direction="row" spacing={0.5} flexWrap="wrap">
-                          {row.roles.map((role) => (
-                            <Chip key={role.id} label={role.name} size="small" sx={{ mb: 0.5 }} />
-                          ))}
-                        </Stack>
-                      ) : (
-                        <Chip label="Không rõ" size="small" color="default" />
-                      )}
-                    </TableCell>
-
-                    <TableCell align="right">
-                      <MoreActionsMenu
-                        user={row}
-                        isDeleted={tab === 1}
-                        onChangeStatus={(newStatus) => handleStatusChange(row, newStatus)}
-                        onView={() => {
-                          setSelectedUser(row);
-                          setOpenDialog(true);
-                        }}
-                        onResetPassword={handleResetPassword}
-                        onViewDetail={handleViewDetail}
-                        onForceDelete={() => handleForceDelete(row.id)}
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))}
-
-                {users.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={5} align="center">
-                      <Typography p={4}>Không có người dùng nào</Typography>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-
-          {totalPages > 1 && (
-            <MUIPagination
-              currentPage={page}
-              totalItems={statusCounts[TABS[tab].key] || 0}
-              itemsPerPage={itemsPerPage}
-              onPageChange={(p) => setPage(p)}
-              sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}
+  <TableContainer>
+    <Table size={isMobile ? 'small' : 'medium'}>
+      <TableHead sx={{ bgcolor: 'action.hover' }}>
+        <TableRow>
+          <TableCell padding="checkbox">
+            <Checkbox
+              checked={users.length > 0 && users.every((u) => selectedIds.includes(u.id))}
+              onChange={toggleSelectAll}
             />
-          )}
-        </>
+          </TableCell>
+          <TableCell sx={{ fontWeight: 'bold' }}>STT</TableCell>
+          <TableCell sx={{ fontWeight: 'bold' }}>Người dùng</TableCell>
+          <TableCell sx={{ fontWeight: 'bold' }}>
+            {tab === 1 ? 'Ngày xoá' : 'Vai trò'}
+          </TableCell>
+          <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+            Hành động
+          </TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {users.map((row, idx) => ( // Đã thêm 'idx' vào đây
+          <TableRow key={row.id} selected={selectedIds.includes(row.id)} hover>
+            <TableCell padding="checkbox">
+              <Checkbox
+                checked={selectedIds.includes(row.id)}
+                onChange={() => toggleSelect(row.id)}
+              />
+            </TableCell>
+            <TableCell>{(page - 1) * itemsPerPage + idx + 1}</TableCell>
+            <TableCell>
+              <Stack direction="row" alignItems="center" spacing={1.5}>
+                <Avatar src={row.avatarUrl} alt={row.fullName} sx={{ width: 40, height: 40 }} />
+                <Box>
+                  <Typography variant="subtitle2" component="div" noWrap sx={{ maxWidth: 200 }}>
+                    {row.fullName}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" noWrap sx={{ maxWidth: 200 }}>
+                    {row.email}
+                  </Typography>
+                </Box>
+              </Stack>
+            </TableCell>
+
+            <TableCell>
+              {tab === 1 ? (
+                new Date(row.deletedAt).toLocaleString()
+              ) : row.roles && row.roles.length > 0 ? (
+                <Stack direction="row" spacing={0.5} flexWrap="wrap">
+                  {row.roles.map((role) => (
+                    <Chip key={role.id} label={role.name} size="small" sx={{ mb: 0.5 }} />
+                  ))}
+                </Stack>
+              ) : (
+                <Chip label="Không rõ" size="small" color="default" />
+              )}
+            </TableCell>
+
+            <TableCell align="right">
+              <MoreActionsMenu
+                user={row}
+                isDeleted={tab === 1}
+                onChangeStatus={(newStatus) => handleStatusChange(row, newStatus)}
+                onView={() => {
+                  setSelectedUser(row);
+                  setOpenDialog(true);
+                }}
+                onResetPassword={handleResetPassword}
+                onViewDetail={handleViewDetail}
+                onForceDelete={() => handleForceDelete(row.id)}
+              />
+            </TableCell>
+          </TableRow>
+        ))}
+
+        {users.length === 0 && (
+          <TableRow>
+            <TableCell colSpan={5} align="center">
+              <Typography p={4}>Không có người dùng nào</Typography>
+            </TableCell>
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
+  </TableContainer>
+
+  {totalPages > 1 && (
+    <MUIPagination
+      currentPage={page}
+      totalItems={statusCounts[TABS[tab].key] || 0}
+      itemsPerPage={itemsPerPage}
+      onPageChange={(p) => setPage(p)}
+      sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}
+    />
+  )}
+</>
       </CardContent>
     </Card>
 

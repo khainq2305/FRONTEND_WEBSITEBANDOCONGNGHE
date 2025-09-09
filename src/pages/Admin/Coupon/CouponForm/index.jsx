@@ -63,7 +63,17 @@ export default function CouponForm() {
   const [selectedProductIds, setSelectedProductIds] = useState([]);
   const [userList, setUserList] = useState([]);
   const [productList, setProductList] = useState([]);
-
+// Dùng useEffect để theo dõi sự thay đổi của selectedType
+// Dùng useEffect để theo dõi sự thay đổi của selectedType
+useEffect(() => {
+    if (selectedType === 'shipping') {
+        clearErrors('discountValue');
+        setValue('discountType', null); // Quan trọng: Đặt lại discountType
+        setValue('maxDiscountValue', null); // Ẩn trường này
+    } else if (selectedType === 'discount') {
+        setValue('discountType', 'percent'); // Mặc định là percent
+    }
+}, [selectedType, setValue, clearErrors]);
   useEffect(() => {
     if (selectedDiscountType !== 'percent') {
       setValue('maxDiscountValue', null);
@@ -133,7 +143,7 @@ const onSubmit = async (values) => {
         
         // Sửa các dòng này để xử lý nhất quán tất cả các trường số
         discountValue: values.discountValue ?? null,
-        minOrderValue: values.minOrderValue ?? null,
+           minOrderValue: values.minOrderValue ?? 0, // <-- DÒNG BẠN CẦN SỬA
         totalQuantity: values.totalQuantity ?? null,
         maxUsagePerUser: values.maxUsagePerUser ?? null,
         maxDiscountValue: values.maxDiscountValue ?? null,
@@ -387,12 +397,33 @@ const onSubmit = async (values) => {
     <Controller
         name="discountValue"
         control={control}
-        rules={selectedType === "discount" ? { required: "Giá trị giảm là bắt buộc" } : {}}
+        rules={{
+          validate: (value) => {
+            // Nếu là loại discount, giá trị là bắt buộc và phải lớn hơn 0.
+            if (selectedType === "discount") {
+              if (value === null || value === undefined || value === "") {
+                return "Giá trị giảm là bắt buộc";
+              }
+              if (Number(value) <= 0) {
+                return "Giá trị giảm phải lớn hơn 0";
+              }
+            }
+            
+            // Nếu là loại shipping, giá trị có thể để trống (null) hoặc >= 0.
+            if (selectedType === "shipping") {
+              if (value !== null && Number(value) < 0) {
+                return "Giá trị hỗ trợ phí vận chuyển phải lớn hơn hoặc bằng 0";
+              }
+            }
+            
+            return true; // Hợp lệ
+          },
+        }}
         render={({ field }) => (
             <NumericFormat
                 {...field}
                 thousandSeparator=","
-                prefix={selectedDiscountType === "amount" || selectedType === "shipping" ? "₫" : ""}
+               prefix={selectedType === "shipping" || selectedDiscountType === "amount" ? "₫" : ""}
                 suffix={selectedDiscountType === "percent" ? "%" : ""}
                 decimalScale={selectedDiscountType === "percent" ? 2 : 0}
                 allowNegative={false}
