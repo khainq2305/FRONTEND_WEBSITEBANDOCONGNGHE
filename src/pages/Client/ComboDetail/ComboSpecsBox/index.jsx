@@ -61,7 +61,7 @@ export default function ComboSpecsBox({ skus = [] }) {
           if (!common.length && !variant.length) return null;
 
           return (
-            <div key={idx} className="border border-gray-100 rounded-md shadow-sm p-4">
+            <div key={idx} >
               {/* Tiêu đề dùng tên sản phẩm, KHÔNG đánh số 1/2/3 */}
               <h3 className="text-base font-semibold text-gray-800 mb-3">
                 {p.name}

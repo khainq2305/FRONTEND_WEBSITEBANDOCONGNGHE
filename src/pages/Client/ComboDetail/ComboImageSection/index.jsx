@@ -34,12 +34,7 @@ const ComboImageSection = ({
           {/* Nhãn động + Thumbnails */}
           {Boolean(allImages?.length) && (
             <div className="px-4">
-              {activeLabel && (
-                <div className="px-4 mt-2">
-                  <div className="text-sm font-medium text-gray-800">{activeLabel}</div>
-                </div>
-              )}
-
+             
               <div className="flex gap-2 overflow-x-auto py-2">
                 {allImages.map((img, idx) => {
                   const isActive = idx === activeIndex;
