@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { orderService } from '../../../../services/client/orderService';
 import { paymentService } from '../../../../services/client/paymentService';
@@ -48,10 +48,11 @@ useEffect(() => {
   if (!shippingFee || shippingFee <= 0) return; // chưa chọn đơn vị vận chuyển
 
   const reapplyShippingCoupon = async () => {
+    const totalAmountAfterProductDiscount = totalAmount - discount; // Thêm dòng này
     try {
       const res = await couponService.applyCoupon({
         codes: [selectedCoupons.shipping.code],
-        orderTotal: Number(totalAmount),
+        orderTotal: totalAmountAfterProductDiscount, // Sửa ở đây
         skuIds: selectedItems.map(i => i.skuId),
         shippingFee: Number(shippingFee)
       });
@@ -96,7 +97,12 @@ useEffect(() => {
       }
     }
   }, [propCoupons]);
-
+ const totalAmountBeforeCoupon = useMemo(() => {
+  return selectedItems.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
+}, [selectedItems]);
   const handleApplyPromo = async (couponObject) => { // ✅ Nhận object
     if (!couponObject || (!couponObject.discount && !couponObject.shipping)) {
       setSelectedCoupons({ discount: null, shipping: null });
@@ -122,7 +128,10 @@ useEffect(() => {
       const res = await couponService.applyCoupon({
         codes: codesToApply,
         skuIds: currentSkuIds,
-        orderTotal: Number(totalAmount),
+
+
+
+   orderTotal: totalAmountBeforeCoupon, // ✅ Sử dụng biến chung
  shippingFee: Number(shippingFee || 0)   // ✅ thêm dòng này
       });
       const { discountCoupon, shippingCoupon, isValid } = res.data;
@@ -175,7 +184,7 @@ useEffect(() => {
     if ((!selectedCoupons.discount && !selectedCoupons.shipping) || selectedItems.length === 0) return;
 
     const currentSkuIds = selectedItems.map((i) => i.skuId).sort();
-    const currentOrderTotal = Number(totalAmount || 0);
+  const currentOrderTotal = totalAmountBeforeCoupon;
 
     const prev = prevRef.current;
     const skuChanged = JSON.stringify(prev.skuIds) !== JSON.stringify(currentSkuIds);
@@ -190,7 +199,7 @@ useEffect(() => {
 
         const res = await couponService.applyCoupon({
           codes: codesToApply,
-          orderTotal: currentOrderTotal,
+         orderTotal: totalAmountBeforeCoupon, // ✅ Dùng giá trị đã sửa
           skuIds: currentSkuIds,
   shippingFee: Number(shippingFee || 0)   // ✅ thêm dòng này
         });
@@ -215,7 +224,7 @@ useEffect(() => {
 
     refreshCoupons();
     prevRef.current = { skuIds: currentSkuIds, orderTotal: currentOrderTotal };
-  }, [selectedItems, totalAmount, selectedCoupons.discount?.code, selectedCoupons.shipping?.code]);
+  }, [selectedItems,totalAmountBeforeCoupon, totalAmount, selectedCoupons.discount?.code, selectedCoupons.shipping?.code]);
 
   const couponDiscount = selectedCoupons.discount ? Number(selectedCoupons.discount.discountAmount) : 0;
   const shippingDiscount = selectedCoupons.shipping ? Number(selectedCoupons.shipping.discountAmount) : 0;
@@ -270,7 +279,11 @@ useEffect(() => {
       if (codesToApply.length > 0) {
         const res = await couponService.applyCoupon({
           codes: codesToApply,
-          orderTotal: Number(totalAmount),
+         // Thêm đoạn code này ở đầu hàm handlePlaceOrder
+
+
+// Sau đó, sửa dòng code cũ trong API thành dòng này
+orderTotal: totalAmountBeforeCoupon,
           skuIds: itemsToCheckout.map((i) => i.skuId),
  shippingFee: Number(shippingFee || 0)   // ✅ thêm dòng này
         });

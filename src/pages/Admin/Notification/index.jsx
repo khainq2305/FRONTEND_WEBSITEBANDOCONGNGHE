@@ -213,16 +213,19 @@ const NotificationPage = () => {
       </Box>
     </Box>
 
-    <NotificationTable
-      notifications={Array.isArray(data.list) ? data.list : []}
-      setNotifications={(list) => setData((prev) => ({ ...prev, list }))}
-      selectedIds={selectedIds}
-      onSelect={handleSelect}
-      onSelectAll={handleSelectAll}
-      onEdit={handleEdit}
-      onDelete={handleDelete}
-      loading={loading}
-    />
+   <NotificationTable
+  notifications={Array.isArray(data.list) ? data.list : []}
+  setNotifications={(list) => setData((prev) => ({ ...prev, list }))}
+  selectedIds={selectedIds}
+  onSelect={handleSelect}
+  onSelectAll={handleSelectAll}
+  onEdit={handleEdit}
+  onDelete={handleDelete}
+  loading={loading}
+  page={page}                // 👈 thêm
+  limit={itemsPerPage}       // 👈 thêm
+/>
+
 
     {data.total > 10 && (
       <MUIPagination

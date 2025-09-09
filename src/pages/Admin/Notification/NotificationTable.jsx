@@ -16,72 +16,77 @@
     <Chip label={isActive ? 'Hoạt động' : 'Tạm tắt'} color={isActive ? 'success' : 'default'} size="small" />
   );
 
-  function RowSortable({ item, index, selectedIds, onSelect, onEdit, onDelete, onView }) {
-    const navigate = useNavigate();
+function RowSortable({ item, index, selectedIds, onSelect, onEdit, onDelete, onView, page, limit }) {
+  const navigate = useNavigate();
 
-    const { setNodeRef, transform, transition, listeners, attributes } = useSortable({
-      id: item.id,
-      handle: true
-    });
+  const { setNodeRef, transform, transition } = useSortable({
+    id: item.id,
+    handle: true
+  });
 
-    const style = {
-      transform: CSS.Transform.toString(transform),
-      transition
-    };
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition
+  };
 
-    return (
-      <TableRow ref={setNodeRef} style={style} key={item.id}>
-        <TableCell padding="checkbox">
-          <input type="checkbox" checked={selectedIds.includes(item.id)} onChange={() => onSelect(item.id)} />
-        </TableCell>
-        <TableCell>{index + 1}</TableCell>
-        <TableCell>
-          {item.imageUrl ? (
-            <img
-              src={item.imageUrl}
-              alt="thumb"
-              style={{
-                width: '100px',
-                height: '80px',
-                objectFit: 'cover',
-                borderRadius: '6px',
-                border: '1px solid #ddd'
-              }}
-            />
-          ) : (
-            '—'
-          )}
-        </TableCell>
-        <TableCell className="max-w-[300px] whitespace-nowrap overflow-hidden text-ellipsis" title={item.title}>
-          {item.title}
-        </TableCell>
-        <TableCell>{item.type}</TableCell>
-        <TableCell>{getStatusChip(item.isActive)}</TableCell>
-        <TableCell align="right">
-          <div className="flex justify-end items-center gap-2">
-         <MoreActionsMenu
-  onView={() => onView(item)}
-  onEdit={() => navigate(`/admin/notifications/edit/${item.slug}`)}
-  onDelete={() => onDelete(item)}
-  subject="Notification" // 👈 Thêm dòng này
-/>
+  return (
+    <TableRow ref={setNodeRef} style={style} key={item.id}>
+      <TableCell padding="checkbox">
+        <input type="checkbox" checked={selectedIds.includes(item.id)} onChange={() => onSelect(item.id)} />
+      </TableCell>
+      {/* 👇 STT tính theo trang */}
+      <TableCell>{(page - 1) * limit + index + 1}</TableCell>
 
-          </div>
-        </TableCell>
-      </TableRow>
-    );
-  }
+      <TableCell>
+        {item.imageUrl ? (
+          <img
+            src={item.imageUrl}
+            alt="thumb"
+            style={{
+              width: '100px',
+              height: '80px',
+              objectFit: 'cover',
+              borderRadius: '6px',
+              border: '1px solid #ddd'
+            }}
+          />
+        ) : (
+          '—'
+        )}
+      </TableCell>
+      <TableCell className="max-w-[300px] whitespace-nowrap overflow-hidden text-ellipsis" title={item.title}>
+        {item.title}
+      </TableCell>
+      <TableCell>{item.type}</TableCell>
+      <TableCell>{getStatusChip(item.isActive)}</TableCell>
+      <TableCell align="right">
+        <div className="flex justify-end items-center gap-2">
+          <MoreActionsMenu
+            onView={() => onView(item)}
+            onEdit={() => navigate(`/admin/notifications/edit/${item.slug}`)}
+            onDelete={() => onDelete(item)}
+            subject="Notification"
+          />
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+}
+
 
   const NotificationTable = ({
-    notifications = [],
-    selectedIds = [],
-    onSelect = () => {},
-    onSelectAll = () => {},
-    onEdit = () => {},
-    onDelete = () => {},
-    loading = false,
-    setNotifications = () => {}
-  }) => {
+  notifications = [],
+  selectedIds = [],
+  onSelect = () => {},
+  onSelectAll = () => {},
+  onEdit = () => {},
+  onDelete = () => {},
+  loading = false,
+  setNotifications = () => {},
+  page = 1,       // 👈 nhận từ props cha
+  limit = 10      // 👈 nhận từ props cha
+}) => {
+
     const [detailData, setDetailData] = useState(null);
     const [openDetail, setOpenDetail] = useState(false);
 
@@ -145,18 +150,21 @@
                       </TableCell>
                     </TableRow>
                   ) : Array.isArray(notifications) && notifications.length > 0 ? (
-                    notifications.map((item, index) => (
-                      <RowSortable
-                        key={item.id}
-                        item={item}
-                        index={index}
-                        selectedIds={selectedIds}
-                        onSelect={onSelect}
-                        onEdit={onEdit}
-                        onDelete={onDelete}
-                        onView={handleViewDetail}
-                      />
-                    ))
+                 notifications.map((item, index) => (
+  <RowSortable
+    key={item.id}
+    item={item}
+    index={index}
+    page={page}
+    limit={limit}
+    selectedIds={selectedIds}
+    onSelect={onSelect}
+    onEdit={onEdit}
+    onDelete={onDelete}
+    onView={handleViewDetail}
+  />
+))
+
                   ) : (
                     <TableRow>
                       <TableCell colSpan={7} align="center">

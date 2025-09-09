@@ -452,7 +452,7 @@ const FlashSaleForm = () => {
                 render={({ field }) => (
                   <FormControlLabel
                     control={<Switch {...field} checked={field.value} onChange={(e) => field.onChange(e.target.checked)} color="primary" />}
-                    label="Kích hoạt Flash Sale"
+                    label="Hiển thị"
                   />
                 )}
               />

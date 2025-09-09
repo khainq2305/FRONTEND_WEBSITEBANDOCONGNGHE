@@ -15,6 +15,7 @@ import { confirmDelete } from '../../../../components/common/ConfirmDeleteDialog
 import { confirmAction } from '../ConfirmActionDialog';
 import { toast } from 'react-toastify';
 import { LoadingButton } from '@mui/lab';
+import LoaderAdmin from '../../../../components/Admin/LoaderVip';
 
 const statusColors = {
     pending: 'warning',
@@ -255,13 +256,8 @@ const handleConfirmReceivedSwal = async () => {
 };
 
 
-    if (loading) {
-        return (
-            <Box sx={{ p: 4, textAlign: 'center' }}>
-                <CircularProgress /><Typography mt={2}>Đang tải chi tiết yêu cầu…</Typography>
-            </Box>
-        );
-    }
+   if (loading) return <LoaderAdmin fullscreen />;
+
 
     if (error) {
         return (
