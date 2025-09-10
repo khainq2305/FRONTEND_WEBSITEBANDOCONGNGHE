@@ -71,10 +71,12 @@ useEffect(() => {
         return navigate('/dang-nhap');
       }
 
-      const historyRes = await walletService.getTransactions(page, limit);
-      const { history = [], total = 0 } = historyRes?.data ?? {};
-      setTransactions(history);
-      setTotal(total);
+     const historyRes = await walletService.getTransactions(page, limit, active);
+
+     const { data = [], pagination = {} } = historyRes?.data ?? {};
+setTransactions(data);
+setTotal(pagination.total || 0);
+
     } catch (err) {
       console.error('Lỗi khi lấy dữ liệu ví:', err);
       navigate('/dang-nhap');
@@ -84,7 +86,7 @@ useEffect(() => {
   };
 
   fetchWalletData();
-}, [navigate, page]);
+ }, [navigate, page, active]);
 
   const startWithdraw = async () => {
     if (!withdrawAmount || Number(withdrawAmount) <= 0) return alert('Vui lòng nhập số tiền hợp lệ');

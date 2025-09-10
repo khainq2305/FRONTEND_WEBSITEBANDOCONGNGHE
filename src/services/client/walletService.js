@@ -9,8 +9,14 @@ export const walletService = {
 
   
   getBalance: () => get(`${base}${API_ENDPOINT.client.wallet.balance}`),
-  getTransactions: (page = 1, pageSize = 10) =>
-  get(`${base}${API_ENDPOINT.client.wallet.transactions}?page=${page}&pageSize=${pageSize}`),
+getTransactions: (page = 1, pageSize = 10, type = 'all') => {
+  let url = `${base}${API_ENDPOINT.client.wallet.transactions}?page=${page}&pageSize=${pageSize}`;
+  if (type && type !== 'all') {
+    url += `&type=${type}`;
+  }
+  return get(url);
+},
+
 
  requestWithdrawal: (data) => post(`${base}${API_ENDPOINT.client.wallet.withdrawals}`, data),
   getWithdrawals: () => get(`${base}${API_ENDPOINT.client.wallet.withdrawalList}`),

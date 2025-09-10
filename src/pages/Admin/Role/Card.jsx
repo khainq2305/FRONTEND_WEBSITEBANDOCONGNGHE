@@ -207,7 +207,7 @@ const RolesCard = ({ role, color, onDelete, onViewDetails, onEdit }) => {
             >
               Xem chi tiết
             </Button>
-            <ActionMenu onEdit={onEdit} onDelete={onDelete} disableDelete={['admin', 'user'].includes(role.key)} />
+            <ActionMenu onEdit={onEdit} onDelete={onDelete} disableDelete={['admin', 'user', 'quản trị viên', 'người dùng'].includes(role.name?.toLowerCase())} />
           </Box>
         </Box>
       </CardContent>
