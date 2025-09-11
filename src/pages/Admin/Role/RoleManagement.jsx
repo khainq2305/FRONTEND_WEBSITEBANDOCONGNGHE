@@ -4,6 +4,7 @@ import { RolesCard, CountCard, DialogDetails, PaperContainer } from './Card';
 import AddRoleDialog from './AddRoleDialog';
 import { rolesService } from '@/services/admin/rolesService';
 import { toast } from 'react-toastify';
+ import { confirmDelete } from '../../../components/common/ConfirmDeleteDialog'; // import confirmDelete
 
 // ========================================================================
 // API SERVICE CONFIGURATION
@@ -122,9 +123,11 @@ const RoleManagement = () => {
       setOpen(false);
     }
   };
-  const handleDelete = async (id) => {
-  const confirmFirst = window.confirm('Bạn có chắc muốn xóa vai trò này?');
-  if (!confirmFirst) return;
+ 
+const handleDelete = async (id) => {
+  // dùng SweetAlert thay window.confirm
+  const isConfirmed = await confirmDelete('xoá', 'vai trò này');
+  if (!isConfirmed) return;
 
   try {
     await rolesService.remove(id); // gọi API xoá thường
@@ -133,15 +136,20 @@ const RoleManagement = () => {
   } catch (err) {
     const response = err.response;
 
-    // Nếu có lỗi ràng buộc khoá ngoại (409 từ backend)
     if (response?.status === 409 && response?.data?.code === 'FK_CONSTRAINT') {
-      const confirmForce = window.confirm(
-        response.data.message + '\nBạn có muốn xoá vai trò và gán người dùng sang vai trò mặc định không?'
-      );
+      const confirmForce = await Swal.fire({
+        title: 'Xóa vai trò có liên quan',
+        text: response.data.message + '\nBạn có muốn xoá vai trò và gán người dùng sang vai trò mặc định không?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Đồng ý',
+        cancelButtonText: 'Hủy',
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+      });
 
-      if (!confirmForce) return;
+      if (!confirmForce.isConfirmed) return;
 
-      // Gửi lại API với force = true
       try {
         await rolesService.remove(id, { force: true });
         setRoles((prev) => prev.filter((role) => role.id !== id));
@@ -156,6 +164,7 @@ const RoleManagement = () => {
     }
   }
 };
+
 
   useEffect(() => {
     fechAllRoles();
