@@ -106,32 +106,31 @@ const OrderConfirmation = () => {
     }
   }, [payosOrderCode, payosStatus, isPaymentAttempted]);
   useEffect(() => {
-    if (!vnpTxnRef || isPaymentAttempted) return;
+  if (!vnpTxnRef || isPaymentAttempted) return;
 
-    setIsPaymentAttempted(true);
+  setIsPaymentAttempted(true);
 
-    const rawQuery = window.location.search.slice(1);
+  const rawQuery = window.location.search.slice(1);
 
-    fetch(`${API_BASE_URL}/payment/vnpay-callback`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ rawQuery })
+  fetch(`${API_BASE_URL}/payment/vnpay-callback`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ rawQuery }),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.order) {
+        setOrder(data.order); // 👈 cập nhật trực tiếp từ callback
+        return; // ⛔️ không fetchOrderDetails nữa
+      }
+      fetchOrderDetails(orderCodeFromUrl);
     })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.order) {
-          setOrder(data.order);
-          return; // ⛔️ không gọi fetchOrderDetails nữa
-        }
-        fetchOrderDetails(orderCodeFromUrl);
-      })
-
-      .catch((err) => {
-        console.error('VNPay callback error:', err);
-        toast.error('Có lỗi khi xử lý thanh toán VNPay.');
-        fetchOrderDetails(orderCodeFromUrl);
-      });
-  }, [vnpTxnRef, isPaymentAttempted, orderCodeFromUrl]);
+    .catch((err) => {
+      console.error('VNPay callback error:', err);
+      toast.error('Có lỗi khi xử lý thanh toán VNPay.');
+      fetchOrderDetails(orderCodeFromUrl);
+    });
+}, [vnpTxnRef, isPaymentAttempted, orderCodeFromUrl]);
 
   const fetchOrderDetails = async (code) => {
     setLoading(true);
