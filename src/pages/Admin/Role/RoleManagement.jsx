@@ -5,6 +5,7 @@ import AddRoleDialog from './AddRoleDialog';
 import { rolesService } from '@/services/admin/rolesService';
 import { toast } from 'react-toastify';
  import { confirmDelete } from '../../../components/common/ConfirmDeleteDialog'; // import confirmDelete
+import Swal from 'sweetalert2';
 
 // ========================================================================
 // API SERVICE CONFIGURATION
