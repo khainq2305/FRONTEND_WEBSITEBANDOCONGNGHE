@@ -87,6 +87,17 @@ useEffect(() => {
   useEffect(() => {
     if (selectedApplyScope !== 'product') clearErrors('productIds');
   }, [selectedApplyScope, clearErrors]);
+const formatToLocalDatetime = (dateString) => {
+    if (!dateString) return '';
+    const d = new Date(dateString);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hour = String(d.getHours()).padStart(2, '0');
+    const minute = String(d.getMinutes()).padStart(2, '0');
+    // Trả về định dạng YYYY-MM-DDTHH:mm
+    return `${year}-${month}-${day}T${hour}:${minute}`;
+};
 
   useEffect(() => {
     const fetchData = async () => {
@@ -114,8 +125,8 @@ useEffect(() => {
             discountValue: data.discountValue ?? null,
             minOrderValue: data.minOrderValue ?? null,
             maxDiscountValue: data.maxDiscountValue ?? null,
-         startTime: data.startTime ? new Date(data.startTime).toISOString().slice(0, 16) : '',
-endTime: data.endTime ? new Date(data.endTime).toISOString().slice(0, 16) : '',
+  startTime: formatToLocalDatetime(data.startTime),
+    endTime: formatToLocalDatetime(data.endTime),
             type: data.type || 'discount',
             visibility: data.visibility || 'public',
             applyScope: data.applyScope || 'all'
