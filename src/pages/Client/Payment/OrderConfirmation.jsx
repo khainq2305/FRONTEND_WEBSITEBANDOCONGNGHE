@@ -124,8 +124,10 @@ http://localhost:5000/
      .then(res => res.json())
 .then(data => {
   if (data.order) {
-    setOrder(data.order);  // không cần fetchOrderDetails nữa
+    setOrder(data.order);  
+    return; // ⛔️ không gọi fetchOrderDetails nữa
   }
+  fetchOrderDetails(orderCodeFromUrl);
 })
 
       .catch((err) => {
