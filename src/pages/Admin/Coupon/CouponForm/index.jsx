@@ -369,25 +369,45 @@ const onSubmit = async (values) => {
     />
 </Grid>
             <Grid item xs={12} sm={6}>
-              <Controller
-                name="startTime"
-                control={control}
-                rules={{ required: 'Ngày bắt đầu là bắt buộc' }}
-                render={({ field }) => (
-                  <TextField {...field} type="datetime-local" label="Bắt đầu *" InputLabelProps={{ shrink: true }} fullWidth error={!!errors.startTime} helperText={errors.startTime?.message} />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <Controller
-                name="endTime"
-                control={control}
-                rules={{ required: 'Ngày kết thúc là bắt buộc' }}
-                render={({ field }) => (
-                  <TextField {...field} type="datetime-local" label="Kết thúc *" InputLabelProps={{ shrink: true }} fullWidth error={!!errors.endTime} helperText={errors.endTime?.message} />
-                )}
-              />
-            </Grid>
+  <Controller
+    name="startTime"
+    control={control}
+    rules={{ required: 'Ngày bắt đầu là bắt buộc' }}
+    render={({ field }) => (
+      <TextField
+        {...field}
+        type="datetime-local"
+        label="Bắt đầu *"
+        InputLabelProps={{ shrink: true }}
+        // Thêm dòng này
+        inputProps={{ step: 300 }}
+        fullWidth
+        error={!!errors.startTime}
+        helperText={errors.startTime?.message}
+      />
+    )}
+  />
+</Grid>
+<Grid item xs={12} sm={6}>
+  <Controller
+    name="endTime"
+    control={control}
+    rules={{ required: 'Ngày kết thúc là bắt buộc' }}
+    render={({ field }) => (
+      <TextField
+        {...field}
+        type="datetime-local"
+        label="Kết thúc *"
+        InputLabelProps={{ shrink: true }}
+        // Thêm dòng này
+        inputProps={{ step: 300 }}
+        fullWidth
+        error={!!errors.endTime}
+        helperText={errors.endTime?.message}
+      />
+    )}
+  />
+</Grid>
 
             {selectedType === 'discount' && (
               <Grid item xs={12}>
