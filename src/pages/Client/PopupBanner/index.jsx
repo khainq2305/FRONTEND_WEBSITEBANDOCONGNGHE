@@ -5,6 +5,7 @@ const PopupBanner = () => {
   const [banner, setBanner] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
 
+  // Khoảng thời gian (24h = 1 ngày)
   const POPUP_DISPLAY_INTERVAL = 24 * 60 * 60 * 1000;
 
   useEffect(() => {
@@ -18,10 +19,12 @@ const PopupBanner = () => {
           setBanner(firstBanner);
 
           const lastDisplayTime = localStorage.getItem('lastPopupDisplayTime');
-          const currentTime = new Date().getTime();
+          const currentTime = Date.now();
 
+          // Chỉ hiển thị popup nếu chưa từng hiển thị hoặc đã qua 24h
           if (!lastDisplayTime || (currentTime - parseInt(lastDisplayTime, 10)) > POPUP_DISPLAY_INTERVAL) {
             setIsOpen(true);
+            // ✅ Ghi lại thời điểm MỞ popup (không cần chờ đóng)
             localStorage.setItem('lastPopupDisplayTime', currentTime.toString());
           }
         }
@@ -29,6 +32,7 @@ const PopupBanner = () => {
         console.error('Lỗi khi tải popup banner:', error);
       }
     };
+
     fetchPopupBanner();
   }, []);
 
@@ -53,7 +57,6 @@ const PopupBanner = () => {
   const handleClose = (e) => {
     e.stopPropagation();
     setIsOpen(false);
-    localStorage.setItem('lastPopupDisplayTime', new Date().getTime().toString());
   };
 
   if (!isOpen || !banner) {
@@ -61,24 +64,42 @@ const PopupBanner = () => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-[9999]" onClick={handleClose}>
-      <div className="max-w-2xl w-[90%] max-h-[85vh]" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 bg-black/40 flex justify-center items-center z-[9999]"
+      onClick={handleClose}
+    >
+      <div
+        className="max-w-2xl w-[90%] max-h-[85vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="relative inline-block align-middle">
           <button
             onClick={handleClose}
-            className="absolute top-15 -right-3 bg-black/40 hover:bg-black/60 text-white w-12 h-12 rounded-full flex items-center justify-center text-2xl z-20"
-
+            className="absolute top-3 -right-3 bg-black/40 hover:bg-black/60 text-white w-10 h-10 rounded-full flex items-center justify-center text-2xl z-20"
             aria-label="Đóng popup"
           >
             &times;
           </button>
 
           {banner.linkUrl ? (
-            <a href={banner.linkUrl} target="_blank" rel="noopener noreferrer" className="block">
-              <img src={banner.imageUrl} alt={banner.title || 'Popup Banner'} className="object-contain w-full max-h-[85vh] rounded-md" />
+            <a
+              href={banner.linkUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block"
+            >
+              <img
+                src={banner.imageUrl}
+                alt={banner.title || 'Popup Banner'}
+                className="object-contain w-full max-h-[85vh] rounded-md"
+              />
             </a>
           ) : (
-            <img src={banner.imageUrl} alt={banner.title || 'Popup Banner'} className="object-contain w-full max-h-[85vh] rounded-md" />
+            <img
+              src={banner.imageUrl}
+              alt={banner.title || 'Popup Banner'}
+              className="object-contain w-full max-h-[85vh] rounded-md"
+            />
           )}
         </div>
       </div>
