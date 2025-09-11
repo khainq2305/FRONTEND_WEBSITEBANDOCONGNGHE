@@ -211,8 +211,21 @@ export default function CouponList() {
     }
     return `${Number(coupon.discountValue).toLocaleString('vi-VN')}₫`;
 };
-    const formatDate = (date) => (date ? new Date(date).toLocaleDateString('vi-VN') : '---');
-
+   const formatDate = (date) => {
+    if (!date) return '---';
+    const d = new Date(date);
+    // Kiểm tra xem đối tượng Date có hợp lệ không
+    if (isNaN(d.getTime())) {
+        return '---';
+    }
+    return d.toLocaleString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+};
     return (
         <Box>
             {loading && <LoaderAdmin fullscreen />}

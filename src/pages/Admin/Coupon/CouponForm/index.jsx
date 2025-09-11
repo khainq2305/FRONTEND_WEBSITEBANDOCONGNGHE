@@ -114,8 +114,8 @@ useEffect(() => {
             discountValue: data.discountValue ?? null,
             minOrderValue: data.minOrderValue ?? null,
             maxDiscountValue: data.maxDiscountValue ?? null,
-            startTime: data.startTime ? data.startTime.slice(0, 16) : '',
-            endTime: data.endTime ? data.endTime.slice(0, 16) : '',
+         startTime: data.startTime ? new Date(data.startTime).toISOString().slice(0, 16) : '',
+endTime: data.endTime ? new Date(data.endTime).toISOString().slice(0, 16) : '',
             type: data.type || 'discount',
             visibility: data.visibility || 'public',
             applyScope: data.applyScope || 'all'
