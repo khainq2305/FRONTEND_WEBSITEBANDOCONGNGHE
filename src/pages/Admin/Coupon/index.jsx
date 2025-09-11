@@ -211,7 +211,7 @@ export default function CouponList() {
     }
     return `${Number(coupon.discountValue).toLocaleString('vi-VN')}₫`;
 };
-   const formatDate = (date) => {
+ const formatDate = (date) => {
     if (!date) return '---';
     const d = new Date(date);
     // Kiểm tra xem đối tượng Date có hợp lệ không
@@ -223,7 +223,8 @@ export default function CouponList() {
         month: '2-digit',
         year: 'numeric',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        hour12: true // Thêm thuộc tính này để dùng định dạng 12 giờ
     });
 };
     return (
