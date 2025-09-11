@@ -16,6 +16,7 @@ import { formatCurrencyVND } from '../../../utils/formatCurrency';
 import bgPc from '../../../assets/Client/images/bg-pc.png';
 import successIcon from '../../../assets/Client/images/Logo/snapedit_1749613755235 1.png';
 import waitingIcon from '../../../assets/Client/images/Logo/snapedit_1749613755235 1.png';
+import { API_BASE_URL } from '../../../constants/environment';
 
 const Row = ({ label, value, bold, color }) => (
   <div className={`flex justify-between ${color ?? 'text-gray-800'}`}>
@@ -40,75 +41,70 @@ const OrderConfirmation = () => {
   const [loading, setLoading] = useState(true);
   const [isPaymentAttempted, setIsPaymentAttempted] = useState(false);
 
-useEffect(() => {
-  if (momoOrderId && resultCode !== null && !isPaymentAttempted) {
-    setIsPaymentAttempted(true);
+  useEffect(() => {
+    if (momoOrderId && resultCode !== null && !isPaymentAttempted) {
+      setIsPaymentAttempted(true);
 
-    fetch('https://quockhai.id.vn/payment/momo-callback', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orderId: momoOrderId, resultCode })
-    })
-      .then((res) => res.json()) 
-      .then((data) => {
-        if (data.success) {
-          
-          if (data.order) {
-            setOrder(data.order);
+      fetch(`${API_BASE_URL}/payment/momo-callback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: momoOrderId, resultCode })
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            if (data.order) {
+              setOrder(data.order);
+            } else {
+              fetchOrderDetails(orderCodeFromUrl);
+            }
           } else {
+            toast.error(data.message || 'Thanh toán MoMo thất bại.');
             fetchOrderDetails(orderCodeFromUrl);
           }
-        } else {
-          
-          toast.error(data.message || 'Thanh toán MoMo thất bại.');
+        })
+        .catch((err) => {
+          console.error('Callback lỗi:', err);
+          toast.error('Có lỗi xảy ra khi xử lý thanh toán MoMo.');
           fetchOrderDetails(orderCodeFromUrl);
-        }
-      })
-      .catch((err) => {
-        console.error('Callback lỗi:', err);
-        toast.error('Có lỗi xảy ra khi xử lý thanh toán MoMo.');
-        fetchOrderDetails(orderCodeFromUrl);
-      });
-  }
-}, [momoOrderId, resultCode, isPaymentAttempted, orderCodeFromUrl]);
+        });
+    }
+  }, [momoOrderId, resultCode, isPaymentAttempted, orderCodeFromUrl]);
 
- useEffect(() => {
-    
+  useEffect(() => {
     if (!payosOrderCode || !payosStatus || isPaymentAttempted) return;
 
-    
     setIsPaymentAttempted(true);
-    
-  
+
     const urlParams = new URLSearchParams(window.location.search);
     const orderCode = urlParams.get('orderCode');
     const status = urlParams.get('status');
-http://localhost:5000/
-   
-    if (orderCode) {
-        fetch(`https://quockhai.id.vn/payment/payos-webhook`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-         
-            body: JSON.stringify({ orderCode, status })
-        })
+    //localhost:5000/
+
+    http: if (orderCode) {
+      fetch(`${API_BASE_URL}/payment/payos-webhook`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+
+        body: JSON.stringify({ orderCode, status })
+      })
         .then((res) => res.text().then((txt) => ({ ok: res.ok, txt })))
         .then(({ ok, txt }) => {
-            if (!ok || txt.trim().toUpperCase() !== 'CẬP NHẬT TRẠNG THÁI PAYOS THÀNH CÔNG') {
-                throw new Error(txt || 'PAYOS_CALLBACK_FAILED');
-            }
-          
-            fetchOrderDetails(orderCode);
+          if (!ok || txt.trim().toUpperCase() !== 'CẬP NHẬT TRẠNG THÁI PAYOS THÀNH CÔNG') {
+            throw new Error(txt || 'PAYOS_CALLBACK_FAILED');
+          }
+
+          fetchOrderDetails(orderCode);
         })
         .catch((err) => {
-            console.error('PayOS callback error:', err);
-            
-            fetchOrderDetails(orderCode);
+          console.error('PayOS callback error:', err);
+
+          fetchOrderDetails(orderCode);
         });
     } else {
-        console.error("Không tìm thấy orderCode trong URL.");
+      console.error('Không tìm thấy orderCode trong URL.');
     }
-}, [payosOrderCode, payosStatus, isPaymentAttempted]);
+  }, [payosOrderCode, payosStatus, isPaymentAttempted]);
   useEffect(() => {
     if (!vnpTxnRef || isPaymentAttempted) return;
 
@@ -116,19 +112,19 @@ http://localhost:5000/
 
     const rawQuery = window.location.search.slice(1);
 
-    fetch('https://quockhai.id.vn/payment/vnpay-callback', {
+    fetch(`${API_BASE_URL}/payment/vnpay-callback`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ rawQuery })
     })
-     .then(res => res.json())
-.then(data => {
-  if (data.order) {
-    setOrder(data.order);  
-    return; // ⛔️ không gọi fetchOrderDetails nữa
-  }
-  fetchOrderDetails(orderCodeFromUrl);
-})
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.order) {
+          setOrder(data.order);
+          return; // ⛔️ không gọi fetchOrderDetails nữa
+        }
+        fetchOrderDetails(orderCodeFromUrl);
+      })
 
       .catch((err) => {
         console.error('VNPay callback error:', err);
@@ -180,8 +176,33 @@ http://localhost:5000/
       setLoading(false);
     }
   };
+  const zaloAppTransId = searchParams.get('app_trans_id');
 
-if (loading) return <Loader fullscreen />;
+  useEffect(() => {
+    if (zaloAppTransId && !isPaymentAttempted) {
+      setIsPaymentAttempted(true);
+      fetch(`${API_BASE_URL}/payment/zalo-callback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ app_trans_id: zaloAppTransId })
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.order) {
+            setOrder(data.order);
+          } else {
+            fetchOrderDetails(orderCodeFromUrl);
+          }
+        })
+        .catch((err) => {
+          console.error('ZaloPay callback error:', err);
+          toast.error('Có lỗi khi xử lý thanh toán ZaloPay.');
+          fetchOrderDetails(orderCodeFromUrl);
+        });
+    }
+  }, [zaloAppTransId, isPaymentAttempted, orderCodeFromUrl]);
+
+  if (loading) return <Loader fullscreen />;
 
   if (!order)
     return (
