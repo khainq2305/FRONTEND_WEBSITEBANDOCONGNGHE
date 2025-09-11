@@ -118,10 +118,11 @@ const OrderConfirmation = () => {
     body: JSON.stringify({ rawQuery }),
   })
     .then((res) => res.json())
-    .then((data) => {
+    .then(async (data) => {
       if (data.order) {
-        setOrder(data.order); // 👈 cập nhật trực tiếp từ callback
-        return; // ⛔️ không fetchOrderDetails nữa
+        // 🔄 Gọi lại DB để chắc chắn lấy bản đã update
+        await fetchOrderDetails(orderCodeFromUrl);
+        return;
       }
       fetchOrderDetails(orderCodeFromUrl);
     })
