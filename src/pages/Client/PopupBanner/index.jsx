@@ -12,7 +12,8 @@ const PopupBanner = () => {
     const fetchPopupBanner = async () => {
       try {
         const response = await bannerService.getByType('popup-banner');
-        const bannersArray = response?.data?.data || [];
+        const bannersArray = response?.data|| [];
+        // const bannersArray = response?.data?.data || [];
 
         if (bannersArray.length > 0) {
           const firstBanner = bannersArray[0];
