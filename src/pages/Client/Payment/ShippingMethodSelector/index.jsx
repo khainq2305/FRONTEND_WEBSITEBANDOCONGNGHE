@@ -50,69 +50,67 @@ const ShippingMethodSelector = ({
   };
 
   return (
-    <div className="bg-white rounded-lg p-4 border border-gray-200">
-      <h2 className="font-semibold text-sm sm:text-base mb-3 flex items-center">
-        <FiTruck className="mr-2" /> Chọn phương thức vận chuyển
-      </h2>
-      {loading ? (
-        <div className="flex items-center text-sm text-gray-500">
-          <FiLoader className="animate-spin mr-2" /> Đang tải...
-        </div>
-      ) : methods.length === 0 ? (
-        <p className="text-sm text-gray-500">Không có lựa chọn nào khả dụng.</p>
-      ) : (
-        <ul className="space-y-2">
-          {methods.map((m) => {
-            const isSelected = selectedMethod?.code === m.code;
-            return (
-              <li
-                key={m.code}
-                onClick={() => handleChange(m)}
-                className={[
-                  "flex items-center justify-between p-3 border rounded-md cursor-pointer transition-colors",
-                  "hover:border-gray-300",
-                  isSelected ? "border-blue-300 bg-blue-50" : "border-gray-200 bg-white"
-                ].join(" ")}
-              >
-                {/* Changed items-start to items-center */}
-               <div className="flex items-center gap-3">
-  <span
-    className={[
-      "inline-block h-3 w-3 rounded-full border",
-      isSelected ? "bg-primary border-primary" : "bg-white border-gray-300"
-    ].join(" ")}
-  />
-
-  <div className="flex items-center gap-2">
-    {/* Logo theo code */}
-    {m.code === "ghn" && (
-      <img src={ghnLogo} alt="GHN" className="w-8 h-8 object-contain" />
+  <div className="bg-white rounded-lg p-4 border border-gray-200">
+    <h2 className="font-semibold text-sm sm:text-base mb-3 flex items-center">
+      <FiTruck className="mr-2" /> Chọn phương thức vận chuyển
+    </h2>
+    {loading ? (
+      <div className="flex items-center text-sm text-gray-500">
+        <FiLoader className="animate-spin mr-2" /> Đang tải...
+      </div>
+    ) : !selectedAddress ? (
+      <p className="text-sm text-gray-500">
+        Vui lòng nhập thông tin giao hàng để tính phí vận chuyển.
+      </p>
+    ) : methods.length === 0 ? (
+      <p className="text-sm text-gray-500">Không có lựa chọn nào khả dụng.</p>
+    ) : (
+      <ul className="space-y-2">
+        {methods.map((m) => {
+          const isSelected = selectedMethod?.code === m.code;
+          return (
+            <li
+              key={m.code}
+              onClick={() => handleChange(m)}
+              className={[
+                "flex items-center justify-between p-3 border rounded-md cursor-pointer transition-colors",
+                "hover:border-gray-300",
+                isSelected ? "border-blue-300 bg-blue-50" : "border-gray-200 bg-white"
+              ].join(" ")}
+            >
+              <div className="flex items-center gap-3">
+                <span
+                  className={[
+                    "inline-block h-3 w-3 rounded-full border",
+                    isSelected ? "bg-primary border-primary" : "bg-white border-gray-300"
+                  ].join(" ")}
+                />
+                <div className="flex items-center gap-2">
+                  {m.code === "ghn" && (
+                    <img src={ghnLogo} alt="GHN" className="w-8 h-8 object-contain" />
+                  )}
+                  {m.code === "ghtk" && (
+                    <img src={ghtkLogo} alt="GHTK" className="w-8 h-8 object-contain" />
+                  )}
+                  <div>
+                    <p className="font-medium text-sm text-gray-900">{m.name}</p>
+                    <p className="text-xs text-gray-500">
+                      Thời gian {m.leadTime || "?"} ngày
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <span className="text-sm font-semibold text-red-600">
+                {m.fee === 0 ? "Miễn phí" : formatCurrencyVND(m.fee)}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
     )}
-    {m.code === "ghtk" && (
-      <img src={ghtkLogo} alt="GHTK" className="w-8 h-8 object-contain" />
-    )}
-    {/* Nếu sau này có ViettelPost thì import logo và thêm như này */}
-    {/* {m.code === "vtp" && (
-      <img src={vtpLogo} alt="ViettelPost" className="w-8 h-8 object-contain" />
-    )} */}
-
-    <div>
-      <p className="font-medium text-sm text-gray-900">{m.name}</p>
-      <p className="text-xs text-gray-500">Thời gian {m.leadTime || "?"} ngày</p>
-    </div>
   </div>
-</div>
+);
 
-                <span className="text-sm font-semibold text-red-600">
-                  {m.fee === 0 ? "Miễn phí" : formatCurrencyVND(m.fee)}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </div>
-  );
 };
 
 export default ShippingMethodSelector;
