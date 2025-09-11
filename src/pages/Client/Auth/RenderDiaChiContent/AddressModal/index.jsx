@@ -206,17 +206,21 @@ const [showMapModal, setShowMapModal] = useState(false);
     }
   };
 
-  const filteredLocationItems = () => {
-    let items = [];
-    if (locationPickerTab === 'city') items = provinceList.map((p) => p.name);
-    else if (locationPickerTab === 'district') items = districtList.map((d) => d.name);
-    else if (locationPickerTab === 'ward') items = wardList.map((w) => w.name);
+ const filteredLocationItems = () => {
+  let items = [];
+  if (locationPickerTab === 'city') items = provinceList.map((p) => p.name);
+  else if (locationPickerTab === 'district') items = districtList.map((d) => d.name);
+  else if (locationPickerTab === 'ward') items = wardList.map((w) => w.name);
+  items = items.filter((item) => item !== "Huyện Hoàng Sa");
 
-    if (locationSearchTerm) {
-      return items.filter((item) => item.toLowerCase().includes(locationSearchTerm.toLowerCase()));
-    }
-    return items;
-  };
+  if (locationSearchTerm) {
+    return items.filter((item) =>
+      item.toLowerCase().includes(locationSearchTerm.toLowerCase())
+    );
+  }
+  return items;
+};
+
 
   const handleSave = async (e) => {
     e.preventDefault();
