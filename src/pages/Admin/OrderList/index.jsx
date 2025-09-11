@@ -437,11 +437,7 @@ const OrderList = () => {
             label: 'Cập nhật trạng thái',
             onClick: () => openUpdateStatusDialog(order)
           },
-          {
-            label: 'Huỷ đơn',
-            color: 'error',
-            onClick: () => openCancelDialog(order)
-          }
+         
         ]
       : [])
   ]}
