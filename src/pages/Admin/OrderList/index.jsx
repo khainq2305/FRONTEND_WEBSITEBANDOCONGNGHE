@@ -431,14 +431,13 @@ const OrderList = () => {
       label: 'Xem chi tiết',
       onClick: () => navigate(`/admin/orders/${order.id}`)
     },
-    ...(order.status === 'processing'
+   ...(order.status !== 'completed' && order.status !== 'cancelled'
       ? [
-          {
-            label: 'Cập nhật trạng thái',
-            onClick: () => openUpdateStatusDialog(order)
-          },
-         
-        ]
+        {
+          label: 'Cập nhật trạng thái',
+          onClick: () => openUpdateStatusDialog(order)
+        },
+      ]
       : [])
   ]}
 />

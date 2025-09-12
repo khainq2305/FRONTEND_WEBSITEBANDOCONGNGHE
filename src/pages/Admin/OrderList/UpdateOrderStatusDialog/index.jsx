@@ -44,12 +44,16 @@ const filteredStatusOptions = statusOptions.filter(option => {
   const currentIndex = statusOrder.indexOf(order?.status);
   const optionIndex = statusOrder.indexOf(option.value);
 
-  // Luôn giữ lại trạng thái hiện tại (để hiển thị)
-  // Và các trạng thái sau hoặc "cancelled"
+  // Điều kiện để ẩn 'cancelled' khi đơn đã được chuyển đi
+  const shouldHideCancelled = 
+    (order.status === 'shipping' || order.status === 'delivered' || order.status === 'completed') && 
+    option.value === 'cancelled';
+
   return (
-    option.value === order?.status ||
-    optionIndex > currentIndex ||
-    option.value === 'cancelled'
+    !shouldHideCancelled && // 👈 Thêm điều kiện này
+    (option.value === order?.status ||
+     optionIndex > currentIndex ||
+     option.value === 'cancelled') // Vẫn cần giữ dòng này để cho phép hủy từ trạng thái 'processing'
   );
 });
 
