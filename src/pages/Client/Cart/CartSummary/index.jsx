@@ -29,7 +29,7 @@ const CartSummary = ({
     const {
         userPointBalance = 0,
         earnRate = 10000,
-        redeemRate = 100,
+        redeemRate = 10,
         minPointRequired = 1,
         canUsePoints = false
     } = orderTotals || {};

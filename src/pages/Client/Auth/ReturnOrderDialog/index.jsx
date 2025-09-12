@@ -106,18 +106,18 @@ const ReturnOrderPage = () => {
       return;
     }
 
-    const processOrderProducts = (products) => {
-      const initialItems = {};
-      if (products && products.length > 0) {
-        // Tự động chọn sản phẩm đầu tiên với số lượng đầy đủ
-        products.forEach((product, index) => {
-          initialItems[product.skuId] = index === 0 ? product.quantity : 0;
-        });
-      }
-      setSelectedReturnItems(initialItems);
-      // Cập nhật trạng thái selectAll dựa trên việc sản phẩm đầu tiên được chọn
-      setSelectAll(products.length === 1 && products[0] && initialItems[products[0].skuId] === products[0].quantity);
+const processOrderProducts = (products) => {
+  const initialItems = {};
+  products.forEach((product) => {
+    initialItems[product.skuId] = {
+      quantity: product.quantity,
+      checked: false // mặc định chưa tick
     };
+  });
+  setSelectedReturnItems(initialItems);
+  setSelectAll(false); // select all cũng false
+};
+
 
     if (initialOrderProducts && initialOrderProducts.length > 0) {
       setOrderData({
@@ -127,29 +127,31 @@ const ReturnOrderPage = () => {
       processOrderProducts(initialOrderProducts);
       setLoading(false);
     } else {
-      const fetchOrderDetail = async () => {
-        try {
-          setLoading(true);
-          const res = await orderService.getOrderById(orderId);
-          if (res.data?.data) {
-            setOrderData({
-              ...res.data.data,
-              products: res.data.data.products,
-              finalPrice: res.data.data.finalPrice
-            });
-            processOrderProducts(res.data.data.products);
-          } else {
-            toast.error('Không tải được chi tiết đơn hàng.');
-            navigate('/purchase');
-          }
-        } catch (error) {
-          console.error('Failed to fetch order details:', error);
-          toast.error('Lỗi khi tải chi tiết đơn hàng.');
-          navigate('/purchase');
-        } finally {
-          setLoading(false);
-        }
-      };
+    const fetchOrderDetail = async () => {
+  try {
+    setLoading(true);
+    const res = await orderService.getOrderById(orderId);
+    if (res.data?.data) {
+      setOrderData({
+        ...res.data.data,
+        products: res.data.data.products,
+        finalPrice: res.data.data.finalPrice,
+        // THÊM DÒNG NÀY ĐỂ LƯU PHÍ SHIP GỐC
+        shippingFee: res.data.data.shippingFee // 👈 Thêm dòng này
+      });
+      processOrderProducts(res.data.data.products);
+    } else {
+      toast.error('Không tải được chi tiết đơn hàng.');
+      navigate('/purchase');
+    }
+  } catch (error) {
+    console.error('Failed to fetch order details:', error);
+    toast.error('Lỗi khi tải chi tiết đơn hàng.');
+    navigate('/purchase');
+  } finally {
+    setLoading(false);
+  }
+};
       fetchOrderDetail();
     }
 
@@ -157,44 +159,45 @@ const ReturnOrderPage = () => {
     setShowBankInfoForm(orderPaymentMethodCode && methodsRequiringBankInfo.includes(orderPaymentMethodCode));
   }, [orderId, orderPaymentMethodCode, initialOrderProducts, navigate]);
 
-  useEffect(() => {
-    // Logic này để cập nhật trạng thái selectAll khi người dùng tương tác
-    if (orderData?.products && orderData.products.length > 0) {
-      const allSelected = orderData.products.every((product) => selectedReturnItems[product.skuId] === product.quantity);
-      const anySelected = orderData.products.some((product) => selectedReturnItems[product.skuId] > 0);
-
-      if (allSelected) {
-        setSelectAll(true);
-      } else if (anySelected) {
-        setSelectAll(false);
-      } else {
-        setSelectAll(false);
-      }
-    } else {
-      setSelectAll(false);
-    }
-  }, [selectedReturnItems, orderData]);
-
+useEffect(() => {
+  if (orderData?.products && orderData.products.length > 0) {
+    // Sửa lỗi ở đây: Kiểm tra thuộc tính .checked thay vì quantity
+    const allItemsChecked = orderData.products.every(
+      (product) => selectedReturnItems[product.skuId]?.checked
+    );
+    
+    setSelectAll(allItemsChecked);
+  } else {
+    setSelectAll(false)
+  }
+}, [selectedReturnItems, orderData]);
   const handleItemCheckboxChange = (skuIdRaw, isChecked) => {
     const skuId = Number(skuIdRaw);
     const product = orderData?.products?.find((p) => p.skuId === skuId);
     if (!product) return;
 
     setSelectedReturnItems((prev) => ({
-      ...prev,
-      [skuId]: isChecked ? product.quantity : 0
-    }));
-  };
-  const handleSelectAllChange = (e) => {
-    const checked = e.target.checked;
-    setSelectAll(checked);
+  ...prev,
+  [skuId]: {
+    quantity: prev[skuId]?.quantity || product.quantity,
+    checked: isChecked
+  }
+}));
 
-    const newSelectedItems = {};
-    orderData?.products?.forEach((product) => {
-      newSelectedItems[product.skuId] = checked ? product.quantity : 0;
-    });
-    setSelectedReturnItems(newSelectedItems);
   };
+ const handleSelectAllChange = (e) => {
+  const checked = e.target.checked;
+  setSelectAll(checked);
+
+  const newSelectedItems = {};
+  orderData?.products?.forEach((product) => {
+    newSelectedItems[product.skuId] = {
+      quantity: product.quantity,
+      checked: checked
+    };
+  });
+  setSelectedReturnItems(newSelectedItems);
+};
 
   const handleFileChange = (event, fileType) => {
     const files = Array.from(event.target.files);
@@ -254,32 +257,36 @@ const ReturnOrderPage = () => {
     };
   }, [evidenceFiles]);
 
-  const totalRefundAmount = useMemo(() => {
-    if (!orderData) return 0;
+const totalRefundAmount = useMemo(() => {
+  if (!orderData) return 0;
 
-    const productSubtotal = Object.entries(selectedReturnItems).reduce((sum, [skuId, qty]) => {
-      if (!qty) return sum;
-      const prod = orderData.products.find((p) => p.skuId === Number(skuId));
-      return prod ? sum + prod.price * qty : sum;
-    }, 0);
+  // Lấy tổng số lượng sản phẩm ban đầu trong đơn hàng
+  const totalOriginalQuantity = orderData.products.reduce((sum, p) => sum + p.quantity, 0);
 
-    const totalProductsInOrder = orderData.products.reduce((sum, p) => sum + p.quantity, 0);
-    const totalSelectedToReturn = Object.values(selectedReturnItems).reduce((sum, qty) => sum + qty, 0);
+  let refundTotal = 0;
+  let totalReturnedQuantity = 0;
 
-    const allItemsSelectedForReturn = totalSelectedToReturn === totalProductsInOrder && totalProductsInOrder > 0;
-
-    if (allItemsSelectedForReturn) {
-      return orderData.finalPrice ?? productSubtotal;
+  // Lặp qua các sản phẩm đã được chọn
+  for (const product of orderData.products) {
+    const itemState = selectedReturnItems[product.skuId];
+    if (itemState?.checked && itemState.quantity > 0) {
+      refundTotal += product.price * itemState.quantity;
+      totalReturnedQuantity += itemState.quantity;
     }
+  }
 
-    return productSubtotal;
-  }, [selectedReturnItems, orderData]);
+  // Nếu trả lại toàn bộ đơn hàng, hoàn lại finalPrice
+  if (totalOriginalQuantity > 0 && totalOriginalQuantity === totalReturnedQuantity) {
+    refundTotal = orderData.finalPrice || refundTotal;
+  }
 
+  return refundTotal;
+}, [selectedReturnItems, orderData]);
   const handleSubmitFinal = async () => {
     setSubmitting(true);
     const newErrors = {};
 
-    const hasItem = Object.values(selectedReturnItems).some((q) => q > 0);
+    const hasItem = Object.values(selectedReturnItems).some(item => item.checked && item.quantity > 0);
     if (!hasItem) {
       newErrors.selectedItems = 'Vui lòng chọn ít nhất một sản phẩm để trả.';
     }
@@ -328,13 +335,13 @@ const ReturnOrderPage = () => {
 formData.append('situation', situation);
 
     const itemsToReturn = Object.keys(selectedReturnItems)
-      .filter((skuId) => selectedReturnItems[skuId] > 0)
-      .map((skuId) => ({
-        skuId: Number(skuId),
-        quantity: selectedReturnItems[skuId]
-      }));
+  .filter(skuId => selectedReturnItems[skuId]?.checked && selectedReturnItems[skuId]?.quantity > 0)
+  .map(skuId => ({
+    skuId: Number(skuId),
+    quantity: selectedReturnItems[skuId].quantity,
+  }));
 
-    formData.append('itemsToReturn', JSON.stringify(itemsToReturn));
+formData.append('itemsToReturn', JSON.stringify(itemsToReturn));
 
     evidenceFiles.forEach((fileData) => {
       if (fileData.file.type.startsWith('image/')) {
@@ -410,17 +417,21 @@ formData.append('situation', situation);
                 borderRadius={1}
                 bgcolor="white"
               >
-                <Checkbox
-                  checked={selectedReturnItems[product.skuId] > 0}
-                  onChange={(e) =>
-                    setSelectedReturnItems((prev) => ({
-                      ...prev,
-                      [product.skuId]: e.target.checked ? 1 : 0
-                    }))
-                  }
-                  size="medium"
-                  sx={{ p: 0, mr: 1, '& .MuiSvgIcon-root': { color: '#f97316' } }}
-                />
+<Checkbox
+  checked={selectedReturnItems[product.skuId]?.checked || false}
+  onChange={(e) =>
+    setSelectedReturnItems((prev) => ({
+      ...prev,
+      [product.skuId]: {
+        quantity: prev[product.skuId]?.quantity || product.quantity,
+        checked: e.target.checked
+      }
+    }))
+  }
+  size="medium"
+  sx={{ p: 0, mr: 1, '& .MuiSvgIcon-root': { color: '#f97316' } }}
+/>
+
 
                 <img
                   src={product.imageUrl}
@@ -438,60 +449,79 @@ formData.append('situation', situation);
                     </Typography>
                   )}
 
-                  {/* Input số lượng có nút + và - */}
-                  <Box display="flex" alignItems="center" mt={1}>
-                    <IconButton
-                      size="small"
-                      onClick={() =>
-                        setSelectedReturnItems((prev) => ({
-                          ...prev,
-                          [product.skuId]: Math.max(0, (prev[product.skuId] || 0) - 1)
-                        }))
-                      }
-                      sx={{
-                        border: '1px solid #ddd',
-                        borderRadius: '4px 0 0 4px',
-                        width: 32,
-                        height: 32
-                      }}
-                    >
-                      -
-                    </IconButton>
+                 {/* Input số lượng có nút + và - */}
+<Box display="flex" alignItems="center" mt={1}>
+  {/* Nút trừ (-) */}
+  <IconButton
+    size="small"
+    onClick={() =>
+      setSelectedReturnItems((prev) => {
+        const currentItem = prev[product.skuId] || { quantity: 0, checked: false };
+        const newQuantity = Math.max(0, currentItem.quantity - 1);
+        return {
+          ...prev,
+          [product.skuId]: {
+            ...currentItem,
+            quantity: newQuantity,
+            checked: newQuantity > 0, // Cập nhật trạng thái check
+          },
+        };
+      })
+    }
+    sx={{
+      border: '1px solid #ddd',
+      borderRadius: '4px 0 0 4px',
+      width: 32,
+      height: 32
+    }}
+  >
+    -
+  </IconButton>
 
-                    <Box
-                      sx={{
-                        borderTop: '1px solid #ddd',
-                        borderBottom: '1px solid #ddd',
-                        width: 50,
-                        height: 32,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: 14,
-                        fontWeight: 500
-                      }}
-                    >
-                      {selectedReturnItems[product.skuId] || 0}
-                    </Box>
+  {/* Khung hiển thị số lượng */}
+  <Box
+    sx={{
+      borderTop: '1px solid #ddd',
+      borderBottom: '1px solid #ddd',
+      width: 50,
+      height: 32,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: 14,
+      fontWeight: 500
+    }}
+  >
+    {selectedReturnItems[product.skuId]?.quantity || 0}
+  </Box>
 
-                    <IconButton
-                      size="small"
-                      onClick={() =>
-                        setSelectedReturnItems((prev) => ({
-                          ...prev,
-                          [product.skuId]: Math.min(product.quantity, (prev[product.skuId] || 0) + 1)
-                        }))
-                      }
-                      sx={{
-                        border: '1px solid #ddd',
-                        borderRadius: '0 4px 4px 0',
-                        width: 32,
-                        height: 32
-                      }}
-                    >
-                      +
-                    </IconButton>
-                  </Box>
+  {/* Nút cộng (+) */}
+  <IconButton
+    size="small"
+    onClick={() =>
+      setSelectedReturnItems((prev) => {
+        const currentItem = prev[product.skuId] || { quantity: 0, checked: false };
+        const newQuantity = Math.min(product.quantity, currentItem.quantity + 1);
+        return {
+          ...prev,
+          [product.skuId]: {
+            ...currentItem,
+            quantity: newQuantity,
+            checked: true, // Cập nhật trạng thái check
+          },
+        };
+      })
+    }
+    sx={{
+      border: '1px solid #ddd',
+      borderRadius: '0 4px 4px 0',
+      width: 32,
+      height: 32
+    }}
+  >
+    +
+  </IconButton>
+</Box>
 
                   <Typography variant="caption" color="text.secondary">
                     (Đã mua: {product.quantity})

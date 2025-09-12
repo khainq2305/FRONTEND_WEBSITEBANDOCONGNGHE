@@ -155,13 +155,18 @@ useEffect(() => {
                 </div>
               </div>
 
-              <span
-                className={`shrink-0 flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-full
-                  ${item.type === 'earn' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
-              >
-                {item.type === 'earn' ? `+${formatPoint(item.points)}` : `-${formatPoint(item.points)}`}
-                <img src={xuDiem} alt="coin" className="w-3 h-3 object-contain" />
-              </span>
+             <span
+  className={`shrink-0 flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-full
+    ${['earn', 'refund'].includes(item.type) 
+        ? 'bg-green-100 text-green-700' 
+        : 'bg-red-100 text-red-700'}`}
+>
+  {['earn', 'refund'].includes(item.type) 
+    ? `+${formatPoint(item.points)}` 
+    : `-${formatPoint(item.points)}`}
+  <img src={xuDiem} alt="coin" className="w-3 h-3 object-contain" />
+</span>
+
             </li>
           ))}
         </ul>
