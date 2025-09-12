@@ -370,7 +370,9 @@ export default function CouponList() {
                                         {coupon.type === 'discount' ? 'Giảm giá' : 'Vận chuyển'}
                                     </TableCell>
                                     <TableCell>{getDiscountLabel(coupon)}</TableCell>
-                                    <TableCell>{coupon.totalQuantity || 'Vô hạn'}</TableCell>
+                                   <TableCell>
+    {coupon.totalQuantity === null || coupon.totalQuantity === undefined ? 'Vô hạn' : coupon.totalQuantity}
+</TableCell>
                                     
                                     <TableCell>
                                         {formatDate(coupon.startTime)} - {formatDate(coupon.endTime)}
