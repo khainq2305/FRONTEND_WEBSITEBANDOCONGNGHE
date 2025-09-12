@@ -131,7 +131,7 @@ export const API_ENDPOINT = {
     },
     returnRefund: {
       base: `${API_BASE_URL}/return-refund`,
-      request: '/',
+      request: '',
       getDetail: (id) => `/${id}/detail`,
       cancel: (id) => `/${id}/cancel`,
       getByReturnCode: (code) => `/by-code/${code}`,
