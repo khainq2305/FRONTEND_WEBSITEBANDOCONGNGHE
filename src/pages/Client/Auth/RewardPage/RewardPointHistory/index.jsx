@@ -16,8 +16,9 @@ const TYPE_LABELS = {
   earn: "Mua hàng tích điểm",
   spend: "Sử dụng điểm",
   expired: "Điểm bị hết hạn",
-  refund: "Hoàn điểm do hủy đơn"
+  refund: "Điều chỉnh điểm do đơn hàng"
 };
+
 
 const formatPoint = (value) => new Intl.NumberFormat('vi-VN').format(value);
 
@@ -119,9 +120,15 @@ useEffect(() => {
                 />
 
                 <div>
-                 <p className="font-semibold mb-1">
-  {TYPE_LABELS[item.type] || "Giao dịch khác"}
+<p className="font-semibold mb-1">
+  {item.type === "refund"
+  ? item.description?.includes("Thu hồi")
+    ? "Thu hồi điểm thưởng do hủy đơn"
+    : "Hoàn lại điểm do hủy đơn"
+  : TYPE_LABELS[item.type] || "Giao dịch khác"}
+
 </p>
+
 
 
                   <p className="text-xs text-gray-500 mb-1">
@@ -155,17 +162,16 @@ useEffect(() => {
                 </div>
               </div>
 
-             <span
+<span
   className={`shrink-0 flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-full
-    ${['earn', 'refund'].includes(item.type) 
-        ? 'bg-green-100 text-green-700' 
-        : 'bg-red-100 text-red-700'}`}
+    ${item.points > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
 >
-  {['earn', 'refund'].includes(item.type) 
+  {item.points > 0 
     ? `+${formatPoint(item.points)}` 
-    : `-${formatPoint(item.points)}`}
+    : `-${formatPoint(Math.abs(item.points))}`}
   <img src={xuDiem} alt="coin" className="w-3 h-3 object-contain" />
 </span>
+
 
             </li>
           ))}
