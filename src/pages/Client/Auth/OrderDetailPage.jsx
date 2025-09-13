@@ -1,7 +1,7 @@
 // src/pages/client/OrderDetailPage.jsx
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Loader2, ArrowLeft, Package, User, Truck, CheckCircle,Home, Star, XCircle, Clock } from 'lucide-react';
+import { Loader2, ArrowLeft, Package, User, Truck, CheckCircle, Home, Star, XCircle, Clock } from 'lucide-react';
 import { orderService } from '@/services/client/orderService';
 import { formatCurrencyVND } from '@/utils/formatCurrency';
 import { format } from 'date-fns';
@@ -11,8 +11,8 @@ import CancelOrderDialog from './CancelOrderDialog'; // hoặc đúng path nếu
 
 // --- Icons ---
 const creditIcons = 'https://salt.tikicdn.com/ts/upload/16/f8/f3/0c02ea827b71cd89ffadb7a22babbdd6.png';
-const vietqrIcon  = 'https://salt.tikicdn.com/ts/upload/7e/48/50/7fb406156d0827b736cf0fe66c90ed78.png';
-const walletIcon  = 'https://cdn-icons-png.flaticon.com/512/1041/1041876.png';
+const vietqrIcon = 'https://salt.tikicdn.com/ts/upload/7e/48/50/7fb406156d0827b736cf0fe66c90ed78.png';
+const walletIcon = 'https://cdn-icons-png.flaticon.com/512/1041/1041876.png';
 const defaultPaymentIcon = '/images/default-icon.png';
 
 // --- Map code -> icon ---
@@ -52,17 +52,17 @@ const getShippingProviderLogo = (providerCode) => {
 const getPaymentMethodIcon = (methodCode) => {
   const iconUrl = paymentIconMap[methodCode?.toLowerCase()];
   if (iconUrl) {
-    let altText = 'Icon thanh toán'; 
+    let altText = 'Icon thanh toán';
     switch (methodCode?.toLowerCase()) {
-        case 'cod': altText = 'Tiền mặt'; break;
-        case 'atm': altText = 'Chuyển khoản'; break;
-        case 'vnpay': altText = 'VNPay'; break;
-        case 'momo': altText = 'MoMo'; break;
-        case 'zalopay': altText = 'ZaloPay'; break;
-        case 'viettel_money': altText = 'Viettel Money'; break;
-        case 'stripe': altText = 'Stripe'; break;
-        case 'credit': altText = 'Thẻ tín dụng'; break;
-        default: altText = 'Phương thức thanh toán';
+      case 'cod': altText = 'Tiền mặt'; break;
+      case 'atm': altText = 'Chuyển khoản'; break;
+      case 'vnpay': altText = 'VNPay'; break;
+      case 'momo': altText = 'MoMo'; break;
+      case 'zalopay': altText = 'ZaloPay'; break;
+      case 'viettel_money': altText = 'Viettel Money'; break;
+      case 'stripe': altText = 'Stripe'; break;
+      case 'credit': altText = 'Thẻ tín dụng'; break;
+      default: altText = 'Phương thức thanh toán';
     }
     return <img src={iconUrl} alt={altText} className="w-6 h-6 object-contain mr-2 inline-block" />;
   }
@@ -75,8 +75,8 @@ export default function OrderDetailPage() {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const order = data; 
-const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const order = data;
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -91,38 +91,38 @@ const [showCancelDialog, setShowCancelDialog] = useState(false);
       }
     })();
   }, [orderCode, navigate]);
-const handleReorder = async () => {
-  try {
-    await orderService.reorder(order.id);
-    toast.success('Đã thêm sản phẩm vào giỏ hàng!');
-    navigate('/cart');
-  } catch (err) {
-    toast.error('Không thể mua lại đơn hàng!');
-  }
-};
-
-const handlePayAgain = async () => {
-  try {
-    const res = await orderService.payAgain(order.id, { bankCode: '' });
-    if (res.data?.payUrl) {
-      window.location.href = res.data.payUrl;
-    } else {
-      toast.error('Không tạo được link thanh toán.');
+  const handleReorder = async () => {
+    try {
+      await orderService.reorder(order.id);
+      toast.success('Đã thêm sản phẩm vào giỏ hàng!');
+      navigate('/cart');
+    } catch (err) {
+      toast.error('Không thể mua lại đơn hàng!');
     }
-  } catch (err) {
-    toast.error(err.response?.data?.message || 'Không thể thanh toán lại.');
-  }
-};
+  };
 
-const handleMarkAsReceived = async () => {
-  try {
-    await orderService.markAsCompleted(order.id);
-    toast.success('Đã xác nhận đã nhận hàng!');
-    window.location.reload();
-  } catch (err) {
-    toast.error('Không thể xác nhận đơn hàng.');
-  }
-};
+  const handlePayAgain = async () => {
+    try {
+      const res = await orderService.payAgain(order.id, { bankCode: '' });
+      if (res.data?.payUrl) {
+        window.location.href = res.data.payUrl;
+      } else {
+        toast.error('Không tạo được link thanh toán.');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Không thể thanh toán lại.');
+    }
+  };
+
+  const handleMarkAsReceived = async () => {
+    try {
+      await orderService.markAsCompleted(order.id);
+      toast.success('Đã xác nhận đã nhận hàng!');
+      window.location.reload();
+    } catch (err) {
+      toast.error('Không thể xác nhận đơn hàng.');
+    }
+  };
 
   if (loading) {
     return (
@@ -141,7 +141,7 @@ const handleMarkAsReceived = async () => {
     shippingDiscount = 0,
     couponDiscount = 0,
     finalPrice,
-    status, 
+    status,
     userAddress,
     paymentStatus,
     paymentMethod,
@@ -150,7 +150,7 @@ const handleMarkAsReceived = async () => {
     confirmedAt,
     shippedAt,
     deliveredAt,
-    shippingProvider, 
+    shippingProvider,
     completedAt,
     cancelledAt,
     returnedAt,
@@ -204,14 +204,14 @@ const handleMarkAsReceived = async () => {
         } else if (order.confirmedAt) {
           stepLabel = 'Đã xác nhận đơn hàng';
         } else {
-            stepLabel = 'Chờ xác nhận đơn hàng';
+          stepLabel = 'Chờ xác nhận đơn hàng';
         }
 
         dateToDisplay = order.confirmedAt ? format(new Date(order.confirmedAt), 'HH:mm dd-MM-yyyy', { locale: vi }) : null;
 
         isCompleted = ['processing', 'shipping', 'delivered', 'completed'].includes(currentOrderStatus) && !!order.confirmedAt;
         if (currentOrderStatus === 'pending' && !!order.confirmedAt) {
-            isCompleted = true;
+          isCompleted = true;
         }
 
       }
@@ -237,33 +237,33 @@ const handleMarkAsReceived = async () => {
     });
 
     if (currentOrderStatus === 'cancelled') {
-        const cancelledStep = {
-            icon: <XCircle size={26} />,
-            label: 'Đơn hàng đã Hủy',
-            date: order.cancelledAt ? format(new Date(order.cancelledAt), 'HH:mm dd-MM-yyyy', { locale: vi }) : null,
-            isCompleted: true,
-            isCurrent: true,
-        };
-        const existingCancelledIndex = timeline.findIndex(s => s.id === 'cancelled');
-        if (existingCancelledIndex !== -1) {
-            timeline[existingCancelledIndex] = cancelledStep;
-        } else {
-            timeline.push(cancelledStep);
-        }
+      const cancelledStep = {
+        icon: <XCircle size={26} />,
+        label: 'Đơn hàng đã Hủy',
+        date: order.cancelledAt ? format(new Date(order.cancelledAt), 'HH:mm dd-MM-yyyy', { locale: vi }) : null,
+        isCompleted: true,
+        isCurrent: true,
+      };
+      const existingCancelledIndex = timeline.findIndex(s => s.id === 'cancelled');
+      if (existingCancelledIndex !== -1) {
+        timeline[existingCancelledIndex] = cancelledStep;
+      } else {
+        timeline.push(cancelledStep);
+      }
     } else if (currentOrderStatus === 'returned') {
-        const returnedStep = {
-            icon: <Clock size={16} />,
-            label: 'Đơn hàng đã Hoàn trả',
-            date: order.returnedAt ? format(new Date(order.returnedAt), 'HH:mm dd-MM-yyyy', { locale: vi }) : null,
-            isCompleted: true,
-            isCurrent: true,
-        };
-        const existingReturnedIndex = timeline.findIndex(s => s.id === 'returned');
-        if (existingReturnedIndex !== -1) {
-            timeline[existingReturnedIndex] = returnedStep;
-        } else {
-            timeline.push(returnedStep);
-        }
+      const returnedStep = {
+        icon: <Clock size={16} />,
+        label: 'Đơn hàng đã Hoàn trả',
+        date: order.returnedAt ? format(new Date(order.returnedAt), 'HH:mm dd-MM-yyyy', { locale: vi }) : null,
+        isCompleted: true,
+        isCurrent: true,
+      };
+      const existingReturnedIndex = timeline.findIndex(s => s.id === 'returned');
+      if (existingReturnedIndex !== -1) {
+        timeline[existingReturnedIndex] = returnedStep;
+      } else {
+        timeline.push(returnedStep);
+      }
     }
 
     return timeline.filter(step => step.label);
@@ -274,17 +274,17 @@ const handleMarkAsReceived = async () => {
       ${userAddress.streetAddress}, ${userAddress.ward?.name}, ${userAddress.district?.name}, ${userAddress.province?.name}`
     : 'Đang cập nhật địa chỉ...';
 
-const ghnStatusConfig = {
-  picking:     { label: "Đang lấy hàng",     icon: <Package size={16} />, color: "text-blue-500", dot: "bg-blue-500" },
-  picked:      { label: "Đã lấy hàng",       icon: <CheckCircle size={16} />, color: "text-green-600", dot: "bg-green-600" },
-  storing:     { label: "Đã nhập kho",       icon: <Home size={16} />, color: "text-purple-500", dot: "bg-purple-500" },
-  transporting:{ label: "Đang vận chuyển",   icon: <Truck size={16} />, color: "text-orange-500", dot: "bg-orange-500" },
-  delivering:  { label: "Đang giao hàng",    icon: <Truck size={16} />, color: "text-blue-600", dot: "bg-blue-600" },
-  delivered:   { label: "Đã giao hàng",      icon: <CheckCircle size={16} />, color: "text-green-700 font-semibold", dot: "bg-green-700" },
-  return:      { label: "Đơn hàng hoàn trả", icon: <XCircle size={16} />, color: "text-red-500", dot: "bg-red-500" },
-  cancelled:   { label: "Đơn hàng đã hủy",   icon: <XCircle size={16} />, color: "text-gray-500", dot: "bg-gray-400" },
-  default:     { label: "Đang xử lý",        icon: <Package size={16} />, color: "text-gray-600", dot: "bg-gray-400" }
-};
+  const ghnStatusConfig = {
+    picking: { label: "Đang lấy hàng", icon: <Package size={16} />, color: "text-blue-500", dot: "bg-blue-500" },
+    picked: { label: "Đã lấy hàng", icon: <CheckCircle size={16} />, color: "text-green-600", dot: "bg-green-600" },
+    storing: { label: "Đã nhập kho", icon: <Home size={16} />, color: "text-purple-500", dot: "bg-purple-500" },
+    transporting: { label: "Đang vận chuyển", icon: <Truck size={16} />, color: "text-orange-500", dot: "bg-orange-500" },
+    delivering: { label: "Đang giao hàng", icon: <Truck size={16} />, color: "text-blue-600", dot: "bg-blue-600" },
+    delivered: { label: "Đã giao hàng", icon: <CheckCircle size={16} />, color: "text-green-700 font-semibold", dot: "bg-green-700" },
+    return: { label: "Đơn hàng hoàn trả", icon: <XCircle size={16} />, color: "text-red-500", dot: "bg-red-500" },
+    cancelled: { label: "Đơn hàng đã hủy", icon: <XCircle size={16} />, color: "text-gray-500", dot: "bg-gray-400" },
+    default: { label: "Đang xử lý", icon: <Package size={16} />, color: "text-gray-600", dot: "bg-gray-400" }
+  };
   return (
     <div className="max-w-5xl mx-auto bg-white ">
       {/* Header Section */}
@@ -307,7 +307,7 @@ const ghnStatusConfig = {
       {/* Shipping Address - Updated section */}
       <section className="p-0 border-b border-gray-200">
         <div className="grid grid-cols-1 md:grid-cols-3 h-full">
-          
+
           {/* ĐỊA CHỈ NHẬN HÀNG */}
           <div className="p-4 flex flex-col border-b md:border-b-0 md:border-r border-gray-300">
             <h2 className="font-semibold text-gray-800 mb-2">ĐỊA CHỈ NHẬN HÀNG</h2>
@@ -349,49 +349,48 @@ const ghnStatusConfig = {
           </p>
         </div>
       )}
-{data.tracking && data.tracking.logs?.length > 0 && (
-  <section className="p-4 sm:p-6 border-b border-gray-200">
-    <h2 className="font-semibold text-gray-800 mb-3">Trạng thái vận chuyển</h2>
-    <div className="relative pl-8">
-      {/* Đường line timeline */}
-      <div className="absolute top-0 left-2 w-[2px] h-full bg-gray-300"></div>
+      {data.tracking && data.tracking.logs?.length > 0 && (
+        <section className="p-4 sm:p-6 border-b border-gray-200">
+          <h2 className="font-semibold text-gray-800 mb-3">Trạng thái vận chuyển</h2>
+          <div className="relative pl-8">
+            {/* Đường line timeline */}
+            <div className="absolute top-0 left-2 w-[2px] h-full bg-gray-300"></div>
 
-      {data.tracking.logs.map((log, index) => {
-        const cfg = ghnStatusConfig[log.status] || ghnStatusConfig.default;
-        const isLatest = index === 0; // trạng thái mới nhất
+            {data.tracking.logs.map((log, index) => {
+              const cfg = ghnStatusConfig[log.status] || ghnStatusConfig.default;
+              const isLatest = index === 0; // trạng thái mới nhất
 
-        return (
-          <div key={index} className="relative flex items-start mb-6">
-            {/* Chấm tròn */}
-            <div
-              className={`w-4 h-4 mt-1 rounded-full flex items-center justify-center z-10
+              return (
+                <div key={index} className="relative flex items-start mb-6">
+                  {/* Chấm tròn */}
+                  <div
+                    className={`w-4 h-4 mt-1 rounded-full flex items-center justify-center z-10
                 ${isLatest ? "bg-blue-600 text-white" : "bg-gray-300 text-gray-600"}`}
-            >
-              {cfg.icon}
-            </div>
+                  >
+                    {cfg.icon}
+                  </div>
 
-            {/* Nội dung */}
-            <div className="ml-2">
-              <p
-                className={`text-sm font-medium ${
-                  isLatest ? "text-blue-600" : "text-gray-700"
-                }`}
-              >
-                {cfg.label}
-              </p>
-              <p className="text-xs text-gray-500">
-                {log.time ? new Date(log.time).toLocaleString("vi-VN") : ""}
-              </p>
-              {log.note && (
-                <p className="text-xs text-gray-400 italic mt-1">{log.note}</p>
-              )}
-            </div>
+                  {/* Nội dung */}
+                  <div className="ml-2">
+                    <p
+                      className={`text-sm font-medium ${isLatest ? "text-blue-600" : "text-gray-700"
+                        }`}
+                    >
+                      {cfg.label}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {log.time ? new Date(log.time).toLocaleString("vi-VN") : ""}
+                    </p>
+                    {log.note && (
+                      <p className="text-xs text-gray-400 italic mt-1">{log.note}</p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        );
-      })}
-    </div>
-  </section>
-)}
+        </section>
+      )}
 
 
       {/* Product List (giữ nguyên) */}
@@ -464,74 +463,74 @@ const ghnStatusConfig = {
           <span className="text-red-500 text-xl font-semibold">{formatCurrencyVND(finalPrice)}</span>
         </div>
         {order.rewardPoints > 0 && (
-  <div className="flex justify-between items-center mt-2 text-sm text-green-600">
-    <span>Điểm thưởng nhận được</span>
-    <span className="font-semibold">+{order.rewardPoints} điểm</span>
-  </div>
-)}
+          <div className="flex justify-between items-center mt-2 text-sm text-green-600">
+            <span>Điểm thưởng nhận được</span>
+            <span className="font-semibold">+{order.rewardPoints} điểm</span>
+          </div>
+        )}
 
         {/* Nút hành động giống ngoài danh sách */}
-<div className="p-4 flex flex-wrap gap-2 border-t border-gray-200 mt-4 justify-end">
-  {status === 'processing' && (
-    <>
-      <button
-        onClick={() => setShowCancelDialog(true)}
-        className="text-sm border border-gray-300 px-4 py-2 rounded text-gray-700 hover:bg-gray-100"
-      >
-        Hủy đơn
-      </button>
-      {paymentStatus === 'waiting' && !['atm', 'vietqr', 'manual_transfer'].includes(paymentMethod?.code) && (
-        <button
-          onClick={handlePayAgain}
-          className="text-sm border border-orange-500 text-orange-600 px-4 py-2 rounded hover:bg-orange-50"
-        >
-          Thanh toán lại
-        </button>
-      )}
-    </>
-  )}
+        <div className="p-4 flex flex-wrap gap-2 border-t border-gray-200 mt-4 justify-end">
+          {status === 'processing' && (
+            <>
+              <button
+                onClick={() => setShowCancelDialog(true)}
+                className="text-sm border border-gray-300 px-4 py-2 rounded text-gray-700 hover:bg-gray-100"
+              >
+                Hủy đơn
+              </button>
+              {paymentStatus === 'waiting' && !['atm', 'vietqr', 'manual_transfer'].includes(paymentMethod?.code) && (
+                <button
+                  onClick={handlePayAgain}
+                  className="text-sm border border-orange-500 text-orange-600 px-4 py-2 rounded hover:bg-orange-50"
+                >
+                  Thanh toán lại
+                </button>
+              )}
+            </>
+          )}
 
-  {status === 'shipping' && (
-    <button
-      onClick={handleMarkAsReceived}
-      className="text-sm bg-primary text-white px-4 py-2 rounded hover:bg-primary/90"
-    >
-      Đã nhận hàng
-    </button>
-  )}
+          {status === 'shipping' && (
+            <button
+              onClick={handleMarkAsReceived}
+              className="text-sm bg-primary text-white px-4 py-2 rounded hover:bg-primary/90"
+            >
+              Đã nhận hàng
+            </button>
+          )}
 
-  {status === 'delivered' && (
-    <button
-      onClick={() =>
-        navigate('/return-order', {
-          state: {
-            orderId: order.id,
-            orderPaymentMethodCode: paymentMethod?.code,
-            orderProducts: products,
-            finalPrice: finalPrice,
-          },
-        })
-      }
-      className="text-sm border border-gray-300 px-4 py-2 rounded text-gray-700 hover:bg-gray-100"
-    >
-      Yêu cầu Trả hàng / Hoàn tiền
-    </button>
-  )}
+          {status === 'delivered' && (
+            <button
+              onClick={() =>
+                navigate('/return-order', {
+                  state: {
+                    orderId: order.id,
+                    orderPaymentMethodCode: paymentMethod?.code,
+                    orderProducts: products,
+                    finalPrice: finalPrice,
+                  },
+                })
+              }
+              className="text-sm border border-gray-300 px-4 py-2 rounded text-gray-700 hover:bg-gray-100"
+            >
+              Yêu cầu Trả hàng / Hoàn tiền
+            </button>
+          )}
 
-  {(status === 'completed' || status === 'cancelled') && (
-  <button
-    onClick={handleReorder}
-    className="text-sm border border-gray-300 px-4 py-2 rounded text-gray-700 hover:bg-gray-100"
-  >
-    Mua lại
-  </button>
-)}
+          {(status === 'completed' || status === 'cancelled') && (
+            <button
+              onClick={handleReorder}
+              className="text-sm border border-gray-300 px-4 py-2 rounded text-gray-700 hover:bg-gray-100"
+            >
+              Mua lại
+            </button>
+          )}
 
-</div>
+        </div>
 
       </section>
-      
- 
+
+
 
       {status === 'cancelled' && cancelReason && (
         <section className="p-4 sm:p-6 border-t border-red-200 bg-red-50 mt-4">
@@ -539,16 +538,16 @@ const ghnStatusConfig = {
           <p className="text-sm text-red-700 whitespace-pre-line">{cancelReason}</p>
         </section>
       )}
-<CancelOrderDialog
-  open={showCancelDialog}
-  onClose={() => setShowCancelDialog(false)}
-  orderCode={order.orderCode}
-  orderId={order.id}
-  onSuccess={() => {
-    setShowCancelDialog(false);
-    window.location.reload();
-  }}
-/>
+      <CancelOrderDialog
+        open={showCancelDialog}
+        onClose={() => setShowCancelDialog(false)}
+        orderCode={order.orderCode}
+        orderId={order.id}
+        onSuccess={() => {
+          setShowCancelDialog(false);
+          window.location.reload();
+        }}
+      />
 
     </div>
   );

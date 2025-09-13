@@ -364,28 +364,23 @@ export default function ReturnMethodPage() {
                 />
                 <Box sx={{ flexGrow: 1, pt: '16px', pb: '16px', pr: '16px' }}>
                   {/* Tiêu đề + Chip Miễn ship hoàn về */}
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1 // khoảng cách nhỏ giữa text và chip
-                    }}
-                  >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Typography variant="body1" fontWeight="bold">
                       Đơn vị vận chuyển đến lấy hàng
                     </Typography>
 
-                    <Chip
-                      label="Vui lòng thanh toán phí vận chuyển"
-                      size="small"
-                      variant="outlined"
-                      sx={{
-                        borderColor: '#1AA2E9',
-                        color: '#1AA2E9',
-                        fontWeight: 600,
-                        ml: 1
-                      }}
-                    />
+                    {returnRequestDetails?.situation === 'customer_pays' && (
+                      <Chip
+                        label="Vui lòng thanh toán phí vận chuyển"
+                        size="small"
+                        variant="outlined"
+                        sx={{ borderColor: '#1AA2E9', color: '#1AA2E9', fontWeight: 600, ml: 1 }}
+                      />
+                    )}
+
+                    {returnRequestDetails?.situation === 'seller_pays' && (
+                      <Chip label="Miễn phí vận chuyển" size="small" color="success" sx={{ fontWeight: 600, ml: 1 }} />
+                    )}
                   </Box>
 
                   <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 1 }}>
@@ -565,63 +560,30 @@ export default function ReturnMethodPage() {
 
                     {/* Phí + Link khít nhau */}
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      {!loadingPickupFee && typeof pickupFee === 'number' && pickupFee > 0 && (
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            border: '1px solid red',
-                            borderRadius: '4px',
-                            px: 1,
-                            py: '2px',
-                            color: 'red',
-                            fontWeight: 600
-                          }}
-                        >
-                          Phí vận chuyển: {pickupFee.toLocaleString('vi-VN')} đ
-                        </Typography>
-                      )}
+                      {!loadingPickupFee &&
+                        typeof pickupFee === 'number' &&
+                        pickupFee > 0 &&
+                        returnRequestDetails?.situation === 'customer_pays' && (
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              border: '1px solid red',
+                              borderRadius: '4px',
+                              px: 1,
+                              py: '2px',
+                              color: 'red',
+                              fontWeight: 600
+                            }}
+                          >
+                            Phí vận chuyển: {pickupFee.toLocaleString('vi-VN')} đ
+                          </Typography>
+                        )}
                     </Box>
                   </Box>
                 </Box>
               </Box>
             </Box>
 
-            {/* <Box
-                            sx={{
-                                border: '1px solid #e0e0e0',
-                                borderRadius: '8px',
-                                mb: 2,
-                                bgcolor: 'white',
-                                p: '16px',
-                                opacity: 0.6, 
-                                cursor: 'not-allowed'
-                            }}
-                        >
-                            <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
-                                
-                                <Box sx={{ flexGrow: 1 }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        <Typography variant="body1" fontWeight="bold">
-                                            Trả hàng tại bưu cục
-                                        </Typography>
-                                        <Chip
-                                            label="Đang cập nhật"
-                                            size="small"
-                                            color="warning"
-                                            sx={{ fontWeight: 600 }}
-                                        />
-                                    </Box>
-
-                                    <Typography
-                                        variant="body2"
-                                        color="text.secondary"
-                                        sx={{ mt: 0.5, ml: 0.5 }}
-                                    >
-                                        Tính năng này đang được cập nhật, vui lòng chọn phương thức khác.
-                                    </Typography>
-                                </Box>
-                            </Box>
-                        </Box> */}
             <Box
               onClick={() => setReturnMethod('self_send')}
               sx={{
@@ -652,29 +614,28 @@ export default function ReturnMethodPage() {
                   }}
                 />
                 <Box sx={{ flexGrow: 1 }}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      flexWrap: 'wrap' // để xuống dòng khi hết chỗ
-                    }}
-                  >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                     <Typography variant="body1" fontWeight="bold">
                       Trả hàng tại bưu cục
                     </Typography>
 
-                    <Chip
-                      label="Vui lòng thanh toán phí vận chuyển"
-                      size="small"
-                      variant="outlined"
-                      sx={{
-                        borderColor: '#1AA2E9',
-                        color: '#1AA2E9',
-                        fontWeight: 600,
-                        ml: 1
-                      }}
-                    />
+                    {returnRequestDetails?.situation === 'customer_pays' && (
+                      <Chip
+                        label="Vui lòng thanh toán phí vận chuyển"
+                        size="small"
+                        variant="outlined"
+                        sx={{
+                          borderColor: '#1AA2E9',
+                          color: '#1AA2E9',
+                          fontWeight: 600,
+                          ml: 1
+                        }}
+                      />
+                    )}
+
+                    {returnRequestDetails?.situation === 'seller_pays' && (
+                      <Chip label="Miễn phí vận chuyển" size="small" color="success" sx={{ fontWeight: 600, ml: 1 }} />
+                    )}
 
                     {/* Dòng mô tả thêm */}
                     <Typography variant="body2" color="text.secondary" sx={{ width: '100%', mt: 0.5, ml: 0.5 }}>
@@ -723,7 +684,7 @@ export default function ReturnMethodPage() {
                                   </Typography>
                                 </Box>
 
-                                {svc.fee > 0 && (
+                                {svc.fee > 0 && returnRequestDetails?.situation === 'customer_pays' && (
                                   <Typography
                                     variant="body2"
                                     sx={{

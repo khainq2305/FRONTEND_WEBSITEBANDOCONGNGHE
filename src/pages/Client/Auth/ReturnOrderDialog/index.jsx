@@ -106,17 +106,17 @@ const ReturnOrderPage = () => {
       return;
     }
 
-const processOrderProducts = (products) => {
-  const initialItems = {};
-  products.forEach((product) => {
-    initialItems[product.skuId] = {
-      quantity: product.quantity,
-      checked: false // mặc định chưa tick
+    const processOrderProducts = (products) => {
+      const initialItems = {};
+      products.forEach((product) => {
+        initialItems[product.skuId] = {
+          quantity: product.quantity,
+          checked: false // mặc định chưa tick
+        };
+      });
+      setSelectedReturnItems(initialItems);
+      setSelectAll(false); // select all cũng false
     };
-  });
-  setSelectedReturnItems(initialItems);
-  setSelectAll(false); // select all cũng false
-};
 
 
     if (initialOrderProducts && initialOrderProducts.length > 0) {
@@ -127,31 +127,31 @@ const processOrderProducts = (products) => {
       processOrderProducts(initialOrderProducts);
       setLoading(false);
     } else {
-    const fetchOrderDetail = async () => {
-  try {
-    setLoading(true);
-    const res = await orderService.getOrderById(orderId);
-    if (res.data?.data) {
-      setOrderData({
-        ...res.data.data,
-        products: res.data.data.products,
-        finalPrice: res.data.data.finalPrice,
-        // THÊM DÒNG NÀY ĐỂ LƯU PHÍ SHIP GỐC
-        shippingFee: res.data.data.shippingFee // 👈 Thêm dòng này
-      });
-      processOrderProducts(res.data.data.products);
-    } else {
-      toast.error('Không tải được chi tiết đơn hàng.');
-      navigate('/purchase');
-    }
-  } catch (error) {
-    console.error('Failed to fetch order details:', error);
-    toast.error('Lỗi khi tải chi tiết đơn hàng.');
-    navigate('/purchase');
-  } finally {
-    setLoading(false);
-  }
-};
+      const fetchOrderDetail = async () => {
+        try {
+          setLoading(true);
+          const res = await orderService.getOrderById(orderId);
+          if (res.data?.data) {
+            setOrderData({
+              ...res.data.data,
+              products: res.data.data.products,
+              finalPrice: res.data.data.finalPrice,
+              // THÊM DÒNG NÀY ĐỂ LƯU PHÍ SHIP GỐC
+              shippingFee: res.data.data.shippingFee // 👈 Thêm dòng này
+            });
+            processOrderProducts(res.data.data.products);
+          } else {
+            toast.error('Không tải được chi tiết đơn hàng.');
+            navigate('/purchase');
+          }
+        } catch (error) {
+          console.error('Failed to fetch order details:', error);
+          toast.error('Lỗi khi tải chi tiết đơn hàng.');
+          navigate('/purchase');
+        } finally {
+          setLoading(false);
+        }
+      };
       fetchOrderDetail();
     }
 
@@ -159,45 +159,45 @@ const processOrderProducts = (products) => {
     setShowBankInfoForm(orderPaymentMethodCode && methodsRequiringBankInfo.includes(orderPaymentMethodCode));
   }, [orderId, orderPaymentMethodCode, initialOrderProducts, navigate]);
 
-useEffect(() => {
-  if (orderData?.products && orderData.products.length > 0) {
-    // Sửa lỗi ở đây: Kiểm tra thuộc tính .checked thay vì quantity
-    const allItemsChecked = orderData.products.every(
-      (product) => selectedReturnItems[product.skuId]?.checked
-    );
-    
-    setSelectAll(allItemsChecked);
-  } else {
-    setSelectAll(false)
-  }
-}, [selectedReturnItems, orderData]);
+  useEffect(() => {
+    if (orderData?.products && orderData.products.length > 0) {
+      // Sửa lỗi ở đây: Kiểm tra thuộc tính .checked thay vì quantity
+      const allItemsChecked = orderData.products.every(
+        (product) => selectedReturnItems[product.skuId]?.checked
+      );
+
+      setSelectAll(allItemsChecked);
+    } else {
+      setSelectAll(false)
+    }
+  }, [selectedReturnItems, orderData]);
   const handleItemCheckboxChange = (skuIdRaw, isChecked) => {
     const skuId = Number(skuIdRaw);
     const product = orderData?.products?.find((p) => p.skuId === skuId);
     if (!product) return;
 
     setSelectedReturnItems((prev) => ({
-  ...prev,
-  [skuId]: {
-    quantity: prev[skuId]?.quantity || product.quantity,
-    checked: isChecked
-  }
-}));
+      ...prev,
+      [skuId]: {
+        quantity: prev[skuId]?.quantity || product.quantity,
+        checked: isChecked
+      }
+    }));
 
   };
- const handleSelectAllChange = (e) => {
-  const checked = e.target.checked;
-  setSelectAll(checked);
+  const handleSelectAllChange = (e) => {
+    const checked = e.target.checked;
+    setSelectAll(checked);
 
-  const newSelectedItems = {};
-  orderData?.products?.forEach((product) => {
-    newSelectedItems[product.skuId] = {
-      quantity: product.quantity,
-      checked: checked
-    };
-  });
-  setSelectedReturnItems(newSelectedItems);
-};
+    const newSelectedItems = {};
+    orderData?.products?.forEach((product) => {
+      newSelectedItems[product.skuId] = {
+        quantity: product.quantity,
+        checked: checked
+      };
+    });
+    setSelectedReturnItems(newSelectedItems);
+  };
 
   const handleFileChange = (event, fileType) => {
     const files = Array.from(event.target.files);
@@ -257,31 +257,31 @@ useEffect(() => {
     };
   }, [evidenceFiles]);
 
-const totalRefundAmount = useMemo(() => {
-  if (!orderData) return 0;
+  const totalRefundAmount = useMemo(() => {
+    if (!orderData) return 0;
 
-  // Lấy tổng số lượng sản phẩm ban đầu trong đơn hàng
-  const totalOriginalQuantity = orderData.products.reduce((sum, p) => sum + p.quantity, 0);
+    // Lấy tổng số lượng sản phẩm ban đầu trong đơn hàng
+    const totalOriginalQuantity = orderData.products.reduce((sum, p) => sum + p.quantity, 0);
 
-  let refundTotal = 0;
-  let totalReturnedQuantity = 0;
+    let refundTotal = 0;
+    let totalReturnedQuantity = 0;
 
-  // Lặp qua các sản phẩm đã được chọn
-  for (const product of orderData.products) {
-    const itemState = selectedReturnItems[product.skuId];
-    if (itemState?.checked && itemState.quantity > 0) {
-      refundTotal += product.price * itemState.quantity;
-      totalReturnedQuantity += itemState.quantity;
+    // Lặp qua các sản phẩm đã được chọn
+    for (const product of orderData.products) {
+      const itemState = selectedReturnItems[product.skuId];
+      if (itemState?.checked && itemState.quantity > 0) {
+        refundTotal += product.price * itemState.quantity;
+        totalReturnedQuantity += itemState.quantity;
+      }
     }
-  }
 
-  // Nếu trả lại toàn bộ đơn hàng, hoàn lại finalPrice
-  if (totalOriginalQuantity > 0 && totalOriginalQuantity === totalReturnedQuantity) {
-    refundTotal = orderData.finalPrice || refundTotal;
-  }
+    // Nếu trả lại toàn bộ đơn hàng
+    if (totalOriginalQuantity > 0 && totalOriginalQuantity === totalReturnedQuantity) {
+      refundTotal = (orderData.finalPrice || refundTotal) + (orderData.shippingFee || 0); // ✅ cộng luôn phí ship
+    }
 
-  return refundTotal;
-}, [selectedReturnItems, orderData]);
+    return refundTotal;
+  }, [selectedReturnItems, orderData]);
   const handleSubmitFinal = async () => {
     setSubmitting(true);
     const newErrors = {};
@@ -332,16 +332,16 @@ const totalRefundAmount = useMemo(() => {
     if (selectedReason === 'OTHER') {
       formData.append('detailedReason', detailedReason.trim());
     }
-formData.append('situation', situation);
+
 
     const itemsToReturn = Object.keys(selectedReturnItems)
-  .filter(skuId => selectedReturnItems[skuId]?.checked && selectedReturnItems[skuId]?.quantity > 0)
-  .map(skuId => ({
-    skuId: Number(skuId),
-    quantity: selectedReturnItems[skuId].quantity,
-  }));
+      .filter(skuId => selectedReturnItems[skuId]?.checked && selectedReturnItems[skuId]?.quantity > 0)
+      .map(skuId => ({
+        skuId: Number(skuId),
+        quantity: selectedReturnItems[skuId].quantity,
+      }));
 
-formData.append('itemsToReturn', JSON.stringify(itemsToReturn));
+    formData.append('itemsToReturn', JSON.stringify(itemsToReturn));
 
     evidenceFiles.forEach((fileData) => {
       if (fileData.file.type.startsWith('image/')) {
@@ -399,7 +399,8 @@ formData.append('itemsToReturn', JSON.stringify(itemsToReturn));
 
         {orderData?.products && orderData.products.length > 0 ? (
           orderData.products.map((product) => {
-            const isChecked = selectedReturnItems[product.skuId] === product.quantity;
+            const isChecked = selectedReturnItems[product.skuId]?.checked || false;
+
 
             const handleWrapperClick = () => {
               handleItemCheckboxChange(product.skuId, !isChecked);
@@ -417,20 +418,20 @@ formData.append('itemsToReturn', JSON.stringify(itemsToReturn));
                 borderRadius={1}
                 bgcolor="white"
               >
-<Checkbox
-  checked={selectedReturnItems[product.skuId]?.checked || false}
-  onChange={(e) =>
-    setSelectedReturnItems((prev) => ({
-      ...prev,
-      [product.skuId]: {
-        quantity: prev[product.skuId]?.quantity || product.quantity,
-        checked: e.target.checked
-      }
-    }))
-  }
-  size="medium"
-  sx={{ p: 0, mr: 1, '& .MuiSvgIcon-root': { color: '#f97316' } }}
-/>
+                <Checkbox
+                  checked={selectedReturnItems[product.skuId]?.checked || false}
+                  onChange={(e) =>
+                    setSelectedReturnItems((prev) => ({
+                      ...prev,
+                      [product.skuId]: {
+                        quantity: prev[product.skuId]?.quantity || product.quantity,
+                        checked: e.target.checked
+                      }
+                    }))
+                  }
+                  size="medium"
+                  sx={{ p: 0, mr: 1, '& .MuiSvgIcon-root': { color: '#f97316' } }}
+                />
 
 
                 <img
@@ -449,79 +450,79 @@ formData.append('itemsToReturn', JSON.stringify(itemsToReturn));
                     </Typography>
                   )}
 
-                 {/* Input số lượng có nút + và - */}
-<Box display="flex" alignItems="center" mt={1}>
-  {/* Nút trừ (-) */}
-  <IconButton
-    size="small"
-    onClick={() =>
-      setSelectedReturnItems((prev) => {
-        const currentItem = prev[product.skuId] || { quantity: 0, checked: false };
-        const newQuantity = Math.max(0, currentItem.quantity - 1);
-        return {
-          ...prev,
-          [product.skuId]: {
-            ...currentItem,
-            quantity: newQuantity,
-            checked: newQuantity > 0, // Cập nhật trạng thái check
-          },
-        };
-      })
-    }
-    sx={{
-      border: '1px solid #ddd',
-      borderRadius: '4px 0 0 4px',
-      width: 32,
-      height: 32
-    }}
-  >
-    -
-  </IconButton>
+                  {/* Input số lượng có nút + và - */}
+                  <Box display="flex" alignItems="center" mt={1}>
+                    {/* Nút trừ (-) */}
+                    <IconButton
+                      size="small"
+                      onClick={() =>
+                        setSelectedReturnItems((prev) => {
+                          const currentItem = prev[product.skuId] || { quantity: 0, checked: false };
+                          const newQuantity = Math.max(0, currentItem.quantity - 1);
+                          return {
+                            ...prev,
+                            [product.skuId]: {
+                              ...currentItem,
+                              quantity: newQuantity,
+                              checked: newQuantity > 0, // Cập nhật trạng thái check
+                            },
+                          };
+                        })
+                      }
+                      sx={{
+                        border: '1px solid #ddd',
+                        borderRadius: '4px 0 0 4px',
+                        width: 32,
+                        height: 32
+                      }}
+                    >
+                      -
+                    </IconButton>
 
-  {/* Khung hiển thị số lượng */}
-  <Box
-    sx={{
-      borderTop: '1px solid #ddd',
-      borderBottom: '1px solid #ddd',
-      width: 50,
-      height: 32,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontSize: 14,
-      fontWeight: 500
-    }}
-  >
-    {selectedReturnItems[product.skuId]?.quantity || 0}
-  </Box>
+                    {/* Khung hiển thị số lượng */}
+                    <Box
+                      sx={{
+                        borderTop: '1px solid #ddd',
+                        borderBottom: '1px solid #ddd',
+                        width: 50,
+                        height: 32,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 14,
+                        fontWeight: 500
+                      }}
+                    >
+                      {selectedReturnItems[product.skuId]?.quantity || 0}
+                    </Box>
 
-  {/* Nút cộng (+) */}
-  <IconButton
-    size="small"
-    onClick={() =>
-      setSelectedReturnItems((prev) => {
-        const currentItem = prev[product.skuId] || { quantity: 0, checked: false };
-        const newQuantity = Math.min(product.quantity, currentItem.quantity + 1);
-        return {
-          ...prev,
-          [product.skuId]: {
-            ...currentItem,
-            quantity: newQuantity,
-            checked: true, // Cập nhật trạng thái check
-          },
-        };
-      })
-    }
-    sx={{
-      border: '1px solid #ddd',
-      borderRadius: '0 4px 4px 0',
-      width: 32,
-      height: 32
-    }}
-  >
-    +
-  </IconButton>
-</Box>
+                    {/* Nút cộng (+) */}
+                    <IconButton
+                      size="small"
+                      onClick={() =>
+                        setSelectedReturnItems((prev) => {
+                          const currentItem = prev[product.skuId] || { quantity: 0, checked: false };
+                          const newQuantity = Math.min(product.quantity, currentItem.quantity + 1);
+                          return {
+                            ...prev,
+                            [product.skuId]: {
+                              ...currentItem,
+                              quantity: newQuantity,
+                              checked: true, // Cập nhật trạng thái check
+                            },
+                          };
+                        })
+                      }
+                      sx={{
+                        border: '1px solid #ddd',
+                        borderRadius: '0 4px 4px 0',
+                        width: 32,
+                        height: 32
+                      }}
+                    >
+                      +
+                    </IconButton>
+                  </Box>
 
                   <Typography variant="caption" color="text.secondary">
                     (Đã mua: {product.quantity})
