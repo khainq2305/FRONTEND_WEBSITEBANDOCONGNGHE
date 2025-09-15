@@ -49,29 +49,29 @@ const ShippingMethodSelector = ({
     onSelect && onSelect(method);
   };
 
-  return (
+return (
   <div className="bg-white rounded-lg p-4 border border-gray-200">
     <h2 className="font-semibold text-sm sm:text-base mb-3 flex items-center">
       <FiTruck className="mr-2" /> Chọn phương thức vận chuyển
     </h2>
-    {loading ? (
-      <div className="flex items-center text-sm text-gray-500">
-        <FiLoader className="animate-spin mr-2" /> Đang tải...
-      </div>
-    ) : !selectedAddress ? (
+
+    {!selectedAddress ? (
       <p className="text-sm text-gray-500">
         Vui lòng nhập thông tin giao hàng để tính phí vận chuyển.
       </p>
-    ) : methods.length === 0 ? (
+    ) : (methods.length === 0 && !loading) ? (
       <p className="text-sm text-gray-500">Không có lựa chọn nào khả dụng.</p>
     ) : (
       <ul className="space-y-2">
-        {methods.map((m) => {
+        {(methods.length > 0 ? methods : [
+          { code: "ghn", name: "Giao Hàng Nhanh", fee: null, leadTime: null },
+          { code: "ghtk", name: "Giao Hàng Tiết Kiệm", fee: null, leadTime: null }
+        ]).map((m) => {
           const isSelected = selectedMethod?.code === m.code;
           return (
             <li
               key={m.code}
-              onClick={() => handleChange(m)}
+              onClick={() => m.fee !== null && handleChange(m)}
               className={[
                 "flex items-center justify-between p-3 border rounded-md cursor-pointer transition-colors",
                 "hover:border-gray-300",
@@ -95,13 +95,15 @@ const ShippingMethodSelector = ({
                   <div>
                     <p className="font-medium text-sm text-gray-900">{m.name}</p>
                     <p className="text-xs text-gray-500">
-                      Thời gian {m.leadTime || "?"} ngày
+                      Thời gian {m.leadTime || (loading ? "đang tính..." : "?")} ngày
                     </p>
                   </div>
                 </div>
               </div>
               <span className="text-sm font-semibold text-red-600">
-                {m.fee === 0 ? "Miễn phí" : formatCurrencyVND(m.fee)}
+                {m.fee === null ? (
+                  <span className="text-gray-400">Đang tính...</span>
+                ) : m.fee === 0 ? "Miễn phí" : formatCurrencyVND(m.fee)}
               </span>
             </li>
           );
@@ -110,6 +112,7 @@ const ShippingMethodSelector = ({
     )}
   </div>
 );
+
 
 };
 
