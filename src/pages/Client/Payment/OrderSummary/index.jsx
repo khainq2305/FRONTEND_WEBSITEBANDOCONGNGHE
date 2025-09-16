@@ -4,7 +4,7 @@ import { orderService } from '../../../../services/client/orderService';
 import { paymentService } from '../../../../services/client/paymentService';
 import { toast } from 'react-toastify';
 import { FiInfo, FiChevronRight, FiChevronUp } from 'react-icons/fi';
-import Loader from '@/components/common/Loader'
+import Loader from '@/components/common/Loader';
 import TotpModal from '../TotpModal';
 import GoogleAuthModal from '../../Auth/GoogleAuthModal';
 import { walletService } from '../../../../services/client/walletService';
@@ -54,26 +54,23 @@ const OrderSummary = ({
         const res = await couponService.applyCoupon({
           codes: [selectedCoupons.shipping.code],
           orderTotal: totalAmountAfterProductDiscount, // Sửa ở đây
-          skuIds: selectedItems.map(i => i.skuId),
+          skuIds: selectedItems.map((i) => i.skuId),
           shippingFee: Number(shippingFee)
         });
 
         if (res.data?.isValid) {
-          setSelectedCoupons(prev => ({
+          setSelectedCoupons((prev) => ({
             ...prev,
             shipping: res.data.shippingCoupon
           }));
-          localStorage.setItem(
-            "appliedCoupons",
-            JSON.stringify({ ...selectedCoupons, shipping: res.data.shippingCoupon })
-          );
+          localStorage.setItem('appliedCoupons', JSON.stringify({ ...selectedCoupons, shipping: res.data.shippingCoupon }));
         } else {
-          toast.warn("Mã freeship không còn hiệu lực");
-          setSelectedCoupons(prev => ({ ...prev, shipping: null }));
+          toast.warn('Mã freeship không còn hiệu lực');
+          setSelectedCoupons((prev) => ({ ...prev, shipping: null }));
         }
       } catch (err) {
-        console.error("Lỗi reapply freeship:", err);
-        toast.error("Không thể áp mã freeship");
+        console.error('Lỗi reapply freeship:', err);
+        toast.error('Không thể áp mã freeship');
       }
     };
 
@@ -99,12 +96,10 @@ const OrderSummary = ({
     }
   }, [propCoupons]);
   const totalAmountBeforeCoupon = useMemo(() => {
-    return selectedItems.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0
-    );
+    return selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   }, [selectedItems]);
-  const handleApplyPromo = async (couponObject) => { // ✅ Nhận object
+  const handleApplyPromo = async (couponObject) => {
+    // ✅ Nhận object
     if (!couponObject || (!couponObject.discount && !couponObject.shipping)) {
       setSelectedCoupons({ discount: null, shipping: null });
       localStorage.removeItem('appliedCoupons');
@@ -130,10 +125,8 @@ const OrderSummary = ({
         codes: codesToApply,
         skuIds: currentSkuIds,
 
-
-
         orderTotal: totalAmountBeforeCoupon, // ✅ Sử dụng biến chung
-        shippingFee: Number(shippingFee || 0)   // ✅ thêm dòng này
+        shippingFee: Number(shippingFee || 0) // ✅ thêm dòng này
       });
       const { discountCoupon, shippingCoupon, isValid } = res.data;
 
@@ -202,7 +195,7 @@ const OrderSummary = ({
           codes: codesToApply,
           orderTotal: totalAmountBeforeCoupon, // ✅ Dùng giá trị đã sửa
           skuIds: currentSkuIds,
-          shippingFee: Number(shippingFee || 0)   // ✅ thêm dòng này
+          shippingFee: Number(shippingFee || 0) // ✅ thêm dòng này
         });
 
         if (!res.data?.isValid) {
@@ -232,10 +225,7 @@ const OrderSummary = ({
 
   const totalDiscountDisplay = discount + couponDiscount + shippingDiscount + pointDiscountAmount;
 
-  const finalAmount = Math.max(
-    totalAmount + shippingFee - totalDiscountDisplay,
-    0
-  );
+  const finalAmount = Math.max(totalAmount + shippingFee - totalDiscountDisplay, 0);
 
   const handleSubmitOtp = async (token) => {
     try {
@@ -282,11 +272,10 @@ const OrderSummary = ({
           codes: codesToApply,
           // Thêm đoạn code này ở đầu hàm handlePlaceOrder
 
-
           // Sau đó, sửa dòng code cũ trong API thành dòng này
           orderTotal: totalAmountBeforeCoupon,
           skuIds: itemsToCheckout.map((i) => i.skuId),
-          shippingFee: Number(shippingFee || 0)   // ✅ thêm dòng này
+          shippingFee: Number(shippingFee || 0) // ✅ thêm dòng này
         });
 
         if (!res.data?.isValid) {
@@ -313,7 +302,6 @@ const OrderSummary = ({
         gaToken,
         pointsToSpend: usePoints ? pointInfo.maxUsablePoints : 0,
         couponCodes: [selectedCoupons.discount?.code, selectedCoupons.shipping?.code].filter(Boolean),
-
 
         note: '',
         items: itemsToCheckout.map((i) => ({
@@ -411,7 +399,6 @@ const OrderSummary = ({
 
       toast.success('Đặt hàng thành công!');
       navigate(`/order-confirmation?orderCode=${orderCode}`, { replace: true });
-
     } catch (err) {
       console.error('[Create Order]', err);
       toast.error(err?.response?.data?.message || 'Lỗi đặt hàng!');
@@ -453,7 +440,7 @@ const OrderSummary = ({
 
         <div className="flex flex-col gap-3 mt-4">
           <div className="border border-gray-200 rounded-md p-3">
-            {(selectedCoupons.discount || selectedCoupons.shipping) ? (
+            {selectedCoupons.discount || selectedCoupons.shipping ? (
               <div className="flex flex-col gap-2">
                 {selectedCoupons.discount && (
                   <CouponCard
@@ -521,7 +508,6 @@ const OrderSummary = ({
                 <span>Đổi {pointInfo.maxUsablePoints.toLocaleString('vi-VN')} điểm</span>
                 <span className="text-gray-400 text-xs">
                   (~{formatCurrencyVND(pointInfo.maxUsablePoints * (pointInfo.redeemRate || 10))})
-
                 </span>
               </div>
             </div>
@@ -596,7 +582,9 @@ const OrderSummary = ({
                       </span>
                     </>
                   ) : (
-                    <span className="font-medium text-gray-800">{shippingFee === 0 ? 'Miễn phí' : formatCurrencyVND(shippingFee)}</span>
+                    <span className="font-medium text-gray-800">
+                      {selectedShipMethod == null ? 'Đang tính phí...' : shippingFee === 0 ? 'Miễn phí' : formatCurrencyVND(shippingFee)}
+                    </span>
                   )}
                 </span>
               </div>

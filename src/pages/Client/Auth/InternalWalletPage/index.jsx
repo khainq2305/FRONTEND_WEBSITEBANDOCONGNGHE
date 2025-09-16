@@ -221,7 +221,7 @@ setTotal(pagination.total || 0);
                 className="inline-flex items-center gap-3 px-4 h-[40px] rounded-md border border-yellow-300 bg-yellow-50 text-yellow-700 text-sm hover:bg-yellow-100 font-medium shadow-sm transition"
               >
                 <img src={GoogleAuthActiveImg} alt="Google Authenticator" className="w-6 h-6" />
-                <span>Bật bảo mật thanh toán</span>
+                <span>Bảo mật thanh toán</span>
               </button>
             )}
           </div>
