@@ -64,7 +64,12 @@ const AddressForm = ({ onSave, onCancel }) => {
       setSelectedWard(null);
       try {
         const data = await shippingService.getDistricts(selectedProvince.id);
-        setDistricts(data || []);
+       setDistricts(
+  (data || []).filter(
+    (d) => d.name?.trim().toLowerCase() !== 'huyện hoàng sa'
+  )
+);
+
       } catch (e) {
         console.error('[District]', e);
         toast.error('Không thể tải Quận/Huyện.');
