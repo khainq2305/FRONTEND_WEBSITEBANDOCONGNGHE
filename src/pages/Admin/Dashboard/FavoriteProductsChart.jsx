@@ -10,7 +10,7 @@ function ChartStatus({ loading, error, data }) {
  if (loading)
   return (
    <Box display="flex" justifyContent="center" alignItems="center" minHeight={350}>
-    <CircularProgress sx={{ color: "#e91e63" }} /> {/* Changed color */}
+    <CircularProgress sx={{ color: "#e91e63" }} /> 
     <Typography variant="body1" sx={{ ml: 2, color: "text.secondary" }}>Đang tải biểu đồ...</Typography>
    </Box>
   );
