@@ -1,106 +1,139 @@
 "use client";
 
-import { useState } from "react";
-import { Box, Button, Popover, Typography } from "@mui/material";
-import { CalendarToday } from "@mui/icons-material";
+import React, { useState, useEffect } from "react";
+import {
+  Box,
+  Button,
+  Popover,
+  TextField,
+  Select,
+  MenuItem,
+} from "@mui/material";
+import { DateRange } from "@mui/icons-material";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { LocalizationProvider } from "@mui/x-date-pickers-pro";
 import { StaticDateRangePicker } from "@mui/x-date-pickers-pro/StaticDateRangePicker";
-import { toast } from "react-toastify";
+import { vi } from "date-fns/locale";
 
-export default function DatePickerRange({ dateRange, setDateRange, isCustomFilter }) {
+const DatePickerRange = ({ dateRange, setDateRange }) => {
+  const today = new Date();
   const [anchorEl, setAnchorEl] = useState(null);
+  const [tempValue, setTempValue] = useState([dateRange.from, dateRange.to]);
+  const [selectedYear, setSelectedYear] = useState(today.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(today.getMonth() + 1);
+
+  useEffect(() => {
+    const start = new Date(today.getFullYear(), today.getMonth(), 1);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    end.setHours(23, 59, 59, 999);
+    setDateRange({ from: start, to: end });
+  }, []);
 
   const handleClick = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
-
-  const formatDate = (date) =>
-    date ? new Date(date).toLocaleDateString("vi-VN") : "";
-
   const open = Boolean(anchorEl);
-  const id = open ? "date-range-popover" : undefined;
-
-  const handleDateRangeChange = (newDateRange) => {
-    // Chỉ cập nhật state và đóng popover khi có cả ngày bắt đầu và ngày kết thúc hợp lệ
-    if (newDateRange[0] && newDateRange[1]) {
-      // Đặt giờ, phút, giây, mili giây về cuối ngày để bao gồm trọn vẹn ngày kết thúc
-      const adjustedEndDate = new Date(newDateRange[1]);
-      adjustedEndDate.setHours(23, 59, 59, 999);
-      setDateRange({ from: newDateRange[0], to: adjustedEndDate });
-      handleClose();
-    } else {
-      // Cho phép người dùng chọn một ngày, nhưng không đóng popover
-      setDateRange({ from: newDateRange[0], to: null });
-    }
-  };
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDateFns}>
-      <Box>
-        <Button
-          variant="outlined"
-          startIcon={<CalendarToday />}
-          onClick={handleClick}
-          aria-describedby={id}
-          sx={{
-            minWidth: 280,
-            borderRadius: 3,
-            textTransform: "none",
-            fontWeight: 500,
-            borderColor: "primary.main",
-            color: "primary.main",
-            background: "white",
-            px: 2,
-            py: 1.2,
-            justifyContent: "flex-start",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-            "&:hover": {
-              borderColor: "primary.dark",
-              backgroundColor: "rgba(25, 118, 210, 0.04)",
-              transform: "translateY(-1px)",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-            },
-            transition: "all 0.25s ease",
-          }}
-        >
-          <Typography
-            variant="body2"
-            sx={{ fontWeight: 500, color: "primary.main" }}
-          >
-            {dateRange?.from
-              ? dateRange.to
-                ? `${formatDate(dateRange.from)} - ${formatDate(dateRange.to)}`
-                : `${formatDate(dateRange.from)} - Đang chọn...`
-              : "Chọn khoảng ngày"}
-          </Typography>
-        </Button>
+    <>
+      <Button
+        onClick={handleClick}
+        variant="outlined"
+        startIcon={<DateRange />}
+      >
+        {dateRange.from && dateRange.to
+          ? `${dateRange.from.toLocaleDateString("vi-VN")} - ${dateRange.to.toLocaleDateString("vi-VN")}`
+          : "Chọn khoảng thời gian"}
+      </Button>
 
-        <Popover
-          id={id}
-          open={open}
-          anchorEl={anchorEl}
-          onClose={handleClose}
-          anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-          transformOrigin={{ vertical: "top", horizontal: "left" }}
-          sx={{
-            "& .MuiPaper-root": {
-              borderRadius: 3,
-              boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
-              border: "1px solid rgba(0,0,0,0.08)",
-            },
-          }}
-        >
-          <Box p={2}>
-            <StaticDateRangePicker
-              value={[dateRange.from, dateRange.to]}
-              onChange={handleDateRangeChange}
-              displayStaticWrapperAs="desktop"
-              calendars={2}
-              disableFuture
-            />
+      <Popover
+        open={open}
+        anchorEl={anchorEl}
+        onClose={handleClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Box p={2}>
+          <Box display="flex" gap={1} mb={2}>
+            {/* Select năm */}
+            <Select
+              size="small"
+              value={selectedYear}
+              onChange={(e) => {
+                setSelectedYear(e.target.value);
+                setSelectedMonth("");
+              }}
+              sx={{ minWidth: 100 }}
+            >
+              {Array.from({ length: 101 }).map((_, yi) => {
+                const year = 2000 + yi;
+                return (
+                  <MenuItem key={year} value={year}>
+                    {year}
+                  </MenuItem>
+                );
+              })}
+            </Select>
+
+            {/* Select tháng */}
+            <Select
+              size="small"
+              value={selectedMonth}
+              onChange={(e) => {
+                const month = e.target.value;
+                setSelectedMonth(month);
+
+                const start = new Date(selectedYear, month - 1, 1);
+                start.setHours(0, 0, 0, 0);
+                const end = new Date(selectedYear, month, 0);
+                end.setHours(23, 59, 59, 999);
+
+                setDateRange({ from: start, to: end });
+                handleClose();
+              }}
+              sx={{ minWidth: 120 }}
+              disabled={!selectedYear}
+            >
+              {Array.from({ length: 12 }).map((_, mi) => {
+                const month = mi + 1;
+                return (
+                  <MenuItem key={month} value={month}>
+                    Tháng {month}
+                  </MenuItem>
+                );
+              })}
+            </Select>
           </Box>
-        </Popover>
-      </Box>
-    </LocalizationProvider>
+
+          {/* Date range picker */}
+          <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={vi}>
+            <StaticDateRangePicker
+              displayStaticWrapperAs="desktop"
+              value={tempValue}
+              onChange={(newValue) => {
+                if (newValue[0] && newValue[1]) {
+                  const newRange = {
+                    from: new Date(newValue[0].setHours(0, 0, 0, 0)),
+                    to: new Date(newValue[1].setHours(23, 59, 59, 999)),
+                  };
+                  setDateRange(newRange);
+                }
+                setTempValue(newValue);
+              }}
+              shouldDisableDate={(date) => date > new Date()}
+              slots={{ actionBar: () => null }}
+              renderInput={(startProps, endProps) => (
+                <>
+                  <TextField {...startProps} />
+                  <Box sx={{ mx: 2 }}> đến </Box>
+                  <TextField {...endProps} />
+                </>
+              )}
+            />
+          </LocalizationProvider>
+        </Box>
+      </Popover>
+    </>
   );
-}
+};
+
+export default DatePickerRange;

@@ -17,7 +17,7 @@ import {
   Container,
   Paper,
 } from "@mui/material"
-import { CalendarToday, Download, PictureAsPdf, TrendingUp, Favorite  } from "@mui/icons-material"
+import { CalendarToday, Download, PictureAsPdf, TrendingUp, Favorite } from "@mui/icons-material"
 import DatePickerRange from "./DatePickerRange"
 import StatsCards from "./StatsCards"
 import RevenueChart from "./RevenueChart"
@@ -33,7 +33,6 @@ import { dashboardService } from "@/services/admin/dashboardService"
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-// Hàm formatNumber được giữ lại ở đây để đảm bảo hoạt động độc lập
 const formatNumber = (num) => {
   if (num === null || num === undefined) {
     return 'N/A';
@@ -56,8 +55,6 @@ const formatNumber = (num) => {
   return num.toLocaleString('vi-VN');
 };
 
-
-// Centralized Theme/Style Object (Đề xuất thêm để đồng bộ)
 const THEME = {
   colors: {
     primary: '#667eea',
@@ -67,11 +64,11 @@ const THEME = {
     excelButtonColor: '#2e7d32',
     cardBackground: "rgba(255, 255, 255, 0.95)",
     topProductsChart: {
-      gradientStart: '#f57c00', // Màu cam
+      gradientStart: '#f57c00', 
       gradientEnd: '#ffb74d',
     },
     favoriteProductsChart: {
-      gradientStart: '#e91e63', // Màu hồng
+      gradientStart: '#e91e63', 
       gradientEnd: '#f06292',
     }
   },
@@ -106,19 +103,33 @@ export default function Dashboard() {
 
     switch (value) {
       case "today":
-        setDateRange({ from: today, to: today })
-        break
+        const startOfToday = new Date(today);
+        startOfToday.setHours(0, 0, 0, 0);
+        const endOfToday = new Date(today);
+        endOfToday.setHours(23, 59, 59, 999);
+        setDateRange({ from: startOfToday, to: endOfToday });
+        break;
       case "7days":
-        setDateRange({
-          from: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-          to: today,
-        })
-        break
+        const end7 = new Date();
+        end7.setHours(23, 59, 59, 999);
+
+        const start7 = new Date();
+        start7.setDate(end7.getDate() - 6);
+        start7.setHours(0, 0, 0, 0);
+
+        setDateRange({ from: start7, to: end7 });
+        break;
+
       case "thisMonth":
-        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
-        const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0)
-        setDateRange({ from: startOfMonth, to: endOfMonth })
-        break
+        const now = new Date();
+        const startMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        startMonth.setHours(0, 0, 0, 0);
+
+        const endMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        endMonth.setHours(23, 59, 59, 999);
+
+        setDateRange({ from: startMonth, to: endMonth });
+        break;
       case "custom":
         break
     }
@@ -140,7 +151,6 @@ export default function Dashboard() {
         from: dateRange?.from?.toISOString().split("T")[0],
         to: dateRange?.to?.toISOString().split("T")[0],
       })
-      // Cập nhật API gọi để lấy toàn bộ danh sách sản phẩm
       const topSellingProductsData = await dashboardService.getAllTopSellingProducts(params)
       const favoriteProductsData = await dashboardService.getAllFavoriteProducts(params)
 
@@ -179,7 +189,6 @@ export default function Dashboard() {
       const ordersWorksheet = XLSX.utils.aoa_to_sheet(ordersSheetData)
       XLSX.utils.book_append_sheet(workbook, ordersWorksheet, "Đơn hàng theo ngày")
 
-      // Sử dụng `topSellingProductsData.data` vì API mới trả về cấu trúc phân trang
       const topSellingProductsSheetData = [
         ["Tên sản phẩm", "Biến thể", "Số lượng bán", "Doanh thu"],
         ...topSellingProductsData.data.map((item) => [item.name, item.variant, formatNumber(item.sold), formatNumber(item.revenue)]),
@@ -187,7 +196,6 @@ export default function Dashboard() {
       const topSellingWorksheet = XLSX.utils.aoa_to_sheet(topSellingProductsSheetData)
       XLSX.utils.book_append_sheet(workbook, topSellingWorksheet, "Sản phẩm bán chạy")
 
-      // Sử dụng `favoriteProductsData.data` vì API mới trả về cấu trúc phân trang
       const favoriteProductsSheetData = [
         ["Tên sản phẩm", "Lượt yêu thích"],
         ...favoriteProductsData.data.map((item) => [item.name, formatNumber(item.wishlistCount)]),
@@ -377,7 +385,7 @@ export default function Dashboard() {
                 <CardHeader
                   title={
                     <Typography variant="h6" component="h2" fontWeight="600" color="text.primary">
-                      🔥 Top 5 sản phẩm bán chạy
+                      Top 5 sản phẩm bán chạy
                     </Typography>
                   }
                   subheader={
@@ -399,7 +407,7 @@ export default function Dashboard() {
                 <CardHeader
                   title={
                     <Typography variant="h6" component="h2" fontWeight="600" color="text.primary">
-                      ❤️ Top 5 sản phẩm được yêu thích
+                      Top 5 sản phẩm được yêu thích
                     </Typography>
                   }
                   subheader={
@@ -488,7 +496,7 @@ export default function Dashboard() {
           </Grid>
         </Box>
       </Container>
-   
+
     </Box>
   )
 }

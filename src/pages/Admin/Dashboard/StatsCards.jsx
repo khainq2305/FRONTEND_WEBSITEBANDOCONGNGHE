@@ -1,10 +1,22 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Typography, Card, Box, CircularProgress } from "@mui/material";
 import { TrendingUp, ShoppingCart, Cancel, PersonAdd, Star } from "@mui/icons-material";
 import { dashboardService } from "@/services/admin/dashboardService";
-import { formatNumber } from "@/utils/formatNumber";
+
+// Hàm format số tiền/thống kê: có dấu phân cách ngàn
+const formatCurrency = (value) => {
+  if (value === null || value === undefined || isNaN(value)) return 0;
+  return new Intl.NumberFormat("vi-VN").format(value);
+};
+
+// Hàm format giá trị % và rating: bỏ .0 nếu là số nguyên
+const formatValue = (value) => {
+  if (value === null || value === undefined || isNaN(value)) return 0;
+  const num = parseFloat(value);
+  return Number.isInteger(num) ? num : parseFloat(num.toFixed(1));
+};
 
 const statsInfo = [
   {
@@ -12,30 +24,35 @@ const statsInfo = [
     key: "totalRevenue",
     icon: TrendingUp,
     gradient: "linear-gradient(135deg, #42a5f5 0%, #1976d2 100%)",
+    type: "currency",
   },
   {
     label: "Số đơn hàng",
     key: "totalOrders",
     icon: ShoppingCart,
     gradient: "linear-gradient(135deg, #66bb6a 0%, #2e7d32 100%)",
+    type: "number",
   },
   {
     label: "Số đơn hủy",
     key: "cancelledOrders",
     icon: Cancel,
     gradient: "linear-gradient(135deg, #ef5350 0%, #d32f2f 100%)",
+    type: "number",
   },
   {
     label: "Người dùng mới",
     key: "newUsers",
     icon: PersonAdd,
     gradient: "linear-gradient(135deg, #29b6f6 0%, #0288d1 100%)",
+    type: "number",
   },
   {
     label: "Trung bình đánh giá",
     key: "averageRating",
     icon: Star,
     gradient: "linear-gradient(135deg, #ffb74d 0%, #f57c00 100%)",
+    type: "rating",
   },
 ];
 
@@ -43,12 +60,6 @@ const StatsCards = ({ dateRange }) => {
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // Xóa các state và ref liên quan đến việc cuộn ngang
-  // const scrollRef = useRef(null);
-  // const [isDragging, setIsDragging] = useState(false);
-  // const [startX, setStartX] = useState(0);
-  // const [scrollLeft, setScrollLeft] = useState(0);
 
   useEffect(() => {
     const fetchDashboardStats = async () => {
@@ -84,23 +95,6 @@ const StatsCards = ({ dateRange }) => {
     fetchDashboardStats();
   }, [dateRange]);
 
-  // Xóa các hàm xử lý sự kiện cuộn
-  // const handleMouseDown = (e) => {
-  //   setIsDragging(true);
-  //   setStartX(e.pageX - scrollRef.current.offsetLeft);
-  //   setScrollLeft(scrollRef.current.scrollLeft);
-  // };
-
-  // const handleMouseLeave = () => setIsDragging(false);
-  // const handleMouseUp = () => setIsDragging(false);
-  // const handleMouseMove = (e) => {
-  //   if (!isDragging) return;
-  //   e.preventDefault();
-  //   const x = e.pageX - scrollRef.current.offsetLeft;
-  //   const walk = (x - startX) * 1.5;
-  //   scrollRef.current.scrollLeft = scrollLeft - walk;
-  // };
-
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight={150}>
@@ -119,22 +113,13 @@ const StatsCards = ({ dateRange }) => {
 
   return (
     <Box
-      // Xóa các props và sx liên quan đến cuộn ngang
-      // ref={scrollRef}
-      // onMouseDown={handleMouseDown}
-      // onMouseLeave={handleMouseLeave}
-      // onMouseUp={handleMouseUp}
-      // onMouseMove={handleMouseMove}
       sx={{
         display: "flex",
         gap: 2.5,
-        flexWrap: "wrap", // Thêm thuộc tính này để các thẻ tự xuống dòng nếu không đủ chỗ
-        justifyContent: "space-between", // Căn đều 5 thẻ trên 1 hàng
+        flexWrap: "wrap",
+        justifyContent: "space-between",
         mb: 4,
-        // overflowX: "auto",
         paddingBottom: 1,
-        // scrollBehavior: "smooth",
-        // cursor: isDragging ? "grabbing" : "grab",
         userSelect: "none",
         "&::-webkit-scrollbar": {
           display: "none",
@@ -155,18 +140,27 @@ const StatsCards = ({ dateRange }) => {
           rawValue = parseFloat(rawValue);
         }
 
-        const displayValue =
-          info.key === "averageRating"
-            ? typeof rawValue === "number" && !isNaN(rawValue)
-              ? rawValue.toFixed(1) + "/5"
-              : "N/A"
-            : rawValue !== undefined && rawValue !== null
-            ? formatNumber(rawValue)
-            : "N/A";
+        let displayValue = "N/A";
+        if (info.type === "rating") {
+          displayValue =
+            typeof rawValue === "number" && !isNaN(rawValue)
+              ? `${formatValue(rawValue)}/5`
+              : "N/A";
+        } else if (info.type === "currency") {
+          displayValue =
+            rawValue !== undefined && rawValue !== null
+              ? formatCurrency(rawValue)
+              : "N/A";
+        } else {
+          displayValue =
+            rawValue !== undefined && rawValue !== null
+              ? formatValue(rawValue)
+              : "N/A";
+        }
 
         const displayChange =
           typeof changeValue === "number" && !isNaN(changeValue)
-            ? `${changeValue >= 0 ? "+" : ""}${changeValue.toFixed(1)}% so với trước`
+            ? `${changeValue >= 0 ? "+" : ""}${formatValue(changeValue)}% so với trước`
             : "0% so với trước";
 
         return (
@@ -183,7 +177,6 @@ const StatsCards = ({ dateRange }) => {
               alignItems: "center",
               p: 2.5,
               borderRadius: 3,
-              // Điều chỉnh box shadow để đồng bộ
               boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
               transition: "all 0.3s ease",
               "&:hover": {
@@ -218,7 +211,7 @@ const StatsCards = ({ dateRange }) => {
                 variant="h6"
                 sx={{
                   fontWeight: 700,
-                  fontSize: '1.25rem',
+                  fontSize: "1.25rem",
                   background: info.gradient,
                   backgroundClip: "text",
                   WebkitBackgroundClip: "text",
