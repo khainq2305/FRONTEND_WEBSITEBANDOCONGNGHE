@@ -225,8 +225,10 @@ const OrderSummary = ({
 
   const totalDiscountDisplay = discount + couponDiscount + shippingDiscount + pointDiscountAmount;
 
-  const finalAmount = Math.max(totalAmount + shippingFee - totalDiscountDisplay, 0);
-
+ const finalAmount = Math.max(
+  0,
+  totalAmount - couponDiscount + (shippingFee - shippingDiscount) - pointDiscountAmount - discount
+);
   const handleSubmitOtp = async (token) => {
     try {
       const res = await walletService.verifyPayment({ token });

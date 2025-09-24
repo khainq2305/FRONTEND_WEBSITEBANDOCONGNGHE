@@ -220,15 +220,6 @@ const StatsCards = ({ dateRange }) => {
               >
                 {displayValue}
               </Typography>
-              <Typography
-                variant="body2"
-                sx={{
-                  fontWeight: 600,
-                  color: changeValue >= 0 ? "success.main" : "error.main",
-                }}
-              >
-                {displayChange}
-              </Typography>
             </Box>
           </Card>
         );
