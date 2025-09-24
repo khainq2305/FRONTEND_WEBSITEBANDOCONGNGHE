@@ -48,26 +48,20 @@ useEffect(() => {
 
       try {
         const response = await fetch(`${API_BASE_URL}/payment/momo-callback`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ orderId: momoOrderId, resultCode }),
         });
         const data = await response.json();
 
         if (data.success) {
-          if (data.order) {
-            setOrder(data.order);
-          } else {
-            // Đợi server xử lý xong, sau đó mới lấy chi tiết đơn hàng
-            await fetchOrderDetails(orderCodeFromUrl);
-          }
+          // 🔄 Gọi lại DB để chắc chắn lấy bản đã update
+          await fetchOrderDetails(orderCodeFromUrl);
         } else {
-          toast.error(data.message || 'Thanh toán MoMo thất bại.');
           await fetchOrderDetails(orderCodeFromUrl);
         }
       } catch (err) {
-        console.error('Callback lỗi:', err);
-        toast.error('Có lỗi xảy ra khi xử lý thanh toán MoMo.');
+        console.error("Callback lỗi:", err);
         await fetchOrderDetails(orderCodeFromUrl);
       }
     }
@@ -75,6 +69,7 @@ useEffect(() => {
 
   handleMomoCallback();
 }, [momoOrderId, resultCode, isPaymentAttempted, orderCodeFromUrl]);
+
   useEffect(() => {
     if (!payosOrderCode || !payosStatus || isPaymentAttempted) return;
 
@@ -110,32 +105,32 @@ useEffect(() => {
     }
   }, [payosOrderCode, payosStatus, isPaymentAttempted]);
   useEffect(() => {
-  if (!vnpTxnRef || isPaymentAttempted) return;
+    if (!vnpTxnRef || isPaymentAttempted) return;
 
-  setIsPaymentAttempted(true);
+    setIsPaymentAttempted(true);
 
-  const rawQuery = window.location.search.slice(1);
+    const rawQuery = window.location.search.slice(1);
 
-  fetch(`${API_BASE_URL}/payment/vnpay-callback`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ rawQuery }),
-  })
-    .then((res) => res.json())
-    .then(async (data) => {
-      if (data.order) {
-        // 🔄 Gọi lại DB để chắc chắn lấy bản đã update
-        await fetchOrderDetails(orderCodeFromUrl);
-        return;
-      }
-      fetchOrderDetails(orderCodeFromUrl);
+    fetch(`${API_BASE_URL}/payment/vnpay-callback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rawQuery })
     })
-    .catch((err) => {
-      console.error('VNPay callback error:', err);
-      toast.error('Có lỗi khi xử lý thanh toán VNPay.');
-      fetchOrderDetails(orderCodeFromUrl);
-    });
-}, [vnpTxnRef, isPaymentAttempted, orderCodeFromUrl]);
+      .then((res) => res.json())
+      .then(async (data) => {
+        if (data.order) {
+          // 🔄 Gọi lại DB để chắc chắn lấy bản đã update
+          await fetchOrderDetails(orderCodeFromUrl);
+          return;
+        }
+        fetchOrderDetails(orderCodeFromUrl);
+      })
+      .catch((err) => {
+        console.error('VNPay callback error:', err);
+        toast.error('Có lỗi khi xử lý thanh toán VNPay.');
+        fetchOrderDetails(orderCodeFromUrl);
+      });
+  }, [vnpTxnRef, isPaymentAttempted, orderCodeFromUrl]);
 
   const fetchOrderDetails = async (code) => {
     setLoading(true);
