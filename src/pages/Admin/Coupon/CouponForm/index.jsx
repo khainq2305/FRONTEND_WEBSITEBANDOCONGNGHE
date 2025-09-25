@@ -275,7 +275,7 @@ const onSubmit = async (values) => {
                   <TextField select label="Phạm vi áp dụng" {...field} fullWidth>
                     <MenuItem value="public">Công khai</MenuItem>
                     <MenuItem value="private">Chỉ định</MenuItem>
-                    <MenuItem value="auto">Tự động</MenuItem>
+           
                   </TextField>
                 )}
               />
